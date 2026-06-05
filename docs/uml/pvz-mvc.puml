@@ -1,0 +1,362 @@
+@startuml PVZ2_MVC_Architecture
+' Plants vs. Zombies 2 — Phase 0 Initial UML
+
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontSize 12
+
+title Plants vs. Zombies 2 — MVC Architecture (Phase 0)
+
+' ENTRY POINT
+
+class Application {
+  + main()
+  + run()
+  + shutdown()
+}
+
+class CommandParser {
+  + parse()
+  + dispatch()
+}
+
+interface Controller {
+  + handle()
+}
+
+Application --> CommandParser
+CommandParser ..> Controller
+
+' MODEL
+
+package "Model" #E8F4FD {
+
+  class Player {
+    profile, wallet, inventory
+    collection, progress, settings
+  }
+
+  class Collection {
+    unlocked plants & zombies
+    plant upgrade levels
+    seed packets
+  }
+
+  class GameSession {
+    board, waves, sun
+    plant selection, game state
+  }
+
+  class GameBoard {
+    tiles, lawn mowers
+  }
+
+  class Tile {
+    tile type, plants, zombies
+  }
+
+  class WaveManager {
+    waves, spawn logic
+    difficulty scaling
+  }
+
+  class SunManager {
+    sun balance
+    falling / plant suns
+  }
+
+  ' Plants
+  package "entities.plant" #D6EAF8 {
+
+    class PlantDefinition <<data>> {
+      loaded from plants.csv
+      name, cost, recharge, HP
+      damage, category, tags
+    }
+
+    enum PlantCategory {
+      SUN_PRODUCER
+      SHOOTER
+      LOBBER
+      EXPLOSIVE
+      MELEE
+      DEFENDER
+      MODIFIER
+      STRIKE_THROUGH
+      HOMING
+      MINT
+    }
+
+    enum PlantTag {
+      DAY, NIGHT, SHROOM
+      PEA, ICE, FIRE, WATER
+      STACK, TRAP, AOE, ...
+    }
+
+    abstract class Plant {
+      + onTick()
+      + attack()
+      + takeDamage()
+      + usePlantFood()
+      + canStackOn(other): bool
+    }
+
+    class SunProducerPlant extends Plant {
+      produces sun on interval
+      e.g. Sunflower, Sun-shroom
+    }
+
+    class ShooterPlant extends Plant {
+      fires projectiles forward
+      e.g. Peashooter, Snow Pea, Repeater
+    }
+
+    class LobberPlant extends Plant {
+      lobs over obstacles
+      e.g. Cabbage-pult, Melon-pult
+    }
+
+    class ExplosivePlant extends Plant {
+      area damage on trigger
+      e.g. Cherry Bomb, Potato Mine
+    }
+
+    class DefenderPlant extends Plant {
+      high HP, blocks zombies
+      e.g. Wall-nut, Tall-nut
+    }
+
+    class ModifierPlant extends Plant {
+      alters field / other plants
+      e.g. Torchwood, Lily Pad, Garlic
+    }
+
+    class "Other categories" as OtherPlantTypes extends Plant {
+      Melee, Strike-through
+      Homing, Mint
+    }
+
+    class Projectile {
+      damage, speed, type
+      fire / ice / poison
+    }
+
+    class PlantFactory {
+      + create(type): Plant
+    }
+  }
+
+  ' Zombies
+  package "entities.zombie" #D6EAF8 {
+
+    class ZombieDefinition <<data>> {
+      name, HP, speed, damage
+      wave cost, chapter
+    }
+
+    abstract class Zombie {
+      + onTick()
+      + move()
+      + attack(plant)
+      + takeDamage(amount, type)
+    }
+
+    class Armor {
+      type, remaining HP
+      Cone / Bucket / Knight / Block
+    }
+
+    enum DamageType {
+      NORMAL, FIRE, ICE, POISON
+    }
+
+    class ZombieEffect {
+      chilled, frozen
+      hypnotized, ...
+    }
+
+    class WalkerZombie extends Zombie {
+      walks left, eats front plant
+      armor attached via composition
+      e.g. Basic, Cone, Bucket, Knight
+    }
+
+    class BossZombie extends Zombie {
+      high HP, smash attack
+      spawns Imp at half HP
+      e.g. Gargantuar
+    }
+
+    class ImpZombie extends Zombie {
+      fast, low HP
+      thrown or spawned
+    }
+
+    class PusherZombie extends Zombie {
+      pushes object ahead
+      e.g. Arcade, Barrel Roller, Troglobite
+    }
+
+    class AbilityZombie extends Zombie {
+      unique ability per subclass
+      e.g. Ra, Explorer, Hunter
+      Wizard, King, Juggler, ...
+    }
+
+    class ZombieFactory {
+      + create(type): Zombie
+    }
+  }
+
+  ' World
+  class Chapter {
+    world type, levels
+    environment rules
+  }
+
+  class Level {
+    waves, board layout
+    special rules, win/lose
+  }
+
+  enum ChapterType {
+    ANCIENT_EGYPT
+    FROSTBITE_CAVES
+    BIG_WAVE_BEACH
+    DARK_AGES
+  }
+
+  enum SpecialLevelType {
+    CONVEYOR_BELT
+    LOCKED_PLANTS
+    SAVE_OUR_SEEDS
+    TIMED_WAR, ...
+  }
+
+  ' Meta systems
+  class Greenhouse
+  class Shop
+  class Quest
+  class Leaderboard
+  class NewsFeed
+
+  class PersistenceManager {
+    save / load players
+    save / load game state
+  }
+
+  class AuthService
+  class GameService
+}
+
+Player *-- Collection
+GameSession *-- GameBoard
+GameSession *-- WaveManager
+GameSession *-- SunManager
+GameBoard *-- Tile
+Tile o-- Plant
+Tile o-- Zombie
+
+Plant --> PlantDefinition
+Plant --> PlantCategory
+Plant --> PlantTag
+ShooterPlant ..> Projectile : fires
+LobberPlant ..> Projectile : lobs
+PlantFactory ..> PlantDefinition : reads
+PlantFactory ..> Plant : creates
+
+Zombie --> ZombieDefinition
+Zombie *-- Armor
+Zombie *-- ZombieEffect
+Zombie --> DamageType
+ZombieFactory ..> ZombieDefinition : reads
+ZombieFactory ..> Zombie : creates
+
+Chapter *-- Level
+Chapter --> ChapterType
+Level --> SpecialLevelType
+Level ..> GameSession : creates
+
+Player o-- Greenhouse
+Player o-- Quest
+Player o-- NewsFeed
+
+PersistenceManager --> Player
+AuthService --> Player
+GameService --> GameSession
+GameService --> Chapter
+GameService --> PlantFactory
+GameService --> ZombieFactory
+
+' VIEW
+
+package "View" #FFF8E8 {
+
+  abstract class View {
+    display()
+    showError()
+  }
+
+  class AuthView {
+    register, login
+    forgot password
+  }
+
+  class MainMenuView {
+    play, settings, news
+    profile, logout
+  }
+
+  class GameMenuView {
+    chapters, collection
+    plant selection
+  }
+
+  class GameView {
+    map, waves, sun
+    plant / zombie status
+  }
+
+  class MetaView {
+    greenhouse, shop
+    travel log, leaderboard
+  }
+}
+
+View <|-- AuthView
+View <|-- MainMenuView
+View <|-- GameMenuView
+View <|-- GameView
+View <|-- MetaView
+
+' CONTROLLER
+
+package "Controller" #F0F8E8 {
+
+  class AuthController
+  class MenuController
+  class GameController
+  class MetaController
+}
+
+Controller <|.. AuthController
+Controller <|.. MenuController
+Controller <|.. GameController
+Controller <|.. MetaController
+
+AuthController --> AuthService
+AuthController --> AuthView
+
+MenuController --> MainMenuView
+MenuController --> GameMenuView
+
+GameController --> GameService
+GameController --> GameView
+
+MetaController --> Greenhouse
+MetaController --> Shop
+MetaController --> Quest
+MetaController --> Leaderboard
+MetaController --> MetaView
+@enduml
