@@ -1,14 +1,13 @@
-package pvz.controller;
+package controller;
 
-import pvz.model.service.AuthService;
-import pvz.view.AuthView;
+import model.service.AuthService;
+import view.AuthView;
 
-public class AuthController implements Controller {
+public class AuthController {
 
     private AuthService authService;
     private AuthView authView;
 
-    @Override
     public void handle(String command) {
     }
 }

@@ -1,6 +1,6 @@
-package pvz.view;
+package view;
 
-public class MetaView extends View {
+public class MetaView extends ViewManager {
 
     @Override
     public void display() {

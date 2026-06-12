@@ -1,18 +1,17 @@
-package pvz.model.collection;
+package model.collection;
 
-import pvz.model.plant.PlantKind;
+// import model.data.plant.PlantKind;
 
 import java.util.Set;
 
 public class Collection {
 
-    private Set<PlantKind> unlockedPlants;
-    private Set<PlantKind> lockedPlants;
+    // private Set<PlantKind> unlockedPlants;
+    // private Set<PlantKind> lockedPlants;
 
-    public void unlockPlant(PlantKind kind) {
-    }
+    // public void unlockPlant(PlantKind kind) { }
 
-    public boolean isUnlocked(PlantKind kind) {
-        return false;
-    }
+    // public boolean isUnlocked(PlantKind kind) {
+    // return false;
+    // }
 }

@@ -1,7 +1,7 @@
-package pvz.model.user;
+package model.user;
 
-import pvz.model.minigame.MinigameType;
-import pvz.model.world.ChapterType;
+import model.minigame.MinigameType;
+import model.world.ChapterType;
 
 import java.util.Set;
 

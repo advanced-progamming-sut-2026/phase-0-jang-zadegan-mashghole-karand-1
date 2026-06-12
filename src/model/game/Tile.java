@@ -1,7 +1,7 @@
-package pvz.model.game;
+package model.game;
 
-import pvz.model.plant.Plant;
-import pvz.model.zombie.Zombie;
+import model.data.plant.Plant;
+import model.data.zombie.Zombie;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package pvz.model.world;
+package model.world;
 
 public enum SpecialLevelType {
     CONVEYOR_BELT,

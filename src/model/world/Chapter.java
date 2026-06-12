@@ -1,4 +1,4 @@
-package pvz.model.world;
+package model.world;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package pvz.model.lawnmower;
+package model.lawnmower;
 
 public class LawnMower {
 

@@ -1,16 +1,13 @@
-package pvz.controller;
+package controller;
 
-import pvz.model.menu.MenuManager;
-import pvz.view.GameMenuView;
-import pvz.view.MainMenuView;
+import model.menu.MenuManager;
+import view.GameMenuView;
+import view.MainMenuView;
 
-public class MenuController implements Controller {
+public class MenuController {
 
     private MenuManager menuManager;
     private MainMenuView mainMenuView;
     private GameMenuView gameMenuView;
 
-    @Override
-    public void handle(String command) {
-    }
 }

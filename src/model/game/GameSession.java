@@ -1,13 +1,12 @@
-package pvz.model.game;
+package model.game;
 
-import pvz.model.sun.SunManager;
-import pvz.model.zombie.WaveManager;
+import model.data.sun.SunManager;
 
 public class GameSession {
 
     private GameStatus status;
     private int sunAmount;
     private GameBoard board;
-    private WaveManager waveManager;
+    // private WaveManager waveManager;
     private SunManager sunManager;
 }

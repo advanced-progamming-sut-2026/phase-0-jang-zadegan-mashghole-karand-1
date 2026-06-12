@@ -1,4 +1,4 @@
-package pvz.model.menu;
+package model.menu;
 
 public class MenuManager {
 

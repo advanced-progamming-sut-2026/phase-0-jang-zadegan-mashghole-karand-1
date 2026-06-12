@@ -1,6 +1,6 @@
-package pvz.model.greenhouse;
+package model.greenhouse;
 
-import pvz.model.game.Position;
+import model.game.Position;
 
 public class Pot {
 

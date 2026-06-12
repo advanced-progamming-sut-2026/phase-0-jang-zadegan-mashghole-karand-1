@@ -1,6 +1,6 @@
-package pvz.model.service;
+package model.service;
 
-import pvz.model.user.User;
+import model.user.User;
 
 public class AuthService {
 

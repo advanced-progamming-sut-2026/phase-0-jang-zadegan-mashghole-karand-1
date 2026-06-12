@@ -1,6 +1,6 @@
-package pvz.view;
+package view;
 
-public class GameView extends View {
+public class GameView extends ViewManager {
 
     @Override
     public void display() {

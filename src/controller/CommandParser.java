@@ -1,10 +1,10 @@
-package pvz.controller;
+package controller;
 
 import java.util.Map;
 
 public class CommandParser {
 
-    private Map<String, Controller> controllers;
+    private Map<String, ControllerManager> controllers;
 
     public String parse(String input) {
         return null;

@@ -1,6 +1,6 @@
-package pvz.model.game;
+package model.game;
 
-import pvz.model.lawnmower.LawnMower;
+import model.lawnmower.LawnMower;
 
 public class GameBoard {
 

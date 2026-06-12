@@ -1,10 +1,10 @@
-package pvz.model.shop;
+package model.shop;
 
-import pvz.model.plant.PlantKind;
+// import model.data.plant.PlantKind;
 
 public class DailyDeal {
 
-    private PlantKind plantKind;
+    // private PlantKind plantKind;
     private int discountedPrice;
     private boolean purchased;
 }

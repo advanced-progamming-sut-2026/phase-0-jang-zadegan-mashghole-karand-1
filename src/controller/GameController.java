@@ -1,14 +1,13 @@
-package pvz.controller;
+package controller;
 
-import pvz.model.service.GameService;
-import pvz.view.GameView;
+import model.service.GameService;
+import view.GameView;
 
-public class GameController implements Controller {
+public class GameController {
 
     private GameService gameService;
     private GameView gameView;
 
-    @Override
     public void handle(String command) {
     }
 }

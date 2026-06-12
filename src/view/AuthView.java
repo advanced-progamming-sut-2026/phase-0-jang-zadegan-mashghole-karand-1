@@ -1,6 +1,6 @@
-package pvz.view;
+package view;
 
-public class AuthView extends View {
+public class AuthView extends ViewManager {
 
     @Override
     public void display() {

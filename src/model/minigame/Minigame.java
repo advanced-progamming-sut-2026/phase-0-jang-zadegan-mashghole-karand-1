@@ -1,4 +1,4 @@
-package pvz.model.minigame;
+package model.minigame;
 
 import java.util.List;
 

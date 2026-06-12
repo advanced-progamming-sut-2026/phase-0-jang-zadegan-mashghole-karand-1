@@ -1,6 +1,6 @@
-package pvz.view;
+package view;
 
-public class MainMenuView extends View {
+public class MainMenuView extends ViewManager {
 
     @Override
     public void display() {

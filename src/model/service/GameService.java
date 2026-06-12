@@ -1,10 +1,10 @@
-package pvz.model.service;
+package model.service;
 
-import pvz.model.game.GameSession;
-import pvz.model.plant.PlantFactory;
-import pvz.model.world.Chapter;
-import pvz.model.world.Level;
-import pvz.model.zombie.ZombieFactory;
+import model.game.GameSession;
+import model.data.plant.PlantFactory;
+import model.world.Chapter;
+import model.world.Level;
+import model.data.zombie.ZombieFactory;
 
 public class GameService {
 

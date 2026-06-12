@@ -1,9 +1,9 @@
-package pvz.model.user;
+package model.user;
 
-import pvz.model.collection.Collection;
-import pvz.model.greenhouse.Greenhouse;
-import pvz.model.news.NewsFeed;
-import pvz.model.quest.Quest;
+import model.collection.Collection;
+import model.greenhouse.Greenhouse;
+import model.news.NewsFeed;
+import model.quest.Quest;
 
 import java.util.List;
 

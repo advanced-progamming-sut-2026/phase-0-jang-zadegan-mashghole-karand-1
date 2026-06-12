@@ -1,12 +1,12 @@
-package pvz.controller;
+package controller;
 
-import pvz.model.greenhouse.Greenhouse;
-import pvz.model.news.NewsFeed;
-import pvz.model.quest.Quest;
-import pvz.model.shop.Shop;
-import pvz.view.MetaView;
+import model.greenhouse.Greenhouse;
+import model.news.NewsFeed;
+import model.quest.Quest;
+import model.shop.Shop;
+import view.MetaView;
 
-public class MetaController implements Controller {
+public class MetaController {
 
     private Greenhouse greenhouse;
     private Shop shop;
@@ -14,7 +14,6 @@ public class MetaController implements Controller {
     private NewsFeed newsFeed;
     private MetaView metaView;
 
-    @Override
     public void handle(String command) {
     }
 }
