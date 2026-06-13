@@ -6,7 +6,7 @@ public enum PlantCategory {
     LOBBER,
     EXPLOSIVE,
     MELEE,
-    DEFENDER,
+    DEFENDER, // Wall-nuts
     MODIFIER,
     STRIKE_THROUGH,
     HOMING,
