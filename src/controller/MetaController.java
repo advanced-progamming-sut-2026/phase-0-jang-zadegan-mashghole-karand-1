@@ -4,7 +4,6 @@ import model.greenhouse.Greenhouse;
 import model.news.NewsFeed;
 import model.quest.Quest;
 import model.shop.Shop;
-import view.MetaView;
 
 public class MetaController {
 

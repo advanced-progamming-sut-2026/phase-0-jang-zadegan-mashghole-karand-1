@@ -1,7 +1,6 @@
 package controller;
 
 import model.service.AuthService;
-import view.AuthView;
 
 public class AuthController {
 
