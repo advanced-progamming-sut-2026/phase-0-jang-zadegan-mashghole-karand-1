@@ -4,9 +4,9 @@ import java.util.*;
 
 import model.core.EventBus;
 import model.core.GameState;
+import model.core.Position;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.data.zombie.armor.runtime.ZombieArmor;
-import model.game.Position;
 
 public class Zombie {
     public final int instanceId;
@@ -25,15 +25,18 @@ public class Zombie {
     public int frozenTicks = 0;
     public boolean isHypnotized = false;
 
+    public EventBus eventBus;
+
     private static int nextId = 0;
 
-    public Zombie(ZombieType type, int row, int col, Position position) {
+    public Zombie(ZombieType type, int row, int col, Position position, EventBus bus) {
         this.instanceId = nextId++;
         this.type = type;
         this.row = row;
         this.col = col;
         this.position = position;
         this.hp = type.baseStats.hp;
+        this.eventBus = bus;
 
         for (ZombieAbilityConfig config : type.abilities) {
             ZombieAbilityConfig ability = config.createInstance(this);
@@ -60,7 +63,7 @@ public class Zombie {
         }
     }
 
-    public void tick(GameState state, EventBus bus) {
+    public void tick(GameState state) {
         // if (isFrozen) {
         // frozenTicks--;
         // if (frozenTicks <= 0) {
@@ -70,13 +73,13 @@ public class Zombie {
         // }
 
         for (ZombieAbilityConfig ability : abilities) {
-            ability.onTick(this, state, bus);
+            ability.onTick(this, state, eventBus);
         }
     }
 
-    public void onDeath(GameState state, EventBus bus) {
+    public void onDeath(GameState state) {
         for (ZombieAbilityConfig ability : abilities) {
-            ability.onDeath(this, state, bus);
+            ability.onDeath(this, state, eventBus);
         }
     }
 }

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.core.EventBus;
-import model.core.GameState;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.plant.upgrades.PlantLevelUpgrade;
@@ -30,9 +29,11 @@ public class Plant {
 
     public boolean isAlive = true;
 
+    public EventBus eventBus;
+
     private static int nextId = 0;
 
-    public Plant(PlantType type, int row, int col, int level) {
+    public Plant(PlantType type, int row, int col, int level, EventBus bus) {
         this.instanceId = nextId++;
         this.type = type;
         this.row = row;
@@ -43,6 +44,8 @@ public class Plant {
         this.cost = type.baseStats.cost;
         this.damage = type.baseStats.damage;
         this.actionInterval = type.baseStats.actionInterval;
+
+        this.eventBus = bus;
 
         applyLevelUpgrades();
 
@@ -98,7 +101,7 @@ public class Plant {
         }
     }
 
-    public void tickPlantFood(GameState state, EventBus bus) {
+    public void tickPlantFood() {
         if (isPlantFoodActive) {
             plantFoodDuration--;
             // plantFoodEffect.onTick(this, state, bus);
