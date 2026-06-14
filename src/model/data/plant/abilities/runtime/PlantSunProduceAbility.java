@@ -1,8 +1,9 @@
-package model.data.plant.abilities;
+package model.data.plant.abilities.runtime;
 
 import model.data.plant.Plant;
+import model.data.plant.abilities.config.PlantAbilityConfig;
 
-public class PlantSunProduceAbility extends PlantAbilityConfig {
+public class PlantSunProduceAbility implements PlantAbilityConfig {
     public final int amount;
     public final float intervalSeconds;
 
@@ -11,7 +12,6 @@ public class PlantSunProduceAbility extends PlantAbilityConfig {
         this.intervalSeconds = intervalSeconds;
     }
 
-    @Override
     public PlantSunProduceAbility createInstance(Plant plant) {
         // should implement upgrades effect here
         return new PlantSunProduceAbility(amount, intervalSeconds);

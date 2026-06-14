@@ -1,6 +1,6 @@
 package model.game;
 
-import model.data.sun.SunManager;
+import model.systems.SunManager;
 
 public class GameSession {
 

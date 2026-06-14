@@ -1,9 +1,10 @@
-package model.data.plant.abilities;
+package model.data.plant.abilities.runtime;
 
 import model.data.plant.PlantProjectileType;
+import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.Plant;
 
-public class PlantShootAbility extends PlantAbilityConfig {
+public class PlantShootAbility implements PlantAbilityConfig {
     public final int damage;
     public final float cooldownSeconds;
     public final PlantProjectileType projectileType;
@@ -14,10 +15,9 @@ public class PlantShootAbility extends PlantAbilityConfig {
         this.projectileType = projectileType;
     }
 
-    @Override
     public PlantShootAbility createInstance(Plant plant) {
-        int finalDamage = damage + plant.currentDamage - plant.type.baseStats.damage;
-        int cooldownTicks = (int) (plant.currentActionInterval * 10);
+        int finalDamage = damage + plant.damage - plant.type.baseStats.damage;
+        int cooldownTicks = (int) (plant.actionInterval * 10);
 
         return new PlantShootAbility(finalDamage, cooldownTicks, projectileType);
     }

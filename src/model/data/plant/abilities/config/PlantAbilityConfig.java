@@ -1,9 +1,9 @@
-package model.data.plant.abilities;
+package model.data.plant.abilities.config;
 
 import model.data.plant.Plant;
 
-public abstract class PlantAbilityConfig {
-    public abstract PlantAbilityConfig createInstance(Plant plant);
+public interface PlantAbilityConfig {
+    public PlantAbilityConfig createInstance(Plant plant);
 }
 
 // should be moved to their own files
