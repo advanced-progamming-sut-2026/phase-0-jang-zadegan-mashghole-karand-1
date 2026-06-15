@@ -1,6 +1,7 @@
 package controller;
 
 import model.menu.MenuManager;
+import view.MainMenuView;
 
 public class MenuController {
 
