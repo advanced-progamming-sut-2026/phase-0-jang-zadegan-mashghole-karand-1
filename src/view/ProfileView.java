@@ -22,5 +22,8 @@ public class ProfileView {
     public void showUpdateSuccess(String field, String newValue) {
         renderer.print(field + " updated to: " + newValue);
     }
+    public void showError(String error){
+        renderer.print("[ERROR] " + error);
+    }
 
 }

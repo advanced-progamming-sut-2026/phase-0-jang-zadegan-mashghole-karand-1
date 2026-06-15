@@ -42,4 +42,7 @@ public class CollectionView {
     public void showPurchaseSuccess(String plantName) {
         renderer.print("Plant " + plantName + " purchased successfully.");
     }
+    public void showError(String error){
+        renderer.print("[ERROR]: " + error);
+    }
 }
