@@ -47,4 +47,17 @@ public enum PlantType {
                 this.plantFoodEffect = plantFoodEffect;
                 this.levelUpgrades = levelUpgrades;
         }
+
+        public static PlantType fromName(String name) {
+                if (name == null || name.isEmpty()) {
+                        return null;
+                }
+
+                for (PlantType type : PlantType.values()) {
+                        if (type.name.equalsIgnoreCase(name)) {
+                                return type;
+                        }
+                }
+                return null;
+        }
 }

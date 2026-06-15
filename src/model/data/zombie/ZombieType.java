@@ -3,6 +3,7 @@ package model.data.zombie;
 import java.util.Collections;
 import java.util.List;
 
+import model.data.plant.PlantType;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.data.zombie.armor.config.ZombieArmorConfig;
 
@@ -27,5 +28,18 @@ public enum ZombieType {
                 this.baseStats = baseStats;
                 this.armorConfig = armor;
                 this.abilities = abilities;
+        }
+
+        public static ZombieType fromName(String name) {
+                if (name == null || name.isEmpty()) {
+                        return null;
+                }
+
+                for (ZombieType type : ZombieType.values()) {
+                        if (type.alias.equalsIgnoreCase(name)) {
+                                return type;
+                        }
+                }
+                return null;
         }
 }

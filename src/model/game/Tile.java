@@ -1,5 +1,6 @@
 package model.game;
 
+import model.core.Position;
 import model.data.plant.Plant;
 import model.data.zombie.Zombie;
 

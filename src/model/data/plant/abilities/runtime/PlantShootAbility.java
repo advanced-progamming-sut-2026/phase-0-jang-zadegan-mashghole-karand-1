@@ -2,6 +2,8 @@ package model.data.plant.abilities.runtime;
 
 import model.data.plant.PlantProjectileType;
 import model.data.plant.abilities.config.PlantAbilityConfig;
+import model.core.EventBus;
+import model.core.GameState;
 import model.data.plant.Plant;
 
 public class PlantShootAbility implements PlantAbilityConfig {
@@ -20,5 +22,8 @@ public class PlantShootAbility implements PlantAbilityConfig {
         int cooldownTicks = (int) (plant.actionInterval * 10);
 
         return new PlantShootAbility(finalDamage, cooldownTicks, projectileType);
+    }
+
+    public void onTick(Plant plant, GameState state, EventBus event) {
     }
 }
