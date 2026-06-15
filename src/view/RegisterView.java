@@ -14,7 +14,7 @@ public class RegisterView {
     public void showError(String error){
         renderer.print("[ERROR] " + error);
     }
-    public void showSecurityquetion(List<String> questions){
+    public void showSecurityQuestion(List<String> questions){
         renderer.print("=== Security Questions ===");
         for (int i =0 ; i < questions.size() ; i++){
             renderer.print((i + 1) + ": " + questions.get(i));

@@ -10,7 +10,7 @@ public class LoginView {
         renderer.print("Welcome " + username + ":)");
     }
     public void showNewPassword(){
-        renderer.print("Enter your new password: ");
+        renderer.print("Correct answer.Please enter your new password: ");
     }
     public void showSecurityQuestion(String question){
         renderer.print("Security Question: " + question);
