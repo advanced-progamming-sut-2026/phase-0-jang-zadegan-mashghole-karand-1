@@ -4,9 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.core.EventBus;
-import model.core.GameState;
-import model.data.plant.abilities.PlantAbilityConfig;
-import model.data.plant.effects.PlantEffectConfig;
+import model.data.plant.abilities.config.PlantAbilityConfig;
+import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.plant.upgrades.PlantLevelUpgrade;
 
 public class Plant {
@@ -17,10 +16,10 @@ public class Plant {
     public final int col;
     public final int level;
 
-    public int health;
-    public int currentCost;
-    public int currentDamage;
-    public float currentActionInterval;
+    public int hp;
+    public int cost;
+    public int damage;
+    public float actionInterval;
 
     public List<PlantAbilityConfig> abilities = new ArrayList<>();
 
@@ -30,26 +29,32 @@ public class Plant {
 
     public boolean isAlive = true;
 
+    public EventBus eventBus;
+
     private static int nextId = 0;
 
-    public Plant(PlantType type, int row, int col, int level) {
+    public Plant(PlantType type, int row, int col, int level, EventBus bus) {
         this.instanceId = nextId++;
         this.type = type;
         this.row = row;
         this.col = col;
         this.level = Math.min(level, 4);
 
-        this.health = type.baseStats.hp;
-        this.currentCost = type.baseStats.cost;
-        this.currentDamage = type.baseStats.damage;
-        this.currentActionInterval = type.baseStats.actionInterval;
+        this.hp = type.baseStats.hp;
+        this.cost = type.baseStats.cost;
+        this.damage = type.baseStats.damage;
+        this.actionInterval = type.baseStats.actionInterval;
+
+        this.eventBus = bus;
 
         applyLevelUpgrades();
 
         for (PlantAbilityConfig def : type.abilities) {
             PlantAbilityConfig ability = def.createInstance(this);
-            abilities.add(ability);
-            // ability.onAttach(this);
+            if (ability != null) {
+                abilities.add(ability);
+                // ability.onAttach(this);
+            }
         }
 
         if (type.plantFoodEffect != null) {
@@ -63,13 +68,13 @@ public class Plant {
         for (PlantLevelUpgrade upgrade : upgrades) {
             switch (upgrade.stat) {
                 case HP:
-                    this.health += upgrade.value;
+                    this.hp += upgrade.value;
                     break;
                 case DAMAGE:
-                    this.currentDamage += upgrade.value;
+                    this.damage += upgrade.value;
                     break;
                 case COST:
-                    this.currentCost = Math.max(0, this.currentCost + upgrade.value);
+                    this.cost = Math.max(0, this.cost + upgrade.value);
                     break;
                 case COOLDOWN:
                     // Cooldown reduction handled by abilities when created
@@ -96,7 +101,7 @@ public class Plant {
         }
     }
 
-    public void tickPlantFood(GameState state, EventBus bus) {
+    public void tickPlantFood() {
         if (isPlantFoodActive) {
             plantFoodDuration--;
             // plantFoodEffect.onTick(this, state, bus);
