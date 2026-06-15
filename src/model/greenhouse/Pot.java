@@ -1,6 +1,6 @@
 package model.greenhouse;
 
-import model.game.Position;
+import model.core.Position;
 
 public class Pot {
 

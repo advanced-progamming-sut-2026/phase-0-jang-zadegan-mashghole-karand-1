@@ -1,59 +1,113 @@
 package model;
 
-import model.core.*;
-import model.data.*;
-import model.storage.*;
-import model.systems.*;
+import model.core.EventBus;
+import model.core.GameState;
+import model.data.plant.Plant;
+import model.data.plant.PlantType;
+import model.data.sun.Sun;
+import model.data.zombie.Zombie;
+import model.data.zombie.ZombieType;
+import model.events.PlantPlacedEvent;
+import model.events.SunCollectedEvent;
+import model.events.ZombieSpawnedEvent;
+import model.systems.CombatSystem;
+import model.systems.MovementSystem;
+import model.systems.PlantAbilitySystem;
+import model.systems.SunSpawnSystem;
+import model.systems.SunSystem;
 
 public class ModelManager {
-    private GameState state;
-    private EventBus eventBus;
-    private StorageManager storage;
+    private final GameState state;
+    private final EventBus eventBus;
 
-    private CombatSystem combatSystem;
-    private MovementSystem movementSystem;
-    private ShootingSystem shootingSystem;
-    private SpawnSystem spawnSystem;
+    private final MovementSystem movementSystem;
+    private final CombatSystem combatSystem;
+    private final PlantAbilitySystem plantAbilitySystem;
+    private final SunSpawnSystem sunSpawnSystem;
+    private final SunSystem sunSystem;
 
-    public ModelManager(StorageManager storageManager, EventBus eventBus) {
+    public ModelManager(EventBus eventBus) {
         this.state = new GameState();
         this.eventBus = eventBus;
-        this.storage = storageManager;
 
-        this.combatSystem = new CombatSystem();
         this.movementSystem = new MovementSystem();
-        this.shootingSystem = new ShootingSystem();
-        this.spawnSystem = new SpawnSystem();
-
-        loadGame();
+        this.combatSystem = new CombatSystem(eventBus);
+        this.plantAbilitySystem = new PlantAbilitySystem();
+        this.sunSpawnSystem = new SunSpawnSystem(eventBus);
+        this.sunSystem = new SunSystem(eventBus);
     }
 
-    /**
-     * Called every frame by game loop
-     */
-    public void update() {
-        // if (state.gameOver || state.levelComplete)
-        // return;
+    public void tick() {
+        if (state.gameOver) {
+            return;
+        }
 
-        // movementSystem.update(state);
-        // shootingSystem.update(state, eventBus);
-        // combatSystem.update(state, eventBus);
-        // spawnSystem.update(state, eventBus);
+        plantAbilitySystem.update(state, eventBus);
 
-        // checkGameOver();
-        // checkLevelComplete();
+        sunSpawnSystem.update(state);
+        sunSystem.update(state);
+
+        movementSystem.update(state);
+
+        combatSystem.update(state, eventBus);
+
+        // we should move to event queue processing if we faced any problems with the
+        // current setup
+        // eventBus.processEvents();
     }
 
-    public void saveGame() {
-        // storage.save(state);
-        // eventBus.publish(new GameSavedEvent());
+    public boolean placePlant(int row, int col, String plantName, int level) {
+        if (row < 0 || row >= GameState.GRID_ROWS)
+            return false;
+        if (col < 0 || col >= GameState.GRID_COLS)
+            return false;
+
+        if (state.getPlantAt(row, col) != null)
+            return false;
+
+        PlantType type = PlantType.fromName(plantName);
+        if (type == null)
+            return false;
+
+        // Check sun cost
+        if (state.sunAmount < type.baseStats.cost)
+            return false;
+
+        // Create and place plant
+        Plant plant = PlantFactory.createPlant(type, row, col, level);
+        state.plants.add(plant);
+        state.sunAmount -= type.baseStats.cost;
+
+        eventBus.publish(new PlantPlacedEvent(plant));
+        return true;
     }
 
-    public void loadGame() {
-        // GameState loaded = storage.load();
-        // if (loaded != null) {
-        // this.state = loaded;
-        // eventBus.publish(new GameLoadedEvent());
-        // }
+    public void spawnZombie(int row, String zombieTypeName) {
+        ZombieType type = ZombieType.fromName(zombieTypeName);
+        if (type == null)
+            return;
+
+        Zombie zombie = new Zombie(type, row, 850); // Start off-screen
+        state.zombies.add(zombie);
+        eventBus.publish(new ZombieSpawnedEvent(zombie));
+    }
+
+    public boolean collectSun(int index) {
+        if (index >= 0 && index < state.sunDrops.size()) {
+            Sun sun = state.sunDrops.get(index);
+            state.sunAmount += sun.value;
+            state.sunDrops.remove(index);
+            eventBus.publish(new SunCollectedEvent(sun));
+            return true;
+        }
+        return false;
+    }
+
+    public GameState getState() {
+        return state;
+    }
+
+    public void addTestSun() {
+        state.sunDrops.add(new Sun(2, 4, 25));
     }
 }

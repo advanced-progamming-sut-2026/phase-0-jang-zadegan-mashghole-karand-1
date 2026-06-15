@@ -26,12 +26,16 @@ public class GameState {
     public static final int GRID_ROWS = 5;
     public static final int CELL_WIDTH = 80;
     public static final int CELL_HEIGHT = 100;
+    public static final int SCREEN_WIDTH = GRID_COLS * CELL_WIDTH;
+    public static final int SCREEN_HEIGHT = GRID_ROWS * CELL_HEIGHT;
 
-    // helper functions
+    public static final int PROJECTILE_HIT_RADIUS = 25;
+    public static final int ZOMBIE_ATTACK_RANGE = 40;
+    public static final int PLANT_TOUCH_DISTANCE = 30;
 
-    // public boolean hasPlantAt(int row, int col) {
-    // return plants.stream().anyMatch(p -> p.row == row && p.col == col);
-    // }
+    public Plant getPlantAt(int row, int col) {
+        return plants.stream().filter(p -> p.row == row && p.col == col).findFirst().orElse(null);
+    }
 
     public void reset() {
         plants.clear();
