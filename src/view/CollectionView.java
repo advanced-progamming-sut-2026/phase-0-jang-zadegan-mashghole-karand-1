@@ -27,12 +27,29 @@ public class CollectionView {
         zombies.forEach(renderer::print);
     }
 
-//    public void showPlantDetails() {
-//
+
+//    public void showPlantDetails(String name, String category, int health,
+//                                 int damage, int cost, int cooldown,
+//                                 int level, List<String> tags) {
+//        renderer.print("=== Plant: " + name + " ===");
+//        renderer.print("Category : " + category);
+//        renderer.print("Health   : " + health);
+//        renderer.print("Damage   : " + damage);
+//        renderer.print("Cost     : " + cost + " sun");
+//        renderer.print("Cooldown : " + cooldown + "s");
+//        renderer.print("Level    : " + level);
+//        renderer.print("Tags: " + String.join(", ", tags));
 //    }
 //
-//    public void showZombieDetails() {
-//
+//    public void showZombieDetails(String name, int health, int damage,
+//                                  float speed, int waveCost,
+//                                  String armor) {
+//        renderer.print("=== Zombie: " + name + " ===");
+//        renderer.print("HitPoints: " + health);
+//        renderer.print("EatDPS   : " + damage);
+//        renderer.print("Speed    : " + speed);
+//        renderer.print("WaveCost : " + waveCost);
+//        renderer.print("Armor    : " + (armor.isEmpty() ? "none" : armor));
 //    }
 
     public void showUpgradeSuccess(String plantName) {
