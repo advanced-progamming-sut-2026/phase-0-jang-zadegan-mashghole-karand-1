@@ -1,9 +1,9 @@
 package view;
 
-public class LoginView {
+public class LoginMenuView {
     private final Renderer renderer;
 
-    public LoginView(Renderer renderer) {
+    public LoginMenuView(Renderer renderer) {
         this.renderer = renderer;
     }
     public void showLoginSuccess(String username){

@@ -2,10 +2,10 @@ package view;
 
 import java.util.List;
 
-public class RegisterView {
+public class RegisterMenuView {
     private final Renderer renderer;
 
-    public RegisterView(Renderer renderer) {
+    public RegisterMenuView(Renderer renderer) {
         this.renderer = renderer;
     }
     public void showRegisterSuccess(String  username){

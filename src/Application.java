@@ -18,9 +18,9 @@ public class Application {
         ModelManager model = new ModelManager(storageManager, eventBus);
         Renderer renderer = new ConsoleRenderer();
 //        InputHandler inputHandler = new InputHandler(view); handle input handler
-        InputListener inputListener = new InputListener(); // add input handler
-        ViewManager view = new ViewManager(renderer , inputListener);
-        view.start();
+//        InputListener inputListener = new InputListener(); // add input handler
+//        ViewManager view = new ViewManager(renderer , inputListener);
+//        view.start();
 
 //        ControllerManager controller = new ControllerManager(model, view, eventBus, gameLoop);
 //        controller.start(); check
