@@ -1,7 +1,9 @@
 package controller;
 
 import model.service.AuthService;
-import view.AuthView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import java.util.ArrayList;
 import java.util.List;

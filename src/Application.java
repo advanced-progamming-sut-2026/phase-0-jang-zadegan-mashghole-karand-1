@@ -1,8 +1,12 @@
 import controller.ControllerManager;
+import controller.InputHandler;
 import model.ModelManager;
 import model.core.EventBus;
 import model.core.GameLoop;
 import model.storage.JsonStorageManager;
+import view.ConsoleRenderer;
+import view.InputListener;
+import view.Renderer;
 import view.ViewManager;
 
 public class Application {
@@ -12,12 +16,14 @@ public class Application {
 
         JsonStorageManager storageManager = new JsonStorageManager();
         ModelManager model = new ModelManager(storageManager, eventBus);
+        Renderer renderer = new ConsoleRenderer();
+        // InputHandler inputHandler = new InputHandler(view); handle input handler
+        // InputListener inputListener = new InputListener(); // add input handler
+        // ViewManager view = new ViewManager(renderer , inputListener);
+        // view.start();
 
-        ViewManager view = new ViewManager();
-
-        ControllerManager controller = new ControllerManager(model, view, eventBus, gameLoop);
-
-        controller.start();
+        // ControllerManager controller = new ControllerManager(model, view, eventBus, gameLoop);
+        // controller.start();
 
         // test code
 
