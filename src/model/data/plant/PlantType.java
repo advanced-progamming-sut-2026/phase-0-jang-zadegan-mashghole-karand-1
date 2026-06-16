@@ -5,11 +5,15 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import model.data.plant.upgrades.*;
 import model.data.plant.abilities.config.PlantAbilityConfig;
+import model.data.plant.abilities.runtime.PlantShootAbility;
 import model.data.plant.abilities.runtime.PlantSunProduceAbility;
 import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.plant.effects.runtime.PlantInstantSunEffect;
+import model.data.plant.effects.runtime.PlantRapidFireEffect;
+import model.data.plant.upgrades.PlantLevelUpgrade;
+import model.data.plant.upgrades.PlantLevelUpgrades;
+import model.data.plant.upgrades.PlantStatBonus;
 
 public enum PlantType {
 
@@ -22,6 +26,15 @@ public enum PlantType {
                         new PlantLevelUpgrades(
                                         PlantLevelUpgrade.atLevel(2, PlantStatBonus.HP, 150),
                                         PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -2),
+                                        PlantLevelUpgrade.atLevel(4, PlantStatBonus.COST,
+                                                        -25))),
+        PeaShooter(2, "Peashooter", PlantCategory.SHOOTER, EnumSet.of(PlantTag.PEA),
+                        new PlantBaseStats(100, 300, 20, 1.5f, 5),
+                        Arrays.asList(new PlantShootAbility(20, 1.5f, PlantProjectileType.PEA)),
+                        new PlantRapidFireEffect(3, 0.1f),
+                        new PlantLevelUpgrades(
+                                        PlantLevelUpgrade.atLevel(2, PlantStatBonus.DAMAGE, 10),
+                                        PlantLevelUpgrade.atLevel(3, PlantStatBonus.HP, 150),
                                         PlantLevelUpgrade.atLevel(4, PlantStatBonus.COST, -25)));
 
         // ...
