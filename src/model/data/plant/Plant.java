@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.core.EventBus;
+import model.core.GameState;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.plant.upgrades.PlantLevelUpgrade;
@@ -111,5 +112,13 @@ public class Plant {
                 // plantFoodEffect.onDeactivate(this);
             }
         }
+    }
+
+    public float getX() {
+        return row * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2;
+    }
+
+    public float getY() {
+        return col * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2;
     }
 }
