@@ -5,6 +5,9 @@ import model.service.AuthService;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AuthController {
 
     private AuthService authService = new AuthService();

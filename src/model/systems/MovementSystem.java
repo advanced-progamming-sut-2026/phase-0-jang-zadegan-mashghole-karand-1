@@ -15,6 +15,6 @@ public class MovementSystem {
             projectile.position.x += projectile.speed;
         }
 
-        state.projectiles.removeIf(p -> p.position.x > GameState.GRID_COLS * GameState.CELL_WIDTH);
+        state.projectiles.removeIf(p -> p.position.x > GameState.SCREEN_WIDTH);
     }
 }
