@@ -2,7 +2,7 @@ package controller;
 
 import model.service.AuthService;
 import model.user.SafetyQuestion;
-import view.AuthView;
+import view.RegisterMenuView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +10,7 @@ import java.util.List;
 public class AuthController {
 
     private AuthService authService = new AuthService();
+    private RegisterMenuView registerMenuView;
     List<SafetyQuestion> questions = new ArrayList<>();
 
 
