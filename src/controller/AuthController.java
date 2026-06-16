@@ -10,7 +10,6 @@ import java.util.List;
 public class AuthController {
 
     private AuthService authService = new AuthService();
-    private AuthView authView;
     List<SafetyQuestion> questions = new ArrayList<>();
 
 
