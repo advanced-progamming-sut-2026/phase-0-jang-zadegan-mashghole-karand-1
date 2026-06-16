@@ -16,4 +16,6 @@ public class User {
     private Greenhouse greenhouse;
     private NewsFeed newsFeed;
     private List<Quest> quests;
+    private Gender gender;
+    private SafetyQuestion Safetyquestion;
 }

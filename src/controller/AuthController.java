@@ -1,6 +1,7 @@
 package controller;
 
 import model.service.AuthService;
+import model.user.SafetyQuestion;
 import view.AuthView;
 
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ public class AuthController {
 
     private AuthService authService = new AuthService();
     private AuthView authView;
-    //List<Question> questions = new ArrayList<>();
+    List<SafetyQuestion> questions = new ArrayList<>();
 
 
     public void register(String username, String password,String passwordConfirm, String nickName, String email, String gender) {}
