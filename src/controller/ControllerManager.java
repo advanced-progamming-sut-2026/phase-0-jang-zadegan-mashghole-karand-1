@@ -10,7 +10,16 @@ public class ControllerManager {
     private ViewManager view;
     private EventBus eventBus;
     private GameLoop gameLoop;
-    private InputHandler inputHandler;
+    private final AuthController authController = new AuthController();
+    private final LoginController loginController = new LoginController();
+    private final GameController gameController = new GameController();
+    private final MainMenuController mainMenuController = new MainMenuController();
+    private final SettingController settingController = new SettingController();
+    private final NewsMenuController newsMenuController = new NewsMenuController();
+    private final ProfileController profileController = new ProfileController();
+    private final PickPlantsController pickPlantsController = new PickPlantsController();
+    private final CollectionController collectionController = new CollectionController();
+
 
     public ControllerManager(ModelManager model, ViewManager view,
             EventBus eventBus, GameLoop gameLoop) {
@@ -18,7 +27,6 @@ public class ControllerManager {
         this.view = view;
         this.eventBus = eventBus;
         this.gameLoop = gameLoop;
-        this.inputHandler = new InputHandler(model, view);
 
         setupEventSubscriptions();
     }
@@ -43,5 +51,41 @@ public class ControllerManager {
 
     public void start() {
         // view.showMainMenu();
+    }
+
+    public AuthController getAuthController() {
+        return authController;
+    }
+
+    public LoginController getLoginController() {
+        return loginController;
+    }
+
+    public GameController getGameController() {
+        return gameController;
+    }
+
+    public MainMenuController getMainMenuController() {
+        return mainMenuController;
+    }
+
+    public SettingController getSettingController() {
+        return settingController;
+    }
+
+    public NewsMenuController getNewsMenuController() {
+        return newsMenuController;
+    }
+
+    public ProfileController getProfileController() {
+        return profileController;
+    }
+
+    public PickPlantsController getPickPlantsController() {
+        return pickPlantsController;
+    }
+
+    public CollectionController getCollectionController() {
+        return collectionController;
     }
 }
