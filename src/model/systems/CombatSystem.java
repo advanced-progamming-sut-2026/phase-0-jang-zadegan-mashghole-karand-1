@@ -21,22 +21,20 @@ public class CombatSystem {
         Iterator<Projectile> projIter = state.projectiles.iterator();
         while (projIter.hasNext()) {
             Projectile p = projIter.next();
-            boolean hit = false;
 
-            for (Zombie z : state.zombies) {
+            Iterator<Zombie> zombieIter = state.zombies.iterator();
+            while (zombieIter.hasNext()) {
+                Zombie z = zombieIter.next();
+
                 if (z.row == p.row && Math.abs(z.position.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
                     z.hp -= p.damage;
                     projIter.remove();
-                    hit = true;
 
                     if (z.hp <= 0) {
                         eventBus.publish(new ZombieDiedEvent(z));
                     }
                     break;
                 }
-            }
-            if (hit) {
-                projIter.remove();
             }
         }
 
@@ -55,6 +53,7 @@ public class CombatSystem {
             }
         }
 
+        // events should be triggered here!
         state.zombies.removeIf(z -> z.hp <= 0);
 
         state.plants.removeIf(p -> p.hp <= 0);

@@ -3,19 +3,15 @@ package model.data.zombie;
 import java.util.Collections;
 import java.util.List;
 
-import model.data.plant.PlantType;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.data.zombie.armor.config.ZombieArmorConfig;
 
 public enum ZombieType {
-        // Ancient Egypt
-        MUMMY("ZombieMummyDefault", new ZombieBaseStats(190, 100, 0.185f, 100, 1000), null, Collections.emptyList()),
-        MUMMY_CONE("ZombieMummyArmor1Default", new ZombieBaseStats(190, 100, 0.185f, 200, 3000),
-                        ZombieArmorConfig.cone(), Collections.emptyList()),
-        MUMMY_BUCKET("ZombieMummyArmor2Default", new ZombieBaseStats(190, 100, 0.185f, 400, 4000),
-                        ZombieArmorConfig.bucket(), Collections.emptyList()),
-        MUMMY_BRICK("ZombieMummyArmor4Default", new ZombieBaseStats(190, 100, 0.185f, 700, 3000),
-                        ZombieArmorConfig.brick(), Collections.emptyList());
+        BASIC("ZombieTutorialDefault", new ZombieBaseStats(190, 100, 0.185f, 100, 10000), null,
+                        Collections.emptyList()),
+        CONE_HEAD("ZombieTutorialArmor1Default", new ZombieBaseStats(190, 100, 0.185f, 200, 30000),
+                        ZombieArmorConfig.cone(),
+                        Collections.emptyList());
 
         public final String alias;
         public final ZombieBaseStats baseStats;
