@@ -1,11 +1,14 @@
 package controller;
 
-public class SettingController {
-    //private Setting setting;
+import model.gameSetting.GameSetting;
 
-    /*public void applySettings(Setting setting) {
+public class SettingController {
+    private GameSetting setting;
+
+
+    public void applySettings(GameSetting setting) {
         this.setting = setting;
-    }*/
+    }
 
     public void changeDifficulty(int difficultyLevel) {}
 }
