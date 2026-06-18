@@ -5,7 +5,6 @@ import model.core.EventBus;
 import model.core.GameLoop;
 import model.storage.JsonStorageManager;
 import view.ConsoleRenderer;
-import view.InputListener;
 import view.Renderer;
 import view.ViewManager;
 
@@ -16,15 +15,20 @@ public class Application {
 
         JsonStorageManager storageManager = new JsonStorageManager();
         ModelManager model = new ModelManager(storageManager, eventBus);
+
+        ControllerManager controller = new ControllerManager(model, eventBus, gameLoop);
+
+        InputHandler inputHandler = new InputHandler(controller);
+
         Renderer renderer = new ConsoleRenderer();
-        // InputHandler inputHandler = new InputHandler(view); handle input handler
-        // InputListener inputListener = new InputListener(); // add input handler
-        // ViewManager view = new ViewManager(renderer , inputListener);
-        // view.start();
 
-        // ControllerManager controller = new ControllerManager(model, view, eventBus, gameLoop);
-        // controller.start();
+        ViewManager view = new ViewManager(renderer, inputHandler);
 
+        controller.setView(view);
+
+        view.start();
+
+        controller.start();
         // test code
 
         // model.placePlant(2, 3, "Peashooter", 1);
