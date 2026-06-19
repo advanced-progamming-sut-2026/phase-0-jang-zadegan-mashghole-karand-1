@@ -21,12 +21,12 @@ public enum PlantType {
                         EnumSet.of(PlantTag.DAY),
                         new PlantBaseStats(50, 300, 0, 24, 5),
                         Arrays.asList(
-                                        new PlantSunProduceAbility(50, 24)),
+                                        new PlantSunProduceAbility(50, 24, 0)),
                         new PlantInstantSunEffect(150),
                         new PlantLevelUpgrades(
                                         PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -2),
                                         PlantLevelUpgrade.atLevel(3, PlantStatBonus.HP, 150),
-                                        PlantLevelUpgrade.atLevel(4, PlantStatBonus.DOUBLE_SUN_CHANCE, true))),
+                                        PlantLevelUpgrade.atLevel(4, PlantStatBonus.DOUBLE_SUN_CHANCE, 25))),
         PeaShooter(2, "Peashooter", PlantCategory.SHOOTER, EnumSet.of(PlantTag.PEA),
                         new PlantBaseStats(100, 300, 20, 1.5f, 5),
                         Arrays.asList(new PlantShootAbility(20, 1.5f, PlantProjectileType.PEA)),
