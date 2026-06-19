@@ -66,32 +66,32 @@ public class Plant {
     private void applyLevelUpgrades() {
         List<PlantLevelUpgrade> upgrades = type.levelUpgrades.getForLevel(level);
 
-        for (PlantLevelUpgrade upgrade : upgrades) {
-            switch (upgrade.stat) {
-                case HP:
-                    this.hp += upgrade.value;
-                    break;
-                case DAMAGE:
-                    this.damage += upgrade.value;
-                    break;
-                case COST:
-                    this.cost = Math.max(0, this.cost + upgrade.value);
-                    break;
-                case COOLDOWN:
-                    // Cooldown reduction handled by abilities when created
-                    break;
-                case RANGE:
-                    // Range increase handled by abilities when created
-                    break;
-                case PIERCE_COUNT:
-                    // Pierce count handled by abilities when created
-                    break;
-                case DOUBLE_SUN_CHANCE:
-                    // Handled by SunProduceAbility
-                    break;
-                // ...
-            }
-        }
+        // for (PlantLevelUpgrade upgrade : upgrades) {
+        // switch (upgrade.stat) {
+        // case HP:
+        // this.hp += upgrade.value;
+        // break;
+        // case DAMAGE:
+        // this.damage += upgrade.value;
+        // break;
+        // case COST:
+        // this.cost = Math.max(0, this.cost + upgrade.value);
+        // break;
+        // case COOLDOWN:
+        // // Cooldown reduction handled by abilities when created
+        // break;
+        // case RANGE:
+        // // Range increase handled by abilities when created
+        // break;
+        // case PIERCE_COUNT:
+        // // Pierce count handled by abilities when created
+        // break;
+        // case DOUBLE_SUN_CHANCE:
+        // // Handled by SunProduceAbility
+        // break;
+        // // ...
+        // }
+        // }
     }
 
     public void activatePlantFood() {

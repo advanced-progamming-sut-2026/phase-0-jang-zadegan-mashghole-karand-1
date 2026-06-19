@@ -1,6 +1,7 @@
 package model.data.plant.abilities.runtime;
 
 import model.core.EventBus;
+import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
@@ -10,18 +11,20 @@ import model.events.SunProducedEvent;
 
 public class PlantSunProduceAbility implements PlantAbilityConfig {
     private final int amount;
+    private final int cooldownSeconds;
     private final int cooldownTicks;
     private int currentCooldown = 0;
     private boolean waitingForCollection = false;
 
-    public PlantSunProduceAbility(int amount, int cooldownTicks) {
+    public PlantSunProduceAbility(int amount, int cooldownSeconds) {
         this.amount = amount;
-        this.cooldownTicks = cooldownTicks;
+        this.cooldownSeconds = cooldownSeconds;
+        this.cooldownTicks = cooldownSeconds * GameLoop.TICKS_PER_SECOND;
     }
 
     public PlantSunProduceAbility createInstance(Plant plant) {
         // should implement upgrades effect here
-        return new PlantSunProduceAbility(amount, cooldownTicks);
+        return new PlantSunProduceAbility(amount, cooldownSeconds);
     }
 
     @Override
@@ -35,8 +38,7 @@ public class PlantSunProduceAbility implements PlantAbilityConfig {
             return;
         }
 
-        // implement sun target position
-        Sun sun = new Sun(0, new Position(0, 0), amount, plant);
+        Sun sun = new Sun(0, new Position(plant.getX(), plant.getY()), amount, plant);
         state.sunDrops.add(sun);
         waitingForCollection = true;
 

@@ -24,10 +24,9 @@ public enum PlantType {
                                         new PlantSunProduceAbility(50, 24)),
                         new PlantInstantSunEffect(150),
                         new PlantLevelUpgrades(
-                                        PlantLevelUpgrade.atLevel(2, PlantStatBonus.HP, 150),
-                                        PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -2),
-                                        PlantLevelUpgrade.atLevel(4, PlantStatBonus.COST,
-                                                        -25))),
+                                        PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -2),
+                                        PlantLevelUpgrade.atLevel(3, PlantStatBonus.HP, 150),
+                                        PlantLevelUpgrade.atLevel(4, PlantStatBonus.DOUBLE_SUN_CHANCE, true))),
         PeaShooter(2, "Peashooter", PlantCategory.SHOOTER, EnumSet.of(PlantTag.PEA),
                         new PlantBaseStats(100, 300, 20, 1.5f, 5),
                         Arrays.asList(new PlantShootAbility(20, 1.5f, PlantProjectileType.PEA)),

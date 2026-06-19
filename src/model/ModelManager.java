@@ -101,17 +101,6 @@ public class ModelManager {
     }
 
     public boolean collectSun(int index) {
-        if (index >= 0 && index < state.sunDrops.size()) {
-            Sun sun = state.sunDrops.get(index);
-            state.sunAmount += sun.amount;
-            state.sunDrops.remove(index);
-            eventBus.publish(new SunCollectedEvent(sun));
-            return true;
-        }
-        return false;
+        return sunSystem.collectSun(state, eventBus, index);
     }
-
-    // public void addTestSun() {
-    // state.sunDrops.add(new Sun(2, new Position(0, 0), 25, SunType.NORMAL));
-    // }
 }
