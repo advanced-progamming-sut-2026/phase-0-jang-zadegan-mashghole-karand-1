@@ -26,33 +26,27 @@ public class ControllerManager {
         this.eventBus = eventBus;
         this.gameLoop = gameLoop;
 
-        setupEventSubscriptions();
+        this.gameLoop.setOnTickHandler(() -> {
+            model.tick();
+            view.render(model.getStateView());
+        });
     }
 
     public void setView(ViewManager view) {
         this.view = view;
     }
 
-    private void setupEventSubscriptions() {
-        // eventBus.subscribe(SunChangedEvent.class, e -> {
-        // view.updateSunDisplay(model.getSunAmount());
-        // });
-
-        // eventBus.subscribe(GameOverEvent.class, e -> {
-        // view.showGameOverScreen(e.won);
-        // });
-
-        // eventBus.subscribe(LevelCompleteEvent.class, e -> {
-        // view.showLevelCompleteScreen(model.getCurrentWave());
-        // });
-
-        // eventBus.subscribe(ZombieDiedEvent.class, e -> {
-        // view.addKillEffect(e.zombie);
-        // });
+    public void start() {
+        view.render(model.getStateView());
+        gameLoop.startAutoTick();
     }
 
-    public void start() {
-        // view.showMainMenu();
+    public void tick() {
+        view.render(model.getState());
+    }
+
+    public void sendMessage(String message) {
+        view.showMessage(message);
     }
 
     public AuthController getAuthController() {

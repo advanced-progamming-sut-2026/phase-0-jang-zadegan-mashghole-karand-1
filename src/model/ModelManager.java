@@ -3,6 +3,7 @@ package model;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
+import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.sun.Sun;
@@ -62,6 +63,10 @@ public class ModelManager {
     }
 
     public GameState getState() {
+        return state;
+    }
+
+    public ReadOnlyGameState getStateView() {
         return state;
     }
 

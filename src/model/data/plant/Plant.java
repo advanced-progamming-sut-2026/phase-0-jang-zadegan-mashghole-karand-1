@@ -18,6 +18,7 @@ public class Plant {
     public final int col;
     public final int level;
 
+    public int totalHP;
     public int hp;
     public int cost;
     public int damage;
@@ -43,6 +44,7 @@ public class Plant {
         this.col = col;
         this.level = Math.min(level, 4);
 
+        this.totalHP = type.baseStats.hp;
         this.hp = type.baseStats.hp;
         this.cost = type.baseStats.cost;
         this.damage = type.baseStats.damage;
@@ -71,7 +73,7 @@ public class Plant {
         for (PlantLevelUpgrade upgrade : upgrades) {
             switch (upgrade.stat) {
                 case HP:
-                    this.hp += upgrade.getIntValue();
+                    this.totalHP += upgrade.getIntValue();
                     break;
                 case DAMAGE:
                     this.damage += upgrade.getIntValue();

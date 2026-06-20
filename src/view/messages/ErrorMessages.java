@@ -1,9 +1,9 @@
-package view;
+package view.messages;
 
-public enum ErrorMessages {
-    //meta error
+public enum ErrorMessages implements Message {
+    // meta error
     PLANT_NOT_FOUND("Plant not found."),
-    //register error
+    // register error
     USERNAME_TAKEN("username already exists"),
     USERNAME_FORMAT("Username can only contain lowercase letters (a-z)," +
             " uppercase letters (A-Z), numbers (0-9), and hyphen (-)."),
@@ -15,11 +15,11 @@ public enum ErrorMessages {
     INVALID_EMAIL("invalid email format"),
     INVALID_GENDER("gender must be male or female"),
 
-    //login error
+    // login error
     LOGIN_FAILED("The username or password you entered is incorrect."),
     INVALID_SECURITY_ANSWER("Invalid information. Please try again."),
 
-    //pick plant error
+    // pick plant error
     PLANT_LOCKED("This plant is locked. Unlock it first."),
     PLANT_ALREADY_ADDED("Plant already exists in your collection."),
     PLANT_NOT_SELECTED("No plant selected to remove."),
@@ -28,14 +28,14 @@ public enum ErrorMessages {
     CANNOT_BOOST_LOCKED("Cannot boost a locked plant."),
     PLANT_ALREADY_BOOSTED("Plant is already boosted."),
 
-    //profile error
+    // profile error
     USERNAME_SAME_AS_CURRENT("New username cannot be the same as the current username."),
     NICKNAME_SAME_AS_CURRENT("New nickname cannot be the same as the current nickname."),
     EMAIL_SAME_AS_CURRENT("New email cannot be the same as the current email."),
     OLD_PASSWORD_INCORRECT("Old password is incorrect."),
     NEW_PASSWORD_SAME_AS_CURRENT("New password cannot be the same as the current password."),
 
-    //collection error
+    // collection error
     NOT_ENOUGH_COINS_PURCHASE("Not enough coins to purchase this plant. Required: 2000 coins."),
     PLANT_ALREADY_PURCHASED("Plant already purchased."),
 
@@ -43,6 +43,7 @@ public enum ErrorMessages {
     NOT_ENOUGH_SEED_PACKETS("Not enough seed packets to upgrade this plant."),
     PLANT_NOT_IN_COLLECTION("Plant not found in your collection."),
     PLANT_AT_MAX_LEVEL("Plant is already at max level.");
+
     private final String message;
 
     ErrorMessages(String message) {
@@ -51,5 +52,9 @@ public enum ErrorMessages {
 
     public String getMessage() {
         return message;
+    }
+
+    public String format(Object... args) {
+        return String.format(message, args);
     }
 }

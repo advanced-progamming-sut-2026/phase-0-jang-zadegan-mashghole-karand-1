@@ -11,6 +11,7 @@ public class InputHandler {
     }
 
     public void handleInput(String input) {
+        controllerManager.sendMessage(input);
     }
 
 }
