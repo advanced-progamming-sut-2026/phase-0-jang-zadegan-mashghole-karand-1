@@ -12,13 +12,17 @@ public class ControllerManager {
     private GameLoop gameLoop;
     private final AuthController authController = new AuthController();
     private final LoginController loginController = new LoginController();
-    private final GameController gameController = new GameController();
+    private final GameMenuController gameMenuController = new GameMenuController();
     private final MainMenuController mainMenuController = new MainMenuController();
     private final SettingController settingController = new SettingController();
     private final NewsMenuController newsMenuController = new NewsMenuController();
     private final ProfileController profileController = new ProfileController();
     private final PickPlantsController pickPlantsController = new PickPlantsController();
     private final CollectionController collectionController = new CollectionController();
+    private final GameMechanismController gameMechanismController;
+    private final GreenhouseController greenhouseController = new GreenhouseController();
+    private ShopController shopController;
+    private final QuestMenuController questMenuController = new QuestMenuController();
 
     public ControllerManager(ModelManager model,
             EventBus eventBus, GameLoop gameLoop) {
@@ -27,6 +31,9 @@ public class ControllerManager {
         this.gameLoop = gameLoop;
 
         setupEventSubscriptions();
+
+        gameMechanismController = new GameMechanismController(gameLoop,model.getState());
+//        shopController = new ShopController(shop);
     }
 
     public void setView(ViewManager view) {
@@ -63,8 +70,8 @@ public class ControllerManager {
         return loginController;
     }
 
-    public GameController getGameController() {
-        return gameController;
+    public GameMenuController getGameMenuController() {
+        return gameMenuController;
     }
 
     public MainMenuController getMainMenuController() {
@@ -89,5 +96,21 @@ public class ControllerManager {
 
     public CollectionController getCollectionController() {
         return collectionController;
+    }
+
+    public GameMechanismController getGameMechanismController() {
+        return gameMechanismController;
+    }
+
+    public GreenhouseController getGreenhouseController() {
+        return greenhouseController;
+    }
+
+    public ShopController getShopController() {
+        return shopController;
+    }
+
+    public QuestMenuController getQuestMenuController() {
+        return questMenuController;
     }
 }
