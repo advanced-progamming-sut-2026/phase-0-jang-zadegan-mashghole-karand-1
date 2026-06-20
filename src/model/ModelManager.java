@@ -6,6 +6,7 @@ import model.core.Position;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.sun.Sun;
+import model.data.sun.SunType;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.events.PlantPlacedEvent;
@@ -60,6 +61,10 @@ public class ModelManager {
         // eventBus.processEvents();
     }
 
+    public GameState getState() {
+        return state;
+    }
+
     public boolean placePlant(int row, int col, String plantName, int level) {
         if (row < 0 || row >= GameState.GRID_ROWS)
             return false;
@@ -96,13 +101,6 @@ public class ModelManager {
     }
 
     public boolean collectSun(int index) {
-        if (index >= 0 && index < state.sunDrops.size()) {
-            Sun sun = state.sunDrops.get(index);
-            state.sunAmount += sun.amount;
-            state.sunDrops.remove(index);
-            eventBus.publish(new SunCollectedEvent(sun));
-            return true;
-        }
-        return false;
+        return sunSystem.collectSun(state, eventBus, index);
     }
 }

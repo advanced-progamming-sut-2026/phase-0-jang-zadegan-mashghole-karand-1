@@ -42,8 +42,12 @@ public class SunSystem {
         }
     }
 
-    public boolean collectSun(GameState state, EventBus bus, int x, int y) {
-        Sun target = findSunAt(state, x, y);
+    public boolean collectSun(GameState state, EventBus bus, int index) {
+        if (index < 0 || index >= state.sunDrops.size()) {
+            return false;
+        }
+        Sun target = state.sunDrops.get(index);
+
         if (target == null)
             return false;
 

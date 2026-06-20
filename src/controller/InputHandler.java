@@ -4,16 +4,13 @@ import model.ModelManager;
 import view.ViewManager;
 
 public class InputHandler {
-    private ModelManager model;
-    private ViewManager view;
     private ControllerManager controllerManager;
 
-    public InputHandler(ModelManager model, ViewManager view, ControllerManager controllerManager) {
-        this.model = model;
-        this.view = view;
+    public InputHandler(ControllerManager controllerManager) {
         this.controllerManager = controllerManager;
     }
 
-    public void handleInput() {}
+    public void handleInput(String input) {
+    }
 
 }

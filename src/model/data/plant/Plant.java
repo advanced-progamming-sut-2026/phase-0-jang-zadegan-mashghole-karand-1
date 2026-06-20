@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.core.EventBus;
+import model.core.GameState;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.plant.upgrades.PlantLevelUpgrade;
 
 public class Plant {
+    private static final int DOUBLE_SUN_DROP_CHANCE = 25;
 
     public final int instanceId;
     public final PlantType type;
@@ -28,6 +30,7 @@ public class Plant {
     public int plantFoodDuration = 0;
 
     public boolean isAlive = true;
+    public int doubleSunChance = 0;
 
     public EventBus eventBus;
 
@@ -68,25 +71,19 @@ public class Plant {
         for (PlantLevelUpgrade upgrade : upgrades) {
             switch (upgrade.stat) {
                 case HP:
-                    this.hp += upgrade.value;
+                    this.hp += upgrade.getIntValue();
                     break;
                 case DAMAGE:
-                    this.damage += upgrade.value;
+                    this.damage += upgrade.getIntValue();
                     break;
                 case COST:
-                    this.cost = Math.max(0, this.cost + upgrade.value);
+                    this.cost = Math.max(0, this.cost + upgrade.getIntValue());
                     break;
                 case COOLDOWN:
-                    // Cooldown reduction handled by abilities when created
-                    break;
-                case RANGE:
-                    // Range increase handled by abilities when created
-                    break;
-                case PIERCE_COUNT:
-                    // Pierce count handled by abilities when created
+                    this.actionInterval = Math.max(0, this.actionInterval + upgrade.getIntValue());
                     break;
                 case DOUBLE_SUN_CHANCE:
-                    // Handled by SunProduceAbility
+                    this.doubleSunChance = DOUBLE_SUN_DROP_CHANCE;
                     break;
                 // ...
             }
@@ -111,5 +108,13 @@ public class Plant {
                 // plantFoodEffect.onDeactivate(this);
             }
         }
+    }
+
+    public float getX() {
+        return row * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2;
+    }
+
+    public float getY() {
+        return col * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2;
     }
 }

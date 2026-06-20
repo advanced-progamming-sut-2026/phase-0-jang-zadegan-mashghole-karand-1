@@ -1,8 +1,13 @@
 import controller.ControllerManager;
+import controller.InputHandler;
 import model.ModelManager;
 import model.core.EventBus;
 import model.core.GameLoop;
+import model.events.SunCollectedEvent;
+import model.events.SunProducedEvent;
 import model.storage.JsonStorageManager;
+import view.ConsoleRenderer;
+import view.Renderer;
 import view.ViewManager;
 
 public class Application {
@@ -13,9 +18,17 @@ public class Application {
         JsonStorageManager storageManager = new JsonStorageManager();
         ModelManager model = new ModelManager(storageManager, eventBus);
 
-        ViewManager view = new ViewManager();
+        ControllerManager controller = new ControllerManager(model, eventBus, gameLoop);
 
-        ControllerManager controller = new ControllerManager(model, view, eventBus, gameLoop);
+        InputHandler inputHandler = new InputHandler(controller);
+
+        Renderer renderer = new ConsoleRenderer();
+
+        ViewManager view = new ViewManager(renderer, inputHandler);
+
+        controller.setView(view);
+
+        view.start();
 
         controller.start();
     }
