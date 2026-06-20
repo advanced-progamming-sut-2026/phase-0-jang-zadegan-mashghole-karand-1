@@ -3,7 +3,7 @@ package controller;
 import model.service.GameService;
 import view.GameView;
 
-public class GameController {
+public class GameMenuController {
 
     private GameService gameService;
     private GameView gameView;

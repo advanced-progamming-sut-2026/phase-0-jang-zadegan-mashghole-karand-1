@@ -1,15 +1,16 @@
 package controller;
 
+import model.CommandResult.CommandResult;
 import model.service.AuthService;
 import model.service.GameService;
 
 public class LoginController {
     private AuthService authService;
     //private LoginView loginView;
-    private void login(String username, String password, boolean stayLoggedIn){}
+    public CommandResult login(String username, String password, boolean stayLoggedIn){ return null; }
 
-    private void forgotPassword(String username, String email){}
+    public CommandResult forgotPassword(String username, String email){ return null; }
 
-    private void answer(String answer){}
+    public CommandResult answer(String answer){  return null; }
 
 }

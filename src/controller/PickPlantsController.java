@@ -1,18 +1,19 @@
 package controller;
 
+import model.CommandResult.CommandResult;
 import model.data.plant.PlantType;
 
 public class PickPlantsController {
 
-    public void showAllPlants(){}
+    public String showAllPlants(){return null;}
 
-    public void showAvailablePlants(){}
+    public CommandResult showAvailablePlants(){return null;}
 
-    public void addPlant(PlantType plantType){}
+    public CommandResult addPlant(PlantType plantType){return null;}
 
-    public void removePlant(PlantType plantType){}
+    public CommandResult removePlant(PlantType plantType){return null;}
 
-    public void bookPlant(PlantType plantType){}
+    public CommandResult boostPlant(PlantType plantType){return null;}
 
     public void startGame(){}
 }
