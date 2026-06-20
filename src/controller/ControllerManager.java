@@ -20,15 +20,17 @@ public class ControllerManager {
     private final PickPlantsController pickPlantsController = new PickPlantsController();
     private final CollectionController collectionController = new CollectionController();
 
-
-    public ControllerManager(ModelManager model, ViewManager view,
+    public ControllerManager(ModelManager model,
             EventBus eventBus, GameLoop gameLoop) {
         this.model = model;
-        this.view = view;
         this.eventBus = eventBus;
         this.gameLoop = gameLoop;
 
         setupEventSubscriptions();
+    }
+
+    public void setView(ViewManager view) {
+        this.view = view;
     }
 
     private void setupEventSubscriptions() {

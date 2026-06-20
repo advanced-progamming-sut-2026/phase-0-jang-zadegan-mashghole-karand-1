@@ -1,6 +1,7 @@
 package model.data.plant.abilities.runtime;
 
 import model.core.EventBus;
+import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
@@ -10,18 +11,21 @@ import model.events.SunProducedEvent;
 
 public class PlantSunProduceAbility implements PlantAbilityConfig {
     private final int amount;
+    private final float cooldownSeconds;
     private final int cooldownTicks;
     private int currentCooldown = 0;
     private boolean waitingForCollection = false;
+    private int doubleSunDropChance = 0;
 
-    public PlantSunProduceAbility(int amount, int cooldownTicks) {
+    public PlantSunProduceAbility(int amount, float cooldownSeconds, int doubleSunChance) {
         this.amount = amount;
-        this.cooldownTicks = cooldownTicks;
+        this.cooldownSeconds = cooldownSeconds;
+        this.cooldownTicks = (int) cooldownSeconds * GameLoop.TICKS_PER_SECOND;
+        this.doubleSunDropChance = doubleSunChance;
     }
 
     public PlantSunProduceAbility createInstance(Plant plant) {
-        // should implement upgrades effect here
-        return new PlantSunProduceAbility(amount, cooldownTicks);
+        return new PlantSunProduceAbility(amount, plant.actionInterval, plant.doubleSunChance);
     }
 
     @Override
@@ -35,8 +39,12 @@ public class PlantSunProduceAbility implements PlantAbilityConfig {
             return;
         }
 
-        // implement sun target position
-        Sun sun = new Sun(0, new Position(0, 0), amount, plant);
+        int baseAmount = amount;
+        if (plant.doubleSunChance > 0 && Math.random() * 100 < doubleSunDropChance) {
+            baseAmount *= 2;
+        }
+
+        Sun sun = new Sun(plant.row, new Position(plant.getX(), plant.getY()), baseAmount, plant);
         state.sunDrops.add(sun);
         waitingForCollection = true;
 
@@ -46,5 +54,9 @@ public class PlantSunProduceAbility implements PlantAbilityConfig {
     public void onSunCollected() {
         waitingForCollection = false;
         currentCooldown = cooldownTicks;
+    }
+
+    public void setDoubleSunChance(int change) {
+        this.doubleSunDropChance = change;
     }
 }
