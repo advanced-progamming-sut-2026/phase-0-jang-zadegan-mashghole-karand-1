@@ -1,17 +1,18 @@
 package controller;
 
+import model.CommandResult.CommandResult;
 import model.user.User;
 
 public class ProfileController {
 
 
-    public void changeUsername(User user) {}
+    public CommandResult changeUsername(User user, String newUsername) {return null;}
 
-    public void changePassword(User user,String oldPassword, String newPassword) {}
+    public CommandResult changePassword(User user,String oldPassword, String newPassword) {return null;}
 
-    public void changeNickname(User user, String nickname) {}
+    public CommandResult changeNickname(User user, String nickname) { return null;}
 
-    public void changeEmail(User user, String email) {}
+    public CommandResult changeEmail(User user, String email) {  return null;}
 
-    public void Show_info(User user) {}
+    public String Show_info(User user) { return null;}
 }

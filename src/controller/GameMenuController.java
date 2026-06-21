@@ -2,7 +2,7 @@ package controller;
 
 import model.service.GameService;
 
-public class GameController {
+public class GameMenuController {
 
     private GameService gameService;
 
