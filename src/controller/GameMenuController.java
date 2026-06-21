@@ -1,12 +1,10 @@
 package controller;
 
 import model.service.GameService;
-import view.GameView;
 
 public class GameMenuController {
 
     private GameService gameService;
-    private GameView gameView;
 
     public void enterChapter(String chapterName) {
     }

@@ -3,12 +3,9 @@ import controller.InputHandler;
 import model.ModelManager;
 import model.core.EventBus;
 import model.core.GameLoop;
-import model.events.SunCollectedEvent;
-import model.events.SunProducedEvent;
 import model.storage.JsonStorageManager;
-import view.ConsoleRenderer;
-import view.Renderer;
 import view.ViewManager;
+import view.renderer.*;
 
 public class Application {
     public static void main(String[] args) {
@@ -31,6 +28,10 @@ public class Application {
         view.start();
 
         controller.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            view.stop();
+        }));
     }
 
     public void updateOnTick() {
