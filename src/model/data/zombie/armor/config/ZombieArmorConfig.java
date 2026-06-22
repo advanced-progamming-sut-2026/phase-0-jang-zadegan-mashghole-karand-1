@@ -35,4 +35,9 @@ public class ZombieArmorConfig {
         return new ZombieArmorConfig(ZombieArmorType.SARCOPHAGUS, ZombieArmorType.SARCOPHAGUS.hp,
                 ZombieArmorType.SARCOPHAGUS.enragesOnBreak);
     }
+
+    public static ZombieArmorConfig knight_armor() {
+        return new ZombieArmorConfig(ZombieArmorType.KNIGHT_ARMOR,ZombieArmorType.KNIGHT_ARMOR.hp,
+                ZombieArmorType.KNIGHT_ARMOR.enragesOnBreak);
+    }
 }
