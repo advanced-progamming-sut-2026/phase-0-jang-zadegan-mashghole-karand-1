@@ -1,8 +1,10 @@
 package model.data.plant.abilities.runtime;
 
 import model.data.plant.PlantProjectileType;
+import model.data.plant.abilities.config.Direction;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.config.ShootPattern;
+import model.data.plant.effects.config.EffectPhase;
 import model.data.projectile.Projectile;
 import model.core.EventBus;
 import model.core.GameLoop;
@@ -15,7 +17,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
     public final float cooldownSeconds;
     public final PlantProjectileType projectileType;
     public final ShootPattern shootPattern;
-
+    public final EffectPhase phase;
     private int currentCooldown = 0;
 
     public PlantShootAbility(int damage, float cooldownSeconds, PlantProjectileType projectileType , ShootPattern shootPattern) {
@@ -23,7 +25,17 @@ public class PlantShootAbility implements PlantAbilityConfig {
         this.cooldownSeconds = cooldownSeconds;
         this.projectileType = projectileType;
         this.shootPattern = shootPattern;
+        this.phase = EffectPhase.ALWAYS;
     }
+
+    public PlantShootAbility(int damage, PlantProjectileType projectileType, EffectPhase phase) {
+        this.damage = damage;
+        this.cooldownSeconds = 0;
+        this.projectileType = projectileType ;
+        this.shootPattern = new ShootPattern(Direction.FORWARD , 0 , 1) ;
+        this.phase = phase;
+    }
+
 
     public PlantShootAbility createInstance(Plant plant) {
         int finalDamage = damage + plant.damage - plant.type.baseStats.damage;
