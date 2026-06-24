@@ -9,5 +9,7 @@ public enum PlantProjectileType {
     LASER,
     STAR,
     CABBAGE,
-    MELON
+    MELON,
+    FREEZE_LINE,
+    ROTO_SEED;
 }
