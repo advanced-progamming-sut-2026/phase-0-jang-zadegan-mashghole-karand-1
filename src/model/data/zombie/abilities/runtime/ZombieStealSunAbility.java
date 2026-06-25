@@ -25,25 +25,27 @@ public class ZombieStealSunAbility implements ZombieAbilityConfig {
                     .filter(p -> p.row == zombie.row &&
                             p.col<= zombie.col && p.col>= zombie.col-4)
                     .toList();
-            if(enabled){
-                int passedTicks = state.totalTicks-startTicks;
-                if(passedTicks>0 && passedTicks%10==0){
-                    state.sunAmount -= 25;
-                    sunStollen += 25;
+            if(!targets.isEmpty()) {
+                enabled = true;
+                startTicks = state.totalTicks;
+            }
+            if(enabled) {
+                int passedTicks = state.totalTicks - startTicks;
+                if (passedTicks > 0 && passedTicks % 10 == 0) {
+                    if (state.sunAmount >= 25) {
+                        state.sunAmount -= 25;
+                        sunStollen += 25;
+                    }
                 }
-                return;
             }
             if(targets.isEmpty()){
+                enabled = false;
                 return;
             }
-            enabled = true;
-            startTicks = state.totalTicks;
         }
         if(zombie.type == ZombieType.RA_ZOMBIE){
             StollenSuns.addAll(state.sunDrops);
-            for(Sun sun : state.sunDrops){
-                state.sunDrops.remove(sun);
-            }
+            state.sunDrops.clear();
         }
     }
 
@@ -63,6 +65,6 @@ public class ZombieStealSunAbility implements ZombieAbilityConfig {
     }
     public ZombieAbilityConfig createInstance(Zombie zombie) {
         return new ZombieStealSunAbility();
-    };
+    }
 
 }

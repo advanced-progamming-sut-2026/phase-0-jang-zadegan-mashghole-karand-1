@@ -8,19 +8,16 @@ import model.data.zombie.abilities.config.ZombieAbilityConfig;
 
 public class ZombieDynamiteAbility implements ZombieAbilityConfig {
     private boolean enable = true;
-    private int startTime;
-    private boolean firstTme=true;
+    private int ticksElapsed = 0;
 
     @Override
     public void onTick(Zombie zombie, GameState state, EventBus bus) {
         if(!enable) return;
-        if(firstTme){
-            firstTme=false;
-            startTime = state.totalTicks;
-        }
-        if(zombie.isFrozen) enable=false;
-        int timePassed = state.totalTicks - startTime;
-        if(timePassed>=100){
+
+        if (zombie.isFrozen) return;
+
+        ticksElapsed++;
+        if (ticksElapsed >= 100) {
             zombie.col = 0;
             zombie.speed *= -1;
             zombie.position.x = ReadOnlyGameState.CELL_WIDTH / 2f;

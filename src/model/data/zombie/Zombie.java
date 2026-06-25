@@ -26,7 +26,6 @@ public class Zombie {
     public boolean isFrozen = false;
     public int frozenTicks = 0;
     public boolean isHypnotized = false;
-    public boolean effectedByPiano = false;
 
     public EventBus eventBus;
 
