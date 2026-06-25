@@ -16,6 +16,7 @@ public class Zombie {
     public float speed;
     public Position position;
     public int hp;
+    public int totalHp;
     public boolean isAlive = true;
 
     public List<ZombieAbilityConfig> abilities = new ArrayList<>();
@@ -38,6 +39,7 @@ public class Zombie {
         this.col = col;
         this.position = position;
         this.hp = type.baseStats.hp;
+        this.totalHp = type.baseStats.hp;
         this.eventBus = bus;
         this.speed = type.baseStats.speed;
 

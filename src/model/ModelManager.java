@@ -8,6 +8,7 @@ import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.sun.Sun;
 import model.data.sun.SunType;
+import model.data.wave.LevelConfig;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.events.PlantPlacedEvent;
@@ -19,11 +20,13 @@ import model.systems.MovementSystem;
 import model.systems.PlantAbilitySystem;
 import model.systems.SunSpawnSystem;
 import model.systems.SunSystem;
+import model.systems.WaveManager;
 
 public class ModelManager {
     private final GameState state;
     private final EventBus eventBus;
     private final StorageManager storage;
+    private final WaveManager waveManager;
 
     private final MovementSystem movementSystem;
     private final CombatSystem combatSystem;
@@ -33,6 +36,7 @@ public class ModelManager {
 
     public ModelManager(StorageManager storage, EventBus eventBus) {
         this.state = new GameState();
+        this.waveManager = new WaveManager();
         this.eventBus = eventBus;
         this.storage = storage;
 
@@ -53,13 +57,23 @@ public class ModelManager {
         sunSpawnSystem.update(state);
         sunSystem.update(state);
 
+        // zombie ability
+
         movementSystem.update(state);
 
         combatSystem.update(state, eventBus);
 
+        waveManager.update(state, eventBus);
+
         // we should move to event queue processing if we faced any problems with the
         // current setup
         // eventBus.processEvents();
+    }
+
+    public void startLevel(LevelConfig level) {
+        state.reset();
+        state.sunAmount = level.startingSun;
+        waveManager.initialize(level);
     }
 
     public GameState getState() {
@@ -101,7 +115,7 @@ public class ModelManager {
         Zombie zombie = new Zombie(type, row, GameState.GRID_COLS - 1,
                 new Position(GameState.SCREEN_WIDTH, GameState.CELL_HEIGHT * row + (GameState.CELL_HEIGHT / 2)),
                 eventBus);
-        state.zombies.add(zombie);
+        state.addZombie(zombie);
         eventBus.publish(new ZombieSpawnedEvent(zombie));
     }
 

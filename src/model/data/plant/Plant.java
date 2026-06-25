@@ -14,8 +14,8 @@ public class Plant {
 
     public final int instanceId;
     public final PlantType type;
-    public final int row;
-    public final int col;
+    public int row;
+    public int col;
     public final int level;
 
     public int totalHP;
