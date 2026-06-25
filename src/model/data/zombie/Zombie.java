@@ -15,6 +15,7 @@ public class Zombie {
     public final int col;
     public Position position;
     public int hp;
+    public int totalHp;
     public boolean isAlive = true;
 
     public List<ZombieAbilityConfig> abilities = new ArrayList<>();
@@ -36,6 +37,7 @@ public class Zombie {
         this.col = col;
         this.position = position;
         this.hp = type.baseStats.hp;
+        this.totalHp = type.baseStats.hp;
         this.eventBus = bus;
 
         for (ZombieAbilityConfig config : type.abilities) {
