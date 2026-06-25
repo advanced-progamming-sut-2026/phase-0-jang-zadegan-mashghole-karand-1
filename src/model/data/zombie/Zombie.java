@@ -11,8 +11,9 @@ import model.data.zombie.armor.runtime.ZombieArmor;
 public class Zombie {
     public final int instanceId;
     public final ZombieType type;
-    public final int row;
-    public final int col;
+    public int row;
+    public int col;
+    public float speed;
     public Position position;
     public int hp;
     public boolean isAlive = true;
@@ -24,6 +25,7 @@ public class Zombie {
     public boolean isFrozen = false;
     public int frozenTicks = 0;
     public boolean isHypnotized = false;
+    public boolean effectedByPiano = false;
 
     public EventBus eventBus;
 
@@ -37,6 +39,7 @@ public class Zombie {
         this.position = position;
         this.hp = type.baseStats.hp;
         this.eventBus = bus;
+        this.speed = type.baseStats.speed;
 
         for (ZombieAbilityConfig config : type.abilities) {
             ZombieAbilityConfig ability = config.createInstance(this);
@@ -72,6 +75,9 @@ public class Zombie {
         // return;
         // }
 
+        //if(effectedByPiano){
+          //change row randomly
+        //}
         for (ZombieAbilityConfig ability : abilities) {
             ability.onTick(this, state, eventBus);
         }

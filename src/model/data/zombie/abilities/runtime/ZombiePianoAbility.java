@@ -9,7 +9,11 @@ public class ZombiePianoAbility implements ZombieAbilityConfig {
 
     @Override
     public void onTick(Zombie zombie, GameState state, EventBus bus) {
-
+        for(Zombie z : state.getZombies()) {
+            if(z.isAlive && !z.equals(zombie)) {
+                z.effectedByPiano =  true;
+            }
+        }
     }
 
     @Override

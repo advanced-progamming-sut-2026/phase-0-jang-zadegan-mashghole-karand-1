@@ -34,11 +34,11 @@ public enum ZombieType {
         PARASOL_ZOMBIE("Parasol Zombie",new ZombieBaseStats(350,100,0.25f,200,3000),null,
                         List.of(new ZombieUmbrellaAbility())),
         TURQUOISE_ZOMBIE("Turquoise Zombie", new ZombieBaseStats(250,100,0.185f,500,3000),null,
-                        List.of(new ZombieStealSunAbility())),
+                        List.of(new ZombieStealSunAbility(), new ZombieLaserAbility())),
         PROSPECTOR_ZOMBIE("Prospector Zombie", new ZombieBaseStats(190,100,0.16f,200,3000),null,
                         List.of(new ZombieDynamiteAbility())),
         PIANIST("Pianist Zombie",new ZombieBaseStats(840,4000,0.12f,450,0),null,
-                        List.of(new ZombiePianoAbility())),
+                        List.of(new ZombiePianoAbility(), new ZombieKillForwardAbility())),
         NEWSPAPER_ZOMBIE("Newspaper Zombie",new ZombieBaseStats(460,200,0.22f,700,0),
                         ZombieArmorConfig.newspaper(), null),
         //BARREL_ROLLER("Barrel Roller Zombie",new ZombieBaseStats()) no data?

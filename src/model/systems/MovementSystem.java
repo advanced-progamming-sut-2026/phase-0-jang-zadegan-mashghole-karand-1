@@ -8,7 +8,7 @@ public class MovementSystem {
 
     public void update(GameState state) {
         for (Zombie zombie : state.zombies) {
-            zombie.position.x -= zombie.type.baseStats.speed;
+            zombie.position.x -= zombie.speed;
         }
 
         for (Projectile projectile : state.projectiles) {
