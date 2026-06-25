@@ -85,6 +85,10 @@ public class GameState implements ReadOnlyGameState {
         return plants.stream().filter(p -> p.row == row && p.col == col).findFirst().orElse(null);
     }
 
+    public void addZombie(Zombie zombie) {
+        zombies.add(zombie);
+    }
+
     public void reset() {
         plants.clear();
         zombies.clear();
