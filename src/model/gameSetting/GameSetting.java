@@ -1,8 +1,8 @@
 package model.gameSetting;
 
-import model.user.User;
+import model.storage.user.User;
 
 public class GameSetting {
     private int difficultyLevel;
-    //phase 2!
+    // phase 2!
 }

@@ -3,6 +3,7 @@ package view.messages;
 public enum ErrorMessages implements Message {
     // meta error
     PLANT_NOT_FOUND("Plant not found."),
+    UNKNOWN_COMMAND("Unknown command."),
     // register error
     USERNAME_TAKEN("username already exists"),
     USERNAME_FORMAT("Username can only contain lowercase letters (a-z)," +

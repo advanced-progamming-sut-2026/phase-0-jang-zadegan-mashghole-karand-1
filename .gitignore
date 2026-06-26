@@ -9,3 +9,5 @@ build/
 *.iws
 .vscode/
 *.code-workspace
+
+docs/doc.pdf

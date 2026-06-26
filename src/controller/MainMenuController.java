@@ -1,13 +1,22 @@
 package controller;
 
-import model.menu.MenuType;
-import model.service.AuthService;
+import model.storage.StorageManager;
+import view.ScreenType;
 
 public class MainMenuController {
 
-    private AuthService authService;
+    private final ControllerManager controllerManager;
+    private final StorageManager storage;
 
-    public void logout(){}
+    public MainMenuController(ControllerManager controllerManager, StorageManager storage) {
+        this.controllerManager = controllerManager;
+        this.storage = storage;
+    }
 
-    public void ChangeMenu(MenuType menuType) {}
+    public void logout() {
+        storage.logout();
+        controllerManager.getAuthController().clearPasswordResetState();
+        controllerManager.setScreen(ScreenType.REGISTER);
+        controllerManager.sendMessage("Logged out successfully.");
+    }
 }
