@@ -1,5 +1,68 @@
 package model.storage;
 
-public class StorageManager {
+import java.util.List;
 
+import model.data.plant.PlantType;
+import model.storage.user.Gender;
+import model.storage.user.SafetyQuestion;
+import model.storage.user.User;
+import model.world.ChapterType;
+
+public interface StorageManager {
+
+    boolean register(String username, String password, String email, String nickname, Gender gender,
+            SafetyQuestion safety);
+
+    boolean login(String username, String password, boolean stayLoggedIn);
+
+    void logout();
+
+    User getCurrentUser();
+
+    boolean isLoggedIn();
+
+    boolean usernameExists(String username);
+
+    User getUserByUsername(String username);
+
+    boolean updatePassword(String username, String newPassword);
+
+    String getCurrentUsername();
+
+    void saveProgress();
+
+    void loadProgress();
+
+    void updateUserProfile(User profile);
+
+    void unlockChapter(ChapterType chapter);
+
+    boolean isChapterUnlocked(ChapterType chapter);
+
+    List<ChapterType> getUnlockedChapters();
+
+    void unlockPlant(PlantType plantName);
+
+    boolean isPlantUnlocked(PlantType plantName);
+
+    List<PlantType> getUnlockedPlants();
+
+    class SaveFile {
+        public final String name;
+        public final String chapterId;
+        public final int levelNumber;
+        public final List<String> unlockedPlants;
+        public final List<String> unlockedChapters;
+        public final long timestamp;
+
+        public SaveFile(String name, String chapterId, int levelNumber, List<String> unlockedPlants,
+                List<String> unlockedChapters) {
+            this.name = name;
+            this.chapterId = chapterId;
+            this.levelNumber = levelNumber;
+            this.unlockedPlants = unlockedPlants;
+            this.unlockedChapters = unlockedChapters;
+            this.timestamp = System.currentTimeMillis();
+        }
+    }
 }

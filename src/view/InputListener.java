@@ -1,4 +1,3 @@
-
 package view;
 
 import controller.InputHandler;
@@ -7,8 +6,8 @@ import java.util.Scanner;
 public class InputListener implements Runnable {
     private final InputHandler inputHandler;
     private final Scanner scanner;
-    private volatile boolean running = true;
     private final Runnable promptRenderer;
+    private volatile boolean running = true;
     private Thread thread;
 
     public InputListener(InputHandler inputHandler, Runnable promptRenderer) {
@@ -29,6 +28,7 @@ public class InputListener implements Runnable {
         }
     }
 
+    @Override
     public void run() {
         while (running) {
             try {

@@ -1,4 +1,4 @@
-package model.CommandResult;
+package controller.CommandResult;
 
 public class CommandResult {
     public String message;
@@ -12,6 +12,7 @@ public class CommandResult {
     public CommandResult() {
         success = true;
     }
+
     public CommandResult(String message) {
         this.message = message;
         success = true;

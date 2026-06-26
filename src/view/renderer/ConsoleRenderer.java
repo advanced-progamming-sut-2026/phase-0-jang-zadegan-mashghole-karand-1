@@ -8,6 +8,7 @@ import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
+import model.storage.user.SafetyQuestion;
 
 public class ConsoleRenderer implements Renderer {
 
@@ -34,39 +35,136 @@ public class ConsoleRenderer implements Renderer {
     private List<String> messages = new java.util.ArrayList<>();
 
     private String[] lastRenderLines = new String[RENDER_HEIGHT];
+    private String currentScreenKey = "";
+    private boolean needsFullClear = true;
+    private static final int PROMPT_LINE = RENDER_HEIGHT + 2;
+
+    @Override
+    public void prepareScreen(String screenKey) {
+        if (!screenKey.equals(currentScreenKey)) {
+            currentScreenKey = screenKey;
+            needsFullClear = true;
+            java.util.Arrays.fill(lastRenderLines, null);
+        }
+    }
 
     private void render(String content) {
-        List<String> lines = new ArrayList<>();
+        synchronized (ConsoleRenderer.class) {
+            List<String> lines = new ArrayList<>();
 
-        for (String line : content.split("\n")) {
-            lines.add(line);
-        }
-
-        while (lines.size() < RENDER_HEIGHT) {
-            lines.add("");
-        }
-
-        boolean changed = false;
-        for (int i = 0; i < Math.min(lines.size(), lastRenderLines.length); i++) {
-            if (!lines.get(i).equals(lastRenderLines[i])) {
-                changed = true;
-                break;
+            for (String line : content.split("\n")) {
+                lines.add(line);
             }
+
+            while (lines.size() < RENDER_HEIGHT) {
+                lines.add("");
+            }
+            if (lines.size() > RENDER_HEIGHT) {
+                lines = new ArrayList<>(lines.subList(0, RENDER_HEIGHT));
+            }
+
+            boolean changed = needsFullClear;
+            if (!changed) {
+                for (int i = 0; i < RENDER_HEIGHT; i++) {
+                    String line = lines.get(i);
+                    if (!java.util.Objects.equals(line, lastRenderLines[i])) {
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!changed) {
+                return;
+            }
+
+            if (needsFullClear) {
+                System.out.print("\033[2J\033[H");
+                needsFullClear = false;
+            } else {
+                System.out.print("\033[H");
+            }
+
+            for (int i = 0; i < RENDER_HEIGHT; i++) {
+                System.out.print("\033[2K");
+                System.out.println(lines.get(i));
+                lastRenderLines[i] = lines.get(i);
+            }
+
+            System.out.flush();
+        }
+    }
+
+    private String getRegisterScreen(List<SafetyQuestion> questions) {
+        StringBuilder sb = new StringBuilder();
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Register" + RESET + "  🧟";
+
+        sb.append(getHeaderBox(title, GREEN));
+        sb.append("\n");
+        sb.append("  " + CYAN + "1." + RESET + " Register: " + GREEN
+                + "register -u <username> -p <password> <password_confirm> -n <nickname> -e <email> -g <gender>"
+                + RESET + "\n");
+        sb.append("  " + CYAN + "2." + RESET + " Pick Security Question: " + GREEN
+                + "pick question -q <question_number> -a <answer> -c <answer_confirm>" + RESET + "\n");
+        sb.append("  " + CYAN + "3." + RESET + " Login Menu: " + GREEN + "menu enter login" + RESET + "\n");
+        sb.append("  " + CYAN + "4." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+        sb.append("\n");
+        sb.append("  " + BOLD + "Safety Questions:" + RESET + "\n");
+        for (int i = 0; i < questions.size(); i++) {
+            sb.append("    ").append(CYAN).append(i + 1).append(".").append(RESET).append(" ")
+                    .append(questions.get(i).question).append("\n");
+        }
+        sb.append("\n");
+        sb.append(getMessages());
+
+        return sb.toString();
+    }
+
+    @Override
+    public void renderRegisterScreen(List<SafetyQuestion> questions) {
+        render(getRegisterScreen(questions));
+    }
+
+    private String getLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
+            String passwordResetQuestion) {
+        StringBuilder sb = new StringBuilder();
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Login" + RESET + "  🧟";
+
+        sb.append(getHeaderBox(title, GREEN));
+        sb.append("\n");
+        sb.append("  " + CYAN + "1." + RESET + " Login: " + GREEN
+                + "login -u <username> -p <password>" + RESET + "\n");
+        sb.append("  " + CYAN + "2." + RESET + " Stay Logged In: " + GREEN
+                + "login -u <username> -p <password> -stay-logged-in" + RESET + "\n");
+        sb.append("  " + CYAN + "3." + RESET + " Forget Password: " + GREEN
+                + "forget password -u <username> -e <email>" + RESET + "\n");
+        sb.append("  " + CYAN + "4." + RESET + " Answer Security Question: " + GREEN
+                + "answer -a <answer>" + RESET + "\n");
+        sb.append("  " + CYAN + "5." + RESET + " Reset Password: " + GREEN
+                + "reset password -p <password> <password_confirm>" + RESET + "\n");
+        sb.append("  " + CYAN + "6." + RESET + " Register Menu: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("  " + CYAN + "7." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+
+        if (isAwaitingSecurityAnswer && passwordResetQuestion != null) {
+            sb.append("\n");
+            sb.append("  " + BOLD + "Security Question:" + RESET + " ")
+                    .append(passwordResetQuestion).append("\n");
+        }
+        if (isAwaitingNewPassword) {
+            sb.append("\n");
+            sb.append("  " + YELLOW + "Enter your new password using reset password." + RESET + "\n");
         }
 
-        if (!changed) {
-            return;
-        }
+        sb.append("\n");
+        sb.append(getMessages());
 
-        // move cursor to the top
-        System.out.print("\033[H");
+        return sb.toString();
+    }
 
-        int maxLines = Math.min(lines.size(), RENDER_HEIGHT);
-        for (int i = 0; i < maxLines; i++) {
-            System.out.print("\033[2K"); // clear line
-            System.out.println(lines.get(i));
-            lastRenderLines[i] = lines.get(i);
-        }
+    @Override
+    public void renderLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
+            String passwordResetQuestion) {
+        render(getLoginScreen(isAwaitingSecurityAnswer, isAwaitingNewPassword, passwordResetQuestion));
     }
 
     private String getMainScreen() {
@@ -77,8 +175,7 @@ public class ConsoleRenderer implements Renderer {
         sb.append("\n");
         sb.append("  " + CYAN + "1." + RESET + " Start Game\n");
         sb.append("  " + CYAN + "2." + RESET + " Load Game\n");
-        sb.append("  " + CYAN + "3." + RESET + " Help\n");
-        sb.append("  " + CYAN + "4." + RESET + " Quit\n");
+        sb.append("  " + CYAN + "3." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
         sb.append("\n");
         sb.append(getMessages());
 
@@ -163,14 +260,6 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderProfileOverlay() {
-    }
-
-    @Override
-    public void renderRegisterOverlay() {
-    }
-
-    @Override
-    public void renderLoginOverlay() {
     }
 
     @Override
@@ -525,11 +614,14 @@ public class ConsoleRenderer implements Renderer {
 
         int lineStart = Math.max(0, lines.size() - MAX_MESSAGES);
         for (int i = lineStart; i < lines.size(); i++) {
-            sb.append(String.format("║ %-" + MESSAGE_BOX_WIDTH + "s ║%n", lines.get(i)));
+            String line = lines.get(i);
+            int plainLength = stripAnsi(line).length();
+            int padding = Math.max(0, MESSAGE_BOX_WIDTH - plainLength);
+            sb.append("║ ").append(line).append(" ".repeat(padding)).append(" ║\n");
         }
 
         for (int i = 0; i < MAX_MESSAGES - (lines.size() - lineStart); i++) {
-            sb.append(String.format("║ %-" + MESSAGE_BOX_WIDTH + "s ║%n", ""));
+            sb.append("║ ").append(" ".repeat(MESSAGE_BOX_WIDTH)).append(" ║\n");
         }
 
         sb.append("╚" + "═".repeat(SCREEN_WIDTH - 2) + "╝\n");
@@ -543,19 +635,17 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderCommandPrompt() {
-        int promptLine = RENDER_HEIGHT + 2;
-
-        // position cursor at the prompt line
-        System.out.print("\033[" + promptLine + ";1H");
-        System.out.print("\033[2K"); // clear the line
-
-        System.out.print(CYAN + "> " + RESET);
-        System.out.flush();
+        synchronized (ConsoleRenderer.class) {
+            System.out.print("\033[" + PROMPT_LINE + ";1H\033[2K");
+            System.out.print(CYAN + "> " + RESET);
+            System.out.flush();
+        }
     }
 
     @Override
     public void clearScreen() {
-        System.out.print("\033[H\033[2J");
+        needsFullClear = true;
+        System.out.print("\033[2J\033[H");
         System.out.flush();
     }
 
@@ -623,8 +713,9 @@ public class ConsoleRenderer implements Renderer {
             strippedTitle = stripAnsi(displayTitle);
         }
 
-        return (color + "║" + RESET + " ".repeat((SCREEN_WIDTH - 2 - strippedTitle.length()) / 2) + title
-                + " ".repeat((SCREEN_WIDTH - 2 - strippedTitle.length()) / 2) + color
+        int leftPadding = (SCREEN_WIDTH - 2 - strippedTitle.length()) / 2;
+        return (color + "║" + RESET + " ".repeat(leftPadding) + title
+                + " ".repeat(SCREEN_WIDTH - 2 - strippedTitle.length() - leftPadding) + color
                 + "║\n" + RESET);
     }
 

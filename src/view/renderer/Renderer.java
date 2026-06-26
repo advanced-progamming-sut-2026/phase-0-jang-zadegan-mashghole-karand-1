@@ -4,8 +4,16 @@ import java.util.List;
 
 import model.core.ReadOnlyGameState;
 import model.data.plant.PlantType;
+import model.storage.user.SafetyQuestion;
 
 public interface Renderer {
+
+    void prepareScreen(String screenKey);
+
+    void renderRegisterScreen(List<SafetyQuestion> questions);
+
+    void renderLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
+            String passwordResetQuestion);
 
     void renderMainScreen();
 
@@ -22,10 +30,6 @@ public interface Renderer {
     void renderHelpScreen();
 
     void renderPauseOverlay();
-
-    void renderRegisterOverlay();
-
-    void renderLoginOverlay();
 
     void renderSettingOverlay();
 

@@ -4,19 +4,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public enum Commands {
-    CHANGE_MENU("menu\\s+enter\\s+(?<menu_name>.*)$"),
+    CHANGE_MENU("menu\\s+enter\\s+(?<menuname>.*)$"),
     SHOW_MENU("menu\\s+show\\s+current"),
     EXIT_MENU("menu\\s+exit"),
+    QUIT("^\\s*quit\\s*$"),
 
     //register
     REGISTER_USER("register\\s+-u\\s+(?<username>.*?)\\s+-p\\s+(?<password>.*)\\s+(?<passwordconfirm>.*?)\\s+-n\\s+(?<nickname>.*?)\\s+-e\\s+(?<email>.*?)\\s+-g\\s+(?<gender>.*)$"),
-    PICK_QUESTION("pick\\s+question\\s+-q\\s+(?<questionnumber>.*?)\\s+-a\\s+(?<answer>.*?)\\s+-c\\s+(?<answer_confirm>.*)$"),
+    PICK_QUESTION("pick\\s+question\\s+-q\\s+(?<questionnumber>.*?)\\s+-a\\s+(?<answer>.*?)\\s+-c\\s+(?<answerconfirm>.*)$"),
 
     //login
     LOGIN("login\\s+-u\\s+(?<username>.*?)\\s+-p\\s+(?<password>.*)$"),
     LOGIN_STAY_LOGGED_IN("login\\s+-u\\s+(?<username>.*?)\\s+-p\\s+(?<password>.*?)\\s+-stay-logged-in"),
     FORGET_PASS("forget\\s+password\\s+-u\\s+(?<username>.*?)\\s+-e\\s+(?<email>.*)$"),
     ANSWER("answer\\s+-a\\s+(?<answer>.*)$"),
+    RESET_PASSWORD("reset\\s+password\\s+-p\\s+(?<password>.*)\\s+(?<passwordconfirm>.*)$"),
 
     //main menu
     LOGOUT("menu\\s+logout"),
@@ -33,7 +35,7 @@ public enum Commands {
     ADD_DIAMOND("menu\\s+cheat\\s+add\\s+(?<n>\\d+)\\s+diamond"),
 
     //setting menu
-    CHANGE_DIFFICULTY("menu\\s+settings\\s+change-difficulty\\s+-l\\s+(?<difficulty_level>.*)$"),
+    CHANGE_DIFFICULTY("menu\\s+settings\\s+change-difficulty\\s+-l\\s+(?<difficultylevel>.*)$"),
 
     //news menu
     UNREAD_NEWS("menu\\s+news\\s+show-unread"),
@@ -43,7 +45,7 @@ public enum Commands {
     CHANGE_USERNAME("menu\\s+profile\\s+change-username\\s+-u\\s+(?<username>.*)$"),
     CHANGE_NICKNAME("menu\\s+profile\\s+change-nickname\\s+-u\\s+(?<nickname>.*)$"),
     CHANGE_EMAIL("menu profile change-email\\s+-e\\s+(?<email>.*)$"),
-    CHANGE_PASSWORD("menu\\s+profile\\s+change-password\\s+-p\\s+(?<new_password>.*?)\\s+-o\\s+(?<old_password>.*)$"),
+    CHANGE_PASSWORD("menu\\s+profile\\s+change-password\\s+-p\\s+(?<newpassword>.*?)\\s+-o\\s+(?<oldpassword>.*)$"),
     SHOW_PROFILE_INFO("menu\\s+profile\\s+show-info"),
 
 
@@ -52,10 +54,10 @@ public enum Commands {
     SHOW_ALL_PLANTS("menu\\s+collection\\s+show-all-plants"),
     SHOW_ZOMBIES("menu\\s+collection\\s+show-zombies"),
     SHOW_ALL_ZOMBIES("menu\\s+collection\\s+show-all-zombies"),
-    SHOW_PLANT("menu\\s+collection\\s+show-plant\\s+-p\\s+(?<plant_name>.*)$"),
-    SHOW_ZOMBIE("menu\\s+collection\\s+show-zombie\\s+-z\\s+(?<zombie_name>.*)$"),
-    UPGRADE_PLANT("menu\\s+collection\\s+upgrade-plant\\s+-p\\s+(?<plant_name>.*)$"),
-    PURCHASE_PLANT("menu\\s+collection\\s+purchase-plant\\s+-p\\s+(?<plant_name>.*)$"),
+    SHOW_PLANT("menu\\s+collection\\s+show-plant\\s+-p\\s+(?<plantname>.*)$"),
+    SHOW_ZOMBIE("menu\\s+collection\\s+show-zombie\\s+-z\\s+(?<zombiename>.*)$"),
+    UPGRADE_PLANT("menu\\s+collection\\s+upgrade-plant\\s+-p\\s+(?<plantname>.*)$"),
+    PURCHASE_PLANT("menu\\s+collection\\s+purchase-plant\\s+-p\\s+(?<plantname>.*)$"),
 
     //plant selection menu
     SHOW_ALL_PLANTS_SELECT("show\\s+all\\s+plants"),
@@ -82,7 +84,7 @@ public enum Commands {
 
     //zombie commands
     ZOMBIES_INFO("zombies\\s+info"),
-    CHEAT_SPAWN_ZOMBIE("cheat\\s+spawn-zombie\\s+-t\\s+(?<zombie_type>.*?)\\s+-l\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)"),
+    CHEAT_SPAWN_ZOMBIE("cheat\\s+spawn-zombie\\s+-t\\s+(?<zombietype>.*?)\\s+-l\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)"),
 
     //special level: get what you plant
     START_ZOMBIE_WAVES("start\\s+zombie\\s+waves"),
@@ -97,11 +99,11 @@ public enum Commands {
     ENTER_SHOP("enter\\s+shop"),
     SHOP_LIST("shop\\s+list"),
     SHOP_DAILY("shop\\s+daily"),
-    SHOP_BUY("shop\\s+buy\\s+-i\\s+(?<item_id>.*?)\\s+-n\\s+(?<count>\\d+)$"),
-    SHOP_BUY_WITH_TYPE("shop\\s+buy\\s+-i\\s+(?<item_id>.*?)\\s+-n\\s+(?<count>\\d+)\\s+-t\\s+(?<plant_type>.*)$"),
+    SHOP_BUY("shop\\s+buy\\s+-i\\s+(?<itemid>.*?)\\s+-n\\s+(?<count>\\d+)$"),
+    SHOP_BUY_WITH_TYPE("shop\\s+buy\\s+-i\\s+(?<itemid>.*?)\\s+-n\\s+(?<count>\\d+)\\s+-t\\s+(?<planttype>.*)$"),
 
     //quests / travel log
-    TRAVEL_LOG_PAGE("travel\\s+log\\s+page\\s+(?<page_name>.*)$");
+    TRAVEL_LOG_PAGE("travel\\s+log\\s+page\\s+(?<pagename>.*)$");
 
     private final String regex;
     private final Pattern pattern;

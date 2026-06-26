@@ -1,10 +1,6 @@
 package controller;
 
-import model.service.GameService;
-
 public class GameMenuController {
-
-    private GameService gameService;
 
     public void enterChapter(String chapterName) {
     }

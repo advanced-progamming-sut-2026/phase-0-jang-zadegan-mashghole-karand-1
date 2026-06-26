@@ -1,10 +1,12 @@
 package controller;
 
-import model.CommandResult.CommandResult;
 import model.core.Position;
 import model.data.plant.PlantType;
+import view.messages.ErrorMessages;
 
 import java.util.regex.Matcher;
+
+import controller.CommandResult.CommandResult;
 
 public class InputHandler {
     private ControllerManager controllerManager;
@@ -15,8 +17,27 @@ public class InputHandler {
     }
 
     public void handleInput(String input) {
+        if (!dispatchCommand(input)) {
+            controllerManager.showError(ErrorMessages.UNKNOWN_COMMAND.getMessage());
+            controllerManager.refreshView();
+        }
+    }
 
-        if ((matcher = Commands.REGISTER_USER.getMatcher(input)).matches()) {
+    private boolean dispatchCommand(String input) {
+
+        if (Commands.QUIT.getMatcher(input).matches()) {
+            controllerManager.quit();
+        } else if ((matcher = Commands.ENTER_CHAPTER.getMatcher(input)).matches()) {
+            String chapterName = matcher.group(1);
+            controllerManager.getGameMenuController().enterChapter(chapterName);
+        } else if ((matcher = Commands.CHANGE_MENU.getMatcher(input)).matches()) {
+            String menuName = matcher.group(1);
+            controllerManager.handleCommandResult(controllerManager.enterMenu(menuName));
+        } else if (Commands.SHOW_MENU.getMatcher(input).matches()) {
+            controllerManager.handleCommandResult(controllerManager.showCurrentMenu());
+        } else if (Commands.EXIT_MENU.getMatcher(input).matches()) {
+            controllerManager.handleCommandResult(controllerManager.exitMenu());
+        } else if ((matcher = Commands.REGISTER_USER.getMatcher(input)).matches()) {
             String username = matcher.group(1);
             String password = matcher.group(2);
             String password_confirm = matcher.group(3);
@@ -25,33 +46,41 @@ public class InputHandler {
             String genderString = matcher.group(6);
             CommandResult result = controllerManager.getAuthController().register(username, password, password_confirm,
                     nickname, email, genderString);
-            // output?
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.PICK_QUESTION.getMatcher(input)).matches()) {
             int QuestionNum = Integer.parseInt(matcher.group(1));
             String answer = matcher.group(2);
             String answer_confirm = matcher.group(3);
             CommandResult result = controllerManager.getAuthController().pickQuestion(QuestionNum, answer,
                     answer_confirm);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.LOGIN_STAY_LOGGED_IN.getMatcher(input)).matches()) {
             String username = matcher.group(1);
             String password = matcher.group(2);
-            CommandResult result = controllerManager.getLoginController().login(username, password, true);
+            CommandResult result = controllerManager.getAuthController().login(username, password, true);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.LOGIN.getMatcher(input)).matches()) {
             String username = matcher.group(1);
             String password = matcher.group(2);
-            CommandResult result = controllerManager.getLoginController().login(username, password, false);
+            CommandResult result = controllerManager.getAuthController().login(username, password, false);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.FORGET_PASS.getMatcher(input)).matches()) {
             String username = matcher.group(1);
             String email = matcher.group(2);
-            CommandResult result = controllerManager.getLoginController().forgotPassword(username, email);
+            CommandResult result = controllerManager.getAuthController().forgotPassword(username, email);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.ANSWER.getMatcher(input)).matches()) {
             String answer = matcher.group(1);
-            CommandResult result = controllerManager.getLoginController().answer(answer);
-        } else if ((matcher = Commands.LOGOUT.getMatcher(input)).matches()) {
+            CommandResult result = controllerManager.getAuthController().answer(answer);
+            controllerManager.handleCommandResult(result);
+        } else if ((matcher = Commands.RESET_PASSWORD.getMatcher(input)).matches()) {
+            String password = matcher.group(1);
+            String passwordConfirm = matcher.group(2);
+            CommandResult result = controllerManager.getAuthController().resetPassword(password, passwordConfirm);
+            controllerManager.handleCommandResult(result);
+        } else if (Commands.LOGOUT.getMatcher(input).matches()) {
             controllerManager.getMainMenuController().logout();
-        } else if ((matcher = Commands.ENTER_CHAPTER.getMatcher(input)).matches()) {
-            String chapterName = matcher.group(1);
-            controllerManager.getGameMenuController().enterChapter(chapterName);
+            controllerManager.refreshView();
         } else if (Commands.GREENHOUSE.getMatcher(input).matches()) {
             controllerManager.getGameMenuController().greenHouse();
         } else if (Commands.TRAVEL_LOG.getMatcher(input).matches()) {
@@ -217,9 +246,12 @@ public class InputHandler {
         } else if ((matcher = Commands.TRAVEL_LOG_PAGE.getMatcher(input)).matches()) {
             String pageName = matcher.group(1);
             CommandResult result = controllerManager.getQuestMenuController().enterPage(pageName);
+        } else {
+            return false;
         }
         // leaderboard and minigames...
 
+        return true;
     }
 
 }

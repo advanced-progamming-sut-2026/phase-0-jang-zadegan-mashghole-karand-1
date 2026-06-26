@@ -3,7 +3,7 @@ import controller.InputHandler;
 import model.ModelManager;
 import model.core.EventBus;
 import model.core.GameLoop;
-import model.storage.JsonStorageManager;
+import model.storage.InMemoryStorageManager;
 import view.ViewManager;
 import view.renderer.*;
 
@@ -12,10 +12,10 @@ public class Application {
         EventBus eventBus = new EventBus();
         GameLoop gameLoop = new GameLoop();
 
-        JsonStorageManager storageManager = new JsonStorageManager();
+        InMemoryStorageManager storageManager = new InMemoryStorageManager();
         ModelManager model = new ModelManager(storageManager, eventBus);
 
-        ControllerManager controller = new ControllerManager(model, eventBus, gameLoop);
+        ControllerManager controller = new ControllerManager(model, eventBus, gameLoop, storageManager);
 
         InputHandler inputHandler = new InputHandler(controller);
 
@@ -25,9 +25,9 @@ public class Application {
 
         controller.setView(view);
 
-        view.start();
-
+        view.initialize();
         controller.start();
+        view.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             view.stop();

@@ -1,40 +1,40 @@
 package controller;
 
-import model.CommandResult.CommandResult;
-import model.collection.Collection;
+import controller.CommandResult.CommandResult;
+import model.storage.collection.Collection;
 
 public class CollectionController {
     private Collection playerCollection;
 
-    public String  ShowPlants() {
-        return  null;
+    public String ShowPlants() {
+        return null;
     }
 
     public String showAllPlants() {
-        return  null;
+        return null;
     }
 
     public String showZombies() {
-        return  null;
+        return null;
     }
 
     public String showAllZombies() {
-        return  null;
+        return null;
     }
 
     public String showPlant(String plantName) {
-        return  null;
+        return null;
     }
 
     public String showZombie(String zombieName) {
-        return  null;
+        return null;
     }
 
     public CommandResult upgradePlant(String plantName) {
-        return  null;
+        return null;
     }
 
     public CommandResult purchasePlant(String plantName) {
-        return  null;
+        return null;
     }
 }

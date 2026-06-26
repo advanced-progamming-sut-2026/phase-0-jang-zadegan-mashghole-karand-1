@@ -2,41 +2,37 @@ package view;
 
 import controller.InputHandler;
 import model.core.ReadOnlyGameState;
+import model.service.AuthState;
 import view.renderer.Renderer;
 
 public class ViewManager {
     private final Renderer renderer;
-    private final InputHandler inputHandler;
     private final InputListener inputListener;
-
-    private ScreenType currentScreen = ScreenType.MAIN;
-    private MenuType currentMenu = MenuType.NONE;
 
     public ViewManager(Renderer renderer, InputHandler inputHandler) {
         this.renderer = renderer;
-        this.inputHandler = inputHandler;
         this.inputListener = new InputListener(inputHandler, renderer::renderCommandPrompt);
-    }
-
-    public void showScreen(ScreenType screen) {
-        this.currentScreen = screen;
-        this.currentMenu = MenuType.NONE;
-    }
-
-    public void showMenuOverlay(MenuType menu) {
-        this.currentMenu = menu;
-    }
-
-    public void hideMenuOverlay() {
-        this.currentMenu = MenuType.NONE;
     }
 
     public void showMessage(String message) {
         renderer.renderMessage(message);
     }
 
-    public void render(ReadOnlyGameState state) {
+    public void showError(String message) {
+        renderer.renderError(message);
+    }
+
+    public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
+            AuthState authState) {
+        renderer.prepareScreen(currentScreen.name());
         switch (currentScreen) {
+            case REGISTER:
+                renderer.renderRegisterScreen(authState.questions);
+                break;
+            case LOGIN:
+                renderer.renderLoginScreen(authState.isAwaitingSecurityAnswer, authState.isAwaitingNewPassword,
+                        authState.passwordResetQuestion);
+                break;
             case MAIN:
                 renderer.renderMainScreen();
                 break;
@@ -65,12 +61,6 @@ public class ViewManager {
                 case PAUSE:
                     renderer.renderPauseOverlay();
                     break;
-                case REGISTER:
-                    renderer.renderRegisterOverlay();
-                    break;
-                case LOGIN:
-                    renderer.renderLoginOverlay();
-                    break;
                 case SETTING:
                     renderer.renderSettingOverlay();
                     break;
@@ -91,8 +81,11 @@ public class ViewManager {
     }
 
     public void start() {
-        renderer.clearScreen();
         inputListener.start();
+    }
+
+    public void initialize() {
+        renderer.clearScreen();
     }
 
     public void stop() {
