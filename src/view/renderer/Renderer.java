@@ -4,6 +4,7 @@ import java.util.List;
 
 import model.core.ReadOnlyGameState;
 import model.data.plant.PlantType;
+import model.service.GameNavigationState;
 import model.storage.user.SafetyQuestion;
 
 public interface Renderer {
@@ -17,7 +18,7 @@ public interface Renderer {
 
     void renderMainScreen();
 
-    void renderLevelSelectionScreen();
+    void renderLevelSelectionScreen(GameNavigationState gameNavigation);
 
     void renderGameScreen(ReadOnlyGameState state);
 

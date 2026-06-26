@@ -5,6 +5,8 @@ import model.ModelManager;
 import model.core.EventBus;
 import model.core.GameLoop;
 import model.service.AuthState;
+import model.service.GameNavigationState;
+import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
 import view.MenuType;
 import view.ScreenType;
@@ -18,12 +20,12 @@ public class ControllerManager {
     private final StorageManager storage;
 
     private final AuthController authController;
-    private final GameMenuController gameMenuController = new GameMenuController();
+    private final GameMenuController gameMenuController;
     private final MainMenuController mainMenuController;
     private final SettingController settingController = new SettingController();
     private final NewsMenuController newsMenuController = new NewsMenuController();
     private final ProfileController profileController = new ProfileController();
-    private final PickPlantsController pickPlantsController = new PickPlantsController();
+    private final PickPlantsController pickPlantsController;
     private final CollectionController collectionController = new CollectionController();
     private final GameMechanismController gameMechanismController;
     private final GreenhouseController greenhouseController = new GreenhouseController();
@@ -32,7 +34,8 @@ public class ControllerManager {
 
     private ScreenType currentScreen = ScreenType.REGISTER;
     private MenuType currentMenu = MenuType.NONE;
-    private AuthState authState = new AuthState();
+    private final AuthState authState = new AuthState();
+    private final GameNavigationState gameNavigation = new GameNavigationState();
 
     public ControllerManager(ModelManager model,
             EventBus eventBus, GameLoop gameLoop, StorageManager storage) {
@@ -43,6 +46,8 @@ public class ControllerManager {
 
         this.authController = new AuthController(this, storage);
         this.mainMenuController = new MainMenuController(this, storage);
+        this.gameMenuController = new GameMenuController(this, storage, gameNavigation);
+        this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
 
         this.gameLoop.setOnTickHandler(() -> {
             model.tick();
@@ -81,7 +86,11 @@ public class ControllerManager {
             authState.isAwaitingSecurityAnswer = authController.isAwaitingSecurityAnswer();
             authState.isAwaitingNewPassword = authController.isAwaitingNewPassword();
             authState.passwordResetQuestion = authController.getPasswordResetQuestion();
-            view.render(model.getState(), currentScreen, currentMenu, authState);
+            if (storage.isLoggedIn()) {
+                gameNavigation.unlockedChapters = storage.getUnlockedChapters();
+                gameNavigation.unlockedPlants = storage.getUnlockedPlants();
+            }
+            view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation);
         }
     }
 
@@ -92,6 +101,10 @@ public class ControllerManager {
 
     public ScreenType getCurrentScreen() {
         return currentScreen;
+    }
+
+    public GameNavigationState getGameNavigation() {
+        return gameNavigation;
     }
 
     public void handleCommandResult(CommandResult result) {
@@ -116,6 +129,13 @@ public class ControllerManager {
             return new CommandResult("Entered login menu.", true);
         }
 
+        if (currentScreen == ScreenType.MAIN && name.equals("game")) {
+            gameNavigation.reset();
+            gameNavigation.phase = Phase.CHAPTER;
+            setScreen(ScreenType.LEVEL_SELECTOR);
+            return new CommandResult("Entered game menu. Select a chapter.", true);
+        }
+
         return new CommandResult("Cannot enter menu from here.", false);
     }
 
@@ -125,6 +145,24 @@ public class ControllerManager {
                 authController.clearPasswordResetState();
                 setScreen(ScreenType.REGISTER);
                 return new CommandResult("Returned to register menu.", true);
+            case LEVEL_SELECTOR:
+                if (gameNavigation.phase == Phase.PLANT) {
+                    gameNavigation.phase = Phase.LEVEL;
+                    gameNavigation.selectedPlants.clear();
+                    refreshView();
+                    return new CommandResult("Returned to level selection.", true);
+                }
+                if (gameNavigation.phase == Phase.LEVEL) {
+                    gameNavigation.phase = Phase.CHAPTER;
+                    gameNavigation.selectedChapter = null;
+                    gameNavigation.selectedLevel = 0;
+                    gameNavigation.pendingLevel = null;
+                    refreshView();
+                    return new CommandResult("Returned to chapter selection.", true);
+                }
+                gameNavigation.reset();
+                setScreen(ScreenType.MAIN);
+                return new CommandResult("Returned to main menu.", true);
             default:
                 return new CommandResult("Cannot exit this menu.", false);
         }
@@ -192,5 +230,9 @@ public class ControllerManager {
 
     public StorageManager getStorage() {
         return storage;
+    }
+
+    public ModelManager getModel() {
+        return model;
     }
 }

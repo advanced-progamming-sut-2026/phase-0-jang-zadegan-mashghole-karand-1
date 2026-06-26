@@ -3,6 +3,7 @@ package view;
 import controller.InputHandler;
 import model.core.ReadOnlyGameState;
 import model.service.AuthState;
+import model.service.GameNavigationState;
 import view.renderer.Renderer;
 
 public class ViewManager {
@@ -23,8 +24,12 @@ public class ViewManager {
     }
 
     public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
-            AuthState authState) {
-        renderer.prepareScreen(currentScreen.name());
+            AuthState authState, GameNavigationState gameNavigation) {
+        String screenKey = currentScreen.name();
+        if (currentScreen == ScreenType.LEVEL_SELECTOR) {
+            screenKey += "-" + gameNavigation.phase.name();
+        }
+        renderer.prepareScreen(screenKey);
         switch (currentScreen) {
             case REGISTER:
                 renderer.renderRegisterScreen(authState.questions);
@@ -37,7 +42,7 @@ public class ViewManager {
                 renderer.renderMainScreen();
                 break;
             case LEVEL_SELECTOR:
-                renderer.renderLevelSelectionScreen();
+                renderer.renderLevelSelectionScreen(gameNavigation);
                 break;
             case GAME:
                 renderer.renderGameScreen(state);

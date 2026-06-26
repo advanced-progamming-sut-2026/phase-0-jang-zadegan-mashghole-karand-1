@@ -29,7 +29,12 @@ public class InputHandler {
             controllerManager.quit();
         } else if ((matcher = Commands.ENTER_CHAPTER.getMatcher(input)).matches()) {
             String chapterName = matcher.group(1);
-            controllerManager.getGameMenuController().enterChapter(chapterName);
+            CommandResult result = controllerManager.getGameMenuController().enterChapter(chapterName);
+            controllerManager.handleCommandResult(result);
+        } else if ((matcher = Commands.SELECT_LEVEL.getMatcher(input)).matches()) {
+            int levelNumber = Integer.parseInt(matcher.group(1));
+            CommandResult result = controllerManager.getGameMenuController().selectLevel(levelNumber);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.CHANGE_MENU.getMatcher(input)).matches()) {
             String menuName = matcher.group(1);
             controllerManager.handleCommandResult(controllerManager.enterMenu(menuName));
@@ -147,23 +152,29 @@ public class InputHandler {
             String plantName = matcher.group(1);
             CommandResult result = controllerManager.getCollectionController().purchasePlant(plantName);
         } else if (Commands.SHOW_ALL_PLANTS_SELECT.getMatcher(input).matches()) {
-            String plants = controllerManager.getPickPlantsController().showAllPlants();
+            CommandResult result = controllerManager.getPickPlantsController().showAllPlants();
+            controllerManager.handleCommandResult(result);
         } else if (Commands.SHOW_AVAILABLE_PLANTS.getMatcher(input).matches()) {
             CommandResult result = controllerManager.getPickPlantsController().showAvailablePlants();
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.ADD_PLANT.getMatcher(input)).matches()) {
             String typeStr = matcher.group(1);
             PlantType type = PlantType.fromName(typeStr);
             CommandResult result = controllerManager.getPickPlantsController().addPlant(type);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.REMOVE_PLANT.getMatcher(input)).matches()) {
             String typeStr = matcher.group(1);
             PlantType type = PlantType.fromName(typeStr);
             CommandResult result = controllerManager.getPickPlantsController().removePlant(type);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.BOOST_PLANT.getMatcher(input)).matches()) {
             String typeStr = matcher.group(1);
             PlantType type = PlantType.fromName(typeStr);
             CommandResult result = controllerManager.getPickPlantsController().boostPlant(type);
+            controllerManager.handleCommandResult(result);
         } else if (Commands.START_GAME.getMatcher(input).matches()) {
-            controllerManager.getPickPlantsController().startGame();
+            CommandResult result = controllerManager.getPickPlantsController().startGame();
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.ADVANCE_TIME.getMatcher(input)).matches()) {
             int count = Integer.parseInt(matcher.group(1));
             controllerManager.getGameMechanismController().AdvanceTicks(count);

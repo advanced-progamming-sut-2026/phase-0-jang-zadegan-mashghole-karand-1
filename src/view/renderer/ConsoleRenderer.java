@@ -3,12 +3,17 @@ package view.renderer;
 import java.util.ArrayList;
 import java.util.List;
 
+import controller.PickPlantsController;
 import model.core.GameLoop;
 import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
+import model.service.GameNavigationState;
+import model.service.GameNavigationState.Phase;
 import model.storage.user.SafetyQuestion;
+import model.world.ChapterCatalog;
+import model.world.ChapterType;
 
 public class ConsoleRenderer implements Renderer {
 
@@ -173,8 +178,8 @@ public class ConsoleRenderer implements Renderer {
 
         sb.append(getHeaderBox(title, GREEN));
         sb.append("\n");
-        sb.append("  " + CYAN + "1." + RESET + " Start Game\n");
-        sb.append("  " + CYAN + "2." + RESET + " Load Game\n");
+        sb.append("  " + CYAN + "1." + RESET + " Start Game: " + GREEN + "menu enter game" + RESET + "\n");
+        sb.append("  " + CYAN + "2." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
         sb.append("  " + CYAN + "3." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
         sb.append("\n");
         sb.append(getMessages());
@@ -235,7 +240,76 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderLevelSelectionScreen() {
+    public void renderLevelSelectionScreen(GameNavigationState gameNavigation) {
+        render(getLevelSelectionScreen(gameNavigation));
+    }
+
+    private String getLevelSelectionScreen(GameNavigationState gameNavigation) {
+        StringBuilder sb = new StringBuilder();
+
+        if (gameNavigation.phase == Phase.CHAPTER) {
+            String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Chapters" + RESET + "  🧟";
+            sb.append(getHeaderBox(title, GREEN));
+            sb.append("\n");
+            sb.append("  " + CYAN + "1." + RESET + " Enter Chapter: " + GREEN
+                    + "menu enter chapter -c <chaptername>" + RESET + "\n");
+            sb.append("  " + CYAN + "2." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+            sb.append("  " + CYAN + "3." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+            sb.append("\n");
+            sb.append("  " + BOLD + "Chapters:" + RESET + "\n");
+            for (ChapterType chapter : ChapterType.values()) {
+                boolean unlocked = gameNavigation.unlockedChapters.contains(chapter);
+                String status = unlocked ? GREEN + "unlocked" + RESET : RED + "locked" + RESET;
+                sb.append("    ").append(CYAN).append(ChapterCatalog.commandName(chapter)).append(RESET)
+                        .append(" - ").append(ChapterCatalog.displayName(chapter))
+                        .append(" (").append(status).append(")\n");
+            }
+        } else if (gameNavigation.phase == Phase.LEVEL) {
+            String chapterName = ChapterCatalog.displayName(gameNavigation.selectedChapter);
+            String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | " + chapterName + RESET + "  🧟";
+            sb.append(getHeaderBox(title, GREEN));
+            sb.append("\n");
+            sb.append("  " + CYAN + "1." + RESET + " Select Level: " + GREEN
+                    + "select level -n <level_number>" + RESET + "\n");
+            sb.append("  " + CYAN + "2." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+            sb.append("  " + CYAN + "3." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+            sb.append("\n");
+            sb.append("  " + BOLD + "Levels:" + RESET + "\n");
+            for (int i = 1; i <= ChapterCatalog.LEVELS_PER_CHAPTER; i++) {
+                sb.append("    ").append(CYAN).append(i).append(RESET).append("\n");
+            }
+        } else if (gameNavigation.phase == Phase.PLANT) {
+            String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Pick Plants" + RESET + "  🧟";
+            sb.append(getHeaderBox(title, GREEN));
+            sb.append("\n");
+            sb.append("  " + CYAN + "1." + RESET + " Show Plants: " + GREEN + "show available plants" + RESET + "\n");
+            sb.append("  " + CYAN + "2." + RESET + " Add Plant: " + GREEN + "add plant -t <type>" + RESET + "\n");
+            sb.append("  " + CYAN + "3." + RESET + " Remove Plant: " + GREEN + "remove plant -t <type>" + RESET + "\n");
+            sb.append("  " + CYAN + "4." + RESET + " Start Game: " + GREEN + "start game" + RESET + "\n");
+            sb.append("  " + CYAN + "5." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+            sb.append("  " + CYAN + "6." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+            sb.append("\n");
+            sb.append("  " + BOLD + "Selected (" + gameNavigation.selectedPlants.size() + "/"
+                    + PickPlantsController.MAX_SELECTED_PLANTS + "):" + RESET + "\n");
+            if (gameNavigation.selectedPlants.isEmpty()) {
+                sb.append("    ").append(GRAY).append("(none)").append(RESET).append("\n");
+            } else {
+                for (PlantType plant : gameNavigation.selectedPlants) {
+                    sb.append("    ").append(GREEN).append(plant.name).append(RESET).append("\n");
+                }
+            }
+            sb.append("\n");
+            sb.append("  " + BOLD + "Unlocked Plants:" + RESET + "\n");
+            for (PlantType plant : gameNavigation.unlockedPlants) {
+                sb.append("    ").append(CYAN).append(plant.name).append(RESET).append("\n");
+            }
+        } else {
+            sb.append(getHeaderBox("🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Game" + RESET + "  🧟", GREEN));
+        }
+
+        sb.append("\n");
+        sb.append(getMessages());
+        return sb.toString();
     }
 
     @Override

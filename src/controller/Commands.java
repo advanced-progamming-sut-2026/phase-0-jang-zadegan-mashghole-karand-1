@@ -60,6 +60,7 @@ public enum Commands {
     PURCHASE_PLANT("menu\\s+collection\\s+purchase-plant\\s+-p\\s+(?<plantname>.*)$"),
 
     //plant selection menu
+    SELECT_LEVEL("select\\s+level\\s+-n\\s+(?<levelnumber>\\d+)$"),
     SHOW_ALL_PLANTS_SELECT("show\\s+all\\s+plants"),
     SHOW_AVAILABLE_PLANTS("show\\s+available\\s+plants"),
     ADD_PLANT("add\\s+plant\\s+-t\\s+(?<type>.*)$"),
