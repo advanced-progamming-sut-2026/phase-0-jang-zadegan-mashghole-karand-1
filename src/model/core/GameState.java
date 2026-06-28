@@ -95,9 +95,11 @@ public class GameState implements ReadOnlyGameState {
         projectiles.clear();
         sunDrops.clear();
         sunAmount = INITIAL_SUN_AMOUNT;
+        plantFoodAmount = 0;
         currentWave = 1;
         zombiesRemaining = 0;
         gameOver = false;
         levelComplete = false;
+        totalTicks = 0;
     }
 }

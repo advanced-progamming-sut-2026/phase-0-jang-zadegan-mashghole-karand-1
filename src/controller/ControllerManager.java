@@ -52,6 +52,7 @@ public class ControllerManager {
         this.gameLoop.setOnTickHandler(() -> {
             model.tick();
             tick();
+            model.getState().totalTicks++;
         });
 
         gameMechanismController = new GameMechanismController(gameLoop, model.getState());

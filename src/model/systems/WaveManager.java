@@ -186,11 +186,16 @@ public class WaveManager {
         int currentHp = 0;
 
         for (Zombie zombie : state.getZombies()) {
-            totalHp += zombie.totalHp;
-            currentHp += zombie.hp;
+            if (currentWaveZombieIds.contains(zombie.instanceId)) {
+                totalHp += zombie.totalHp;
+                currentHp += zombie.hp;
+            }
+        }
+        if (totalHp == 0) {
+            return true;
         }
 
-        return currentHp / totalHp < 0.25f;
+        return (float) currentHp / (float) totalHp < 0.25f;
     }
 
     public int getCurrentWave() {

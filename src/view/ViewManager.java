@@ -12,7 +12,7 @@ public class ViewManager {
 
     public ViewManager(Renderer renderer, InputHandler inputHandler) {
         this.renderer = renderer;
-        this.inputListener = new InputListener(inputHandler, renderer::renderCommandPrompt);
+        this.inputListener = new InputListener(inputHandler, renderer);
     }
 
     public void showMessage(String message) {
@@ -55,9 +55,6 @@ public class ViewManager {
                 break;
             case SHOP:
                 renderer.renderShopScreen();
-                break;
-            case HELP:
-                renderer.renderHelpScreen();
                 break;
         }
 

@@ -42,7 +42,9 @@ public class ConsoleRenderer implements Renderer {
     private String[] lastRenderLines = new String[RENDER_HEIGHT];
     private String currentScreenKey = "";
     private boolean needsFullClear = true;
+    private String promptInput = "";
     private static final int PROMPT_LINE = RENDER_HEIGHT + 2;
+    private static final int PROMPT_PREFIX_COLUMNS = 2;
 
     @Override
     public void prepareScreen(String screenKey) {
@@ -84,20 +86,26 @@ public class ConsoleRenderer implements Renderer {
             }
 
             if (needsFullClear) {
-                System.out.print("\033[2J\033[H");
+                System.out.print("\033[2J");
                 needsFullClear = false;
-            } else {
-                System.out.print("\033[H");
             }
 
             for (int i = 0; i < RENDER_HEIGHT; i++) {
-                System.out.print("\033[2K");
-                System.out.println(lines.get(i));
+                System.out.printf("\033[%d;1H\033[2K%s", i + 1, lines.get(i));
                 lastRenderLines[i] = lines.get(i);
             }
+            System.out.printf("\033[%d;1H\033[2K%s", RENDER_HEIGHT + 1, "─".repeat(SCREEN_WIDTH));
 
+            drawCommandPrompt();
             System.out.flush();
         }
+    }
+
+    private void drawCommandPrompt() {
+        System.out.printf("\033[%d;1H\033[2K", PROMPT_LINE);
+        System.out.print(CYAN + "> " + RESET + promptInput);
+        int column = PROMPT_PREFIX_COLUMNS + promptInput.length() + 1;
+        System.out.printf("\033[%d;%dH", PROMPT_LINE, column);
     }
 
     private String getRegisterScreen(List<SafetyQuestion> questions) {
@@ -205,38 +213,6 @@ public class ConsoleRenderer implements Renderer {
     @Override
     public void renderGameScreen(ReadOnlyGameState state) {
         render(getGameScreen(state));
-    }
-
-    public String getHelpScreen() {
-        StringBuilder sb = new StringBuilder();
-
-        String title = " 📖 " + BOLD + "COMMANDS";
-
-        sb.append(getHeaderBox(title, YELLOW));
-        sb.append("\n");
-        // print available commands here
-
-        // System.out.println(" " + CYAN + "plant <row> <col> <name> [level]" + RESET +
-        // " - Place a plant");
-        // System.out.println(" " + CYAN + "spawn <row> <type>" + RESET + " - Spawn a
-        // zombie");
-        // System.out.println(" " + CYAN + "sun <index>" + RESET + " - Collect sun at
-        // index");
-        // System.out.println(" " + CYAN + "food <row> <col>" + RESET + " - Use plant
-        // food");
-        // System.out.println(" " + CYAN + "status" + RESET + " - Show game state");
-        // System.out.println(" " + CYAN + "tick" + RESET + " - Advance one tick");
-        // System.out.println(" " + CYAN + "help" + RESET + " - Show this help");
-        // System.out.println(" " + CYAN + "quit" + RESET + " - Exit game");
-
-        sb.append(getMessages());
-
-        return sb.toString();
-    }
-
-    @Override
-    public void renderHelpScreen() {
-        render(getHelpScreen());
     }
 
     @Override
@@ -371,15 +347,14 @@ public class ConsoleRenderer implements Renderer {
     }
 
     private String getHUD(ReadOnlyGameState state) {
-        String status = state.isGameOver() ? "💀 GAME OVER" : state.isLevelComplete() ? "⭐ COMPLETE" : "▶️ PLAYING";
-        String title = String.format("%s🌻 SUN: %-4d  " +
-                "%s🌊 WAVE: %-3d  " +
-                "%s🧟 ZOMBIES: %-3d  " +
-                "%s☀️ FOOD: %-2d  " +
+        String status = state.isGameOver() ? "💀" : state.isLevelComplete() ? "⭐" : "▶️";
+        String title = String.format("%s☀️ : %-4d  " +
+                "%s🌊 : %-3d  " +
+                "%s🧟 : %-3d  " +
+                "%s🌿 : %-2d  " +
                 "%s⏱️ %-4ds  " +
                 CYAN + "%s" + RESET +
-                CYAN + " %2s" + RESET +
-                CYAN + "║" + RESET + "%n",
+                CYAN + " %2s" + RESET,
                 YELLOW, state.getSunAmount(),
                 CYAN, state.getCurrentWave(),
                 RED, state.getZombies().size(),
@@ -408,7 +383,7 @@ public class ConsoleRenderer implements Renderer {
                 if (layer == 0) {
                     sb.append(String.format(" %d  │", row));
                 } else {
-                    sb.append("     │");
+                    sb.append("    │");
                 }
 
                 for (int col = 0; col < GRID_COLS; col++) {
@@ -491,7 +466,7 @@ public class ConsoleRenderer implements Renderer {
     private String getSunLayer(int layer) {
         switch (layer) {
             case 0:
-                return YELLOW + " ☀️" + RESET;
+                return YELLOW + "☀️ " + RESET;
             case 1:
                 return "   ";
             default:
@@ -506,44 +481,33 @@ public class ConsoleRenderer implements Renderer {
     private String getPlantSymbol(Plant plant) {
         switch (plant.type.name) {
             case "Sunflower":
-                return "🌻";
+                return "🌻 ";
             case "Peashooter":
-                return "🌱";
+                return "🌱 ";
             case "Snow Pea":
-                return "❄️";
+                return "❄️ ";
             case "Wall-nut":
-                return "🧱";
+                return "🧱 ";
             case "Repeater":
-                return "🌿";
+                return "🌿 ";
             case "Cherry Bomb":
-                return "💥";
+                return "💥 ";
             default:
-                return "🌿";
+                return "🌿 ";
         }
     }
 
     private String getZombieSymbol(Zombie zombie) {
-        switch (zombie.type.name) {
-            case "Basic":
-                return "🧟";
-            case "ConeHead":
-                return "🧟🔶";
-            case "BucketHead":
-                return "🧟🪣";
-            default:
-                return "🧟";
-        }
+        return "🧟 ";
     }
 
     private String getHealthBar(int percent) {
-        if (percent > 75)
-            return GREEN + "████" + RESET;
-        else if (percent > 50)
-            return YELLOW + "████" + RESET;
-        else if (percent > 25)
-            return ORANGE + "████" + RESET;
+        if (percent > 66)
+            return GREEN + "███" + RESET;
+        else if (percent > 33)
+            return YELLOW + "██ " + RESET;
         else
-            return RED + "████" + RESET;
+            return RED + "█  " + RESET;
     }
 
     @Override
@@ -650,7 +614,7 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderError(String error) {
-        messages.add(error);
+        messages.add(RED + error + RESET);
         if (messages.size() > MAX_MESSAGES) {
             messages.remove(0);
         }
@@ -708,10 +672,10 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderCommandPrompt() {
+    public void renderCommandPrompt(String input) {
         synchronized (ConsoleRenderer.class) {
-            System.out.print("\033[" + PROMPT_LINE + ";1H\033[2K");
-            System.out.print(CYAN + "> " + RESET);
+            promptInput = input != null ? input : "";
+            drawCommandPrompt();
             System.out.flush();
         }
     }

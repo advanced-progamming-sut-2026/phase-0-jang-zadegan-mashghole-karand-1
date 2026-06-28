@@ -28,8 +28,6 @@ public interface Renderer {
 
     void renderShopScreen();
 
-    void renderHelpScreen();
-
     void renderPauseOverlay();
 
     void renderSettingOverlay();
@@ -66,7 +64,7 @@ public interface Renderer {
 
     void renderMessages();
 
-    void renderCommandPrompt();
+    void renderCommandPrompt(String input);
 
     void clearScreen();
 
