@@ -55,7 +55,7 @@ public class ControllerManager {
             model.getState().totalTicks++;
         });
 
-        gameMechanismController = new GameMechanismController(gameLoop, model.getState());
+        gameMechanismController = new GameMechanismController(this, gameLoop, model);
     }
 
     public void setView(ViewManager view) {
@@ -66,7 +66,6 @@ public class ControllerManager {
         storage.loadProgress();
         currentScreen = storage.isLoggedIn() ? ScreenType.MAIN : ScreenType.REGISTER;
         refreshView();
-        gameLoop.startAutoTick();
     }
 
     public void tick() {

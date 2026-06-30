@@ -71,6 +71,30 @@ public class SunSystem {
         bus.publish(new RadioactiveExplosionEvent(sun));
     }
 
+    public boolean collectSunAt(GameState state, EventBus bus, int row, int col) {
+        Sun sun = findSunInCell(state, row, col);
+        if (sun == null) {
+            return false;
+        }
+        int index = state.sunDrops.indexOf(sun);
+        if (index < 0) {
+            return false;
+        }
+        return collectSun(state, bus, index);
+    }
+
+    private Sun findSunInCell(GameState state, int row, int col) {
+        int cellStartX = col * GameState.CELL_WIDTH;
+        int cellEndX = (col + 1) * GameState.CELL_WIDTH;
+        return state.sunDrops.stream()
+                .filter(s -> s.row == row
+                        && !s.isFalling
+                        && s.position.x >= cellStartX
+                        && s.position.x < cellEndX)
+                .findFirst()
+                .orElse(null);
+    }
+
     private Sun findSunAt(GameState state, int x, int y) {
         return state.sunDrops.stream().filter(s -> s.isAtPosition(x, y)).findFirst().orElse(null);
     }

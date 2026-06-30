@@ -176,50 +176,63 @@ public class InputHandler {
             CommandResult result = controllerManager.getPickPlantsController().startGame();
             controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.ADVANCE_TIME.getMatcher(input)).matches()) {
-            int count = Integer.parseInt(matcher.group(1));
-            controllerManager.getGameMechanismController().AdvanceTicks(count);
+            int count = Integer.parseInt(matcher.group("count"));
+            boolean realTime = input.contains("-real");
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().advanceTicks(count, realTime));
+        } else if ((matcher = Commands.DEBUG_AUTO_TICK.getMatcher(input)).matches()) {
+            String state = matcher.group("state");
+            Boolean enable = state == null ? null : state.equals("on");
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().setAutoTick(enable));
         } else if ((matcher = Commands.COLLECT_SUN.getMatcher(input)).matches()) {
-            float x = Float.parseFloat(matcher.group(1));
-            float y = Float.parseFloat(matcher.group(2));
-            Position pos = new Position(x, y);
-            controllerManager.getGameMechanismController().collectSun(pos);
+            int row = Integer.parseInt(matcher.group("x"));
+            int col = Integer.parseInt(matcher.group("y"));
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().collectSun(row, col));
         } else if (Commands.SHOW_SUN_AMOUNT.getMatcher(input).matches()) {
-            int sunAmount = controllerManager.getGameMechanismController().showSunAmount();
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().showSunAmount());
         } else if ((matcher = Commands.CHEAT_ADD_SUNS.getMatcher(input)).matches()) {
-            int amount = Integer.parseInt(matcher.group(1));
-            controllerManager.getGameMechanismController().addSun(amount);
+            int amount = Integer.parseInt(matcher.group("count"));
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().addSun(amount));
         } else if (Commands.RELEASE_NUKE.getMatcher(input).matches()) {
-            controllerManager.getGameMechanismController().releaseNuke();
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().releaseNuke());
         } else if ((matcher = Commands.PLANT_PLANT.getMatcher(input)).matches()) {
-            String plantType = matcher.group(1);
-            PlantType type = PlantType.fromName(plantType);
-            int x = Integer.parseInt(matcher.group(2));
-            int y = Integer.parseInt(matcher.group(3));
-            Position pos = new Position(x, y);
-            controllerManager.getGameMechanismController().plantPlant(pos, type);
+            PlantType type = PlantType.fromName(matcher.group("type"));
+            int row = Integer.parseInt(matcher.group("x"));
+            int col = Integer.parseInt(matcher.group("y"));
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().plantPlant(row, col, type));
         } else if (Commands.CHEAT_REMOVE_COOLDOWN.getMatcher(input).matches()) {
-            controllerManager.getGameMechanismController().removeCooldown();
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().removeCooldown());
         } else if ((matcher = Commands.PLUCK_PLANT.getMatcher(input)).matches()) {
-            int x = Integer.parseInt(matcher.group(1));
-            int y = Integer.parseInt(matcher.group(2));
-            Position pos = new Position(x, y);
-            controllerManager.getGameMechanismController().pluckPlant(pos);
+            int row = Integer.parseInt(matcher.group("x"));
+            int col = Integer.parseInt(matcher.group("y"));
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().pluckPlant(row, col));
         } else if ((matcher = Commands.FEED_PLANT.getMatcher(input)).matches()) {
-            int x = Integer.parseInt(matcher.group(1));
-            int y = Integer.parseInt(matcher.group(2));
-            Position pos = new Position(x, y);
-            controllerManager.getGameMechanismController().feedPlant(pos);
+            int row = Integer.parseInt(matcher.group("x"));
+            int col = Integer.parseInt(matcher.group("y"));
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().feedPlant(row, col));
         } else if (Commands.CHEAT_ADD_PLANT_FOOD.getMatcher(input).matches()) {
-            controllerManager.getGameMechanismController().addPlantFood();
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().addPlantFood());
         } else if (Commands.SHOW_MAP.getMatcher(input).matches()) {
-            controllerManager.getGameMechanismController().showMap();
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().showMap());
         } else if (Commands.SHOW_PLANTS_STATUS.getMatcher(input).matches()) {
-            controllerManager.getGameMechanismController().showPlantsStatus();
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().showPlantsStatus());
         } else if ((matcher = Commands.SHOW_TILE_STATUS.getMatcher(input)).matches()) {
-            int x = Integer.parseInt(matcher.group(1));
-            int y = Integer.parseInt(matcher.group(2));
-            Position pos = new Position(x, y);
-            controllerManager.getGameMechanismController().showTilesStatus(pos);
+            int row = Integer.parseInt(matcher.group("x"));
+            int col = Integer.parseInt(matcher.group("y"));
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().showTileStatus(row, col));
         } else if (Commands.SHOW_GREENHOUSE.getMatcher(input).matches()) {
             // CommandResult result =
             // controllerManager.getGreenhouseController().showGreenhouse(user);

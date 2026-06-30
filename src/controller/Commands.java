@@ -69,7 +69,8 @@ public enum Commands {
     START_GAME("start\\s+game"),
 
     //main game mechanics
-    ADVANCE_TIME("advance\\s+time\\s+-t\\s+(?<count>\\d+)\\s+ticks"),
+    ADVANCE_TIME("advance\\s+time\\s+-t\\s+(?<count>\\d+)\\s+ticks(?:\\s+-real\\b)?"),
+    DEBUG_AUTO_TICK("debug\\s+auto-tick(?:\\s+(?<state>on|off))?$"),
     COLLECT_SUN("collect\\s+sun\\s+-l\\s*\\(\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)\\s*\\)"),
     SHOW_SUN_AMOUNT("show\\s+sun\\s+amount"),
     CHEAT_ADD_SUNS("cheat\\s+add\\s+-n\\s+(?<count>\\d+)\\s+suns"),

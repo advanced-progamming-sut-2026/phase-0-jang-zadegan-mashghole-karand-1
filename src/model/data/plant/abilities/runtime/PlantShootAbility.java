@@ -69,4 +69,8 @@ public class PlantShootAbility implements PlantAbilityConfig {
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
         }
     }
+
+    public void resetCooldown() {
+        currentCooldown = 0;
+    }
 }

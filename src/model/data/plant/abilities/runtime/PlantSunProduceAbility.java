@@ -56,6 +56,11 @@ public class PlantSunProduceAbility implements PlantAbilityConfig {
         currentCooldown = cooldownTicks;
     }
 
+    public void resetCooldown() {
+        currentCooldown = 0;
+        waitingForCollection = false;
+    }
+
     public void setDoubleSunChance(int change) {
         this.doubleSunDropChance = change;
     }

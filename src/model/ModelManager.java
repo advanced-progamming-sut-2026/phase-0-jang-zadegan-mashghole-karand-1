@@ -122,4 +122,54 @@ public class ModelManager {
     public boolean collectSun(int index) {
         return sunSystem.collectSun(state, eventBus, index);
     }
+
+    public boolean collectSunAt(int row, int col) {
+        return sunSystem.collectSunAt(state, eventBus, row, col);
+    }
+
+    public boolean pluckPlant(int row, int col) {
+        Plant plant = state.getPlantAt(row, col);
+        if (plant == null) {
+            return false;
+        }
+        state.plants.remove(plant);
+        return true;
+    }
+
+    public boolean feedPlant(int row, int col) {
+        if (state.plantFoodAmount <= 0) {
+            return false;
+        }
+        Plant plant = state.getPlantAt(row, col);
+        if (plant == null) {
+            return false;
+        }
+        plant.activatePlantFood();
+        state.plantFoodAmount--;
+        return true;
+    }
+
+    public void addSun(int amount) {
+        state.sunAmount += amount;
+    }
+
+    public void addPlantFood() {
+        state.plantFoodAmount++;
+    }
+
+    public void removeCooldowns() {
+        for (Plant plant : state.plants) {
+            for (var ability : plant.abilities) {
+                if (ability instanceof model.data.plant.abilities.runtime.PlantShootAbility shootAbility) {
+                    shootAbility.resetCooldown();
+                } else if (ability instanceof model.data.plant.abilities.runtime.PlantSunProduceAbility sunAbility) {
+                    sunAbility.resetCooldown();
+                }
+            }
+        }
+    }
+
+    public void releaseNuke() {
+        state.zombies.clear();
+    }
 }
