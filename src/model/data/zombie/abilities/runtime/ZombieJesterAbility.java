@@ -2,6 +2,7 @@ package model.data.zombie.abilities.runtime;
 
 import model.core.EventBus;
 import model.core.GameState;
+import model.data.plant.abilities.config.Direction;
 import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
@@ -30,6 +31,7 @@ public class ZombieJesterAbility implements ZombieAbilityConfig {
         for(Projectile projectile : projectilesInRow){
             if((zombie.position.x - projectile.position.x)<=DEFENCE_RADIUS && zombie.position.x-projectile.position.x>=0){
                 projectile.speed *= -1;
+                projectile.direction = Direction.BACK;
             }
         }
     }

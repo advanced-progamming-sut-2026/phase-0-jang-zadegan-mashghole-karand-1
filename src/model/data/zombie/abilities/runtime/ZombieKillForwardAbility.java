@@ -3,6 +3,7 @@ package model.data.zombie.abilities.runtime;
 import model.core.EventBus;
 import model.core.GameState;
 import model.data.plant.Plant;
+import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
@@ -22,14 +23,6 @@ public class ZombieKillForwardAbility implements ZombieAbilityConfig {
             }
         }
 
-        if(zombie.type == ZombieType.EXPLORER_ZOMBIE){
-            if(zombie.isFrozen){
-                enabled = false;
-            }
-//            if(hitByFire){
-//                enabled = true;
-//            }
-        }
 
         if (enabled) {
             Plant forwardPlant = state.getPlants().stream()
@@ -71,6 +64,19 @@ public class ZombieKillForwardAbility implements ZombieAbilityConfig {
         if (zombie.type == ZombieType.ALL_STAR) {
             this.enabled = false;
             zombie.speed = zombie.speed * (1f / 3f);
+        }
+    }
+
+    @Override
+    public void onProjectileHit(Zombie zombie, Projectile projectile) {
+        if(zombie.type != ZombieType.EXPLORER_ZOMBIE || projectile.type == null){
+            return;
+        }
+        switch(projectile.type) {
+            case ICE -> enabled = false;
+            case FIRE -> enabled = true;
+            default -> {
+            }
         }
     }
 
