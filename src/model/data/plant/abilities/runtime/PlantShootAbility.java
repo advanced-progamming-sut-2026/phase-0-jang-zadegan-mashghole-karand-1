@@ -1,6 +1,6 @@
 package model.data.plant.abilities.runtime;
 
-import model.data.plant.PlantProjectileType;
+import model.data.plant.ProjectileType;
 import model.data.plant.abilities.config.Direction;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.config.ShootPattern;
@@ -11,16 +11,17 @@ import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
+import model.data.projectile.ProjectileTarget;
 
 public class PlantShootAbility implements PlantAbilityConfig {
     public final int damage;
     public final float cooldownSeconds;
-    public final PlantProjectileType projectileType;
+    public final ProjectileType projectileType;
     public final ShootPattern shootPattern;
     public final EffectPhase phase;
     private int currentCooldown = 0;
 
-    public PlantShootAbility(int damage, float cooldownSeconds, PlantProjectileType projectileType , ShootPattern shootPattern) {
+    public PlantShootAbility(int damage, float cooldownSeconds, ProjectileType projectileType , ShootPattern shootPattern) {
         this.damage = damage;
         this.cooldownSeconds = cooldownSeconds;
         this.projectileType = projectileType;
@@ -28,7 +29,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
         this.phase = EffectPhase.ALWAYS;
     }
 
-    public PlantShootAbility(int damage, PlantProjectileType projectileType, EffectPhase phase) {
+    public PlantShootAbility(int damage, ProjectileType projectileType, EffectPhase phase) {
         this.damage = damage;
         this.cooldownSeconds = 0;
         this.projectileType = projectileType ;
@@ -60,7 +61,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
                 for (int i = 0 ; i < shootPattern.getBulletCount();i++){
                     int xOffset = 40 - (i *20);
                     Projectile p = new Projectile(damage, new Position(plant.getX() + xOffset, plant.getY()), plant.row, plant.col,
-                            10);
+                            10, projectileType, ProjectileTarget.ZOMBIE);
                     p.setDirection(shootPattern.getDir());
                     state.projectiles.add(p);
                 }

@@ -1,6 +1,6 @@
 package model.data.plant;
 
-public enum PlantProjectileType {
+public enum ProjectileType {
     PEA,
     ICE,
     FIRE,
@@ -11,5 +11,6 @@ public enum PlantProjectileType {
     CABBAGE,
     MELON,
     FREEZE_LINE,
-    ROTO_SEED;
+    ROTO_SEED,
+    OCTOPUS
 }
