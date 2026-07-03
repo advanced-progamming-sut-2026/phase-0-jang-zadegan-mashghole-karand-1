@@ -38,5 +38,6 @@ public class User {
         this.collection = new Collection();
         this.preferredSetting = new GameSetting();
         this.quests = new ArrayList<>();
+        this.newsFeed = new NewsFeed();
     }
 }

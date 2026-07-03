@@ -6,6 +6,7 @@ import model.core.EventBus;
 import model.core.GameLoop;
 import model.service.AuthState;
 import model.service.GameNavigationState;
+import model.service.NewsViewState;
 import model.service.ProfileViewState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
@@ -24,7 +25,7 @@ public class ControllerManager {
     private final GameMenuController gameMenuController;
     private final MainMenuController mainMenuController;
     private final SettingController settingController = new SettingController();
-    private final NewsMenuController newsMenuController = new NewsMenuController();
+    private final NewsMenuController newsMenuController;
     private final ProfileController profileController;
     private final PickPlantsController pickPlantsController;
     private final CollectionController collectionController = new CollectionController();
@@ -38,6 +39,8 @@ public class ControllerManager {
     private final AuthState authState = new AuthState();
     private final GameNavigationState gameNavigation = new GameNavigationState();
     private ProfileViewState profileViewState = ProfileViewState.empty();
+    private NewsViewState newsViewState = NewsViewState.empty();
+    private boolean hasUnreadNews = false;
 
     public ControllerManager(ModelManager model,
             EventBus eventBus, GameLoop gameLoop, StorageManager storage) {
@@ -49,6 +52,8 @@ public class ControllerManager {
         this.authController = new AuthController(this, storage);
         this.mainMenuController = new MainMenuController(this, storage);
         this.profileController = new ProfileController(this, storage);
+        this.newsMenuController = new NewsMenuController(this, storage);
+        new AppEventHandler(eventBus, storage).register();
         this.gameMenuController = new GameMenuController(this, storage, gameNavigation);
         this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
 
@@ -93,10 +98,19 @@ public class ControllerManager {
                 gameNavigation.unlockedChapters = storage.getUnlockedChapters();
                 gameNavigation.unlockedPlants = storage.getUnlockedPlants();
                 profileViewState = ProfileViewState.fromUser(storage.getCurrentUser());
+                hasUnreadNews = storage.getCurrentUser().newsFeed.hasUnread();
+                if (currentMenu == MenuType.NEWS) {
+                    newsViewState = newsMenuController.getViewState();
+                } else {
+                    newsViewState = NewsViewState.empty();
+                }
             } else {
                 profileViewState = ProfileViewState.empty();
+                newsViewState = NewsViewState.empty();
+                hasUnreadNews = false;
             }
-            view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation, profileViewState);
+            view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation,
+                    profileViewState, newsViewState, hasUnreadNews);
         }
     }
 
@@ -212,6 +226,9 @@ public class ControllerManager {
         if (currentMenu != MenuType.NONE) {
             return new CommandResult("Close the current menu first.", false);
         }
+        if (menu == MenuType.NEWS) {
+            newsMenuController.onMenuOpened();
+        }
         currentMenu = menu;
         refreshView();
         return new CommandResult("Opened " + label + " menu.", true);
@@ -229,6 +246,9 @@ public class ControllerManager {
         switch (currentScreen) {
             case MAIN:
                 if (currentMenu != MenuType.NONE) {
+                    if (currentMenu == MenuType.NEWS) {
+                        newsMenuController.onMenuClosed();
+                    }
                     currentMenu = MenuType.NONE;
                     refreshView();
                     return new CommandResult("Returned to main menu.", true);

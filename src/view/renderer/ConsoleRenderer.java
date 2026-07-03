@@ -11,6 +11,7 @@ import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
+import model.service.NewsViewState;
 import model.service.ProfileViewState;
 import model.storage.user.SafetyQuestion;
 import model.world.ChapterCatalog;
@@ -181,15 +182,16 @@ public class ConsoleRenderer implements Renderer {
         render(getLoginScreen(isAwaitingSecurityAnswer, isAwaitingNewPassword, passwordResetQuestion));
     }
 
-    private String getMainScreen() {
+    private String getMainScreen(boolean hasUnreadNews) {
         StringBuilder sb = new StringBuilder();
         String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2" + RESET + "  🧟";
+        String unreadIndicator = hasUnreadNews ? " " + RED + "● unread" + RESET : "";
 
         sb.append(getHeaderBox(title, GREEN));
         sb.append("\n");
         sb.append("  " + CYAN + "1." + RESET + " Start Game: " + GREEN + "menu enter game" + RESET + "\n");
         sb.append("  " + CYAN + "2." + RESET + " Settings: " + GREEN + "menu enter settings" + RESET + "\n");
-        sb.append("  " + CYAN + "3." + RESET + " News: " + GREEN + "menu enter news" + RESET + "\n");
+        sb.append("  " + CYAN + "3." + RESET + " News: " + GREEN + "menu enter news" + RESET + unreadIndicator + "\n");
         sb.append("  " + CYAN + "4." + RESET + " Profile: " + GREEN + "menu enter profile" + RESET + "\n");
         sb.append("  " + CYAN + "5." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
         sb.append("  " + CYAN + "6." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
@@ -200,8 +202,8 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderMainScreen() {
-        render(getMainScreen());
+    public void renderMainScreen(boolean hasUnreadNews) {
+        render(getMainScreen(hasUnreadNews));
     }
 
     private String getGameScreen(ReadOnlyGameState state) {
@@ -310,8 +312,32 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderNewsOverlay() {
-        render(getMenuOverlay("News", BLUE));
+    public void renderNewsOverlay(NewsViewState news) {
+        render(getNewsOverlay(news));
+    }
+
+    private String getNewsOverlay(NewsViewState news) {
+        StringBuilder sb = new StringBuilder();
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | News" + RESET + "  🧟";
+
+        sb.append(getHeaderBox(title, BLUE));
+        sb.append("\n");
+        if (news.messages.isEmpty()) {
+            sb.append("  No news to show.\n");
+        } else {
+            int index = 1;
+            for (String message : news.messages) {
+                sb.append("  ").append(CYAN).append(index++).append(".").append(RESET)
+                        .append(" ").append(message).append("\n");
+            }
+        }
+        sb.append("\n");
+        sb.append("  " + CYAN + "1." + RESET + " Show All: " + GREEN + "menu news show-all" + RESET + "\n");
+        sb.append("  " + CYAN + "2." + RESET + " Show Unread: " + GREEN + "menu news show-unread" + RESET + "\n");
+        sb.append("  " + CYAN + "3." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("\n");
+        sb.append(getMessages());
+        return sb.toString();
     }
 
     @Override

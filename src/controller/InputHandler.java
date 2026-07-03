@@ -105,9 +105,14 @@ public class InputHandler {
             int level = Integer.parseInt(matcher.group(1));
             controllerManager.getSettingController().changeDifficulty(level);
         } else if (Commands.UNREAD_NEWS.getMatcher(input).matches()) {
-            controllerManager.getNewsMenuController().showUnreadNews();
+            controllerManager.handleCommandResult(
+                    controllerManager.getNewsMenuController().showUnreadNews());
         } else if (Commands.ALL_NEWS.getMatcher(input).matches()) {
-            controllerManager.getNewsMenuController().allShowNews();
+            controllerManager.handleCommandResult(
+                    controllerManager.getNewsMenuController().showAllNews());
+        } else if ((matcher = Commands.DEBUG_ADD_NEWS.getMatcher(input)).matches()) {
+            controllerManager.handleCommandResult(
+                    controllerManager.getNewsMenuController().addDebugNews(matcher.group("message")));
         } else if ((matcher = Commands.CHANGE_USERNAME.getMatcher(input)).matches()) {
             String username = matcher.group("username");
             controllerManager.handleCommandResult(

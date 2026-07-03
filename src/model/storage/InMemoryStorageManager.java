@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import model.data.plant.PlantType;
+import model.minigame.MinigameType;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
 import model.storage.user.User;
@@ -149,8 +150,39 @@ public class InMemoryStorageManager implements StorageManager {
 
     @Override
     public void markLevelCompleted(String levelId) {
+        if (!isLoggedIn() || levelId == null || levelId.isBlank()) {
+            return;
+        }
+        boolean alreadyCompleted = currentUser.gameProgress.getCompletedLevelIds().contains(levelId);
+        currentUser.gameProgress.completeLevel(levelId);
+        if (!alreadyCompleted) {
+            addNews("You unlocked a new level: " + levelId);
+        }
+    }
+
+    @Override
+    public void addNews(String message) {
+        if (!isLoggedIn() || message == null || message.isBlank()) {
+            return;
+        }
+        currentUser.newsFeed.addNews(message);
+    }
+
+    @Override
+    public void markAllNewsAsRead() {
         if (isLoggedIn()) {
-            currentUser.gameProgress.completeLevel(levelId);
+            currentUser.newsFeed.markAllUnreadAsRead();
+        }
+    }
+
+    @Override
+    public void unlockMinigame(MinigameType minigame) {
+        if (!isLoggedIn() || minigame == null) {
+            return;
+        }
+        if (!currentUser.gameProgress.isMinigameUnlocked(minigame)) {
+            currentUser.gameProgress.unlockMinigame(minigame);
+            addNews("You unlocked a new minigame: " + minigame.name().replace('_', ' '));
         }
     }
 
@@ -224,6 +256,7 @@ public class InMemoryStorageManager implements StorageManager {
             return;
         if (!currentUser.collection.isPlantUnlocked(type)) {
             currentUser.collection.unlockPlant(type);
+            addNews("You unlocked a new plant: " + type.name);
         }
     }
 

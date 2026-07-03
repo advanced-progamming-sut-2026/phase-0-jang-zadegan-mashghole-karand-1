@@ -47,6 +47,12 @@ public interface StorageManager {
 
     boolean changeProfilePassword(String oldPassword, String newPassword);
 
+    void addNews(String message);
+
+    void markAllNewsAsRead();
+
+    void unlockMinigame(model.minigame.MinigameType minigame);
+
     void unlockChapter(ChapterType chapter);
 
     boolean isChapterUnlocked(ChapterType chapter);

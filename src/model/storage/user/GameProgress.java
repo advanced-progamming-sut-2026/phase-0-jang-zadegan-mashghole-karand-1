@@ -20,6 +20,18 @@ public class GameProgress {
         unlockedChapters.add(chapter);
     }
 
+    public void unlockMinigame(MinigameType minigame) {
+        unlockedMinigames.add(minigame);
+    }
+
+    public boolean isMinigameUnlocked(MinigameType minigame) {
+        return unlockedMinigames.contains(minigame);
+    }
+
+    public Set<MinigameType> getUnlockedMinigames() {
+        return unlockedMinigames;
+    }
+
     public Set<ChapterType> getUnlockedChapters() {
         return unlockedChapters;
     }

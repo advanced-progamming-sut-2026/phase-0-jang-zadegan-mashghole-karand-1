@@ -4,6 +4,7 @@ import controller.InputHandler;
 import model.core.ReadOnlyGameState;
 import model.service.AuthState;
 import model.service.GameNavigationState;
+import model.service.NewsViewState;
 import model.service.ProfileViewState;
 import view.renderer.Renderer;
 
@@ -25,7 +26,8 @@ public class ViewManager {
     }
 
     public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
-            AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState) {
+            AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
+            NewsViewState newsViewState, boolean hasUnreadNews) {
         String screenKey = currentScreen.name();
         if (currentScreen == ScreenType.LEVEL_SELECTOR) {
             screenKey += "-" + gameNavigation.phase.name();
@@ -43,9 +45,9 @@ public class ViewManager {
                 break;
             case MAIN:
                 if (currentMenu == MenuType.NONE) {
-                    renderer.renderMainScreen();
+                    renderer.renderMainScreen(hasUnreadNews);
                 } else {
-                    renderMenuOverlay(currentMenu, profileViewState);
+                    renderMenuOverlay(currentMenu, profileViewState, newsViewState);
                 }
                 break;
             case LEVEL_SELECTOR:
@@ -66,11 +68,12 @@ public class ViewManager {
         }
 
         if (currentMenu != MenuType.NONE && currentScreen != ScreenType.MAIN) {
-            renderMenuOverlay(currentMenu, profileViewState);
+            renderMenuOverlay(currentMenu, profileViewState, newsViewState);
         }
     }
 
-    private void renderMenuOverlay(MenuType currentMenu, ProfileViewState profileViewState) {
+    private void renderMenuOverlay(MenuType currentMenu, ProfileViewState profileViewState,
+            NewsViewState newsViewState) {
         switch (currentMenu) {
             case PAUSE:
                 renderer.renderPauseOverlay();
@@ -82,7 +85,7 @@ public class ViewManager {
                 renderer.renderProfileOverlay(profileViewState);
                 break;
             case NEWS:
-                renderer.renderNewsOverlay();
+                renderer.renderNewsOverlay(newsViewState);
                 break;
             case QUESTS:
                 renderer.renderQuestsOverlay();

@@ -40,6 +40,7 @@ public enum Commands {
     //news menu
     UNREAD_NEWS("menu\\s+news\\s+show-unread"),
     ALL_NEWS("menu\\s+news\\s+show-all"),
+    DEBUG_ADD_NEWS("debug\\s+add-news\\s+-m\\s+(?<message>.*)$"),
 
     //profile menu
     CHANGE_USERNAME("menu\\s+profile\\s+change-username\\s+-u\\s+(?<username>.*)$"),

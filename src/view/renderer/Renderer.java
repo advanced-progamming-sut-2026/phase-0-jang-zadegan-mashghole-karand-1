@@ -5,6 +5,7 @@ import java.util.List;
 import model.core.ReadOnlyGameState;
 import model.data.plant.PlantType;
 import model.service.GameNavigationState;
+import model.service.NewsViewState;
 import model.service.ProfileViewState;
 import model.storage.user.SafetyQuestion;
 
@@ -17,7 +18,7 @@ public interface Renderer {
     void renderLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
             String passwordResetQuestion);
 
-    void renderMainScreen();
+    void renderMainScreen(boolean hasUnreadNews);
 
     void renderLevelSelectionScreen(GameNavigationState gameNavigation);
 
@@ -35,7 +36,7 @@ public interface Renderer {
 
     void renderProfileOverlay(ProfileViewState profile);
 
-    void renderNewsOverlay();
+    void renderNewsOverlay(NewsViewState news);
 
     void renderQuestsOverlay();
 

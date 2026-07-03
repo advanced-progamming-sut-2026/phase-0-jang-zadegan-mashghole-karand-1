@@ -11,8 +11,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 import model.data.plant.PlantType;
+import model.minigame.MinigameType;
+import model.news.NewsItem;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
 import model.storage.user.User;
@@ -175,10 +178,10 @@ public class SqlStorageManager implements StorageManager {
 
     @Override
     public void saveProgress() {
+        if (!isLoggedIn()) {
+            return;
+        }
         synchronized (lock) {
-            if (currentUser == null) {
-                return;
-            }
             saveUserProgress(currentUser);
         }
     }
@@ -235,6 +238,7 @@ public class SqlStorageManager implements StorageManager {
             return;
         }
         synchronized (lock) {
+            boolean alreadyCompleted = currentUser.gameProgress.getCompletedLevelIds().contains(levelId);
             currentUser.gameProgress.completeLevel(levelId);
             try (Connection connection = openConnection();
                     PreparedStatement statement = connection.prepareStatement(
@@ -244,6 +248,9 @@ public class SqlStorageManager implements StorageManager {
                 statement.executeUpdate();
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to mark level completed", e);
+            }
+            if (!alreadyCompleted) {
+                addNews("You unlocked a new level: " + levelId);
             }
         }
     }
@@ -334,6 +341,54 @@ public class SqlStorageManager implements StorageManager {
     }
 
     @Override
+    public void addNews(String message) {
+        if (!isLoggedIn() || message == null || message.isBlank()) {
+            return;
+        }
+        synchronized (lock) {
+            NewsItem item = currentUser.newsFeed.addNews(message);
+            if (item != null) {
+                insertNewsItem(currentUser.username, item);
+            }
+        }
+    }
+
+    @Override
+    public void markAllNewsAsRead() {
+        if (!isLoggedIn()) {
+            return;
+        }
+        synchronized (lock) {
+            currentUser.newsFeed.markAllUnreadAsRead();
+            markAllNewsRead(currentUser.username);
+        }
+    }
+
+    @Override
+    public void unlockMinigame(MinigameType minigame) {
+        if (!isLoggedIn() || minigame == null) {
+            return;
+        }
+
+        synchronized (lock) {
+            if (currentUser.gameProgress.isMinigameUnlocked(minigame)) {
+                return;
+            }
+            currentUser.gameProgress.unlockMinigame(minigame);
+            try (Connection connection = openConnection();
+                    PreparedStatement statement = connection.prepareStatement(
+                            "INSERT OR IGNORE INTO unlocked_minigames (username, minigame) VALUES (?, ?)")) {
+                statement.setString(1, currentUser.username);
+                statement.setString(2, minigame.name());
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to unlock minigame", e);
+            }
+            addNews("You unlocked a new minigame: " + formatMinigameName(minigame));
+        }
+    }
+
+    @Override
     public void unlockChapter(ChapterType chapter) {
         if (!isLoggedIn() || chapter == null) {
             return;
@@ -392,6 +447,7 @@ public class SqlStorageManager implements StorageManager {
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to unlock plant", e);
             }
+            addNews("You unlocked a new plant: " + plant.name);
         }
     }
 
@@ -467,6 +523,25 @@ public class SqlStorageManager implements StorageManager {
                             FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
                         )
                         """);
+                statement.execute("""
+                        CREATE TABLE IF NOT EXISTS unlocked_minigames (
+                            username TEXT NOT NULL,
+                            minigame TEXT NOT NULL,
+                            PRIMARY KEY (username, minigame),
+                            FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+                        )
+                        """);
+                statement.execute("""
+                        CREATE TABLE IF NOT EXISTS user_news (
+                            username TEXT NOT NULL,
+                            news_id TEXT NOT NULL,
+                            message TEXT NOT NULL,
+                            is_read INTEGER NOT NULL DEFAULT 0,
+                            created_at TEXT NOT NULL,
+                            PRIMARY KEY (username, news_id),
+                            FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+                        )
+                        """);
                 statement.execute("INSERT OR IGNORE INTO app_session (id, stay_logged_in) VALUES (1, 0)");
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to initialize database", e);
@@ -527,7 +602,9 @@ public class SqlStorageManager implements StorageManager {
 
                 loadUnlockedChapters(connection, user);
                 loadUnlockedPlants(connection, user);
+                loadUnlockedMinigames(connection, user);
                 loadCompletedLevels(connection, user);
+                loadNews(connection, user);
                 return user;
             }
         } catch (SQLException e) {
@@ -570,6 +647,80 @@ public class SqlStorageManager implements StorageManager {
                 }
             }
         }
+    }
+
+    private void loadUnlockedMinigames(Connection connection, User user) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT minigame FROM unlocked_minigames WHERE username = ?")) {
+            statement.setString(1, user.username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    user.gameProgress.unlockMinigame(MinigameType.valueOf(resultSet.getString("minigame")));
+                }
+            }
+        }
+    }
+
+    private void loadNews(Connection connection, User user) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT news_id, message, is_read, created_at FROM user_news WHERE username = ? ORDER BY created_at DESC")) {
+            statement.setString(1, user.username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<NewsItem> items = new ArrayList<>();
+                while (resultSet.next()) {
+                    items.add(new NewsItem(
+                            resultSet.getString("news_id"),
+                            resultSet.getString("message"),
+                            resultSet.getInt("is_read") == 1,
+                            LocalDateTime.parse(resultSet.getString("created_at"))));
+                }
+                user.newsFeed.replaceItems(items);
+            }
+        }
+    }
+
+    private void insertNewsItem(String username, NewsItem item) {
+        try (Connection connection = openConnection();
+                PreparedStatement statement = connection.prepareStatement(
+                        "INSERT INTO user_news (username, news_id, message, is_read, created_at) VALUES (?, ?, ?, ?, ?)")) {
+            statement.setString(1, username);
+            statement.setString(2, item.getId());
+            statement.setString(3, item.getMessage());
+            statement.setInt(4, item.isRead() ? 1 : 0);
+            statement.setString(5, item.getTimestamp().toString());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save news item", e);
+        }
+    }
+
+    private void markAllNewsRead(String username) {
+        try (Connection connection = openConnection();
+                PreparedStatement statement = connection.prepareStatement(
+                        "UPDATE user_news SET is_read = 1 WHERE username = ? AND is_read = 0")) {
+            statement.setString(1, username);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to mark news as read", e);
+        }
+    }
+
+    private String formatMinigameName(MinigameType minigame) {
+        String raw = minigame.name().replace('_', ' ').toLowerCase();
+        StringBuilder formatted = new StringBuilder();
+        for (String word : raw.split(" ")) {
+            if (word.isEmpty()) {
+                continue;
+            }
+            if (formatted.length() > 0) {
+                formatted.append(' ');
+            }
+            formatted.append(Character.toUpperCase(word.charAt(0)));
+            if (word.length() > 1) {
+                formatted.append(word.substring(1));
+            }
+        }
+        return formatted.toString();
     }
 
     private void saveUserProgress(User user) {
@@ -676,6 +827,8 @@ public class SqlStorageManager implements StorageManager {
         updateChildUsername(connection, "unlocked_chapters", oldUsername, newUsername);
         updateChildUsername(connection, "unlocked_plants", oldUsername, newUsername);
         updateChildUsername(connection, "completed_levels", oldUsername, newUsername);
+        updateChildUsername(connection, "unlocked_minigames", oldUsername, newUsername);
+        updateChildUsername(connection, "user_news", oldUsername, newUsername);
 
         try (PreparedStatement statement = connection.prepareStatement(
                 "UPDATE app_session SET username = ? WHERE username = ?")) {
