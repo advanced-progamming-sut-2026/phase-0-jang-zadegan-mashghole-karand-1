@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 import java.time.LocalDateTime;
 
+import model.gameSetting.GameSetting;
 import model.data.plant.PlantType;
 import model.minigame.MinigameType;
 import model.news.NewsItem;
@@ -60,8 +61,9 @@ public class SqlStorageManager implements StorageManager {
                 try (PreparedStatement statement = connection.prepareStatement("""
                         INSERT INTO users (
                             username, password, email, nickname, gender,
-                            safety_question, safety_answer, coins, gems, highest_score, games_played
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0)
+                            safety_question, safety_answer, coins, gems, highest_score, games_played,
+                            difficulty_level
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?)
                         """)) {
                     statement.setString(1, username);
                     statement.setString(2, password);
@@ -70,6 +72,7 @@ public class SqlStorageManager implements StorageManager {
                     statement.setString(5, gender.name());
                     statement.setString(6, safetyQuestion.question);
                     statement.setString(7, safetyQuestion.answer);
+                    statement.setInt(8, GameSetting.DEFAULT_DIFFICULTY);
                     statement.executeUpdate();
                 }
                 return true;
@@ -488,7 +491,8 @@ public class SqlStorageManager implements StorageManager {
                             coins INTEGER NOT NULL DEFAULT 0,
                             gems INTEGER NOT NULL DEFAULT 0,
                             highest_score INTEGER NOT NULL DEFAULT 0,
-                            games_played INTEGER NOT NULL DEFAULT 0
+                            games_played INTEGER NOT NULL DEFAULT 0,
+                            difficulty_level INTEGER NOT NULL DEFAULT 3
                         )
                         """);
                 statement.execute("""
@@ -543,6 +547,12 @@ public class SqlStorageManager implements StorageManager {
                         )
                         """);
                 statement.execute("INSERT OR IGNORE INTO app_session (id, stay_logged_in) VALUES (1, 0)");
+                try {
+                    statement.execute(
+                            "ALTER TABLE users ADD COLUMN difficulty_level INTEGER NOT NULL DEFAULT 3");
+                } catch (SQLException ignored) {
+                    // Column already exists.
+                }
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to initialize database", e);
             }
@@ -599,6 +609,7 @@ public class SqlStorageManager implements StorageManager {
                 user.gems = resultSet.getInt("gems");
                 user.highestScore = resultSet.getInt("highest_score");
                 user.gamesPlayed = resultSet.getInt("games_played");
+                user.preferredSetting.setDifficultyLevel(readDifficultyLevel(resultSet));
 
                 loadUnlockedChapters(connection, user);
                 loadUnlockedPlants(connection, user);
@@ -609,6 +620,14 @@ public class SqlStorageManager implements StorageManager {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to load user: " + username, e);
+        }
+    }
+
+    private int readDifficultyLevel(ResultSet resultSet) throws SQLException {
+        try {
+            return resultSet.getInt("difficulty_level");
+        } catch (SQLException e) {
+            return GameSetting.DEFAULT_DIFFICULTY;
         }
     }
 
@@ -736,7 +755,8 @@ public class SqlStorageManager implements StorageManager {
                         UPDATE users
                         SET password = ?, email = ?, nickname = ?, gender = ?,
                             safety_question = ?, safety_answer = ?,
-                            coins = ?, gems = ?, highest_score = ?, games_played = ?
+                            coins = ?, gems = ?, highest_score = ?, games_played = ?,
+                            difficulty_level = ?
                         WHERE username = ?
                         """)) {
             statement.setString(1, user.password);
@@ -749,7 +769,8 @@ public class SqlStorageManager implements StorageManager {
             statement.setInt(8, user.gems);
             statement.setInt(9, user.highestScore);
             statement.setInt(10, user.gamesPlayed);
-            statement.setString(11, user.username);
+            statement.setInt(11, user.preferredSetting.getDifficultyLevel());
+            statement.setString(12, user.username);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to save user profile", e);

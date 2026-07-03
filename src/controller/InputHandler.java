@@ -102,8 +102,13 @@ public class InputHandler {
             int amount = Integer.parseInt(matcher.group(1));
             controllerManager.handleCommandResult(controllerManager.getGameMenuController().CHEAT_add_gem(amount));
         } else if ((matcher = Commands.CHANGE_DIFFICULTY.getMatcher(input)).matches()) {
-            int level = Integer.parseInt(matcher.group(1));
-            controllerManager.getSettingController().changeDifficulty(level);
+            try {
+                int level = Integer.parseInt(matcher.group("difficultylevel").trim());
+                controllerManager.handleCommandResult(
+                        controllerManager.getSettingController().changeDifficulty(level));
+            } catch (NumberFormatException e) {
+                controllerManager.showError("Difficulty level must be a number.");
+            }
         } else if (Commands.UNREAD_NEWS.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(
                     controllerManager.getNewsMenuController().showUnreadNews());

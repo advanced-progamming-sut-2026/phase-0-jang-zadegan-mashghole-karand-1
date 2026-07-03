@@ -13,6 +13,7 @@ import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.service.NewsViewState;
 import model.service.ProfileViewState;
+import model.service.SettingsViewState;
 import model.storage.user.SafetyQuestion;
 import model.world.ChapterCatalog;
 import model.world.ChapterType;
@@ -307,8 +308,70 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderSettingOverlay() {
-        render(getMenuOverlay("Settings", YELLOW));
+    public void renderSettingOverlay(SettingsViewState settings) {
+        render(getSettingsOverlay(settings));
+    }
+
+    private String getSettingsOverlay(SettingsViewState settings) {
+        StringBuilder sb = new StringBuilder();
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Settings" + RESET + "  🧟";
+
+        sb.append(getHeaderBox(title, YELLOW));
+        sb.append("\n");
+        sb.append(getDifficultyBar(settings)).append("\n");
+        sb.append("\n");
+        sb.append("  " + CYAN + "1." + RESET + " Change Difficulty: " + GREEN
+                + "menu settings change-difficulty -l <level>" + RESET + "\n");
+        sb.append("  " + CYAN + "2." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("\n");
+        sb.append(getMessages());
+        return sb.toString();
+    }
+
+    private String getDifficultyBar(SettingsViewState settings) {
+        int min = settings.minDifficulty;
+        int max = settings.maxDifficulty;
+        int level = settings.difficultyLevel;
+        int segments = max - min + 1;
+
+        StringBuilder bar = new StringBuilder();
+        bar.append("  ").append(BOLD).append("Difficulty").append(RESET).append("\n");
+        bar.append("  ");
+
+        for (int i = 0; i < segments; i++) {
+            int segmentLevel = min + i;
+            bar.append(String.format("%-3d", segmentLevel));
+        }
+        bar.append("\n  ");
+
+        for (int i = 0; i < segments; i++) {
+            int segmentLevel = min + i;
+            if (segmentLevel <= level) {
+                bar.append(getDifficultySegmentColor(segmentLevel, min, max))
+                        .append("██ ").append(RESET);
+            } else {
+                bar.append(GRAY).append("░░ ").append(RESET);
+            }
+        }
+
+        return bar.toString();
+    }
+
+    private String getDifficultySegmentColor(int level, int min, int max) {
+        if (max == min) {
+            return YELLOW;
+        }
+        float ratio = (float) (level - min) / (max - min);
+        if (ratio <= 0.25f) {
+            return GREEN;
+        }
+        if (ratio <= 0.5f) {
+            return YELLOW;
+        }
+        if (ratio <= 0.75f) {
+            return ORANGE;
+        }
+        return RED;
     }
 
     @Override

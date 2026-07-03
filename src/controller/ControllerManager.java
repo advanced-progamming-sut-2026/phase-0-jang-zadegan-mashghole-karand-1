@@ -8,6 +8,7 @@ import model.service.AuthState;
 import model.service.GameNavigationState;
 import model.service.NewsViewState;
 import model.service.ProfileViewState;
+import model.service.SettingsViewState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
 import view.MenuType;
@@ -24,7 +25,7 @@ public class ControllerManager {
     private final AuthController authController;
     private final GameMenuController gameMenuController;
     private final MainMenuController mainMenuController;
-    private final SettingController settingController = new SettingController();
+    private final SettingController settingController;
     private final NewsMenuController newsMenuController;
     private final ProfileController profileController;
     private final PickPlantsController pickPlantsController;
@@ -40,6 +41,7 @@ public class ControllerManager {
     private final GameNavigationState gameNavigation = new GameNavigationState();
     private ProfileViewState profileViewState = ProfileViewState.empty();
     private NewsViewState newsViewState = NewsViewState.empty();
+    private SettingsViewState settingsViewState = SettingsViewState.empty();
     private boolean hasUnreadNews = false;
 
     public ControllerManager(ModelManager model,
@@ -52,6 +54,7 @@ public class ControllerManager {
         this.authController = new AuthController(this, storage);
         this.mainMenuController = new MainMenuController(this, storage);
         this.profileController = new ProfileController(this, storage);
+        this.settingController = new SettingController(this, storage);
         this.newsMenuController = new NewsMenuController(this, storage);
         new AppEventHandler(eventBus, storage).register();
         this.gameMenuController = new GameMenuController(this, storage, gameNavigation);
@@ -98,6 +101,7 @@ public class ControllerManager {
                 gameNavigation.unlockedChapters = storage.getUnlockedChapters();
                 gameNavigation.unlockedPlants = storage.getUnlockedPlants();
                 profileViewState = ProfileViewState.fromUser(storage.getCurrentUser());
+                settingsViewState = SettingsViewState.fromUser(storage.getCurrentUser());
                 hasUnreadNews = storage.getCurrentUser().newsFeed.hasUnread();
                 if (currentMenu == MenuType.NEWS) {
                     newsViewState = newsMenuController.getViewState();
@@ -107,10 +111,11 @@ public class ControllerManager {
             } else {
                 profileViewState = ProfileViewState.empty();
                 newsViewState = NewsViewState.empty();
+                settingsViewState = SettingsViewState.empty();
                 hasUnreadNews = false;
             }
             view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation,
-                    profileViewState, newsViewState, hasUnreadNews);
+                    profileViewState, newsViewState, settingsViewState, hasUnreadNews);
         }
     }
 

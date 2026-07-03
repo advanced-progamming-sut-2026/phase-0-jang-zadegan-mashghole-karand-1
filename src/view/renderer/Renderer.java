@@ -7,6 +7,7 @@ import model.data.plant.PlantType;
 import model.service.GameNavigationState;
 import model.service.NewsViewState;
 import model.service.ProfileViewState;
+import model.service.SettingsViewState;
 import model.storage.user.SafetyQuestion;
 
 public interface Renderer {
@@ -32,7 +33,7 @@ public interface Renderer {
 
     void renderPauseOverlay();
 
-    void renderSettingOverlay();
+    void renderSettingOverlay(SettingsViewState settings);
 
     void renderProfileOverlay(ProfileViewState profile);
 
