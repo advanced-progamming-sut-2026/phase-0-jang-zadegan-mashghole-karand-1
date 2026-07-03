@@ -141,6 +141,61 @@ public class InMemoryStorageManager implements StorageManager {
     }
 
     @Override
+    public void recordGamePlayed() {
+        if (isLoggedIn()) {
+            currentUser.gamesPlayed++;
+        }
+    }
+
+    @Override
+    public void markLevelCompleted(String levelId) {
+        if (isLoggedIn()) {
+            currentUser.gameProgress.completeLevel(levelId);
+        }
+    }
+
+    @Override
+    public boolean changeUsername(String newUsername) {
+        if (!isLoggedIn() || newUsername == null || newUsername.isBlank()) {
+            return false;
+        }
+        if (currentUser.username.equals(newUsername) || users.containsKey(newUsername)) {
+            return false;
+        }
+        String oldUsername = currentUser.username;
+        currentUser.username = newUsername;
+        users.remove(oldUsername);
+        users.put(newUsername, currentUser);
+        return true;
+    }
+
+    @Override
+    public void changeNickname(String nickname) {
+        if (isLoggedIn() && nickname != null) {
+            currentUser.nickname = nickname;
+        }
+    }
+
+    @Override
+    public void changeEmail(String email) {
+        if (isLoggedIn() && email != null) {
+            currentUser.email = email;
+        }
+    }
+
+    @Override
+    public boolean changeProfilePassword(String oldPassword, String newPassword) {
+        if (!isLoggedIn() || oldPassword == null || newPassword == null || newPassword.isEmpty()) {
+            return false;
+        }
+        if (!currentUser.password.equals(oldPassword)) {
+            return false;
+        }
+        currentUser.password = newPassword;
+        return true;
+    }
+
+    @Override
     public void unlockChapter(ChapterType chapter) {
         if (!isLoggedIn())
             return;

@@ -5,6 +5,7 @@ import model.world.ChapterType;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Collections;
 
 public class GameProgress {
     private final Set<String> completedLevels = new HashSet<>();
@@ -21,5 +22,19 @@ public class GameProgress {
 
     public Set<ChapterType> getUnlockedChapters() {
         return unlockedChapters;
+    }
+
+    public void completeLevel(String levelId) {
+        if (levelId != null && !levelId.isBlank()) {
+            completedLevels.add(levelId);
+        }
+    }
+
+    public int getCompletedLevelCount() {
+        return completedLevels.size();
+    }
+
+    public Set<String> getCompletedLevelIds() {
+        return Collections.unmodifiableSet(completedLevels);
     }
 }

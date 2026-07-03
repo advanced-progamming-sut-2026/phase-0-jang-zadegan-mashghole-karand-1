@@ -109,27 +109,25 @@ public class InputHandler {
         } else if (Commands.ALL_NEWS.getMatcher(input).matches()) {
             controllerManager.getNewsMenuController().allShowNews();
         } else if ((matcher = Commands.CHANGE_USERNAME.getMatcher(input)).matches()) {
-            String username = matcher.group(1);
-            // CommandResult result =
-            // controllerManager.getProfileController().changeUsername(user , username);
-            // current user??
+            String username = matcher.group("username");
+            controllerManager.handleCommandResult(
+                    controllerManager.getProfileController().changeUsername(username));
         } else if ((matcher = Commands.CHANGE_PASSWORD.getMatcher(input)).matches()) {
-            String password = matcher.group(1);
-            String newPassword = matcher.group(2);
-            // CommandResult result =
-            // controllerManager.getProfileController().changePassword(user,
-            // password,newPassword);
+            String newPassword = matcher.group("newpassword");
+            String oldPassword = matcher.group("oldpassword");
+            controllerManager.handleCommandResult(
+                    controllerManager.getProfileController().changePassword(oldPassword, newPassword));
         } else if ((matcher = Commands.CHANGE_NICKNAME.getMatcher(input)).matches()) {
-            String nickname = matcher.group(1);
-            // CommandResult result =
-            // controllerManager.getProfileController().changeNickname(user ,nickname);
+            String nickname = matcher.group("nickname");
+            controllerManager.handleCommandResult(
+                    controllerManager.getProfileController().changeNickname(nickname));
         } else if ((matcher = Commands.CHANGE_EMAIL.getMatcher(input)).matches()) {
-            String email = matcher.group(1);
-            // CommandResult result =
-            // controllerManager.getProfileController().changeEmail(user , email);
+            String email = matcher.group("email");
+            controllerManager.handleCommandResult(
+                    controllerManager.getProfileController().changeEmail(email));
         } else if (Commands.SHOW_PROFILE_INFO.getMatcher(input).matches()) {
-            // CommandResult result =
-            // controllerManager.getProfileController().Show_info(user);
+            controllerManager.handleCommandResult(
+                    controllerManager.getProfileController().refreshInfo());
         } else if (Commands.SHOW_PLANTS.getMatcher(input).matches()) {
             String plants = controllerManager.getCollectionController().ShowPlants();
         } else if (Commands.SHOW_ALL_PLANTS.getMatcher(input).matches()) {

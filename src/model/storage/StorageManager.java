@@ -35,6 +35,18 @@ public interface StorageManager {
 
     void updateUserProfile(User profile);
 
+    void recordGamePlayed();
+
+    void markLevelCompleted(String levelId);
+
+    boolean changeUsername(String newUsername);
+
+    void changeNickname(String nickname);
+
+    void changeEmail(String email);
+
+    boolean changeProfilePassword(String oldPassword, String newPassword);
+
     void unlockChapter(ChapterType chapter);
 
     boolean isChapterUnlocked(ChapterType chapter);

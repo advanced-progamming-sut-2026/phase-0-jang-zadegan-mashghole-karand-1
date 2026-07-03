@@ -25,6 +25,7 @@ public class User {
     public int coins;
     public int gems;
     public int highestScore;
+    public int gamesPlayed;
 
     public User(String username, String password, String email, String nickname, Gender gender, SafetyQuestion safety) {
         this.username = username;

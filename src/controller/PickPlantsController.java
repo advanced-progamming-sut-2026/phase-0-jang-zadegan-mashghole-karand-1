@@ -101,6 +101,7 @@ public class PickPlantsController {
         }
 
         model.startLevel(gameNavigation.pendingLevel);
+        storage.recordGamePlayed();
         gameNavigation.reset();
         controllerManager.setScreen(ScreenType.GAME);
         return success("Game started! Good luck.");

@@ -4,6 +4,7 @@ import controller.InputHandler;
 import model.core.ReadOnlyGameState;
 import model.service.AuthState;
 import model.service.GameNavigationState;
+import model.service.ProfileViewState;
 import view.renderer.Renderer;
 
 public class ViewManager {
@@ -24,7 +25,7 @@ public class ViewManager {
     }
 
     public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
-            AuthState authState, GameNavigationState gameNavigation) {
+            AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState) {
         String screenKey = currentScreen.name();
         if (currentScreen == ScreenType.LEVEL_SELECTOR) {
             screenKey += "-" + gameNavigation.phase.name();
@@ -44,7 +45,7 @@ public class ViewManager {
                 if (currentMenu == MenuType.NONE) {
                     renderer.renderMainScreen();
                 } else {
-                    renderMenuOverlay(currentMenu);
+                    renderMenuOverlay(currentMenu, profileViewState);
                 }
                 break;
             case LEVEL_SELECTOR:
@@ -65,11 +66,11 @@ public class ViewManager {
         }
 
         if (currentMenu != MenuType.NONE && currentScreen != ScreenType.MAIN) {
-            renderMenuOverlay(currentMenu);
+            renderMenuOverlay(currentMenu, profileViewState);
         }
     }
 
-    private void renderMenuOverlay(MenuType currentMenu) {
+    private void renderMenuOverlay(MenuType currentMenu, ProfileViewState profileViewState) {
         switch (currentMenu) {
             case PAUSE:
                 renderer.renderPauseOverlay();
@@ -78,7 +79,7 @@ public class ViewManager {
                 renderer.renderSettingOverlay();
                 break;
             case PROFILE:
-                renderer.renderProfileOverlay();
+                renderer.renderProfileOverlay(profileViewState);
                 break;
             case NEWS:
                 renderer.renderNewsOverlay();

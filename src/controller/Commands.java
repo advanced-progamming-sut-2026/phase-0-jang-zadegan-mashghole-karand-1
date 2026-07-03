@@ -44,7 +44,7 @@ public enum Commands {
     //profile menu
     CHANGE_USERNAME("menu\\s+profile\\s+change-username\\s+-u\\s+(?<username>.*)$"),
     CHANGE_NICKNAME("menu\\s+profile\\s+change-nickname\\s+-u\\s+(?<nickname>.*)$"),
-    CHANGE_EMAIL("menu profile change-email\\s+-e\\s+(?<email>.*)$"),
+    CHANGE_EMAIL("menu\\s+profile\\s+change-email\\s+-e\\s+(?<email>.*)$"),
     CHANGE_PASSWORD("menu\\s+profile\\s+change-password\\s+-p\\s+(?<newpassword>.*?)\\s+-o\\s+(?<oldpassword>.*)$"),
     SHOW_PROFILE_INFO("menu\\s+profile\\s+show-info"),
 

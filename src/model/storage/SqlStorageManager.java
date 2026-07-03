@@ -57,8 +57,8 @@ public class SqlStorageManager implements StorageManager {
                 try (PreparedStatement statement = connection.prepareStatement("""
                         INSERT INTO users (
                             username, password, email, nickname, gender,
-                            safety_question, safety_answer, coins, gems, highest_score
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0)
+                            safety_question, safety_answer, coins, gems, highest_score, games_played
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0)
                         """)) {
                     statement.setString(1, username);
                     statement.setString(2, password);
@@ -219,6 +219,106 @@ public class SqlStorageManager implements StorageManager {
     }
 
     @Override
+    public void recordGamePlayed() {
+        if (!isLoggedIn()) {
+            return;
+        }
+        synchronized (lock) {
+            currentUser.gamesPlayed++;
+            saveUserProfile(currentUser);
+        }
+    }
+
+    @Override
+    public void markLevelCompleted(String levelId) {
+        if (!isLoggedIn() || levelId == null || levelId.isBlank()) {
+            return;
+        }
+        synchronized (lock) {
+            currentUser.gameProgress.completeLevel(levelId);
+            try (Connection connection = openConnection();
+                    PreparedStatement statement = connection.prepareStatement(
+                            "INSERT OR IGNORE INTO completed_levels (username, level_id) VALUES (?, ?)")) {
+                statement.setString(1, currentUser.username);
+                statement.setString(2, levelId);
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to mark level completed", e);
+            }
+        }
+    }
+
+    @Override
+    public boolean changeUsername(String newUsername) {
+        if (!isLoggedIn() || newUsername == null || newUsername.isBlank()) {
+            return false;
+        }
+        synchronized (lock) {
+            String oldUsername = currentUser.username;
+            if (oldUsername.equals(newUsername)) {
+                return false;
+            }
+            if (usernameExists(newUsername)) {
+                return false;
+            }
+
+            try (Connection connection = openConnection()) {
+                connection.setAutoCommit(false);
+                try {
+                    updateUsernameReferences(connection, oldUsername, newUsername);
+                    connection.commit();
+                    currentUser.username = newUsername;
+                    return true;
+                } catch (SQLException e) {
+                    connection.rollback();
+                    throw e;
+                } finally {
+                    connection.setAutoCommit(true);
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to change username", e);
+            }
+        }
+    }
+
+    @Override
+    public void changeNickname(String nickname) {
+        if (!isLoggedIn() || nickname == null) {
+            return;
+        }
+        synchronized (lock) {
+            currentUser.nickname = nickname;
+            saveUserProfile(currentUser);
+        }
+    }
+
+    @Override
+    public void changeEmail(String email) {
+        if (!isLoggedIn() || email == null) {
+            return;
+        }
+        synchronized (lock) {
+            currentUser.email = email;
+            saveUserProfile(currentUser);
+        }
+    }
+
+    @Override
+    public boolean changeProfilePassword(String oldPassword, String newPassword) {
+        if (!isLoggedIn() || oldPassword == null || newPassword == null || newPassword.isEmpty()) {
+            return false;
+        }
+        synchronized (lock) {
+            if (!currentUser.password.equals(oldPassword)) {
+                return false;
+            }
+            currentUser.password = newPassword;
+            saveUserProfile(currentUser);
+            return true;
+        }
+    }
+
+    @Override
     public void updateUserProfile(User profile) {
         if (profile == null || currentUser == null) {
             return;
@@ -331,7 +431,16 @@ public class SqlStorageManager implements StorageManager {
                             safety_answer TEXT NOT NULL,
                             coins INTEGER NOT NULL DEFAULT 0,
                             gems INTEGER NOT NULL DEFAULT 0,
-                            highest_score INTEGER NOT NULL DEFAULT 0
+                            highest_score INTEGER NOT NULL DEFAULT 0,
+                            games_played INTEGER NOT NULL DEFAULT 0
+                        )
+                        """);
+                statement.execute("""
+                        CREATE TABLE IF NOT EXISTS completed_levels (
+                            username TEXT NOT NULL,
+                            level_id TEXT NOT NULL,
+                            PRIMARY KEY (username, level_id),
+                            FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
                         )
                         """);
                 statement.execute("""
@@ -385,7 +494,11 @@ public class SqlStorageManager implements StorageManager {
     }
 
     private Connection openConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:sqlite:" + databasePath);
+        Connection connection = DriverManager.getConnection("jdbc:sqlite:" + databasePath);
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("PRAGMA foreign_keys = ON");
+        }
+        return connection;
     }
 
     private User loadUser(String username) {
@@ -410,9 +523,11 @@ public class SqlStorageManager implements StorageManager {
                 user.coins = resultSet.getInt("coins");
                 user.gems = resultSet.getInt("gems");
                 user.highestScore = resultSet.getInt("highest_score");
+                user.gamesPlayed = resultSet.getInt("games_played");
 
                 loadUnlockedChapters(connection, user);
                 loadUnlockedPlants(connection, user);
+                loadCompletedLevels(connection, user);
                 return user;
             }
         } catch (SQLException e) {
@@ -445,10 +560,23 @@ public class SqlStorageManager implements StorageManager {
         }
     }
 
+    private void loadCompletedLevels(Connection connection, User user) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT level_id FROM completed_levels WHERE username = ?")) {
+            statement.setString(1, user.username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    user.gameProgress.completeLevel(resultSet.getString("level_id"));
+                }
+            }
+        }
+    }
+
     private void saveUserProgress(User user) {
         saveUserProfile(user);
         saveUnlockedChapters(user);
         saveUnlockedPlants(user);
+        saveCompletedLevels(user);
     }
 
     private void saveUserProfile(User user) {
@@ -457,7 +585,7 @@ public class SqlStorageManager implements StorageManager {
                         UPDATE users
                         SET password = ?, email = ?, nickname = ?, gender = ?,
                             safety_question = ?, safety_answer = ?,
-                            coins = ?, gems = ?, highest_score = ?
+                            coins = ?, gems = ?, highest_score = ?, games_played = ?
                         WHERE username = ?
                         """)) {
             statement.setString(1, user.password);
@@ -469,7 +597,8 @@ public class SqlStorageManager implements StorageManager {
             statement.setInt(7, user.coins);
             statement.setInt(8, user.gems);
             statement.setInt(9, user.highestScore);
-            statement.setString(10, user.username);
+            statement.setInt(10, user.gamesPlayed);
+            statement.setString(11, user.username);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to save user profile", e);
@@ -517,6 +646,61 @@ public class SqlStorageManager implements StorageManager {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to save unlocked plants", e);
+        }
+    }
+
+    private void saveCompletedLevels(User user) {
+        try (Connection connection = openConnection()) {
+            try (PreparedStatement deleteStatement = connection.prepareStatement(
+                    "DELETE FROM completed_levels WHERE username = ?")) {
+                deleteStatement.setString(1, user.username);
+                deleteStatement.executeUpdate();
+            }
+
+            try (PreparedStatement insertStatement = connection.prepareStatement(
+                    "INSERT INTO completed_levels (username, level_id) VALUES (?, ?)")) {
+                for (String levelId : user.gameProgress.getCompletedLevelIds()) {
+                    insertStatement.setString(1, user.username);
+                    insertStatement.setString(2, levelId);
+                    insertStatement.addBatch();
+                }
+                insertStatement.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save completed levels", e);
+        }
+    }
+
+    private void updateUsernameReferences(Connection connection, String oldUsername, String newUsername)
+            throws SQLException {
+        updateChildUsername(connection, "unlocked_chapters", oldUsername, newUsername);
+        updateChildUsername(connection, "unlocked_plants", oldUsername, newUsername);
+        updateChildUsername(connection, "completed_levels", oldUsername, newUsername);
+
+        try (PreparedStatement statement = connection.prepareStatement(
+                "UPDATE app_session SET username = ? WHERE username = ?")) {
+            statement.setString(1, newUsername);
+            statement.setString(2, oldUsername);
+            statement.executeUpdate();
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement(
+                "UPDATE users SET username = ? WHERE username = ?")) {
+            statement.setString(1, newUsername);
+            statement.setString(2, oldUsername);
+            if (statement.executeUpdate() == 0) {
+                throw new SQLException("User not found: " + oldUsername);
+            }
+        }
+    }
+
+    private void updateChildUsername(Connection connection, String table, String oldUsername, String newUsername)
+            throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "UPDATE " + table + " SET username = ? WHERE username = ?")) {
+            statement.setString(1, newUsername);
+            statement.setString(2, oldUsername);
+            statement.executeUpdate();
         }
     }
 

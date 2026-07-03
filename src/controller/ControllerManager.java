@@ -6,6 +6,7 @@ import model.core.EventBus;
 import model.core.GameLoop;
 import model.service.AuthState;
 import model.service.GameNavigationState;
+import model.service.ProfileViewState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
 import view.MenuType;
@@ -24,7 +25,7 @@ public class ControllerManager {
     private final MainMenuController mainMenuController;
     private final SettingController settingController = new SettingController();
     private final NewsMenuController newsMenuController = new NewsMenuController();
-    private final ProfileController profileController = new ProfileController();
+    private final ProfileController profileController;
     private final PickPlantsController pickPlantsController;
     private final CollectionController collectionController = new CollectionController();
     private final GameMechanismController gameMechanismController;
@@ -36,6 +37,7 @@ public class ControllerManager {
     private MenuType currentMenu = MenuType.NONE;
     private final AuthState authState = new AuthState();
     private final GameNavigationState gameNavigation = new GameNavigationState();
+    private ProfileViewState profileViewState = ProfileViewState.empty();
 
     public ControllerManager(ModelManager model,
             EventBus eventBus, GameLoop gameLoop, StorageManager storage) {
@@ -46,6 +48,7 @@ public class ControllerManager {
 
         this.authController = new AuthController(this, storage);
         this.mainMenuController = new MainMenuController(this, storage);
+        this.profileController = new ProfileController(this, storage);
         this.gameMenuController = new GameMenuController(this, storage, gameNavigation);
         this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
 
@@ -89,8 +92,11 @@ public class ControllerManager {
             if (storage.isLoggedIn()) {
                 gameNavigation.unlockedChapters = storage.getUnlockedChapters();
                 gameNavigation.unlockedPlants = storage.getUnlockedPlants();
+                profileViewState = ProfileViewState.fromUser(storage.getCurrentUser());
+            } else {
+                profileViewState = ProfileViewState.empty();
             }
-            view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation);
+            view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation, profileViewState);
         }
     }
 

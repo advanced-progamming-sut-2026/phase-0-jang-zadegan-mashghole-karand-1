@@ -11,6 +11,7 @@ import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
+import model.service.ProfileViewState;
 import model.storage.user.SafetyQuestion;
 import model.world.ChapterCatalog;
 import model.world.ChapterType;
@@ -314,8 +315,39 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderProfileOverlay() {
-        render(getMenuOverlay("Profile", PURPLE));
+    public void renderProfileOverlay(ProfileViewState profile) {
+        render(getProfileOverlay(profile));
+    }
+
+    private String getProfileOverlay(ProfileViewState profile) {
+        StringBuilder sb = new StringBuilder();
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Profile" + RESET + "  🧟";
+
+        sb.append(getHeaderBox(title, PURPLE));
+        sb.append("\n");
+        sb.append("  ").append(BOLD).append("Username:").append(RESET).append(" ").append(profile.username).append("\n");
+        sb.append("  ").append(BOLD).append("Nickname:").append(RESET).append(" ").append(profile.nickname).append("\n");
+        sb.append("  ").append(BOLD).append("Games Played:").append(RESET).append(" ").append(profile.gamesPlayed).append("\n");
+        sb.append("  ").append(BOLD).append("Coins:").append(RESET).append(" ").append(profile.coins).append("\n");
+        sb.append("  ").append(BOLD).append("Gems:").append(RESET).append(" ").append(profile.gems).append("\n");
+        sb.append("  ").append(BOLD).append("Completed Levels:").append(RESET).append(" ").append(profile.completedLevels)
+                .append("\n");
+        sb.append("  ").append(BOLD).append("Highest Score:").append(RESET).append(" ").append(profile.highestScore)
+                .append("\n");
+        sb.append("\n");
+        sb.append("  " + CYAN + "1." + RESET + " Refresh: " + GREEN + "menu profile show-info" + RESET + "\n");
+        sb.append("  " + CYAN + "2." + RESET + " Change Username: " + GREEN
+                + "menu profile change-username -u <username>" + RESET + "\n");
+        sb.append("  " + CYAN + "3." + RESET + " Change Nickname: " + GREEN
+                + "menu profile change-nickname -u <nickname>" + RESET + "\n");
+        sb.append("  " + CYAN + "4." + RESET + " Change Email: " + GREEN
+                + "menu profile change-email -e <email>" + RESET + "\n");
+        sb.append("  " + CYAN + "5." + RESET + " Change Password: " + GREEN
+                + "menu profile change-password -p <newpassword> -o <oldpassword>" + RESET + "\n");
+        sb.append("  " + CYAN + "6." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("\n");
+        sb.append(getMessages());
+        return sb.toString();
     }
 
     private String getMenuOverlay(String menuName, String color) {

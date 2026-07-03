@@ -5,6 +5,7 @@ import java.util.List;
 import model.core.ReadOnlyGameState;
 import model.data.plant.PlantType;
 import model.service.GameNavigationState;
+import model.service.ProfileViewState;
 import model.storage.user.SafetyQuestion;
 
 public interface Renderer {
@@ -32,7 +33,7 @@ public interface Renderer {
 
     void renderSettingOverlay();
 
-    void renderProfileOverlay();
+    void renderProfileOverlay(ProfileViewState profile);
 
     void renderNewsOverlay();
 
