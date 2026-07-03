@@ -187,8 +187,11 @@ public class ConsoleRenderer implements Renderer {
         sb.append(getHeaderBox(title, GREEN));
         sb.append("\n");
         sb.append("  " + CYAN + "1." + RESET + " Start Game: " + GREEN + "menu enter game" + RESET + "\n");
-        sb.append("  " + CYAN + "2." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
-        sb.append("  " + CYAN + "3." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+        sb.append("  " + CYAN + "2." + RESET + " Settings: " + GREEN + "menu enter settings" + RESET + "\n");
+        sb.append("  " + CYAN + "3." + RESET + " News: " + GREEN + "menu enter news" + RESET + "\n");
+        sb.append("  " + CYAN + "4." + RESET + " Profile: " + GREEN + "menu enter profile" + RESET + "\n");
+        sb.append("  " + CYAN + "5." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
+        sb.append("  " + CYAN + "6." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
         sb.append("\n");
         sb.append(getMessages());
 
@@ -301,6 +304,33 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
+    public void renderSettingOverlay() {
+        render(getMenuOverlay("Settings", YELLOW));
+    }
+
+    @Override
+    public void renderNewsOverlay() {
+        render(getMenuOverlay("News", BLUE));
+    }
+
+    @Override
+    public void renderProfileOverlay() {
+        render(getMenuOverlay("Profile", PURPLE));
+    }
+
+    private String getMenuOverlay(String menuName, String color) {
+        StringBuilder sb = new StringBuilder();
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | " + menuName + RESET + "  🧟";
+
+        sb.append(getHeaderBox(title, color));
+        sb.append("\n");
+        sb.append("  " + CYAN + "1." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("\n");
+        sb.append(getMessages());
+        return sb.toString();
+    }
+
+    @Override
     public void renderPauseOverlay() {
     }
 
@@ -309,19 +339,7 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderProfileOverlay() {
-    }
-
-    @Override
     public void renderPlantSelectorOverlay() {
-    }
-
-    @Override
-    public void renderSettingOverlay() {
-    }
-
-    @Override
-    public void renderNewsOverlay() {
     }
 
     @Override
@@ -760,9 +778,9 @@ public class ConsoleRenderer implements Renderer {
     private String getHeaderBox(String title, String color) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(getUpperBorder(YELLOW));
-        sb.append(getBoxTitle(title, YELLOW));
-        sb.append(getLowerBorder(YELLOW));
+        sb.append(getUpperBorder(color));
+        sb.append(getBoxTitle(title, color));
+        sb.append(getLowerBorder(color));
 
         return sb.toString();
     }

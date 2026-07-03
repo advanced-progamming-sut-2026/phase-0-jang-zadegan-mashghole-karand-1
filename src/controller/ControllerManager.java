@@ -96,6 +96,9 @@ public class ControllerManager {
 
     public void setScreen(ScreenType screen) {
         this.currentScreen = screen;
+        if (screen != ScreenType.MAIN) {
+            currentMenu = MenuType.NONE;
+        }
         refreshView();
     }
 
@@ -164,21 +167,67 @@ public class ControllerManager {
             return new CommandResult("Entered login menu.", true);
         }
 
-        if (currentScreen == ScreenType.MAIN && name.equals("game")) {
-            if (!storage.isLoggedIn()) {
-                return new CommandResult("You must be logged in to play.", false);
+        if (currentScreen == ScreenType.MAIN) {
+            if (name.equals("game")) {
+                if (!storage.isLoggedIn()) {
+                    return new CommandResult("You must be logged in to play.", false);
+                }
+                if (currentMenu != MenuType.NONE) {
+                    return new CommandResult("Close the current menu first.", false);
+                }
+                gameNavigation.reset();
+                gameNavigation.phase = Phase.CHAPTER;
+                setScreen(ScreenType.LEVEL_SELECTOR);
+                return new CommandResult("Entered game menu. Select a chapter.", true);
             }
-            gameNavigation.reset();
-            gameNavigation.phase = Phase.CHAPTER;
-            setScreen(ScreenType.LEVEL_SELECTOR);
-            return new CommandResult("Entered game menu. Select a chapter.", true);
+            if (name.equals("settings") || name.equals("setting")) {
+                return openMainMenu(MenuType.SETTING, "settings");
+            }
+            if (name.equals("news")) {
+                return openMainMenu(MenuType.NEWS, "news");
+            }
+            if (name.equals("profile")) {
+                return openMainMenu(MenuType.PROFILE, "profile");
+            }
         }
 
         return new CommandResult("Cannot enter menu from here.", false);
     }
 
+    private CommandResult openMainMenu(MenuType menu, String label) {
+        CommandResult screenCheck = requireScreen(ScreenType.MAIN);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        CommandResult loggedInCheck = requireLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
+        if (currentMenu != MenuType.NONE) {
+            return new CommandResult("Close the current menu first.", false);
+        }
+        currentMenu = menu;
+        refreshView();
+        return new CommandResult("Opened " + label + " menu.", true);
+    }
+
+    public void clearCurrentMenu() {
+        currentMenu = MenuType.NONE;
+    }
+
+    public MenuType getCurrentMenu() {
+        return currentMenu;
+    }
+
     public CommandResult exitMenu() {
         switch (currentScreen) {
+            case MAIN:
+                if (currentMenu != MenuType.NONE) {
+                    currentMenu = MenuType.NONE;
+                    refreshView();
+                    return new CommandResult("Returned to main menu.", true);
+                }
+                return new CommandResult("Cannot exit this menu.", false);
             case LOGIN:
                 authController.clearPasswordResetState();
                 authController.clearPendingRegistration();
@@ -208,6 +257,10 @@ public class ControllerManager {
     }
 
     public CommandResult showCurrentMenu() {
+        if (currentScreen == ScreenType.MAIN && currentMenu != MenuType.NONE) {
+            return new CommandResult(
+                    "Current screen: main (" + currentMenu.name().toLowerCase() + " menu open).", true);
+        }
         return new CommandResult("Current screen: " + currentScreen.name().toLowerCase(), true);
     }
 

@@ -26,6 +26,7 @@ public class MainMenuController {
 
         storage.saveProgress();
         storage.logout();
+        controllerManager.clearCurrentMenu();
         controllerManager.getAuthController().clearPasswordResetState();
         controllerManager.setScreen(ScreenType.REGISTER);
         return new CommandResult("Logged out successfully.", true);

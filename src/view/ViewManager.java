@@ -28,6 +28,8 @@ public class ViewManager {
         String screenKey = currentScreen.name();
         if (currentScreen == ScreenType.LEVEL_SELECTOR) {
             screenKey += "-" + gameNavigation.phase.name();
+        } else if (currentScreen == ScreenType.MAIN && currentMenu != MenuType.NONE) {
+            screenKey += "-" + currentMenu.name();
         }
         renderer.prepareScreen(screenKey);
         switch (currentScreen) {
@@ -39,7 +41,11 @@ public class ViewManager {
                         authState.passwordResetQuestion);
                 break;
             case MAIN:
-                renderer.renderMainScreen();
+                if (currentMenu == MenuType.NONE) {
+                    renderer.renderMainScreen();
+                } else {
+                    renderMenuOverlay(currentMenu);
+                }
                 break;
             case LEVEL_SELECTOR:
                 renderer.renderLevelSelectionScreen(gameNavigation);
@@ -58,27 +64,33 @@ public class ViewManager {
                 break;
         }
 
-        if (currentMenu != MenuType.NONE) {
-            switch (currentMenu) {
-                case PAUSE:
-                    renderer.renderPauseOverlay();
-                    break;
-                case SETTING:
-                    renderer.renderSettingOverlay();
-                    break;
-                case PROFILE:
-                    renderer.renderProfileOverlay();
-                    break;
-                case NEWS:
-                    renderer.renderNewsOverlay();
-                    break;
-                case QUESTS:
-                    renderer.renderQuestsOverlay();
-                    break;
-                case PLANT_SELECTOR:
-                    renderer.renderPlantSelectorOverlay();
-                    break;
-            }
+        if (currentMenu != MenuType.NONE && currentScreen != ScreenType.MAIN) {
+            renderMenuOverlay(currentMenu);
+        }
+    }
+
+    private void renderMenuOverlay(MenuType currentMenu) {
+        switch (currentMenu) {
+            case PAUSE:
+                renderer.renderPauseOverlay();
+                break;
+            case SETTING:
+                renderer.renderSettingOverlay();
+                break;
+            case PROFILE:
+                renderer.renderProfileOverlay();
+                break;
+            case NEWS:
+                renderer.renderNewsOverlay();
+                break;
+            case QUESTS:
+                renderer.renderQuestsOverlay();
+                break;
+            case PLANT_SELECTOR:
+                renderer.renderPlantSelectorOverlay();
+                break;
+            default:
+                break;
         }
     }
 
