@@ -84,24 +84,23 @@ public class InputHandler {
             CommandResult result = controllerManager.getAuthController().resetPassword(password, passwordConfirm);
             controllerManager.handleCommandResult(result);
         } else if (Commands.LOGOUT.getMatcher(input).matches()) {
-            controllerManager.getMainMenuController().logout();
-            controllerManager.refreshView();
+            controllerManager.handleCommandResult(controllerManager.getMainMenuController().logout());
         } else if (Commands.GREENHOUSE.getMatcher(input).matches()) {
-            controllerManager.getGameMenuController().greenHouse();
+            controllerManager.handleCommandResult(controllerManager.getGameMenuController().greenHouse());
         } else if (Commands.TRAVEL_LOG.getMatcher(input).matches()) {
-            controllerManager.getGameMenuController().quest();
+            controllerManager.handleCommandResult(controllerManager.getGameMenuController().quest());
         } else if (Commands.LEADERBOARD.getMatcher(input).matches()) {
-            controllerManager.getGameMenuController().leaderboard();
+            controllerManager.handleCommandResult(controllerManager.getGameMenuController().leaderboard());
         } else if (Commands.COIN_WALLET.getMatcher(input).matches()) {
-            controllerManager.getGameMenuController().coin_wallet();
+            controllerManager.handleCommandResult(controllerManager.getGameMenuController().coin_wallet());
         } else if (Commands.GEM_WALLET.getMatcher(input).matches()) {
-            controllerManager.getGameMenuController().gem_wallet();
+            controllerManager.handleCommandResult(controllerManager.getGameMenuController().gem_wallet());
         } else if ((matcher = Commands.ADD_COIN.getMatcher(input)).matches()) {
             int amount = Integer.parseInt(matcher.group(1));
-            controllerManager.getGameMenuController().CHEAT_add_coin(amount);
+            controllerManager.handleCommandResult(controllerManager.getGameMenuController().CHEAT_add_coin(amount));
         } else if ((matcher = Commands.ADD_DIAMOND.getMatcher(input)).matches()) {
             int amount = Integer.parseInt(matcher.group(1));
-            controllerManager.getGameMenuController().CHEAT_add_gem(amount);
+            controllerManager.handleCommandResult(controllerManager.getGameMenuController().CHEAT_add_gem(amount));
         } else if ((matcher = Commands.CHANGE_DIFFICULTY.getMatcher(input)).matches()) {
             int level = Integer.parseInt(matcher.group(1));
             controllerManager.getSettingController().changeDifficulty(level);

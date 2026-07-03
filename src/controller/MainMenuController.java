@@ -1,5 +1,6 @@
 package controller;
 
+import controller.CommandResult.CommandResult;
 import model.storage.StorageManager;
 import view.ScreenType;
 
@@ -13,11 +14,20 @@ public class MainMenuController {
         this.storage = storage;
     }
 
-    public void logout() {
+    public CommandResult logout() {
+        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.MAIN);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        CommandResult loggedInCheck = controllerManager.requireLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
+
         storage.saveProgress();
         storage.logout();
         controllerManager.getAuthController().clearPasswordResetState();
         controllerManager.setScreen(ScreenType.REGISTER);
-        controllerManager.sendMessage("Logged out successfully.");
+        return new CommandResult("Logged out successfully.", true);
     }
 }

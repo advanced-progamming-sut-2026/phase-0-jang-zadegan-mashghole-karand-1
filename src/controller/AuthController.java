@@ -57,6 +57,15 @@ public class AuthController {
 
     public CommandResult register(String username, String password, String passwordConfirm, String nickName,
             String email, String gender) {
+        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.REGISTER);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        CommandResult loggedInCheck = controllerManager.requireNotLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
+
         String error = AuthValidator.validateUsername(username);
         if (error != null) {
             return failure(error);
@@ -96,6 +105,10 @@ public class AuthController {
     }
 
     public CommandResult pickQuestion(int questionNum, String answer, String answerConfirm) {
+        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.REGISTER);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
         if (pendingRegistration == null) {
             return failure("Complete registration first.");
         }
@@ -134,6 +147,15 @@ public class AuthController {
     }
 
     public CommandResult login(String username, String password, boolean stayLoggedIn) {
+        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.LOGIN);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        CommandResult loggedInCheck = controllerManager.requireNotLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
+
         if (storage.login(username, password, stayLoggedIn)) {
             storage.saveProgress();
             controllerManager.setScreen(ScreenType.MAIN);
@@ -143,6 +165,11 @@ public class AuthController {
     }
 
     public CommandResult forgotPassword(String username, String email) {
+        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.LOGIN);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+
         awaitingSecurityAnswer = false;
         awaitingNewPassword = false;
         passwordResetUsername = null;
@@ -158,6 +185,10 @@ public class AuthController {
     }
 
     public CommandResult answer(String answer) {
+        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.LOGIN);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
         if (!awaitingSecurityAnswer || passwordResetUsername == null) {
             return failure("Start password recovery with forget password first.");
         }
@@ -181,6 +212,10 @@ public class AuthController {
     }
 
     public CommandResult resetPassword(String password, String passwordConfirm) {
+        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.LOGIN);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
         if (!awaitingNewPassword || passwordResetUsername == null) {
             return failure("Verify your security answer before resetting your password.");
         }
@@ -209,6 +244,10 @@ public class AuthController {
         passwordResetUsername = null;
         awaitingSecurityAnswer = false;
         awaitingNewPassword = false;
+    }
+
+    public void clearPendingRegistration() {
+        pendingRegistration = null;
     }
 
     private CommandResult success(String message) {

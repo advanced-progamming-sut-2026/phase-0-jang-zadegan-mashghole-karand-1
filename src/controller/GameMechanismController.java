@@ -38,6 +38,10 @@ public class GameMechanismController {
     }
 
     public CommandResult setAutoTick(Boolean enable) {
+        CommandResult screenCheck = requireGameScreen();
+        if (screenCheck != null) {
+            return screenCheck;
+        }
         if (enable == null) {
             gameLoop.toggleAutoTick();
         } else if (enable) {

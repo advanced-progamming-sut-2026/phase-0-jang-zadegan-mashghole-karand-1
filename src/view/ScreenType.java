@@ -9,5 +9,4 @@ public enum ScreenType {
     COLLECTION,
     GREEN_HOUSE,
     SHOP,
-    HELP,
 }

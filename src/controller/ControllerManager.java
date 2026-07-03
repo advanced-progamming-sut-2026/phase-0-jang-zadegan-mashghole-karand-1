@@ -103,6 +103,41 @@ public class ControllerManager {
         return currentScreen;
     }
 
+    public CommandResult requireScreen(ScreenType screen) {
+        if (currentScreen != screen) {
+            return new CommandResult(
+                    "This command is only available on the " + screenLabel(screen) + " screen.", false);
+        }
+        return null;
+    }
+
+    public CommandResult requireLoggedIn() {
+        if (!storage.isLoggedIn()) {
+            return new CommandResult("You must be logged in to use this command.", false);
+        }
+        return null;
+    }
+
+    public CommandResult requireNotLoggedIn() {
+        if (storage.isLoggedIn()) {
+            return new CommandResult("You are already logged in.", false);
+        }
+        return null;
+    }
+
+    private String screenLabel(ScreenType screen) {
+        return switch (screen) {
+            case REGISTER -> "Register";
+            case LOGIN -> "Login";
+            case MAIN -> "Main";
+            case LEVEL_SELECTOR -> "Level Selection";
+            case GAME -> "Game";
+            case COLLECTION -> "Collection";
+            case GREEN_HOUSE -> "Greenhouse";
+            case SHOP -> "Shop";
+        };
+    }
+
     public GameNavigationState getGameNavigation() {
         return gameNavigation;
     }
@@ -130,6 +165,9 @@ public class ControllerManager {
         }
 
         if (currentScreen == ScreenType.MAIN && name.equals("game")) {
+            if (!storage.isLoggedIn()) {
+                return new CommandResult("You must be logged in to play.", false);
+            }
             gameNavigation.reset();
             gameNavigation.phase = Phase.CHAPTER;
             setScreen(ScreenType.LEVEL_SELECTOR);
@@ -143,6 +181,7 @@ public class ControllerManager {
         switch (currentScreen) {
             case LOGIN:
                 authController.clearPasswordResetState();
+                authController.clearPendingRegistration();
                 setScreen(ScreenType.REGISTER);
                 return new CommandResult("Returned to register menu.", true);
             case LEVEL_SELECTOR:

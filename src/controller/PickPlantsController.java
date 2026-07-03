@@ -89,6 +89,10 @@ public class PickPlantsController {
         if (!isPlantSelectionActive()) {
             return failure("Select a level and pick your plants first.");
         }
+        CommandResult loggedInCheck = controllerManager.requireLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
         if (gameNavigation.selectedPlants.isEmpty()) {
             return failure("Pick at least one plant before starting.");
         }

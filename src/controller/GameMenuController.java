@@ -27,6 +27,10 @@ public class GameMenuController {
                 || gameNavigation.phase != Phase.CHAPTER) {
             return failure("Select a chapter from the game menu first.");
         }
+        CommandResult loggedInCheck = controllerManager.requireLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
 
         ChapterType chapter = ChapterCatalog.fromCommandName(chapterName);
         if (chapter == null) {
@@ -47,6 +51,11 @@ public class GameMenuController {
                 || gameNavigation.phase != Phase.LEVEL) {
             return failure("Select a chapter first.");
         }
+        CommandResult loggedInCheck = controllerManager.requireLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
+
         if (levelNumber < 1 || levelNumber > ChapterCatalog.LEVELS_PER_CHAPTER) {
             return failure("Invalid level number.");
         }
@@ -60,25 +69,55 @@ public class GameMenuController {
         return success("Level " + levelNumber + " selected. Pick your plants.");
     }
 
-    public void greenHouse() {
+    public CommandResult greenHouse() {
+        return requireMainMenu("Greenhouse is not available right now.");
     }
 
-    public void quest() {
+    public CommandResult quest() {
+        return requireMainMenu("Travel log is not available right now.");
     }
 
-    public void leaderboard() {
+    public CommandResult leaderboard() {
+        return requireMainMenu("Leaderboard is not available right now.");
     }
 
-    public void coin_wallet() {
+    public CommandResult coin_wallet() {
+        return requireMainMenu("Coin wallet is not available right now.");
     }
 
-    public void gem_wallet() {
+    public CommandResult gem_wallet() {
+        return requireMainMenu("Gem wallet is not available right now.");
     }
 
-    public void CHEAT_add_coin(int amount) {
+    public CommandResult CHEAT_add_coin(int amount) {
+        CommandResult screenCheck = requireMainMenu(null);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        return failure("Coin cheat is not available yet.");
     }
 
-    public void CHEAT_add_gem(int amount) {
+    public CommandResult CHEAT_add_gem(int amount) {
+        CommandResult screenCheck = requireMainMenu(null);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        return failure("Gem cheat is not available yet.");
+    }
+
+    private CommandResult requireMainMenu(String unavailableMessage) {
+        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.MAIN);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        CommandResult loggedInCheck = controllerManager.requireLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
+        if (unavailableMessage != null) {
+            return failure(unavailableMessage);
+        }
+        return null;
     }
 
     private CommandResult success(String message) {
