@@ -11,5 +11,12 @@ public enum PlantProjectileType {
     CABBAGE,
     MELON,
     FREEZE_LINE,
-    ROTO_SEED;
+    ROTO_SEED,
+    PLASMA,
+    BOUNCING_BLUE,
+    BOUNCING_ORANGE,
+    BOUNCING_AQUA,
+    SUPER_BULB,
+    POISON;
+
 }
