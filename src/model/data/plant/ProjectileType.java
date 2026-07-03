@@ -12,5 +12,11 @@ public enum ProjectileType {
     MELON,
     FREEZE_LINE,
     ROTO_SEED,
-    OCTOPUS
+    OCTOPUS,
+    PLASMA,
+    BOUNCING_BLUE,
+    BOUNCING_ORANGE,
+    BOUNCING_AQUA,
+    SUPER_BULB,
+    POISON
 }
