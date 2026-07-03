@@ -135,6 +135,7 @@ public class AuthController {
 
     public CommandResult login(String username, String password, boolean stayLoggedIn) {
         if (storage.login(username, password, stayLoggedIn)) {
+            storage.saveProgress();
             controllerManager.setScreen(ScreenType.MAIN);
             return success("Welcome back, " + username + "!");
         }

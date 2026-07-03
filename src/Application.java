@@ -3,7 +3,7 @@ import controller.InputHandler;
 import model.ModelManager;
 import model.core.EventBus;
 import model.core.GameLoop;
-import model.storage.InMemoryStorageManager;
+import model.storage.SqlStorageManager;
 import view.ViewManager;
 import view.renderer.*;
 
@@ -12,7 +12,7 @@ public class Application {
         EventBus eventBus = new EventBus();
         GameLoop gameLoop = new GameLoop();
 
-        InMemoryStorageManager storageManager = new InMemoryStorageManager();
+        SqlStorageManager storageManager = new SqlStorageManager();
         ModelManager model = new ModelManager(storageManager, eventBus);
 
         ControllerManager controller = new ControllerManager(model, eventBus, gameLoop, storageManager);
@@ -30,6 +30,7 @@ public class Application {
         view.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            storageManager.saveProgress();
             view.stop();
         }));
     }

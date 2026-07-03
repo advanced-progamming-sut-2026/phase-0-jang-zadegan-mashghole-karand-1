@@ -14,6 +14,7 @@ public class MainMenuController {
     }
 
     public void logout() {
+        storage.saveProgress();
         storage.logout();
         controllerManager.getAuthController().clearPasswordResetState();
         controllerManager.setScreen(ScreenType.REGISTER);
