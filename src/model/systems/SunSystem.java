@@ -95,10 +95,6 @@ public class SunSystem {
                 .orElse(null);
     }
 
-    private Sun findSunAt(GameState state, int x, int y) {
-        return state.sunDrops.stream().filter(s -> s.isAtPosition(x, y)).findFirst().orElse(null);
-    }
-
     private void notifyPlantSunCollected(GameState state, Sun sun) {
         Plant plant = sun.generatorPlant;
         if (plant == null) {

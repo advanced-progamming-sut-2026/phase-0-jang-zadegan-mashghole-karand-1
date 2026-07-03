@@ -3,7 +3,6 @@ package model.systems;
 import model.core.EventBus;
 import model.core.GameState;
 import model.data.plant.Plant;
-import model.data.plant.ProjectileType;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
 import model.data.zombie.Zombie;
@@ -24,14 +23,13 @@ public class CombatSystem {
         while (projIter.hasNext()) {
             Projectile p = projIter.next();
 
-            if(p.target == ProjectileTarget.ZOMBIE) {
+            if (p.target == ProjectileTarget.ZOMBIE) {
                 Iterator<Zombie> zombieIter = state.zombies.iterator();
                 while (zombieIter.hasNext()) {
                     Zombie z = zombieIter.next();
 
                     if (z.row == p.row && Math.abs(z.position.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
-                        boolean blocked = z.abilities.stream().
-                                anyMatch(a -> a.blocksProjectiles(z, p));
+                        boolean blocked = z.abilities.stream().anyMatch(a -> a.blocksProjectiles(z, p));
                         if (blocked) {
                             projIter.remove();
                             break;
@@ -45,14 +43,13 @@ public class CombatSystem {
                         break;
                     }
                 }
-            }
-            else if(p.target == ProjectileTarget.PLANT) {
-                Plant target = findPlantAt(state,p.row,p.position.x);
-                if(target != null && Math.abs(target.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+            } else if (p.target == ProjectileTarget.PLANT) {
+                Plant target = findPlantAt(state, p.row, p.position.x);
+                if (target != null && Math.abs(target.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
                     target.hp -= p.damage;
                     projIter.remove();
-                    //stun plant...
-                    if(target.hp <= 0) {
+                    // stun plant...
+                    if (target.hp <= 0) {
                         eventBus.publish(new PlantDiedEvent(target));
                     }
                 }

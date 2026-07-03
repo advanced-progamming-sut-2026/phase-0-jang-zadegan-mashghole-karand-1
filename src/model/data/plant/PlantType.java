@@ -14,6 +14,7 @@ import model.data.plant.effects.runtime.PlantRapidFireEffect;
 import model.data.plant.upgrades.PlantLevelUpgrade;
 import model.data.plant.upgrades.PlantLevelUpgrades;
 import model.data.plant.upgrades.PlantStatBonus;
+import model.data.projectile.ProjectileType;
 
 public enum PlantType {
 
@@ -151,7 +152,158 @@ public enum PlantType {
                         new PlantLevelUpgrades(
                                         new PlantLevelUpgrade(2, PlantStatBonus.DAMAGE, 10),
                                         new PlantLevelUpgrade(3, PlantStatBonus.HP, 150),
-                                        new PlantLevelUpgrade(4, PlantStatBonus.COST, -25)));
+                                        new PlantLevelUpgrade(4, PlantStatBonus.COST, -25))),
+        SplitPea(12, "Split Pea", PlantCategory.SHOOTER, EnumSet.of(PlantTag.PEA),
+                        new PlantBaseStats(125, 300, 20, 1.5f, 5),
+                        Arrays.asList(
+                                        new PlantShootAbility(20, 1.5f, ProjectileType.PEA,
+                                                        new ShootPattern(Direction.FORWARD, 0, 1)),
+                                        new PlantShootAbility(20, 1.5f, ProjectileType.PEA,
+                                                        new ShootPattern(Direction.BACK, 0, 2))),
+                        new PlantRapidFireEffect(3, 0.1f,
+                                        Arrays.asList(
+                                                        new PlantShootAbility(20, 0f, ProjectileType.PEA,
+                                                                        new ShootPattern(Direction.FORWARD, 0, 1)),
+                                                        new PlantShootAbility(20, 0f, ProjectileType.PEA,
+                                                                        new ShootPattern(Direction.BACK, 0, 1)))),
+                        new PlantLevelUpgrades(
+                                        new PlantLevelUpgrade(2, PlantStatBonus.DAMAGE, 10),
+                                        new PlantLevelUpgrade(3, PlantStatBonus.HP, 200),
+                                        new PlantLevelUpgrade(4, PlantStatBonus.COST, -25))),
+        Citron(13, "Citron", PlantCategory.SHOOTER, EnumSet.of(PlantTag.CHARGE),
+                        new PlantBaseStats(350, 300, 800, 9, 5),
+                        Arrays.asList(
+                                        new PlantShootAbility(800, 9f, ProjectileType.LASER,
+                                                        new ShootPattern(Direction.FORWARD, 0, 1))),
+                        new PlantRapidFireEffect(3, 0.1f,
+                                        Arrays.asList(
+                                                        new PlantShootAbility(8000, 0f, ProjectileType.PLASMA,
+                                                                        new ShootPattern(Direction.FORWARD, 0, 1)))),
+                        new PlantLevelUpgrades(
+                                        new PlantLevelUpgrade(2, PlantStatBonus.COOLDOWN, -1),
+                                        new PlantLevelUpgrade(3, PlantStatBonus.DAMAGE, 150),
+                                        new PlantLevelUpgrade(4, PlantStatBonus.COST, -50))),
+        BowlingBulb(16, "Bowling Bulb", PlantCategory.SHOOTER, EnumSet.of(PlantTag.CHARGE),
+                        new PlantBaseStats(200, 300, 40, 2, 5),
+                        Arrays.asList(
+                                        new PlantShootAbility(40, 2, ProjectileType.BOUNCING_AQUA,
+                                                        new ShootPattern(Direction.FORWARD, 0, 1)),
+                                        new PlantShootAbility(80, 5, ProjectileType.BOUNCING_ORANGE,
+                                                        new ShootPattern(Direction.FORWARD, 0, 1)),
+                                        new PlantShootAbility(120, 10, ProjectileType.BOUNCING_BLUE,
+                                                        new ShootPattern(Direction.FORWARD, 0, 1))),
+                        new PlantRapidFireEffect(1, 1f,
+                                        Arrays.asList(
+                                                        new PlantShootAbility(600, 1.5f, ProjectileType.SUPER_BULB,
+                                                                        new ShootPattern(Direction.FORWARD, 0, 1)))),
+                        new PlantLevelUpgrades(
+                                        new PlantLevelUpgrade(2, PlantStatBonus.REGEN, -1),
+                                        new PlantLevelUpgrade(3, PlantStatBonus.DAMAGE, 15),
+                                        new PlantLevelUpgrade(4, PlantStatBonus.COST, -25))),
+        FirePeashooter(18, "Fire Peashooter", PlantCategory.SHOOTER, EnumSet.of(PlantTag.PEA, PlantTag.FIRE),
+                        new PlantBaseStats(175, 300, 40, 1.5f, 5),
+                        Arrays.asList(
+                                        new PlantShootAbility(40, 1.5f, ProjectileType.FIRE,
+                                                        new ShootPattern(Direction.FORWARD, 0, 1))),
+                        new PlantRapidFireEffect(3, 0.1f,
+                                        Arrays.asList(
+                                                        new PlantShootAbility(40, 0, ProjectileType.FIRE,
+                                                                        new ShootPattern(Direction.FORWARD, 0, 1)))),
+                        new PlantLevelUpgrades(
+                                        new PlantLevelUpgrade(2, PlantStatBonus.DAMAGE, 10),
+                                        new PlantLevelUpgrade(3, PlantStatBonus.HP, 200),
+                                        new PlantLevelUpgrade(4, PlantStatBonus.COST, -25))),
+        Starfruit(19, "Starfruit", PlantCategory.SHOOTER, null,
+                        new PlantBaseStats(150, 300, 20, 1.5f, 5),
+                        Arrays.asList(
+                                        new PlantShootAbility(20, 1.5f, ProjectileType.STAR,
+                                                        new ShootPattern(Direction.BACK, 0, 1)),
+                                        new PlantShootAbility(20, 1.5f, ProjectileType.STAR,
+                                                        new ShootPattern(Direction.UP, 0, 1)),
+                                        new PlantShootAbility(20, 1.5f, ProjectileType.STAR,
+                                                        new ShootPattern(Direction.DOWN, 0, 1)),
+                                        new PlantShootAbility(20, 1.5f, ProjectileType.STAR,
+                                                        new ShootPattern(Direction.UP_RIGHT, 0, 1)),
+                                        new PlantShootAbility(20, 1.5f, ProjectileType.STAR,
+                                                        new ShootPattern(Direction.DOWN_RIGHT, 0, 1))),
+                        new PlantRapidFireEffect(3, 0.1f,
+                                        Arrays.asList(
+                                                        new PlantShootAbility(20, 0, ProjectileType.STAR,
+                                                                        new ShootPattern(Direction.BACK, 0, 1)),
+                                                        new PlantShootAbility(20, 0, ProjectileType.STAR,
+                                                                        new ShootPattern(Direction.UP, 0, 1)),
+                                                        new PlantShootAbility(20, 0, ProjectileType.STAR,
+                                                                        new ShootPattern(Direction.DOWN, 0, 1)),
+                                                        new PlantShootAbility(20, 0, ProjectileType.STAR,
+                                                                        new ShootPattern(Direction.UP_RIGHT, 0, 1)),
+                                                        new PlantShootAbility(20, 0, ProjectileType.STAR,
+                                                                        new ShootPattern(Direction.DOWN_RIGHT, 0, 1)),
+                                                        new PlantShootAbility(20, 0, ProjectileType.STAR,
+                                                                        new ShootPattern(Direction.DOWN_LEFT, 0, 1)),
+                                                        new PlantShootAbility(20, 0, ProjectileType.STAR,
+                                                                        new ShootPattern(Direction.UP_LEFT, 0, 1)))),
+                        new PlantLevelUpgrades(
+                                        new PlantLevelUpgrade(2, PlantStatBonus.ATTACK_SPEED, 10),
+                                        new PlantLevelUpgrade(3, PlantStatBonus.DAMAGE, 10),
+                                        new PlantLevelUpgrade(4, PlantStatBonus.COST, -25))),
+        GooPeashooter(20, "Goo Peashooter", PlantCategory.SHOOTER, EnumSet.of(PlantTag.POISON),
+                        new PlantBaseStats(125, 300, 20, 1.5f, 5),
+                        Arrays.asList(
+                                        new PlantShootAbility(20, 1.5f, ProjectileType.PEA,
+                                                        new ShootPattern(Direction.FORWARD, 0, 1))),
+                        new PlantRapidFireEffect(3, 0.1f,
+                                        Arrays.asList(
+                                                        new PlantShootAbility(20, 0f, ProjectileType.POISON,
+                                                                        new ShootPattern(Direction.FORWARD, 0, 1)))),
+                        new PlantLevelUpgrades(
+                                        new PlantLevelUpgrade(2, PlantStatBonus.DAMAGE_PER_TICK, 5),
+                                        new PlantLevelUpgrade(3, PlantStatBonus.HP, 150),
+                                        new PlantLevelUpgrade(4, PlantStatBonus.COST, -25))),
+        MegaGatlingPea(21, "Mega Gatling Pea", PlantCategory.SHOOTER, EnumSet.of(PlantTag.PEA),
+                        new PlantBaseStats(400, 300, 20, 1.5f, 5),
+                        Arrays.asList(
+                                        new PlantShootAbility(20, 1.5f, ProjectileType.PEA,
+                                                        new ShootPattern(Direction.FORWARD, 0, 4))),
+                        new PlantRapidFireEffect(3, 0.1f,
+                                        Arrays.asList(
+                                                        new PlantShootAbility(20, 0f, ProjectileType.PEA,
+                                                                        new ShootPattern(Direction.FORWARD, 0, 1)),
+                                                        new PlantShootAbility(400, ProjectileType.PEA, EffectPhase.END),
+                                                        new PlantShootAbility(400, ProjectileType.PEA, EffectPhase.END),
+                                                        new PlantShootAbility(400, ProjectileType.PEA, EffectPhase.END),
+                                                        new PlantShootAbility(400, ProjectileType.PEA,
+                                                                        EffectPhase.END))),
+                        new PlantLevelUpgrades(
+                                        PlantLevelUpgrade.atLevel(2, PlantStatBonus.DAMAGE, 10),
+                                        PlantLevelUpgrade.atLevel(3, PlantStatBonus.SPECIAL_CHANGE, 5),
+                                        PlantLevelUpgrade.atLevel(4, PlantStatBonus.COST, -50))),
+        SeaShroom(22, "Sea-shroom", PlantCategory.SHOOTER,
+                        EnumSet.of(PlantTag.SHROOM, PlantTag.WATER),
+                        new PlantBaseStats(0, 300, 20, 1.5f, 15),
+                        Arrays.asList(
+                                        new PlantShootAbility(20, 1.5f, ProjectileType.FUME,
+                                                        new ShootPattern(Direction.FORWARD, 0, 1))),
+                        new PlantRapidFireEffect(3, 0.1f,
+                                        Arrays.asList(
+                                                        new PlantShootAbility(20, 0f, ProjectileType.FUME,
+                                                                        new ShootPattern(Direction.FORWARD, 0, 1)))),
+                        new PlantLevelUpgrades(
+                                        PlantLevelUpgrade.atLevel(2, PlantStatBonus.RANGE, 1),
+                                        PlantLevelUpgrade.atLevel(3, PlantStatBonus.DAMAGE, 5),
+                                        PlantLevelUpgrade.atLevel(4, PlantStatBonus.LIFE_SPAN, 10))),
+        PuffShroom(23, "Puff-shroom", PlantCategory.SHOOTER, EnumSet.of(PlantTag.SHROOM),
+                        new PlantBaseStats(0, 300, 20, 1.5f, 5),
+                        Arrays.asList(
+                                        new PlantShootAbility(20, 1.5f, ProjectileType.FUME,
+                                                        new ShootPattern(Direction.FORWARD, 0, 1))),
+                        new PlantRapidFireEffect(3, 0.1f,
+                                        Arrays.asList(
+                                                        new PlantShootAbility(20, 0f, ProjectileType.FUME,
+                                                                        new ShootPattern(Direction.FORWARD, 0, 1)))),
+                        new PlantLevelUpgrades(
+                                        PlantLevelUpgrade.atLevel(2, PlantStatBonus.LIFE_SPAN, 10),
+                                        PlantLevelUpgrade.atLevel(3, PlantStatBonus.DAMAGE, 10),
+                                        PlantLevelUpgrade.atLevel(4, PlantStatBonus.RANGE, 1)));
 
         public final int id;
         public final String name;

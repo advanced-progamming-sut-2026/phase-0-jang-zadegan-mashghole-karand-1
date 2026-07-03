@@ -1,7 +1,6 @@
 package model.data.projectile;
 
 import model.core.Position;
-import model.data.plant.ProjectileType;
 import model.data.plant.abilities.config.Direction;
 
 public class Projectile {
@@ -14,7 +13,8 @@ public class Projectile {
     public ProjectileType type;
     public ProjectileTarget target;
 
-    public Projectile(int damage, Position position, int row, int col, float speed, ProjectileType type, ProjectileTarget target) {
+    public Projectile(int damage, Position position, int row, int col, float speed, ProjectileType type,
+            ProjectileTarget target) {
         this.damage = damage;
         this.position = position;
         this.row = row;
