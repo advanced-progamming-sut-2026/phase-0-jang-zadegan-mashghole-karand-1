@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
 
+import model.data.Grave.Grave;
 import model.data.plant.Plant;
 import model.data.projectile.Projectile;
 import model.data.sun.Sun;
@@ -14,6 +15,7 @@ public class GameState implements ReadOnlyGameState {
     public List<Zombie> zombies = new ArrayList<>();
     public List<Projectile> projectiles = new ArrayList<>();
     public List<Sun> sunDrops = new ArrayList<>();
+    public List<Grave> graves = new ArrayList<>();
 
     public int sunAmount = INITIAL_SUN_AMOUNT;
     public int plantFoodAmount = 0;
@@ -85,6 +87,10 @@ public class GameState implements ReadOnlyGameState {
         return plants.stream().filter(p -> p.row == row && p.col == col).findFirst().orElse(null);
     }
 
+    public Grave getGraveAt(int row, int col) {
+        return graves.stream().filter(g -> g.row == row && g.col == col).findFirst().orElse(null);
+    }
+
     public void addZombie(Zombie zombie) {
         zombies.add(zombie);
     }
@@ -94,6 +100,7 @@ public class GameState implements ReadOnlyGameState {
         zombies.clear();
         projectiles.clear();
         sunDrops.clear();
+        graves.clear();
         sunAmount = INITIAL_SUN_AMOUNT;
         plantFoodAmount = 0;
         currentWave = 1;
