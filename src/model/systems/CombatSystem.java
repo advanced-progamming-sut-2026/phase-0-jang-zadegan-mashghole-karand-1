@@ -2,6 +2,7 @@ package model.systems;
 
 import model.core.EventBus;
 import model.core.GameState;
+import model.data.Grave.Grave;
 import model.data.plant.Plant;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
@@ -9,7 +10,9 @@ import model.data.zombie.Zombie;
 import model.events.PlantDiedEvent;
 import model.events.ZombieDiedEvent;
 
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 
 public class CombatSystem {
     public EventBus eventBus;
@@ -24,6 +27,15 @@ public class CombatSystem {
             Projectile p = projIter.next();
 
             if (p.target == ProjectileTarget.ZOMBIE) {
+                Grave graveAhead = state.graves.stream().filter(g -> g.row == p.row && g.col> p.col)
+                        .min(Comparator.comparingInt(g -> g.col)).orElse(null);
+                if(graveAhead != null) {
+                    if(Math.abs(graveAhead.pos.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS){
+                        graveAhead.takeDamage(p.damage, state, eventBus);
+                        projIter.remove();
+                        continue;
+                    }
+                }
                 Iterator<Zombie> zombieIter = state.zombies.iterator();
                 while (zombieIter.hasNext()) {
                     Zombie z = zombieIter.next();
