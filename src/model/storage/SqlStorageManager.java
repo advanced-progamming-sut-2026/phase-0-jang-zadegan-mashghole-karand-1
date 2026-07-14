@@ -17,6 +17,7 @@ import model.gameSetting.GameSetting;
 import model.data.plant.PlantType;
 import model.minigame.MinigameType;
 import model.news.NewsItem;
+import model.service.Hash;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
 import model.storage.user.User;
@@ -66,7 +67,7 @@ public class SqlStorageManager implements StorageManager {
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?)
                         """)) {
                     statement.setString(1, username);
-                    statement.setString(2, password);
+                    statement.setString(2, Hash.hashPassword(password));
                     statement.setString(3, email);
                     statement.setString(4, nickname);
                     statement.setString(5, gender.name());
@@ -90,7 +91,7 @@ public class SqlStorageManager implements StorageManager {
 
         synchronized (lock) {
             User user = loadUser(username);
-            if (user == null || !user.password.equals(password)) {
+            if (user == null || !user.password.equals(Hash.hashPassword(password))) {
                 return false;
             }
 
@@ -156,16 +157,16 @@ public class SqlStorageManager implements StorageManager {
         if (username == null || newPassword == null || newPassword.isEmpty()) {
             return false;
         }
-
+        String hashedPassword = Hash.hashPassword(newPassword);
         synchronized (lock) {
             try (Connection connection = openConnection();
                     PreparedStatement statement = connection.prepareStatement(
                             "UPDATE users SET password = ? WHERE username = ?")) {
-                statement.setString(1, newPassword);
+                statement.setString(1, hashedPassword);
                 statement.setString(2, username);
                 boolean updated = statement.executeUpdate() > 0;
                 if (updated && currentUser != null && currentUser.username.equals(username)) {
-                    currentUser.password = newPassword;
+                    currentUser.password = hashedPassword;
                 }
                 return updated;
             } catch (SQLException e) {
@@ -319,10 +320,10 @@ public class SqlStorageManager implements StorageManager {
             return false;
         }
         synchronized (lock) {
-            if (!currentUser.password.equals(oldPassword)) {
+            if (!currentUser.password.equals(Hash.hashPassword(oldPassword))) {
                 return false;
             }
-            currentUser.password = newPassword;
+            currentUser.password = Hash.hashPassword(newPassword);
             saveUserProfile(currentUser);
             return true;
         }
