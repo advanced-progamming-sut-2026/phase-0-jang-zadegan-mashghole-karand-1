@@ -7,6 +7,7 @@ import model.data.plant.Plant;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
 import model.data.zombie.Zombie;
+import model.events.GlowingZombieDiedEvent;
 import model.events.PlantDiedEvent;
 import model.events.ZombieDiedEvent;
 
@@ -51,6 +52,12 @@ public class CombatSystem {
 
                         if (z.hp <= 0) {
                             eventBus.publish(new ZombieDiedEvent(z));
+                            z.onDeath(state);
+                            if(z.isGlowing) {
+                                state.plantFoodAmount++;
+                                eventBus.publish(new GlowingZombieDiedEvent(z));
+                            }
+                            state.zombies.add(z);
                         }
                         break;
                     }
