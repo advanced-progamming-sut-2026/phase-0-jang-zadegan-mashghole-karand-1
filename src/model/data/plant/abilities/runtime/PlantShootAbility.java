@@ -61,7 +61,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
                 for (int i = 0 ; i < shootPattern.getBulletCount();i++){
                     int xOffset = 40 - (i *20);
                     Projectile p = new Projectile(damage, new Position(plant.getX() + xOffset, plant.getY()), plant.row, plant.col,
-                            10, projectileType, ProjectileTarget.ZOMBIE);
+                            10, projectileType, ProjectileTarget.ZOMBIE,plant);
                     p.setDirection(shootPattern.getDir());
                     state.projectiles.add(p);
                 }
