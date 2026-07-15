@@ -709,7 +709,122 @@ public enum PlantType {
                     PlantLevelUpgrade.atLevel(4,PlantStatBonus.COST,-25)
 
 
+            )),
+    Ice_shroom(57, "Ice_shroom", PlantCategory.EXPLOSIVE, EnumSet.of(PlantTag.SHROOM,PlantTag.ICE),
+            new PlantBaseStats(75, 0, 0, 0f, 50),
+            Arrays.asList(
+                    new PlantExplodeAbility(ExplodeTrigger.INSTANT, AreaShape.FULL_BOARD, -1,
+                            0, false, List.of(new FreezeEffect(100)))
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 2),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.DAMAGE, 50)
+            )),
+    Enlighten_mint(61,"Enlighten-mint",PlantCategory.MINT,null,
+            new PlantBaseStats(0,0,0,0,85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.SUN_PRODUCER,5)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+            )),
+    Appease_mint(62,"Appease-mint",PlantCategory.MINT,null,
+            new PlantBaseStats(0,0,0,0,85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.SHOOTER,6)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+            )),
+    Arma_mint(63,"Arma-mint",PlantCategory.MINT,null,
+            new PlantBaseStats(0,0,0,0,85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.LOBBER,6)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+            )),
+    Bombard_mint(64,"Bombard-mint",PlantCategory.MINT,null,
+            new PlantBaseStats(0,0,0,0,85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.LOBBER,6)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+            )),
+    Enforce_mint(65,"Enforce-mint",PlantCategory.MINT,null,
+            new PlantBaseStats(0,0,0,0,85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.EXPLOSIVE,8)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+            )),
+    Reinforce_mint(66,"Reinforce-mint",PlantCategory.MINT,null,
+            new PlantBaseStats(0,0,0,0,85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.DEFENDER,8)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+            )),
+    Enchant_mint(67,"Enchant-mint",PlantCategory.MINT,null,
+            new PlantBaseStats(0,0,0,0,85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.MODIFIER,8)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+            )),
+    Pierce_mint(68,"Pierce-mint",PlantCategory.MINT,null,
+            new PlantBaseStats(0,0,0,0,85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.STRIKE_THROUGH,8)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+            )),
+    catTail_mint(69,"catTail-mint",PlantCategory.MINT,null,
+            new PlantBaseStats(0,0,0,0,85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.HOMING,8)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
             ));
+
+
+
+
 
 
 

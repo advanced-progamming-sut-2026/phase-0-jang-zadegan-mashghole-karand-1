@@ -144,7 +144,7 @@ public class ModelManager {
         if (plant == null) {
             return false;
         }
-        plant.activatePlantFood();
+        plant.activatePlantFood(state , eventBus);
         state.plantFoodAmount--;
         return true;
     }

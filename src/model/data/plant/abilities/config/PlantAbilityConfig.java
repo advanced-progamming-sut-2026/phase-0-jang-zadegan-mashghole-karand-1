@@ -8,6 +8,8 @@ public interface PlantAbilityConfig {
     public PlantAbilityConfig createInstance(Plant plant);
 
     public void onTick(Plant plant, GameState state, EventBus event);
+    default void resetCooldown() {
+    }
 }
 
 // should be moved to their own files

@@ -36,6 +36,7 @@ public class Plant {
     public EventBus eventBus;
 
     private static int nextId = 0;
+    public boolean resetFamilyCooldowns = false;
 
     public Plant(PlantType type, int row, int col, int level, EventBus bus) {
         this.instanceId = nextId++;
@@ -87,17 +88,37 @@ public class Plant {
                 case DOUBLE_SUN_CHANCE:
                     this.doubleSunChance = DOUBLE_SUN_DROP_CHANCE;
                     break;
-                // ...
+                case RESET_FAMILY_COOLDOWN:
+                    this.resetFamilyCooldowns = true;
+                    break;
+                    //...
             }
         }
     }
 
-    public void activatePlantFood() {
-        if (plantFoodEffect != null && !isPlantFoodActive) {
-            isPlantFoodActive = true;
-            // plantFoodDuration = plantFoodEffect.getDuration();
-            // plantFoodEffect.onActivate(this);
+    public boolean activatePlantFood(
+            GameState state,
+            EventBus event) {
+        if (plantFoodEffect == null) return false;
+        return activatePlantFood(
+                state,
+                event,
+                plantFoodEffect.getDurationTicks()
+        );
+    }
+    public boolean activatePlantFood(
+            GameState state,
+            EventBus event,
+            int durationTicks) {
+        if (plantFoodEffect == null || isPlantFoodActive) {
+            return false;
         }
+        plantFoodEffect.onActivate(this, state, event);
+        if (durationTicks > 0) {
+            isPlantFoodActive = true;
+            plantFoodDuration = durationTicks;
+        }
+        return true;
     }
 
     public void tickPlantFood() {
