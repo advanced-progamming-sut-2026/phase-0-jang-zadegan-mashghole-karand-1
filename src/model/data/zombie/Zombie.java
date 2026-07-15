@@ -26,6 +26,7 @@ public class Zombie {
     public boolean isFrozen = false;
     public int frozenTicks = 0;
     public boolean isHypnotized = false;
+    public final boolean isGlowing;
 
     public EventBus eventBus;
 
@@ -53,6 +54,9 @@ public class Zombie {
         if (type.armorConfig != null) {
             this.armor = new ZombieArmor(type.armorConfig);
         }
+
+        Random rand = new Random();
+        isGlowing = rand.nextInt(20) == 0;
     }
 
     public void takeDamage(int damage) {
