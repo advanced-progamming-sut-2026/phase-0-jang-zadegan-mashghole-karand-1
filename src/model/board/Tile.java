@@ -10,7 +10,6 @@ public class Tile {
     private TileType type;
 
     private IceDirection direction; // for ice tiles
-    private boolean isWater;
     private boolean hasBeachPost;
     private Plant plant;
     private Plant lilyPad;
@@ -22,7 +21,6 @@ public class Tile {
         this.col = col;
         this.type = TileType.NORMAL;
         this.direction = IceDirection.NONE;
-        this.isWater = false;
         this.hasBeachPost = false;
         this.grave = null;
     }
@@ -57,6 +55,18 @@ public class Tile {
 
     public Grave getGrave() {
         return grave;
+    }
+
+    public boolean canSetGrave() {
+        if (type != TileType.NECROMANCY && type != TileType.NORMAL)
+            return false;
+        if (hasPlant() || hasLilyPad())
+            return false;
+        if (hasGrave())
+            return false;
+        if (hasBeachPost())
+            return false;
+        return true;
     }
 
     public void setGrave(Grave grave) {

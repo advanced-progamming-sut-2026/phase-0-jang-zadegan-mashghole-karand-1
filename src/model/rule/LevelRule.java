@@ -2,7 +2,6 @@ package model.rule;
 
 import model.core.EventBus;
 import model.core.GameState;
-import model.data.Grave.Grave;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
@@ -38,13 +37,10 @@ public interface LevelRule {
     default void onPlantDied(Plant plant, GameState state, EventBus bus) {
     }
 
-    default void onZombieSpawned(Zombie zombie, GameState state) {
+    default void onZombieSpawned(Zombie zombie, SessionContext context, GameState state) {
     }
 
     default void onZombieDied(Zombie zombie, GameState state, EventBus bus) {
-    }
-
-    default void onGraveDestroyed(Grave grave, GameState state, EventBus bus) {
     }
 
     default boolean shouldDropSkySun() {
@@ -64,20 +60,5 @@ public interface LevelRule {
      */
     default int getSpawnOffset(Zombie zombie) {
         return 0;
-    }
-
-    default float getDifficultyMultiplier() {
-        return 1.0f;
-    }
-
-    /**
-     * whether a zombie is blocked by a grave.
-     */
-    default boolean isProjectileBlocked(int row, int col, GameState state) {
-        return false;
-    }
-
-    default boolean shouldSpawnDynamicGraves() {
-        return false;
     }
 }

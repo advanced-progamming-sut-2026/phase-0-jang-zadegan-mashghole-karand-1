@@ -14,20 +14,18 @@ public class Grave {
     public final int col;
     public final Position pos;
     public GraveContent graveContent;
-    public boolean isNecromancer = false;
     private boolean destroyed = false;
 
     public Grave(int row, int col, GraveContent graveContent) {
         this.row = row;
         this.col = col;
         this.graveContent = graveContent;
-        pos = new Position((col+0.5f)*GameState.CELL_WIDTH, (row+0.5f)* GameState.CELL_HEIGHT);
-        //if(getTileAt(row,col).type==NECROMANCY) isNecromancer = true;
+        pos = new Position((col + 0.5f) * GameState.CELL_WIDTH, (row + 0.5f) * GameState.CELL_HEIGHT);
     }
 
     public void takeDamage(int damage, GameState state, EventBus eventBus) {
-        hp-=damage;
-        if(hp<=0){
+        hp -= damage;
+        if (hp <= 0) {
             destroy(state, eventBus);
         }
     }
@@ -39,7 +37,7 @@ public class Grave {
         switch (graveContent) {
             case SUN_50:
                 Sun sun = new Sun(row, new Position(pos.x, pos.y),
-                        50, SunType.NORMAL );
+                        50, SunType.NORMAL);
                 sun.isFalling = false;
                 eventBus.publish(new SunDroppedEvent(sun));
                 state.sunDrops.add(sun);

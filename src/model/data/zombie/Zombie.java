@@ -18,6 +18,7 @@ public class Zombie {
     public int hp;
     public int totalHp;
     public boolean isAlive = true;
+    private SandstormEffect activeSandstorm = null;
 
     public List<ZombieAbilityConfig> abilities = new ArrayList<>();
 
@@ -80,9 +81,9 @@ public class Zombie {
         // return;
         // }
 
-        //if(effectedByPiano){
-          //change row randomly
-        //}
+        // if(effectedByPiano){
+        // change row randomly
+        // }
         for (ZombieAbilityConfig ability : abilities) {
             ability.onTick(this, state, eventBus);
         }
@@ -92,5 +93,28 @@ public class Zombie {
         for (ZombieAbilityConfig ability : abilities) {
             ability.onDeath(this, state, eventBus);
         }
+    }
+
+    public boolean hasSandstorm() {
+        return activeSandstorm != null;
+    }
+
+    public void setSandstorm(float targetX) {
+        this.activeSandstorm = new SandstormEffect(targetX);
+    }
+
+    public void clearSandstorm() {
+        this.activeSandstorm = null;
+    }
+
+    public SandstormEffect getSandstorm() {
+        return activeSandstorm;
+    }
+
+    public float getCurrentSpeed() {
+        if (hasSandstorm()) {
+            return speed * activeSandstorm.SPEED_MULTIPLIER;
+        }
+        return speed;
     }
 }
