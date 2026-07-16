@@ -5,7 +5,7 @@ import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
-import model.data.plant.ProjectileType;
+import model.data.projectile.ProjectileType;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.config.ShootPattern;
 import model.data.projectile.LobbedProjectile;
@@ -83,7 +83,6 @@ public class PlantLobAbility implements PlantAbilityConfig {
                         5,
                         projectileType,
                         ProjectileTarget.ZOMBIE,
-                        plant,
                         new Position(target.position.x , target.position.y),
                         0,
                         50f,

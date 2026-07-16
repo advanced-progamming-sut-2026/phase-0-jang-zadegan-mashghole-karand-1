@@ -1,19 +1,25 @@
 package model;
 
+import java.util.List;
+
+import model.board.Tile;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
 import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
-import model.data.sun.Sun;
-import model.data.sun.SunType;
-import model.data.wave.LevelConfig;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.events.PlantPlacedEvent;
-import model.events.SunCollectedEvent;
 import model.events.ZombieSpawnedEvent;
+import model.rule.LevelRule;
+import model.rule.RuleEngine;
+import model.rule.SessionConfig;
+import model.rule.SessionContext;
+import model.rule.rules.ChapterRules;
+import model.rule.rules.MiniGameRules;
+import model.rule.rules.SpecialLevelRules;
 import model.storage.StorageManager;
 import model.systems.CombatSystem;
 import model.systems.MovementSystem;
@@ -27,6 +33,8 @@ public class ModelManager {
     private final EventBus eventBus;
     private final StorageManager storage;
     private final WaveManager waveManager;
+    private final RuleEngine ruleEngine;
+    private SessionContext sessionContext;
 
     private final MovementSystem movementSystem;
     private final CombatSystem combatSystem;
@@ -37,6 +45,7 @@ public class ModelManager {
     public ModelManager(StorageManager storage, EventBus eventBus) {
         this.state = new GameState();
         this.waveManager = new WaveManager();
+        this.ruleEngine = new RuleEngine();
         this.eventBus = eventBus;
         this.storage = storage;
 
@@ -52,28 +61,42 @@ public class ModelManager {
             return;
         }
 
-        plantAbilitySystem.update(state, eventBus);
+        ruleEngine.preTick(sessionContext, state, eventBus);
 
+        plantAbilitySystem.update(state, eventBus);
+        // zombieAbilitySystem
         sunSpawnSystem.update(state);
         sunSystem.update(state);
-
-        // zombie ability
-
         movementSystem.update(state);
-
         combatSystem.update(state, eventBus);
-
         waveManager.update(state, eventBus);
 
-        // we should move to event queue processing if we faced any problems with the
-        // current setup
-        // eventBus.processEvents();
+        ruleEngine.postTick(sessionContext, state, eventBus);
     }
 
-    public void startLevel(LevelConfig level) {
+    public void startSession(SessionConfig config) {
         state.reset();
-        state.sunAmount = level.startingSun;
-        waveManager.initialize(level);
+        state.sunAmount = config.levelConfig.startingSun;
+        ruleEngine.clearRules();
+
+        List<LevelRule> chapterRules = ChapterRules.forChapter(config.levelConfig.chapterType);
+        ruleEngine.addRules(chapterRules);
+
+        if (config.isSpecial()) {
+            List<LevelRule> specialRules = SpecialLevelRules.forSpecialLevel(config.specialLevelType);
+            ruleEngine.addRules(specialRules);
+        }
+
+        if (config.isMinigame()) {
+            List<LevelRule> minigameRules = MiniGameRules.forMiniGame(config.miniGameType);
+            ruleEngine.addRules(minigameRules);
+        }
+
+        this.sessionContext = new SessionContext(config, ruleEngine);
+
+        waveManager.initialize(config.levelConfig);
+
+        ruleEngine.onSessionStart(sessionContext, state, eventBus);
     }
 
     public GameState getState() {
@@ -84,39 +107,41 @@ public class ModelManager {
         return state;
     }
 
-    public boolean placePlant(int row, int col, String plantName, int level) {
-        if (row < 0 || row >= GameState.GRID_ROWS)
+    public RuleEngine getRuleEngine() {
+        return ruleEngine;
+    }
+
+    public SessionContext getPlayContext() {
+        return sessionContext;
+    }
+
+    public boolean shouldDropSkySun() {
+        return ruleEngine.shouldDropSkySun();
+    }
+
+    public boolean canPlant(PlantType type, int row, int col) {
+        return ruleEngine.canPlant(type, row, col, state);
+    }
+
+    public boolean placePlant(int row, int col, PlantType plantType, int level) {
+        Tile tile = state.getBoard().getTile(row, col);
+        if (tile == null)
             return false;
-        if (col < 0 || col >= GameState.GRID_COLS)
+        if (!tile.isPlantable(plantType))
             return false;
 
-        if (state.getPlantAt(row, col) != null)
+        if (!ruleEngine.canPlant(plantType, row, col, state))
             return false;
 
-        PlantType type = PlantType.fromName(plantName);
-        if (type == null)
+        if (state.sunAmount < plantType.baseStats.cost)
             return false;
 
-        if (state.sunAmount < type.baseStats.cost)
-            return false;
-
-        Plant plant = new Plant(type, row, col, level, eventBus);
+        Plant plant = new Plant(plantType, row, col, level, eventBus);
         state.plants.add(plant);
         state.sunAmount -= plant.cost;
 
         eventBus.publish(new PlantPlacedEvent(plant));
         return true;
-    }
-
-    public void spawnZombie(int row, String zombieTypeName) {
-        ZombieType type = ZombieType.fromName(zombieTypeName);
-        if (type == null)
-            return;
-        Zombie zombie = new Zombie(type, row, GameState.GRID_COLS - 1,
-                new Position(GameState.SCREEN_WIDTH, GameState.CELL_HEIGHT * row + (GameState.CELL_HEIGHT / 2)),
-                eventBus);
-        state.addZombie(zombie);
-        eventBus.publish(new ZombieSpawnedEvent(zombie));
     }
 
     public boolean collectSun(int index) {

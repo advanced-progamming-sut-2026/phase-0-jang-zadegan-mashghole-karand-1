@@ -1,4 +1,4 @@
-package model.data.plant;
+package model.data.projectile;
 
 public enum ProjectileType {
     PEA,
@@ -16,9 +16,9 @@ public enum ProjectileType {
     ROTO_SEED,
     OCTOPUS,
     PLASMA,
-    BOUNCING_BLUE,
-    BOUNCING_ORANGE,
     BOUNCING_AQUA,
+    BOUNCING_ORANGE,
+    BOUNCING_BLUE,
     SUPER_BULB,
     POISON,
     ICE_MELON,

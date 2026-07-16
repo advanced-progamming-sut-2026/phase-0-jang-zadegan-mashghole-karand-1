@@ -1,4 +1,4 @@
-package model.world;
+package model.data.content.chapter;
 
 public final class ChapterCatalog {
 

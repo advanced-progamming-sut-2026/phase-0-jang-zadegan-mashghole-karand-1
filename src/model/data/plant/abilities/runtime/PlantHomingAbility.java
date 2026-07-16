@@ -4,10 +4,9 @@ import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
-import model.data.plant.ProjectileType;
+import model.data.projectile.ProjectileType;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.config.TargetStrategy;
-import model.data.plant.abilities.effects.HitEffect;
 import model.data.projectile.HomingProjectile;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
@@ -68,7 +67,6 @@ public class PlantHomingAbility implements PlantAbilityConfig {
                     10,
                     projectileType,
                     ProjectileTarget.ZOMBIE,
-                    plant,
                     target
             );
             state.projectiles.add(pj);

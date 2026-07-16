@@ -1,12 +1,12 @@
 package controller;
 
 import controller.CommandResult.CommandResult;
+import model.data.content.chapter.ChapterCatalog;
+import model.data.content.chapter.ChapterType;
 import model.data.wave.LevelConfig;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
-import model.world.ChapterCatalog;
-import model.world.ChapterType;
 import view.ScreenType;
 
 public class GameMenuController {
@@ -60,9 +60,8 @@ public class GameMenuController {
             return failure("Invalid level number.");
         }
 
-        String chapterId = ChapterCatalog.toChapterId(gameNavigation.selectedChapter);
         gameNavigation.selectedLevel = levelNumber;
-        gameNavigation.pendingLevel = LevelConfig.createDefault(chapterId, levelNumber);
+        gameNavigation.pendingLevel = LevelConfig.createDefault(gameNavigation.selectedChapter, levelNumber);
         gameNavigation.selectedPlants.clear();
         gameNavigation.phase = Phase.PLANT;
         controllerManager.refreshView();

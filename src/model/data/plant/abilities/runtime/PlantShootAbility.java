@@ -1,6 +1,6 @@
 package model.data.plant.abilities.runtime;
 
-import model.data.plant.ProjectileType;
+import model.data.projectile.ProjectileType;
 import model.data.plant.abilities.config.Direction;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.config.ShootPattern;
@@ -102,7 +102,6 @@ public class PlantShootAbility implements PlantAbilityConfig {
                             10,
                             projectileType,
                             ProjectileTarget.ZOMBIE,
-                            plant,
                             this.pierceCount,
                             this.maxRange
                     );
@@ -116,8 +115,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
                             plant.col,
                             10,
                             projectileType,
-                            ProjectileTarget.ZOMBIE,
-                            plant
+                            ProjectileTarget.ZOMBIE
                     );
                 }
 

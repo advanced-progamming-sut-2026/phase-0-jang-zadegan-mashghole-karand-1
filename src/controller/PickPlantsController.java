@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import controller.CommandResult.CommandResult;
 import model.ModelManager;
 import model.data.plant.PlantType;
+import model.rule.SessionConfig;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
@@ -100,7 +101,12 @@ public class PickPlantsController {
             return failure("No level selected.");
         }
 
-        model.startLevel(gameNavigation.pendingLevel);
+        SessionConfig session = SessionConfig.builder()
+                .levelConfig(gameNavigation.pendingLevel)
+                .selectedPlants(gameNavigation.selectedPlants)
+                .build();
+
+        model.startSession(session);
         storage.recordGamePlayed();
         gameNavigation.reset();
         controllerManager.setScreen(ScreenType.GAME);

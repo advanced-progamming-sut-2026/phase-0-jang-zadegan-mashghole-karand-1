@@ -5,8 +5,8 @@ import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.plant.abilities.config.AreaShape;
 import model.data.plant.abilities.config.PlantAbilityConfig;
-import model.game.Tile;
-import model.game.TileType;
+import model.board.Tile;
+import model.board.TileType;
 
 public class PlantTileActionAbility implements PlantAbilityConfig {
     private final TileType targetTile ;

@@ -1,9 +1,6 @@
 package model.data.projectile;
 
 import model.core.Position;
-import model.data.plant.Plant;
-import model.data.plant.ProjectileType;
-import model.data.plant.abilities.effects.HitEffect;
 
 public class LobbedProjectile extends Projectile{
     public Position startPosition;
@@ -16,10 +13,10 @@ public class LobbedProjectile extends Projectile{
     public int aoeRadius = 0;
 
     public LobbedProjectile(int damage, Position position, int row, int col, float speed, ProjectileType type,
-                            ProjectileTarget target, Plant owner, Position targetPosition, float flightProgress,
+                            ProjectileTarget target, Position targetPosition, float flightProgress,
                             float flightDuration, float arcHeight, float butterChance, int butterDamage, int aoeRadius
                             ) {
-        super(damage, position, row, col, speed, type, target, owner);
+        super(damage, position, row, col, speed, type, target);
         this.startPosition = new Position(position.x,position.y);
         this.targetPosition = targetPosition;
         this.flightProgress = flightProgress;

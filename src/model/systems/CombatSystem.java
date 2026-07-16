@@ -2,15 +2,18 @@ package model.systems;
 
 import model.core.EventBus;
 import model.core.GameState;
+import model.data.Grave.Grave;
 import model.data.plant.Plant;
-import model.data.plant.ProjectileType;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
 import model.data.zombie.Zombie;
+import model.events.GlowingZombieDiedEvent;
 import model.events.PlantDiedEvent;
 import model.events.ZombieDiedEvent;
 
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 
 public class CombatSystem {
     public EventBus eventBus;
@@ -24,14 +27,22 @@ public class CombatSystem {
         while (projIter.hasNext()) {
             Projectile p = projIter.next();
 
-            if(p.target == ProjectileTarget.ZOMBIE) {
+            if (p.target == ProjectileTarget.ZOMBIE) {
+                Grave graveAhead = state.graves.stream().filter(g -> g.row == p.row && g.col> p.col)
+                        .min(Comparator.comparingInt(g -> g.col)).orElse(null);
+                if(graveAhead != null) {
+                    if(Math.abs(graveAhead.pos.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS){
+                        graveAhead.takeDamage(p.damage, state, eventBus);
+                        projIter.remove();
+                        continue;
+                    }
+                }
                 Iterator<Zombie> zombieIter = state.zombies.iterator();
                 while (zombieIter.hasNext()) {
                     Zombie z = zombieIter.next();
 
                     if (z.row == p.row && Math.abs(z.position.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
-                        boolean blocked = z.abilities.stream().
-                                anyMatch(a -> a.blocksProjectiles(z, p));
+                        boolean blocked = z.abilities.stream().anyMatch(a -> a.blocksProjectiles(z, p));
                         if (blocked) {
                             projIter.remove();
                             break;
@@ -41,18 +52,23 @@ public class CombatSystem {
 
                         if (z.hp <= 0) {
                             eventBus.publish(new ZombieDiedEvent(z));
+                            z.onDeath(state);
+                            if(z.isGlowing) {
+                                state.plantFoodAmount++;
+                                eventBus.publish(new GlowingZombieDiedEvent(z));
+                            }
+                            state.zombies.add(z);
                         }
                         break;
                     }
                 }
-            }
-            else if(p.target == ProjectileTarget.PLANT) {
-                Plant target = findPlantAt(state,p.row,p.position.x);
-                if(target != null && Math.abs(target.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+            } else if (p.target == ProjectileTarget.PLANT) {
+                Plant target = findPlantAt(state, p.row, p.position.x);
+                if (target != null && Math.abs(target.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
                     target.hp -= p.damage;
                     projIter.remove();
-                    //stun plant...
-                    if(target.hp <= 0) {
+                    // stun plant...
+                    if (target.hp <= 0) {
                         eventBus.publish(new PlantDiedEvent(target));
                     }
                 }

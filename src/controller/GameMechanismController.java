@@ -110,7 +110,7 @@ public class GameMechanismController {
         if (gameState.sunAmount < plantType.baseStats.cost) {
             return failure("Not enough sun. Need " + plantType.baseStats.cost + ", have " + gameState.sunAmount + ".");
         }
-        if (model.placePlant(row, col, plantType.name, 1)) {
+        if (model.placePlant(row, col, plantType, 1)) {
             return success("Planted " + plantType.name + " at (" + row + ", " + col + ").");
         }
         return failure("Could not plant " + plantType.name + " at (" + row + ", " + col + ").");

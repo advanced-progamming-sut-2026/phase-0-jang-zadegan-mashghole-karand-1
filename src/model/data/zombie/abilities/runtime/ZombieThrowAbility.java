@@ -4,14 +4,12 @@ import model.core.EventBus;
 import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
-import model.data.plant.ProjectileType;
 import model.data.plant.abilities.config.Direction;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
+import model.data.projectile.ProjectileType;
 import model.data.zombie.Zombie;
-import model.data.zombie.ZombieType;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
-
 
 public class ZombieThrowAbility implements ZombieAbilityConfig {
 
@@ -21,7 +19,7 @@ public class ZombieThrowAbility implements ZombieAbilityConfig {
     private int currentCooldown = 0;
     private float speed;
 
-    public ZombieThrowAbility(int damage,float speed, float cooldownSeconds, ProjectileType projectileType) {
+    public ZombieThrowAbility(int damage, float speed, float cooldownSeconds, ProjectileType projectileType) {
         this.damage = damage;
         this.cooldownSeconds = cooldownSeconds;
         this.projectileType = projectileType;
@@ -30,13 +28,13 @@ public class ZombieThrowAbility implements ZombieAbilityConfig {
 
     @Override
     public void onTick(Zombie zombie, GameState state, EventBus bus) {
-        if(currentCooldown > 0){
+        if (currentCooldown > 0) {
             currentCooldown--;
             return;
         }
 
         boolean hasTarget = state.plants.stream().anyMatch(plant -> plant.row == zombie.row);
-        if(hasTarget) {
+        if (hasTarget) {
             Projectile projectile = new Projectile(damage,
                     new Position(zombie.position.x, zombie.position.y),
                     zombie.row, zombie.col, speed, projectileType,
@@ -49,6 +47,6 @@ public class ZombieThrowAbility implements ZombieAbilityConfig {
 
     @Override
     public ZombieAbilityConfig createInstance(Zombie zombie) {
-        return new ZombieThrowAbility(damage,speed, cooldownSeconds, projectileType);
+        return new ZombieThrowAbility(damage, speed, cooldownSeconds, projectileType);
     }
 }

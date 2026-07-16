@@ -7,12 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
 import model.minigame.MinigameType;
+import model.service.Hash;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
 import model.storage.user.User;
-import model.world.ChapterType;
 
 public class InMemoryStorageManager implements StorageManager {
 
@@ -30,7 +31,7 @@ public class InMemoryStorageManager implements StorageManager {
 
     public InMemoryStorageManager() {
         // Add demo user for testing
-        User demoUser = new User(DEMO_USER, DEMO_PASSWORD, DEMO_EMAIL, DEMO_NICKNAME, Gender.MALE, DEMO_SAFETY);
+        User demoUser = new User(DEMO_USER, Hash.hashPassword(DEMO_PASSWORD), DEMO_EMAIL, DEMO_NICKNAME, Gender.MALE, DEMO_SAFETY);
         demoUser.gameProgress.unlockChapter(ChapterType.ANCIENT_EGYPT);
         demoUser.collection.unlockPlants(Arrays.asList(
                 PlantType.Sunflower, PlantType.PeaShooter, PlantType.Repeater));
@@ -48,8 +49,8 @@ public class InMemoryStorageManager implements StorageManager {
             return false;
         if (users.containsKey(username))
             return false;
-
-        User profile = new User(username, password, email, nickname, gender, safetyQuestion);
+        String hashedPassword = Hash.hashPassword(password);
+        User profile = new User(username, hashedPassword, email, nickname, gender, safetyQuestion);
         users.put(username, profile);
         return true;
     }
@@ -62,7 +63,7 @@ public class InMemoryStorageManager implements StorageManager {
         User profile = users.get(username);
         if (profile == null)
             return false;
-        if (!profile.password.equals(password))
+        if (!profile.password.equals(Hash.hashPassword(password)))
             return false;
 
         currentUser = profile;
@@ -110,7 +111,7 @@ public class InMemoryStorageManager implements StorageManager {
         if (user == null || newPassword == null || newPassword.isEmpty()) {
             return false;
         }
-        user.password = newPassword;
+        user.password = Hash.hashPassword(newPassword);
         return true;
     }
 
@@ -220,10 +221,10 @@ public class InMemoryStorageManager implements StorageManager {
         if (!isLoggedIn() || oldPassword == null || newPassword == null || newPassword.isEmpty()) {
             return false;
         }
-        if (!currentUser.password.equals(oldPassword)) {
+        if (!currentUser.password.equals(Hash.hashPassword(oldPassword))) {
             return false;
         }
-        currentUser.password = newPassword;
+        currentUser.password = Hash.hashPassword(newPassword);
         return true;
     }
 

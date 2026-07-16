@@ -13,7 +13,8 @@ import model.data.plant.effects.runtime.*;
 import model.data.plant.upgrades.PlantLevelUpgrade;
 import model.data.plant.upgrades.PlantLevelUpgrades;
 import model.data.plant.upgrades.PlantStatBonus;
-import model.game.TileType;
+import model.board.TileType;
+import model.data.projectile.ProjectileType;
 
 public enum PlantType {
     Sunflower(1, "Sunflower", PlantCategory.SUN_PRODUCER,
@@ -863,17 +864,18 @@ public enum PlantType {
                     PlantLevelUpgrade.atLevel(3, PlantStatBonus.MELT_AREA_3x3, true),
                     PlantLevelUpgrade.atLevel(4, PlantStatBonus.EXPLODE_ON_FINISH, true)
             )),
-    Grave_Buster(60, "Grave Buster", PlantCategory.EXPLOSIVE, null,
-            new PlantBaseStats(0, 0, 0, 0f, 10),
-            Arrays.asList(
-                    new PlantTileActionAbility(TileType.GRAVE, AreaShape.SINGLE_TILE, 5)
-            ),
-            null,
-            new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -1),
-                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -2),
-                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.EXPLODE_ON_FINISH, true)
-            )),
+//    Grave_Buster(60, "Grave Buster", PlantCategory.EXPLOSIVE, null,
+//            new PlantBaseStats(0, 0, 0, 0f, 10),
+//            Arrays.asList(
+//                    new PlantTileActionAbility(TileType.GRAVE, AreaShape.SINGLE_TILE, 5)
+//            ),
+//            null,
+//
+//            new PlantLevelUpgrades(
+//                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -1),
+//                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -2),
+//                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.EXPLODE_ON_FINISH, true)
+//            )),
     Enlighten_mint(61, "Enlighten-mint", PlantCategory.MINT, null,
             new PlantBaseStats(0, 0, 0, 0, 85),
             Arrays.asList(
