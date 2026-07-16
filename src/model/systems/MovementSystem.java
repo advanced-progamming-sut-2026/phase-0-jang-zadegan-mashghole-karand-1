@@ -19,6 +19,8 @@ public class MovementSystem {
             } else {
                 zombie.position.x = nextX;
             }
+
+            zombie.tick(state);
         }
 
         for (Projectile projectile : state.projectiles) {

@@ -8,6 +8,7 @@ import model.core.Position;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.data.zombie.armor.runtime.ZombieArmor;
 import model.events.GlowingZombieDiedEvent;
+import model.events.ZombieDroppedLootEvent;
 
 public class Zombie {
     public final int instanceId;
@@ -29,6 +30,7 @@ public class Zombie {
     public int frozenTicks = 0;
     public boolean isHypnotized = false;
     public final boolean isGlowing;
+    Random randomizer = new Random();
 
     public EventBus eventBus;
 
@@ -57,8 +59,7 @@ public class Zombie {
             this.armor = new ZombieArmor(type.armorConfig);
         }
 
-        Random rand = new Random();
-        isGlowing = rand.nextInt(20) == 0;
+        isGlowing = randomizer.nextInt(20) == 0;
     }
 
     public void takeDamage(int damage) {
@@ -74,20 +75,14 @@ public class Zombie {
     }
 
     public void tick(GameState state) {
-        // if (isFrozen) {
-        // frozenTicks--;
-        // if (frozenTicks <= 0) {
-        // isFrozen = false;
-        // }
-        // return;
-        // }
+       if (isFrozen) {
+           frozenTicks--;
+           if (frozenTicks <= 0) {
+               isFrozen = false;
+           }
+           return;
+       }
 
-        // if(effectedByPiano){
-        // change row randomly
-        // }
-        //if(effectedByPiano){
-          //change row randomly
-        //}
     }
 
     public void onTickAbilities(GameState state) {
@@ -104,6 +99,17 @@ public class Zombie {
             state.plantFoodAmount++;
             eventBus.publish(new GlowingZombieDiedEvent(this));
         }
+
+        boolean drop = randomizer.nextInt(10)==0;
+        if (drop) {
+            ZombieLootType lootType = ZombieLootType.values()[randomizer.nextInt(ZombieLootType.values().length)];
+            if (Objects.requireNonNull(lootType) == ZombieLootType.COIN) {
+                eventBus.publish(new ZombieDroppedLootEvent(lootType, 50, position));
+            } else {
+                eventBus.publish(new ZombieDroppedLootEvent(lootType, 1, position));
+            }
+        }
+
     }
 
     public boolean hasSandstorm() {

@@ -9,6 +9,8 @@ import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.events.PlantPlacedEvent;
+import model.events.ZombieDroppedLootEvent;
+import model.greenhouse.Pot;
 import model.rule.LevelRule;
 import model.rule.RuleEngine;
 import model.rule.SessionConfig;
@@ -17,6 +19,7 @@ import model.rule.rules.ChapterRules;
 import model.rule.rules.MiniGameRules;
 import model.rule.rules.SpecialLevelRules;
 import model.storage.StorageManager;
+import model.storage.user.User;
 import model.systems.*;
 
 public class ModelManager {
@@ -65,6 +68,27 @@ public class ModelManager {
         waveManager.update(state, eventBus);
 
         ruleEngine.postTick(sessionContext, state, eventBus);
+
+
+        eventBus.subscribe(ZombieDroppedLootEvent.class, e -> {
+            User user = storage.getCurrentUser();
+            if (user == null) return;
+            switch (e.type) {
+                case COIN -> {
+                    user.coins += e.amount;
+                    storage.updateUserProfile(user);
+                }
+                case DIAMOND -> {
+                    user.gems += e.amount;
+                    storage.updateUserProfile(user);
+                }
+                case POT -> {
+                    if(user.greenhouse == null) return;
+                    user.greenhouse.addPot(new Pot());
+                    storage.updateUserProfile(user);
+                }
+            }
+        });
     }
 
     public void startSession(SessionConfig config) {

@@ -7,4 +7,8 @@ public class Greenhouse {
 
     private LocalDateTime lastHarvest;
     private List<Pot> production;
+
+    public void addPot(Pot p){
+        production.add(p);
+    }
 }
