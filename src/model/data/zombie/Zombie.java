@@ -7,6 +7,7 @@ import model.core.GameState;
 import model.core.Position;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.data.zombie.armor.runtime.ZombieArmor;
+import model.events.GlowingZombieDiedEvent;
 
 public class Zombie {
     public final int instanceId;
@@ -83,6 +84,9 @@ public class Zombie {
         //if(effectedByPiano){
           //change row randomly
         //}
+    }
+
+    public void onTickAbilities(GameState state) {
         for (ZombieAbilityConfig ability : abilities) {
             ability.onTick(this, state, eventBus);
         }
@@ -91,6 +95,10 @@ public class Zombie {
     public void onDeath(GameState state) {
         for (ZombieAbilityConfig ability : abilities) {
             ability.onDeath(this, state, eventBus);
+        }
+        if(isGlowing) {
+            state.plantFoodAmount++;
+            eventBus.publish(new GlowingZombieDiedEvent(this));
         }
     }
 }

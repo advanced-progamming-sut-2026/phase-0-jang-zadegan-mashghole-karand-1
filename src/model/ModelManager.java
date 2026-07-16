@@ -5,14 +5,10 @@ import java.util.List;
 import model.board.Tile;
 import model.core.EventBus;
 import model.core.GameState;
-import model.core.Position;
 import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
-import model.data.zombie.Zombie;
-import model.data.zombie.ZombieType;
 import model.events.PlantPlacedEvent;
-import model.events.ZombieSpawnedEvent;
 import model.rule.LevelRule;
 import model.rule.RuleEngine;
 import model.rule.SessionConfig;
@@ -21,12 +17,7 @@ import model.rule.rules.ChapterRules;
 import model.rule.rules.MiniGameRules;
 import model.rule.rules.SpecialLevelRules;
 import model.storage.StorageManager;
-import model.systems.CombatSystem;
-import model.systems.MovementSystem;
-import model.systems.PlantAbilitySystem;
-import model.systems.SunSpawnSystem;
-import model.systems.SunSystem;
-import model.systems.WaveManager;
+import model.systems.*;
 
 public class ModelManager {
     private final GameState state;
@@ -39,6 +30,7 @@ public class ModelManager {
     private final MovementSystem movementSystem;
     private final CombatSystem combatSystem;
     private final PlantAbilitySystem plantAbilitySystem;
+    private final ZombieAbilitySystem  zombieAbilitySystem;
     private final SunSpawnSystem sunSpawnSystem;
     private final SunSystem sunSystem;
 
@@ -52,6 +44,7 @@ public class ModelManager {
         this.movementSystem = new MovementSystem();
         this.combatSystem = new CombatSystem(eventBus);
         this.plantAbilitySystem = new PlantAbilitySystem();
+        this.zombieAbilitySystem = new ZombieAbilitySystem();
         this.sunSpawnSystem = new SunSpawnSystem(eventBus);
         this.sunSystem = new SunSystem(eventBus);
     }
@@ -64,7 +57,7 @@ public class ModelManager {
         ruleEngine.preTick(sessionContext, state, eventBus);
 
         plantAbilitySystem.update(state, eventBus);
-        // zombieAbilitySystem
+        zombieAbilitySystem.update(state);
         sunSpawnSystem.update(state);
         sunSystem.update(state);
         movementSystem.update(state);

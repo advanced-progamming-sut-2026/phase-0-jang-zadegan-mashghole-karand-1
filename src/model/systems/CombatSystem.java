@@ -47,17 +47,13 @@ public class CombatSystem {
                             projIter.remove();
                             break;
                         }
-                        z.hp -= p.damage;
+                        z.takeDamage(p.damage);
                         projIter.remove();
 
-                        if (z.hp <= 0) {
+                        if (!z.isAlive) {
                             eventBus.publish(new ZombieDiedEvent(z));
                             z.onDeath(state);
-                            if(z.isGlowing) {
-                                state.plantFoodAmount++;
-                                eventBus.publish(new GlowingZombieDiedEvent(z));
-                            }
-                            state.zombies.add(z);
+                            state.zombies.remove(z);
                         }
                         break;
                     }
