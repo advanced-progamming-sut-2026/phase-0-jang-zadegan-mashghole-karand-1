@@ -11,5 +11,6 @@ public interface PlantEffectConfig {
     default int getDurationTicks() {
         return 0;
     }
+    default void trigger(Plant plant, GameState state){}
     public PlantEffectConfig createInstance(Plant plant);
 }

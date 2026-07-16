@@ -62,7 +62,7 @@ public class PlantExplodeEffect implements PlantEffectConfig{
                 .collect(Collectors.toList());
         Collections.shuffle(targets);
         if (maxTargets <= 0 || maxTargets >= targets.size()) {
-            return targets.subList(0,maxTargets);
+            return targets;
         }
         return targets.subList(0, maxTargets);
     }

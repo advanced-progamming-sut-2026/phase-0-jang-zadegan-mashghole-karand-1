@@ -22,5 +22,6 @@ public enum ProjectileType {
     SUPER_BULB,
     POISON,
     ICE_MELON,
-    PEPPER
+    PEPPER,
+    BLUE_FIRE
 }

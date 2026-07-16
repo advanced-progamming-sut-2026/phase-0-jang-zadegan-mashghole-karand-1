@@ -4,6 +4,7 @@ import model.core.Position;
 import model.data.plant.Plant;
 import model.data.plant.ProjectileType;
 import model.data.plant.abilities.config.Direction;
+import model.data.plant.abilities.effects.HitEffect;
 
 public class Projectile {
     public int damage;
@@ -15,16 +16,7 @@ public class Projectile {
     public ProjectileType type;
     public ProjectileTarget target;
     public Plant owner;
-    public float butterChance = 0f;
-    public int butterDamage = 0;
-    public int aoeRadius = 0;
-    public int bounceCount = 0;
-    public boolean isLobbed = false;
-    public Position startPosition;
-    public Position targetPosition;
-    public float flightProgress = 0f;
-    public float flightDuration = 60f;
-    public float arcHeight = 80f;
+    public int knockBack = 0;
     public Projectile(int damage, Position position, int row, int col, float speed, ProjectileType type, ProjectileTarget target , Plant owner) {
         this.damage = damage;
         this.position = position;
@@ -44,23 +36,4 @@ public class Projectile {
         this.direction = direction;
     }
 
-    public void setButterChance(float butterChance) {
-        this.butterChance = butterChance;
-    }
-
-    public void setButterDamage(int butterDamage) {
-        this.butterDamage = butterDamage;
-    }
-
-    public void setAoeRadius(int aoeRadius) {
-        this.aoeRadius = aoeRadius;
-    }
-
-    public int getBounceCount() {
-        return bounceCount;
-    }
-
-    public void incrementBounceCount() {
-        this.bounceCount++;
-    }
 }

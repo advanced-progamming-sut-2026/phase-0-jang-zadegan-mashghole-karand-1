@@ -1,4 +1,5 @@
 package model.data.plant;
+
 import java.util.*;
 
 import model.data.plant.abilities.config.*;
@@ -12,6 +13,8 @@ import model.data.plant.effects.runtime.*;
 import model.data.plant.upgrades.PlantLevelUpgrade;
 import model.data.plant.upgrades.PlantLevelUpgrades;
 import model.data.plant.upgrades.PlantStatBonus;
+import model.game.TileType;
+
 public enum PlantType {
     Sunflower(1, "Sunflower", PlantCategory.SUN_PRODUCER,
             EnumSet.of(PlantTag.DAY),
@@ -37,9 +40,8 @@ public enum PlantType {
             EnumSet.of(PlantTag.SHROOM, PlantTag.WRAMP_UP, PlantTag.NIGHT),
             new PlantBaseStats(25, 300, 0, 24, 5),
             Arrays.asList(
-                    new PlantSunProduceAbility(25, 24, 0),
-                    new PlantSunProduceAbility(50, 24, 0),
-                    new PlantSunProduceAbility(75, 24, 0)),
+                    new PlantSunProduceAbility(25, 24, 0,true)
+            ),
             new PlantInstantSunEffect(225),
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -5),
@@ -109,8 +111,8 @@ public enum PlantType {
                     )),
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.COST, -25),
-                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.DAMAGE, 10),
-                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.HP, 200))),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.DAMAGE, 10),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.HP, 200))),
     SnowPea(9, "Snow Pea", PlantCategory.SHOOTER, EnumSet.of(PlantTag.PEA, PlantTag.ICE),
             new PlantBaseStats(150, 300, 20, 1.5f, 5),
             Arrays.asList(new PlantShootAbility(20, 1.5f, ProjectileType.ICE,
@@ -178,6 +180,30 @@ public enum PlantType {
                     new PlantLevelUpgrade(4, PlantStatBonus.COST, -50)
             )
     ),
+    Caulipower(14, "Caulipower", PlantCategory.HOMING, EnumSet.of(PlantTag.CHARGE, PlantTag.MAGIC),
+            new PlantBaseStats(250, 300, 0, 12, 15),
+            Arrays.asList(
+                    new PlantHomingAbility(0, 12, ProjectileType.PLASMA, TargetStrategy.RANDOM)
+            ),
+            new PlantHomingEffect(5, 0, ProjectileType.PLASMA, TargetStrategy.RANDOM),
+            new PlantLevelUpgrades(
+                    new PlantLevelUpgrade(2, PlantStatBonus.COOLDOWN, -2),
+                    new PlantLevelUpgrade(3, PlantStatBonus.HP, 150),
+                    new PlantLevelUpgrade(4, PlantStatBonus.COST, -50)
+            )
+    ),
+    Electric_Blueberry(15, "Electric Blueberry", PlantCategory.HOMING, EnumSet.of(PlantTag.CHARGE),
+            new PlantBaseStats(150, 300, 5000, 12, 15),
+            Arrays.asList(
+                    new PlantHomingAbility(5000, 12, ProjectileType.LASER, TargetStrategy.RANDOM)
+            ),
+            new PlantHomingEffect(3, 0, ProjectileType.LASER, TargetStrategy.RANDOM),
+            new PlantLevelUpgrades(
+                    new PlantLevelUpgrade(2, PlantStatBonus.COOLDOWN, -2),
+                    new PlantLevelUpgrade(3, PlantStatBonus.TARGET_PRIORITY, true),
+                    new PlantLevelUpgrade(4, PlantStatBonus.COST, -25)
+            )
+    ),
     BowlingBulb(16, "Bowling Bulb", PlantCategory.SHOOTER, EnumSet.of(PlantTag.CHARGE),
             new PlantBaseStats(200, 300, 40, 2, 5),
             Arrays.asList(
@@ -192,6 +218,21 @@ public enum PlantType {
             new PlantLevelUpgrades(
                     new PlantLevelUpgrade(2, PlantStatBonus.REGEN, -1),
                     new PlantLevelUpgrade(3, PlantStatBonus.DAMAGE, 15),
+                    new PlantLevelUpgrade(4, PlantStatBonus.COST, -25)
+            )
+    ),
+    Cactus(17, "Cactus", PlantCategory.STRIKE_THROUGH, null,
+            new PlantBaseStats(175, 300, 30, 1.5f, 5),
+            Arrays.asList(
+                    new PlantShootAbility(30, 1.5f, ProjectileType.SPIKE, new ShootPattern(Direction.FORWARD, 0, 1), 3, -1)
+            ),
+            new PlantRapidFireEffect(3, 0.1f,
+                    Arrays.asList(
+                            new PlantShootAbility(60, 0, ProjectileType.SPIKE, new ShootPattern(Direction.FORWARD, 0, 1), -1, -1)
+                    )),
+            new PlantLevelUpgrades(
+                    new PlantLevelUpgrade(2, PlantStatBonus.PIERCE_COUNT, 1),
+                    new PlantLevelUpgrade(3, PlantStatBonus.DAMAGE, 10),
                     new PlantLevelUpgrade(4, PlantStatBonus.COST, -25)
             )
     ),
@@ -307,6 +348,23 @@ public enum PlantType {
                     PlantLevelUpgrade.atLevel(4, PlantStatBonus.RANGE, 1)
             )
     ),
+    Fume_shroom(24, "Fume-shroom", PlantCategory.STRIKE_THROUGH, EnumSet.of(PlantTag.SHROOM),
+            new PlantBaseStats(125, 300, 20, 1.5f, 5),
+            Arrays.asList(
+                    new PlantShootAbility(20, 1.5f, ProjectileType.FUME,
+                            new ShootPattern(Direction.FORWARD, 0, 1), -1, 4)
+            ),
+            new PlantRapidFireEffect(3, 0.1f,
+                    Arrays.asList(
+                            new PlantShootAbility(20, 0f, ProjectileType.FUME,
+                                    new ShootPattern(Direction.FORWARD, 0, 1), -1, 5, 30)
+                    )),
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.RANGE, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.DAMAGE, 10),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.COST, -25)
+            )
+    ),
     Cabbage_pult(25, "Cabbage-pult", PlantCategory.LOBBER, null,
             new PlantBaseStats(100, 300, 40, 2.9f, 5),
             Arrays.asList(
@@ -339,7 +397,7 @@ public enum PlantType {
                     )),
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.SPECIAL_CHANGE, 5),
-                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.DAMAGE, 10),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.MELT_AREA_3x3, true),
                     PlantLevelUpgrade.atLevel(4, PlantStatBonus.HP, 150)
             )
     ),
@@ -577,36 +635,36 @@ public enum PlantType {
             )
 
     ),
-    Wall_nut(44,"Wall-nut" , PlantCategory.DEFENDER, null,
-            new PlantBaseStats(50,4000,0,0,20),
+    Wall_nut(44, "Wall-nut", PlantCategory.DEFENDER, null,
+            new PlantBaseStats(50, 4000, 0, 0, 20),
             Arrays.asList(
                     new PlantDefenderAbility.Builder().build()
             ),
-            new PlantDefenderEffect.Builder().addArmor(4000).build() ,
+            new PlantDefenderEffect.Builder().addArmor(4000).build(),
             new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2,PlantStatBonus.HP,1000),
-                    PlantLevelUpgrade.atLevel(3,PlantStatBonus.COOLDOWN,-5),
-                    PlantLevelUpgrade.atLevel(4,PlantStatBonus.HP,1500)
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.HP, 1000),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.HP, 1500)
 
 
-                    )),
-    Tall_nut(45,"Tall-nut" , PlantCategory.DEFENDER, null,
-            new PlantBaseStats(125,8000,0,0,20),
+            )),
+    Tall_nut(45, "Tall-nut", PlantCategory.DEFENDER, null,
+            new PlantBaseStats(125, 8000, 0, 0, 20),
             Arrays.asList(
                     new PlantDefenderAbility.Builder()
                             .blockJump()
                             .build()
             ),
-            new PlantDefenderEffect.Builder().addArmor(8000).build() ,
+            new PlantDefenderEffect.Builder().addArmor(8000).build(),
             new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2,PlantStatBonus.HP,2000),
-                    PlantLevelUpgrade.atLevel(3,PlantStatBonus.COOLDOWN,-5),
-                    PlantLevelUpgrade.atLevel(4,PlantStatBonus.HP,3000)
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.HP, 2000),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.HP, 3000)
 
 
             )),
-    Endurian(46,"Endurian" , PlantCategory.DEFENDER, null,
-            new PlantBaseStats(100,3000,20,0,15),
+    Endurian(46, "Endurian", PlantCategory.DEFENDER, null,
+            new PlantBaseStats(100, 3000, 20, 0, 15),
             Arrays.asList(
                     new PlantDefenderAbility.Builder()
                             .reflectDamage(20)
@@ -615,16 +673,16 @@ public enum PlantType {
             new PlantDefenderEffect.Builder()
                     .addArmor(3000)
                     .increaseReflect(20)
-                    .build() ,
+                    .build(),
             new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2,PlantStatBonus.DAMAGE,5),
-                    PlantLevelUpgrade.atLevel(3,PlantStatBonus.HP,1000),
-                    PlantLevelUpgrade.atLevel(4,PlantStatBonus.COST,-25)
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.DAMAGE, 5),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.HP, 1000),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.COST, -25)
 
 
             )),
-    Garlic(47,"Garlic" , PlantCategory.DEFENDER, EnumSet.of(PlantTag.MOVE_ZOMBIES),
-            new PlantBaseStats(50,300,0,0,20),
+    Garlic(47, "Garlic", PlantCategory.DEFENDER, EnumSet.of(PlantTag.MOVE_ZOMBIES),
+            new PlantBaseStats(50, 300, 0, 0, 20),
             Arrays.asList(
                     new PlantDefenderAbility.Builder()
                             .moveZombie()
@@ -632,16 +690,16 @@ public enum PlantType {
             ),
             new PlantDefenderEffect.Builder()
                     .moveAllZombies()
-                    .build() ,
+                    .build(),
             new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2,PlantStatBonus.HP,150),
-                    PlantLevelUpgrade.atLevel(3,PlantStatBonus.COOLDOWN,-3),
-                    PlantLevelUpgrade.atLevel(4,PlantStatBonus.HP,250)
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.HP, 150),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -3),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.HP, 250)
 
 
             )),
-    Sweet_Potato(48,"Sweet Potato" , PlantCategory.DEFENDER, EnumSet.of(PlantTag.MOVE_ZOMBIES),
-            new PlantBaseStats(150,3000,0,0,20),
+    Sweet_Potato(48, "Sweet Potato", PlantCategory.DEFENDER, EnumSet.of(PlantTag.MOVE_ZOMBIES),
+            new PlantBaseStats(150, 3000, 0, 0, 20),
             Arrays.asList(
                     new PlantDefenderAbility.Builder()
                             .attractZombies()
@@ -653,14 +711,14 @@ public enum PlantType {
                     .build(),
 
             new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2,PlantStatBonus.HP,1000),
-                    PlantLevelUpgrade.atLevel(3,PlantStatBonus.COOLDOWN,-5),
-                    PlantLevelUpgrade.atLevel(4,PlantStatBonus.HP,1500)
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.HP, 1000),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.HP, 1500)
 
 
             )),
-    Explode_o_nut(49,"Explode-o-nut" , PlantCategory.DEFENDER, EnumSet.of(PlantTag.EXPLOSIVE),
-            new PlantBaseStats(50,4000,1800,0,20),
+    Explode_o_nut(49, "Explode-o-nut", PlantCategory.DEFENDER, EnumSet.of(PlantTag.EXPLOSIVE),
+            new PlantBaseStats(50, 4000, 1800, 0, 20),
             Arrays.asList(
                     new PlantDefenderAbility.Builder()
                             .explodeOnDeath(1800)
@@ -672,45 +730,106 @@ public enum PlantType {
                     .build(),
 
             new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2,PlantStatBonus.HP,1000),
-                    PlantLevelUpgrade.atLevel(3,PlantStatBonus.DAMAGE,200),
-                    PlantLevelUpgrade.atLevel(4,PlantStatBonus.COST,-25)
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.HP, 1000),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.DAMAGE, 200),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.COST, -25)
 
 
             )),
-    Pumpkin(50,"Pumpkin" , PlantCategory.DEFENDER, EnumSet.of(PlantTag.STACK),
-            new PlantBaseStats(150,4000,0,0,20),
-            null,
-            new PlantDefenderEffect.Builder()
-                    .addArmor(4000)
-                    .build(),
+    Pumpkin(50, "Pumpkin", PlantCategory.DEFENDER, EnumSet.of(PlantTag.STACK),
+            new PlantBaseStats(150, 4000, 0, 0, 20),
+            Arrays.asList(
+                    new PlantDefenderAbility.Builder()
+                            .build()
+            ), new PlantDefenderEffect.Builder()
+            .addArmor(4000)
+            .build(),
 
             new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2,PlantStatBonus.HP,1000),
-                    PlantLevelUpgrade.atLevel(3,PlantStatBonus.COOLDOWN,-5),
-                    PlantLevelUpgrade.atLevel(4,PlantStatBonus.HP,1500)
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.HP, 1000),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.HP, 1500)
 
 
             )),
-    Sun_Bean(51,"Sun Bean" , PlantCategory.DEFENDER, EnumSet.of(PlantTag.SUN),
-            new PlantBaseStats(50,1000,0,0,20),
+    Sun_Bean(51, "Sun Bean", PlantCategory.DEFENDER, EnumSet.of(PlantTag.SUN),
+            new PlantBaseStats(50, 1000, 0, 0, 20),
             Arrays.asList(
-                 new   PlantDefenderAbility.Builder()
-                         .produceSunOnHit(5)
-                         .build()
+                    new PlantDefenderAbility.Builder()
+                            .produceSunOnHit(5)
+                            .build()
             ),
             new PlantDefenderEffect.Builder()
                     .addArmor(1000)
                     .build(),
 
             new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2,PlantStatBonus.SUN_DROP,5),
-                    PlantLevelUpgrade.atLevel(3,PlantStatBonus.HP,150),
-                    PlantLevelUpgrade.atLevel(4,PlantStatBonus.COST,-25)
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.SUN_DROP, 5),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.HP, 150),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.COST, -25)
 
 
             )),
-    Ice_shroom(57, "Ice_shroom", PlantCategory.EXPLOSIVE, EnumSet.of(PlantTag.SHROOM,PlantTag.ICE),
+    Torchwood(52, "Torchwood", PlantCategory.MODIFIER, EnumSet.of(PlantTag.FIRE),
+            new PlantBaseStats(175, 300, 0, 15f, 15),
+            Arrays.asList(
+                    new PlantTorchwoodAbility()
+            ),
+            new PlantTorchEffect(),
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.HP, 300),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.AOE_ON_DEATH, true),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.COST, -25)
+            )),
+    Magnet_shroom(53, "Magnet-shroom", PlantCategory.HOMING, EnumSet.of(PlantTag.SHROOM, PlantTag.MAGIC),
+            new PlantBaseStats(50, 1000, 0, 0, 20),
+            Arrays.asList(
+                    new PlantMagnetAbility()
+            ),
+            new PlantMagnetEffect(),
+
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.RANGE, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.HP, 200)
+
+
+            )),
+    Hypno_shroom(54, "Hypno-shroom", PlantCategory.MODIFIER, EnumSet.of(PlantTag.SHROOM, PlantTag.MAGIC),
+            new PlantBaseStats(125, 300, 0, 0f, 20),
+            Arrays.asList(
+                    new PlantHypnotizeAbility()
+            ),
+            new PlantHypnoGargEffect(),
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.COST, -25),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.ZOMBIE_HP_BUFF, true),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.ZOMBIE_DAMAGE_BUFF, true)
+            )),
+    Cat_tail(55, "Cat-tail", PlantCategory.HOMING, null,
+            new PlantBaseStats(175, 300, 15, 1.5f, 20),
+            Arrays.asList(
+                    new PlantHomingAbility(15, 1.5f, ProjectileType.SPIKE, TargetStrategy.CLOSEST)
+            ),
+            new PlantHomingEffect(1, 0, ProjectileType.SPIKE, TargetStrategy.CLOSEST),
+            new PlantLevelUpgrades(
+                    new PlantLevelUpgrade(2, PlantStatBonus.DAMAGE, 10),
+                    new PlantLevelUpgrade(3, PlantStatBonus.HP, 200),
+                    new PlantLevelUpgrade(4, PlantStatBonus.COST, -25)
+            )
+    ),
+    //    Imitater(56, "Imitater", PlantCategory.MODIFIER, null,
+//            new PlantBaseStats(0, 0, 0, 0f, 0),
+//            Arrays.asList(
+//                    new PlantTransformAbility()
+//            ),
+//            null,
+//            new PlantLevelUpgrades(
+//                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -2),
+//                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COST, -25),
+//                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.FOOD_ON_ENTRANCE, 50)
+//            )),
+    Ice_shroom(57, "Ice_shroom", PlantCategory.EXPLOSIVE, EnumSet.of(PlantTag.SHROOM, PlantTag.ICE),
             new PlantBaseStats(75, 0, 0, 0f, 50),
             Arrays.asList(
                     new PlantExplodeAbility(ExplodeTrigger.INSTANT, AreaShape.FULL_BOARD, -1,
@@ -722,111 +841,138 @@ public enum PlantType {
                     PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
                     PlantLevelUpgrade.atLevel(4, PlantStatBonus.DAMAGE, 50)
             )),
-    Enlighten_mint(61,"Enlighten-mint",PlantCategory.MINT,null,
-            new PlantBaseStats(0,0,0,0,85),
+    Lily_Pad(58, "Lily Pad", PlantCategory.MODIFIER, EnumSet.of(PlantTag.WATER, PlantTag.STACK),
+            new PlantBaseStats(25, 300, 0, 0f, 5),
             Arrays.asList(
-                    new PlantMintAbility(PlantCategory.SUN_PRODUCER,5)
+                    new PlantSupportAbility()
             ),
-            null,
+            new PlantSpawnCopiesEffect(),
             new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
-                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
-                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.COST, -25),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.HP, 200),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.COOLDOWN, -2)
             )),
-    Appease_mint(62,"Appease-mint",PlantCategory.MINT,null,
-            new PlantBaseStats(0,0,0,0,85),
+    Hot_Potato(59, "Hot Potato", PlantCategory.EXPLOSIVE, EnumSet.of(PlantTag.FIRE),
+            new PlantBaseStats(0, 0, 0, 0f, 5),
             Arrays.asList(
-                    new PlantMintAbility(PlantCategory.SHOOTER,6)
+                    new PlantTileActionAbility(TileType.ICE, AreaShape.SINGLE_TILE, 0)
             ),
             null,
             new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
-                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
-                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -2),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.MELT_AREA_3x3, true),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.EXPLODE_ON_FINISH, true)
             )),
-    Arma_mint(63,"Arma-mint",PlantCategory.MINT,null,
-            new PlantBaseStats(0,0,0,0,85),
+    Grave_Buster(60, "Grave Buster", PlantCategory.EXPLOSIVE, null,
+            new PlantBaseStats(0, 0, 0, 0f, 10),
             Arrays.asList(
-                    new PlantMintAbility(PlantCategory.LOBBER,6)
+                    new PlantTileActionAbility(TileType.GRAVE, AreaShape.SINGLE_TILE, 5)
             ),
             null,
             new PlantLevelUpgrades(
-                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
-                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
-                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -2),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.EXPLODE_ON_FINISH, true)
             )),
-    Bombard_mint(64,"Bombard-mint",PlantCategory.MINT,null,
-            new PlantBaseStats(0,0,0,0,85),
+    Enlighten_mint(61, "Enlighten-mint", PlantCategory.MINT, null,
+            new PlantBaseStats(0, 0, 0, 0, 85),
             Arrays.asList(
-                    new PlantMintAbility(PlantCategory.LOBBER,6)
+                    new PlantMintAbility(PlantCategory.SUN_PRODUCER, 5)
             ),
             null,
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
                     PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
-                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN, true)
             )),
-    Enforce_mint(65,"Enforce-mint",PlantCategory.MINT,null,
-            new PlantBaseStats(0,0,0,0,85),
+    Appease_mint(62, "Appease-mint", PlantCategory.MINT, null,
+            new PlantBaseStats(0, 0, 0, 0, 85),
             Arrays.asList(
-                    new PlantMintAbility(PlantCategory.EXPLOSIVE,8)
+                    new PlantMintAbility(PlantCategory.SHOOTER, 6)
             ),
             null,
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
                     PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
-                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN, true)
             )),
-    Reinforce_mint(66,"Reinforce-mint",PlantCategory.MINT,null,
-            new PlantBaseStats(0,0,0,0,85),
+    Arma_mint(63, "Arma-mint", PlantCategory.MINT, null,
+            new PlantBaseStats(0, 0, 0, 0, 85),
             Arrays.asList(
-                    new PlantMintAbility(PlantCategory.DEFENDER,8)
+                    new PlantMintAbility(PlantCategory.LOBBER, 6)
             ),
             null,
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
                     PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
-                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN, true)
             )),
-    Enchant_mint(67,"Enchant-mint",PlantCategory.MINT,null,
-            new PlantBaseStats(0,0,0,0,85),
+    Bombard_mint(64, "Bombard-mint", PlantCategory.MINT, null,
+            new PlantBaseStats(0, 0, 0, 0, 85),
             Arrays.asList(
-                    new PlantMintAbility(PlantCategory.MODIFIER,8)
+                    new PlantMintAbility(PlantCategory.EXPLOSIVE, 6)
             ),
             null,
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
                     PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
-                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN, true)
             )),
-    Pierce_mint(68,"Pierce-mint",PlantCategory.MINT,null,
-            new PlantBaseStats(0,0,0,0,85),
+    Enforce_mint(65, "Enforce-mint", PlantCategory.MINT, null,
+            new PlantBaseStats(0, 0, 0, 0, 85),
             Arrays.asList(
-                    new PlantMintAbility(PlantCategory.STRIKE_THROUGH,8)
+                    new PlantMintAbility(PlantCategory.MELEE, 8)
             ),
             null,
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
                     PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
-                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN, true)
             )),
-    catTail_mint(69,"catTail-mint",PlantCategory.MINT,null,
-            new PlantBaseStats(0,0,0,0,85),
+    Reinforce_mint(66, "Reinforce-mint", PlantCategory.MINT, null,
+            new PlantBaseStats(0, 0, 0, 0, 85),
             Arrays.asList(
-                    new PlantMintAbility(PlantCategory.HOMING,8)
+                    new PlantMintAbility(PlantCategory.DEFENDER, 8)
             ),
             null,
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
                     PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
-                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN,true)
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN, true)
+            )),
+    Enchant_mint(67, "Enchant-mint", PlantCategory.MINT, null,
+            new PlantBaseStats(0, 0, 0, 0, 85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.MODIFIER, 8)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN, true)
+            )),
+    Pierce_mint(68, "Pierce-mint", PlantCategory.MINT, null,
+            new PlantBaseStats(0, 0, 0, 0, 85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.STRIKE_THROUGH, 8)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN, true)
+            )),
+    catTail_mint(69, "catTail-mint", PlantCategory.MINT, null,
+            new PlantBaseStats(0, 0, 0, 0, 85),
+            Arrays.asList(
+                    new PlantMintAbility(PlantCategory.HOMING, 8)
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN, true)
             ));
-
-
-
-
-
-
 
 
     public final int id;

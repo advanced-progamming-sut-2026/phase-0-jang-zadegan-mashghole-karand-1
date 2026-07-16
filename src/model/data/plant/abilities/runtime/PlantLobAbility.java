@@ -8,6 +8,7 @@ import model.data.plant.Plant;
 import model.data.plant.ProjectileType;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.config.ShootPattern;
+import model.data.projectile.LobbedProjectile;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
 import model.data.zombie.Zombie;
@@ -74,7 +75,7 @@ public class PlantLobAbility implements PlantAbilityConfig {
 
                 int xOffset = 40 - (i * 20);
 
-                Projectile p = new Projectile(
+                Projectile p = new LobbedProjectile(
                         damage,
                         new Position(plant.getX() + xOffset, plant.getY()),
                         target.row,
@@ -82,17 +83,15 @@ public class PlantLobAbility implements PlantAbilityConfig {
                         5,
                         projectileType,
                         ProjectileTarget.ZOMBIE,
-                        plant
+                        plant,
+                        new Position(target.position.x , target.position.y),
+                        0,
+                        50f,
+                        60f,
+                        this.butterChance,
+                        this.butterDamage,
+                        this.aoeRadius
                 );
-                p.isLobbed = true;
-                p.startPosition = new Position(plant.getX() + xOffset , plant.getY());
-                p.targetPosition = new Position(target.position.x , target.position.y);
-                p.flightProgress = 0;
-                p.flightDuration = 50f;
-                p.arcHeight = 60f;
-                p.setAoeRadius(this.aoeRadius);
-                p.setButterChance(this.butterChance);
-                p.setButterDamage(this.butterDamage);
                 p.setDirection(shootPattern.getDir());
 
 
