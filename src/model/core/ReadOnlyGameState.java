@@ -2,6 +2,7 @@ package model.core;
 
 import java.util.List;
 
+import model.board.GameBoard;
 import model.data.plant.Plant;
 import model.data.projectile.Projectile;
 import model.data.sun.Sun;
@@ -20,6 +21,8 @@ public interface ReadOnlyGameState {
     public static final int PLANT_TOUCH_DISTANCE = 30;
 
     public static final int INITIAL_SUN_AMOUNT = 150;
+
+    GameBoard getBoard();
 
     List<Plant> getPlants();
 

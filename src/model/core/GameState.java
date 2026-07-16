@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
 
-import model.data.Grave.Grave;
 import model.data.plant.Plant;
 import model.data.projectile.Projectile;
 import model.data.sun.Sun;
 import model.data.zombie.Zombie;
+import model.board.GameBoard;
+import model.board.Tile;
+import model.board.TileType;
+import model.board.IceDirection;
+import model.data.Grave.Grave;
 
 public class GameState implements ReadOnlyGameState {
     public List<Plant> plants = new ArrayList<>();
@@ -16,6 +20,7 @@ public class GameState implements ReadOnlyGameState {
     public List<Projectile> projectiles = new ArrayList<>();
     public List<Sun> sunDrops = new ArrayList<>();
     public List<Grave> graves = new ArrayList<>();
+    private GameBoard board = new GameBoard(GameState.GRID_ROWS, GameState.GRID_COLS);
 
     public int sunAmount = INITIAL_SUN_AMOUNT;
     public int plantFoodAmount = 0;
@@ -26,6 +31,11 @@ public class GameState implements ReadOnlyGameState {
     public boolean levelComplete = false;
 
     public int totalTicks = 0;
+
+    @Override
+    public GameBoard getBoard() {
+        return board;
+    }
 
     @Override
     public List<Plant> getPlants() {

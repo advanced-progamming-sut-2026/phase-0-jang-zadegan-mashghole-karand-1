@@ -2,6 +2,7 @@ package model;
 
 import java.util.List;
 
+import model.board.Tile;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
@@ -122,42 +123,25 @@ public class ModelManager {
         return ruleEngine.canPlant(type, row, col, state);
     }
 
-    public boolean placePlant(int row, int col, String plantName, int level) {
-        if (row < 0 || row >= GameState.GRID_ROWS)
+    public boolean placePlant(int row, int col, PlantType plantType, int level) {
+        Tile tile = state.getBoard().getTile(row, col);
+        if (tile == null)
             return false;
-        if (col < 0 || col >= GameState.GRID_COLS)
-            return false;
-
-        if (state.getPlantAt(row, col) != null)
+        if (!tile.isPlantable(plantType))
             return false;
 
-        PlantType type = PlantType.fromName(plantName);
-        if (type == null)
+        if (!ruleEngine.canPlant(plantType, row, col, state))
             return false;
 
-        if (!ruleEngine.canPlant(type, row, col, state))
+        if (state.sunAmount < plantType.baseStats.cost)
             return false;
 
-        if (state.sunAmount < type.baseStats.cost)
-            return false;
-
-        Plant plant = new Plant(type, row, col, level, eventBus);
+        Plant plant = new Plant(plantType, row, col, level, eventBus);
         state.plants.add(plant);
         state.sunAmount -= plant.cost;
 
         eventBus.publish(new PlantPlacedEvent(plant));
         return true;
-    }
-
-    public void spawnZombie(int row, String zombieTypeName) {
-        ZombieType type = ZombieType.fromName(zombieTypeName);
-        if (type == null)
-            return;
-        Zombie zombie = new Zombie(type, row, GameState.GRID_COLS - 1,
-                new Position(GameState.SCREEN_WIDTH, GameState.CELL_HEIGHT * row + (GameState.CELL_HEIGHT / 2)),
-                eventBus);
-        state.addZombie(zombie);
-        eventBus.publish(new ZombieSpawnedEvent(zombie));
     }
 
     public boolean collectSun(int index) {

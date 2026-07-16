@@ -18,6 +18,7 @@ import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.events.WaveCompleteEvent;
 import model.events.WaveStartedEvent;
+import model.events.ZombieSpawnedEvent;
 
 public class WaveManager {
     private static final int SPAWN_INTERVAL_TICKS = 30; // 3 seconds between spawns
@@ -114,11 +115,11 @@ public class WaveManager {
             return;
 
         int row = (int) (Math.random() * GameState.GRID_ROWS);
-        Zombie zombie = new Zombie(spawn.type, row, GameState.GRID_COLS,
-                new Position(GameState.SCREEN_WIDTH + 50, GameState.CELL_HEIGHT * row + GameState.CELL_HEIGHT / 2),
+        Zombie zombie = new Zombie(spawn.type, row, GameState.GRID_COLS - 1,
+                new Position(GameState.SCREEN_WIDTH, GameState.CELL_HEIGHT * row + (GameState.CELL_HEIGHT / 2)),
                 eventBus);
-
         state.addZombie(zombie);
+        eventBus.publish(new ZombieSpawnedEvent(zombie));
         currentWaveZombieIds.add(zombie.instanceId);
         zombiesSpawnedInWave++;
 
