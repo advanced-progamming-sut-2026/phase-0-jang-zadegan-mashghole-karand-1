@@ -1,7 +1,7 @@
 package model.storage.user;
 
+import model.data.content.chapter.ChapterType;
 import model.minigame.MinigameType;
-import model.world.ChapterType;
 
 import java.util.HashSet;
 import java.util.Set;

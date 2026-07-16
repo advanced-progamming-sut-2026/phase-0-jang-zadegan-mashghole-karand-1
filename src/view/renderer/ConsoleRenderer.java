@@ -6,6 +6,8 @@ import java.util.List;
 import controller.PickPlantsController;
 import model.core.GameLoop;
 import model.core.ReadOnlyGameState;
+import model.data.content.chapter.ChapterCatalog;
+import model.data.content.chapter.ChapterType;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
@@ -15,8 +17,6 @@ import model.service.NewsViewState;
 import model.service.ProfileViewState;
 import model.service.SettingsViewState;
 import model.storage.user.SafetyQuestion;
-import model.world.ChapterCatalog;
-import model.world.ChapterType;
 
 public class ConsoleRenderer implements Renderer {
 
@@ -414,12 +414,16 @@ public class ConsoleRenderer implements Renderer {
 
         sb.append(getHeaderBox(title, PURPLE));
         sb.append("\n");
-        sb.append("  ").append(BOLD).append("Username:").append(RESET).append(" ").append(profile.username).append("\n");
-        sb.append("  ").append(BOLD).append("Nickname:").append(RESET).append(" ").append(profile.nickname).append("\n");
-        sb.append("  ").append(BOLD).append("Games Played:").append(RESET).append(" ").append(profile.gamesPlayed).append("\n");
+        sb.append("  ").append(BOLD).append("Username:").append(RESET).append(" ").append(profile.username)
+                .append("\n");
+        sb.append("  ").append(BOLD).append("Nickname:").append(RESET).append(" ").append(profile.nickname)
+                .append("\n");
+        sb.append("  ").append(BOLD).append("Games Played:").append(RESET).append(" ").append(profile.gamesPlayed)
+                .append("\n");
         sb.append("  ").append(BOLD).append("Coins:").append(RESET).append(" ").append(profile.coins).append("\n");
         sb.append("  ").append(BOLD).append("Gems:").append(RESET).append(" ").append(profile.gems).append("\n");
-        sb.append("  ").append(BOLD).append("Completed Levels:").append(RESET).append(" ").append(profile.completedLevels)
+        sb.append("  ").append(BOLD).append("Completed Levels:").append(RESET).append(" ")
+                .append(profile.completedLevels)
                 .append("\n");
         sb.append("  ").append(BOLD).append("Highest Score:").append(RESET).append(" ").append(profile.highestScore)
                 .append("\n");

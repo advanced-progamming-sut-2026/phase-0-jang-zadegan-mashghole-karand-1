@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import model.data.content.chapter.ChapterType;
 import model.data.zombie.ZombieType;
 
 public class ZombiePool {
@@ -14,23 +15,23 @@ public class ZombiePool {
     private ZombiePool() {
     }
 
-    public static ZombiePool forChapter(String chapterId) {
+    public static ZombiePool forChapter(ChapterType chapterType) {
         ZombiePool pool = new ZombiePool();
 
-        switch (chapterId.toLowerCase()) {
-            case "egypt":
+        switch (chapterType) {
+            case ANCIENT_EGYPT:
                 pool.addZombie(ZombieType.BASIC)
                         .addZombie(ZombieType.CONE_HEAD);
                 break;
-            case "beach":
+            case BIG_WAVE_BEACH:
                 // ... add Big Wave Beach zombies
                 break;
 
-            case "frostbite":
+            case FROSTBITE_CAVES:
                 // ... add Frostbite zombies
                 break;
 
-            case "darkages":
+            case DARK_AGES:
                 // ... add Dark Ages zombies
                 break;
 

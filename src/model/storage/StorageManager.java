@@ -2,11 +2,11 @@ package model.storage;
 
 import java.util.List;
 
+import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
 import model.storage.user.User;
-import model.world.ChapterType;
 
 public interface StorageManager {
 

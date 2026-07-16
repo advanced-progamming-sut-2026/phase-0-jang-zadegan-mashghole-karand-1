@@ -1,4 +1,4 @@
-package model.world;
+package model.data.content.specialLevel;
 
 public enum SpecialLevelType {
     CONVEYOR_BELT,
