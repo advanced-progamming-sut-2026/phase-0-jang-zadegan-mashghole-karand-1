@@ -12,8 +12,8 @@ public class Projectile {
     public Direction direction = Direction.FORWARD;
     public ProjectileType type;
     public ProjectileTarget target;
-
-    public Projectile(int damage, Position position, int row, int col, float speed, ProjectileType type,
+    public int knockBack = 0;
+    public Projectile(int damage, Position position ,int row, int col, float speed, ProjectileType type,
             ProjectileTarget target) {
         this.damage = damage;
         this.position = position;

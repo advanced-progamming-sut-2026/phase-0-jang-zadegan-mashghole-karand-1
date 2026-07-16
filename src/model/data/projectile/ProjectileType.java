@@ -9,6 +9,8 @@ public enum ProjectileType {
     LASER,
     STAR,
     CABBAGE,
+    KERNEL,
+    BUTTER,
     MELON,
     FREEZE_LINE,
     ROTO_SEED,
@@ -18,5 +20,8 @@ public enum ProjectileType {
     BOUNCING_ORANGE,
     BOUNCING_BLUE,
     SUPER_BULB,
-    POISON
+    POISON,
+    ICE_MELON,
+    PEPPER,
+    BLUE_FIRE
 }
