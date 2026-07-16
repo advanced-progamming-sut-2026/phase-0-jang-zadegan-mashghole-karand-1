@@ -5,7 +5,6 @@ import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantCategory;
 import model.data.plant.abilities.config.PlantAbilityConfig;
-import model.data.plant.effects.config.PlantEffectConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,26 +21,26 @@ public class PlantMintAbility implements PlantAbilityConfig {
 
     @Override
     public PlantAbilityConfig createInstance(Plant plant) {
-        return new PlantMintAbility(targetCategory, durationTicks, plant.resetFamilyCooldowns);
+        return new PlantMintAbility(targetCategory, durationTicks);
     }
-
 
     @Override
     public void onTick(Plant plant, GameState state, EventBus event) {
-        if (activated) return;
+        if (activated)
+            return;
         activated = true;
-        List<Plant> familyPlants =
-                new ArrayList<>(state.plants);
+        List<Plant> familyPlants = new ArrayList<>(state.plants);
         for (Plant target : familyPlants) {
-            if (target == plant) continue;
-            if (target.type.category != targetCategory) continue;
+            if (target == plant)
+                continue;
+            if (target.type.category != targetCategory)
+                continue;
 
             if (target.plantFoodEffect != null) {
                 target.activatePlantFood(
                         state,
                         event,
-                        durationTicks
-                );
+                        durationTicks);
             }
             if (plant.resetFamilyCooldowns) {
                 resetCooldowns(target);

@@ -3,7 +3,7 @@ package model.data.plant.effects.runtime;
 import model.core.EventBus;
 import model.core.GameState;
 import model.data.plant.Plant;
-import model.data.plant.ProjectileType;
+import model.data.projectile.ProjectileType;
 import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.projectile.Projectile;
 
