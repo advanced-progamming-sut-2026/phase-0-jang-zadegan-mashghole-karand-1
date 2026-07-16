@@ -6,8 +6,11 @@ import model.board.Tile;
 import model.board.TileType;
 import model.core.EventBus;
 import model.core.GameState;
+import model.core.Position;
 import model.data.Grave.Grave;
 import model.data.Grave.GraveContent;
+import model.data.zombie.Zombie;
+import model.data.zombie.ZombieType;
 import model.events.GraveCreatedEvent;
 import model.events.NecromancySpawnEvent;
 import model.rule.LevelRule;
@@ -92,6 +95,10 @@ public class DarkAgesRules implements LevelRule {
                 Tile tile = state.getBoard().getTile(row, col);
                 if (tile.getType() == TileType.NECROMANCY && tile.hasGrave()) {
                     bus.publish(new NecromancySpawnEvent(row, col));
+                    ZombieType type = RANDOM.nextInt(2)==0? ZombieType.BASIC : ZombieType.CONE_HEAD;
+                    Zombie zombie = new Zombie(type, row, col, new Position((col + 0.5f) * GameState.CELL_WIDTH,
+                            (row + 0.5f) * GameState.CELL_HEIGHT), bus);
+                    state.addZombie(zombie);
                 }
             }
         }
