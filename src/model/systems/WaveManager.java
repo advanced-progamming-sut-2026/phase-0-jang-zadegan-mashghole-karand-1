@@ -40,7 +40,7 @@ public class WaveManager {
     public void initialize(LevelConfig config) {
         this.levelConfig = config;
         this.totalWaves = config.totalWaves;
-        this.zombiePool = ZombiePool.forChapter(config.chapterId);
+        this.zombiePool = ZombiePool.forChapter(config.chapterType);
         this.currentWave = 0;
         this.waveActive = false;
         clearWaveTracking();

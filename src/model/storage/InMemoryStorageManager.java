@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
 import model.minigame.MinigameType;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
 import model.storage.user.User;
-import model.world.ChapterType;
 
 public class InMemoryStorageManager implements StorageManager {
 

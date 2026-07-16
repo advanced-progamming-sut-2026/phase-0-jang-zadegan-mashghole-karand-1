@@ -3,9 +3,9 @@ package model.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
 import model.data.wave.LevelConfig;
-import model.world.ChapterType;
 
 public class GameNavigationState {
 

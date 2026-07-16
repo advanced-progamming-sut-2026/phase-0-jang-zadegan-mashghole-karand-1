@@ -14,13 +14,13 @@ import java.util.UUID;
 import java.time.LocalDateTime;
 
 import model.gameSetting.GameSetting;
+import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
 import model.minigame.MinigameType;
 import model.news.NewsItem;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
 import model.storage.user.User;
-import model.world.ChapterType;
 
 public class SqlStorageManager implements StorageManager {
     private static final String DEFAULT_DB_ADDRESS = "data/game.db";

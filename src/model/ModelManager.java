@@ -1,16 +1,24 @@
 package model;
 
+import java.util.List;
+
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
 import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
-import model.data.wave.LevelConfig;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.events.PlantPlacedEvent;
 import model.events.ZombieSpawnedEvent;
+import model.rule.LevelRule;
+import model.rule.RuleEngine;
+import model.rule.SessionConfig;
+import model.rule.SessionContext;
+import model.rule.rules.ChapterRules;
+import model.rule.rules.MiniGameRules;
+import model.rule.rules.SpecialLevelRules;
 import model.storage.StorageManager;
 import model.systems.CombatSystem;
 import model.systems.MovementSystem;
@@ -24,6 +32,8 @@ public class ModelManager {
     private final EventBus eventBus;
     private final StorageManager storage;
     private final WaveManager waveManager;
+    private final RuleEngine ruleEngine;
+    private SessionContext sessionContext;
 
     private final MovementSystem movementSystem;
     private final CombatSystem combatSystem;
@@ -34,6 +44,7 @@ public class ModelManager {
     public ModelManager(StorageManager storage, EventBus eventBus) {
         this.state = new GameState();
         this.waveManager = new WaveManager();
+        this.ruleEngine = new RuleEngine();
         this.eventBus = eventBus;
         this.storage = storage;
 
@@ -49,28 +60,42 @@ public class ModelManager {
             return;
         }
 
-        plantAbilitySystem.update(state, eventBus);
+        ruleEngine.preTick(sessionContext, state, eventBus);
 
+        plantAbilitySystem.update(state, eventBus);
+        // zombieAbilitySystem
         sunSpawnSystem.update(state);
         sunSystem.update(state);
-
-        // zombie ability
-
         movementSystem.update(state);
-
         combatSystem.update(state, eventBus);
-
         waveManager.update(state, eventBus);
 
-        // we should move to event queue processing if we faced any problems with the
-        // current setup
-        // eventBus.processEvents();
+        ruleEngine.postTick(sessionContext, state, eventBus);
     }
 
-    public void startLevel(LevelConfig level) {
+    public void startSession(SessionConfig config) {
         state.reset();
-        state.sunAmount = level.startingSun;
-        waveManager.initialize(level);
+        state.sunAmount = config.levelConfig.startingSun;
+        ruleEngine.clearRules();
+
+        List<LevelRule> chapterRules = ChapterRules.forChapter(config.levelConfig.chapterType);
+        ruleEngine.addRules(chapterRules);
+
+        if (config.isSpecial()) {
+            List<LevelRule> specialRules = SpecialLevelRules.forSpecialLevel(config.specialLevelType);
+            ruleEngine.addRules(specialRules);
+        }
+
+        if (config.isMinigame()) {
+            List<LevelRule> minigameRules = MiniGameRules.forMiniGame(config.miniGameType);
+            ruleEngine.addRules(minigameRules);
+        }
+
+        this.sessionContext = new SessionContext(config, ruleEngine);
+
+        waveManager.initialize(config.levelConfig);
+
+        ruleEngine.onSessionStart(sessionContext, state, eventBus);
     }
 
     public GameState getState() {
@@ -79,6 +104,22 @@ public class ModelManager {
 
     public ReadOnlyGameState getStateView() {
         return state;
+    }
+
+    public RuleEngine getRuleEngine() {
+        return ruleEngine;
+    }
+
+    public SessionContext getPlayContext() {
+        return sessionContext;
+    }
+
+    public boolean shouldDropSkySun() {
+        return ruleEngine.shouldDropSkySun();
+    }
+
+    public boolean canPlant(PlantType type, int row, int col) {
+        return ruleEngine.canPlant(type, row, col, state);
     }
 
     public boolean placePlant(int row, int col, String plantName, int level) {
@@ -92,6 +133,9 @@ public class ModelManager {
 
         PlantType type = PlantType.fromName(plantName);
         if (type == null)
+            return false;
+
+        if (!ruleEngine.canPlant(type, row, col, state))
             return false;
 
         if (state.sunAmount < type.baseStats.cost)
