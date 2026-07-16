@@ -9,9 +9,6 @@ import model.data.projectile.Projectile;
 import model.data.sun.Sun;
 import model.data.zombie.Zombie;
 import model.board.GameBoard;
-import model.board.Tile;
-import model.board.TileType;
-import model.board.IceDirection;
 import model.data.Grave.Grave;
 
 public class GameState implements ReadOnlyGameState {
@@ -25,7 +22,7 @@ public class GameState implements ReadOnlyGameState {
     public int sunAmount = INITIAL_SUN_AMOUNT;
     public int plantFoodAmount = 0;
 
-    public int currentWave = 1;
+    public int currentWave = 0;
     public int zombiesRemaining = 0;
     public boolean gameOver = false;
     public boolean levelComplete = false;
@@ -72,6 +69,14 @@ public class GameState implements ReadOnlyGameState {
         return currentWave;
     }
 
+    public void setCurrentWave(int newWave) {
+        currentWave = newWave;
+    }
+
+    public void incrementCurrentWave() {
+        currentWave++;
+    }
+
     @Override
     public int getZombiesRemaining() {
         return zombiesRemaining;
@@ -113,7 +118,7 @@ public class GameState implements ReadOnlyGameState {
         graves.clear();
         sunAmount = INITIAL_SUN_AMOUNT;
         plantFoodAmount = 0;
-        currentWave = 1;
+        currentWave = 0;
         zombiesRemaining = 0;
         gameOver = false;
         levelComplete = false;

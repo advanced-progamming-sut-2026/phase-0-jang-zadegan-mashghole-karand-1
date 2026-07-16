@@ -25,4 +25,7 @@ public enum PlantStatBonus {
     ZOMBIE_HP_BUFF,
     ZOMBIE_DAMAGE_BUFF,
     RESET_FAMILY_COOLDOWN,
-}
+    EXPLODE_ON_FINISH,
+    MELT_AREA_3x3
+
+    }

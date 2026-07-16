@@ -1,0 +1,110 @@
+package model.rule.rules.chapter;
+
+import java.util.Random;
+
+import model.board.Tile;
+import model.board.TileType;
+import model.core.EventBus;
+import model.core.GameState;
+import model.data.Grave.Grave;
+import model.data.Grave.GraveContent;
+import model.events.GraveCreatedEvent;
+import model.events.NecromancySpawnEvent;
+import model.rule.LevelRule;
+import model.rule.SessionContext;
+
+public class DarkAgesRules implements LevelRule {
+    private static final Random RANDOM = new Random();
+    private static final int MIN_COL = 3; // don't spawn graves and necromancy tiles in the first 3 columns
+
+    @Override
+    public boolean shouldDropSkySun() {
+        return false;
+    }
+
+    @Override
+    public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
+        placeNecromancyTiles(state);
+        placeInitialGraves(state);
+    }
+
+    private void placeNecromancyTiles(GameState state) {
+        int placed = 0;
+        int attempts = 0;
+        int target = 10;
+
+        while (placed < target && attempts < 200) {
+            attempts++;
+            int row = RANDOM.nextInt(GameState.GRID_ROWS);
+            int col = MIN_COL + RANDOM.nextInt(GameState.GRID_COLS - MIN_COL);
+
+            state.getBoard().getTile(row, col).setType(TileType.NECROMANCY);
+            placed++;
+        }
+    }
+
+    private void placeInitialGraves(GameState state) {
+        int placed = 0;
+        int attempts = 0;
+        int target = 5;
+
+        while (placed < target && attempts < 200) {
+            attempts++;
+            int row = RANDOM.nextInt(GameState.GRID_ROWS);
+            int col = MIN_COL + RANDOM.nextInt(GameState.GRID_COLS - MIN_COL);
+
+            Tile tile = state.getBoard().getTile(row, col);
+            if (tile.canSetGrave()) {
+                tile.setGrave(new Grave(row, col, decideGraveContent()));
+                placed++;
+            }
+        }
+    }
+
+    @Override
+    public void onWaveStart(SessionContext context, GameState state, EventBus bus) {
+        spawnDynamicGraves(state, bus);
+        spawnZombiesFromNecromancy(state, bus);
+    }
+
+    private void spawnDynamicGraves(GameState state, EventBus bus) {
+        int newGraves = 1 + RANDOM.nextInt(3);
+        int placed = 0;
+        int attempts = 0;
+
+        while (placed < newGraves && attempts < 100) {
+            attempts++;
+            int row = RANDOM.nextInt(GameState.GRID_ROWS);
+            int col = MIN_COL + RANDOM.nextInt(GameState.GRID_COLS - MIN_COL);
+
+            Tile tile = state.getBoard().getTile(row, col);
+            if (tile.canSetGrave()) {
+                tile.setGrave(new Grave(row, col, decideGraveContent()));
+                bus.publish(new GraveCreatedEvent(tile.getGrave()));
+                placed++;
+            }
+        }
+    }
+
+    private void spawnZombiesFromNecromancy(GameState state, EventBus bus) {
+        for (int row = 0; row < GameState.GRID_ROWS; row++) {
+            for (int col = MIN_COL; col < GameState.GRID_COLS; col++) {
+                Tile tile = state.getBoard().getTile(row, col);
+                if (tile.getType() == TileType.NECROMANCY && tile.hasGrave()) {
+                    bus.publish(new NecromancySpawnEvent(row, col));
+                }
+            }
+        }
+    }
+
+    private GraveContent decideGraveContent() {
+        // 30% chance to drop sun, 20% chance to drop plant food
+        int roll = RANDOM.nextInt(100);
+        if (roll < 30) {
+            return GraveContent.SUN_50;
+        } else if (roll < 50) {
+            return GraveContent.PLANT_FOOD;
+        }
+        return GraveContent.NONE;
+    }
+}

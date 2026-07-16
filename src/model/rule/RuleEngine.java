@@ -6,7 +6,6 @@ import java.util.List;
 
 import model.core.EventBus;
 import model.core.GameState;
-import model.data.Grave.Grave;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
@@ -76,21 +75,15 @@ public class RuleEngine {
         }
     }
 
-    public void onZombieSpawned(Zombie zombie, GameState state) {
+    public void onZombieSpawned(Zombie zombie, SessionContext context, GameState state) {
         for (LevelRule rule : activeRules) {
-            rule.onZombieSpawned(zombie, state);
+            rule.onZombieSpawned(zombie, context, state);
         }
     }
 
     public void onZombieDied(Zombie zombie, GameState state, EventBus bus) {
         for (LevelRule rule : activeRules) {
             rule.onZombieDied(zombie, state, bus);
-        }
-    }
-
-    public void onGraveDestroyed(Grave grave, GameState state, EventBus bus) {
-        for (LevelRule rule : activeRules) {
-            rule.onGraveDestroyed(grave, state, bus);
         }
     }
 
@@ -127,31 +120,5 @@ public class RuleEngine {
             totalOffset += rule.getSpawnOffset(zombie);
         }
         return totalOffset;
-    }
-
-    public float getDifficultyMultiplier() {
-        float multiplier = 1.0f;
-        for (LevelRule rule : activeRules) {
-            multiplier *= rule.getDifficultyMultiplier();
-        }
-        return multiplier;
-    }
-
-    public boolean isProjectileBlocked(int row, int col, GameState state) {
-        for (LevelRule rule : activeRules) {
-            if (rule.isProjectileBlocked(row, col, state)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean shouldSpawnDynamicGraves() {
-        for (LevelRule rule : activeRules) {
-            if (rule.shouldSpawnDynamicGraves()) {
-                return true;
-            }
-        }
-        return false;
     }
 }

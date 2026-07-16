@@ -26,7 +26,6 @@ public class WaveManager {
     private LevelConfig levelConfig;
     private ZombiePool zombiePool;
 
-    private int currentWave = 0;
     private int totalWaves = 0;
     private boolean finalWave = false;
     private boolean waveActive = false;
@@ -42,7 +41,6 @@ public class WaveManager {
         this.levelConfig = config;
         this.totalWaves = config.totalWaves;
         this.zombiePool = ZombiePool.forChapter(config.chapterType);
-        this.currentWave = 0;
         this.waveActive = false;
         clearWaveTracking();
     }
@@ -53,7 +51,7 @@ public class WaveManager {
         if (levelConfig == null)
             return;
 
-        if (!waveActive && currentWave < totalWaves) {
+        if (!waveActive && state.getCurrentWave() < totalWaves) {
             startNextWave(state, eventBus);
             return;
         }
@@ -68,11 +66,11 @@ public class WaveManager {
             }
 
             if (shouldStartNextWave(state)) {
-                if (currentWave >= totalWaves) {
+                if (state.getCurrentWave() >= totalWaves) {
                     waveActive = false;
-                    eventBus.publish(new WaveCompleteEvent(currentWave, true));
+                    eventBus.publish(new WaveCompleteEvent(state.getCurrentWave(), true));
                 } else {
-                    eventBus.publish(new WaveCompleteEvent(currentWave, false));
+                    eventBus.publish(new WaveCompleteEvent(state.getCurrentWave(), false));
                     startNextWave(state, eventBus);
                 }
             }
@@ -80,13 +78,13 @@ public class WaveManager {
     }
 
     private void startNextWave(GameState state, EventBus eventBus) {
-        currentWave++;
-        finalWave = currentWave == totalWaves;
+        state.incrementCurrentWave();
+        finalWave = state.getCurrentWave() == totalWaves;
         waveActive = true;
 
         clearWaveTracking();
 
-        int budget = calculateWaveBudget(currentWave);
+        int budget = calculateWaveBudget(state.getCurrentWave());
 
         ZombieWave wave = buildWaveFromBudget(budget);
         totalZombiesInWave = wave.getTotalZombies();
@@ -97,7 +95,7 @@ public class WaveManager {
         }
         ticksUntilNextSpawn = SPAWN_INTERVAL_TICKS / 2;// faster first batch
 
-        eventBus.publish(new WaveStartedEvent(currentWave, totalZombiesInWave, finalWave));
+        eventBus.publish(new WaveStartedEvent(state.getCurrentWave(), totalZombiesInWave, finalWave));
     }
 
     private void clearWaveTracking() {
@@ -197,10 +195,6 @@ public class WaveManager {
         }
 
         return (float) currentHp / (float) totalHp < 0.25f;
-    }
-
-    public int getCurrentWave() {
-        return currentWave;
     }
 
     public int getTotalWaves() {
