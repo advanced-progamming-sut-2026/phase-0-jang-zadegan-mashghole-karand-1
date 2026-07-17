@@ -2,9 +2,13 @@ package model.data.zombie;
 
 import java.util.*;
 
+import model.board.IceDirection;
+import model.board.Tile;
+import model.board.TileType;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
+import model.core.ReadOnlyGameState;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.data.zombie.armor.runtime.ZombieArmor;
 import model.events.GlowingZombieDiedEvent;
@@ -35,6 +39,21 @@ public class Zombie {
     public EventBus eventBus;
 
     private static int nextId = 0;
+    public final boolean canBeFrozen;
+
+
+    public class Ice{
+        public boolean active = false;
+        public int hp = 600;
+        public void takeDamage(float damage){
+            hp -= damage;
+            if(hp <= 0){
+                active = false;
+            }
+        }
+    }
+
+    public Ice ice;
 
     public Zombie(ZombieType type, int row, int col, Position position, EventBus bus) {
         this.instanceId = nextId++;
@@ -60,9 +79,17 @@ public class Zombie {
         }
 
         isGlowing = randomizer.nextInt(20) == 0;
+
+        canBeFrozen = !(type == ZombieType.DODO_RIDER_ZOMBIE || type == ZombieType.HUNTER || type == ZombieType.TROGLOBITE);
+        this.ice = new Ice();
     }
 
     public void takeDamage(int damage) {
+        if(ice.active){
+            ice.takeDamage(damage);
+            return;
+        }
+
         if (armor != null && armor.isIntact()) {
             damage = armor.absorbDamage(damage);
         }
@@ -75,17 +102,29 @@ public class Zombie {
     }
 
     public void tick(GameState state) {
-       if (isFrozen) {
+         if (isFrozen) {
            frozenTicks--;
-           if (frozenTicks <= 0) {
-               isFrozen = false;
+           if (frozenTicks <= 0) isFrozen = false;
+         }
+
+        Tile tileIn = state.getBoard().getTile(row, col);
+       if (tileIn == null) return;
+       if(tileIn.getType()== TileType.ICE
+               && tileIn.getDirection()!= IceDirection.NONE
+               && type!= ZombieType.DODO_RIDER_ZOMBIE) {
+           int delta = tileIn.getDirection() == IceDirection.DOWN ? 1 : -1;
+           int newRow = row + delta;
+
+           if(state.getBoard().isValid(newRow,col)) {
+               row = newRow;
+               position.y += ReadOnlyGameState.CELL_HEIGHT * delta;
            }
-           return;
        }
 
     }
 
     public void onTickAbilities(GameState state) {
+        if(ice.active) return;
         for (ZombieAbilityConfig ability : abilities) {
             ability.onTick(this, state, eventBus);
         }
@@ -129,9 +168,12 @@ public class Zombie {
     }
 
     public float getCurrentSpeed() {
+        float s = speed;
+        if(ice.active)return 0;
         if (hasSandstorm()) {
-            return speed * activeSandstorm.SPEED_MULTIPLIER;
+            s*= activeSandstorm.SPEED_MULTIPLIER;
         }
-        return speed;
+        if(isFrozen) s *= 0.5f;
+        return s;
     }
 }

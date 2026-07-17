@@ -9,8 +9,7 @@ public class MovementSystem {
 
     public void update(GameState state) {
         for (Zombie zombie : state.zombies) {
-            float currentSpeed = zombie.hasSandstorm() ? zombie.speed * SandstormEffect.SPEED_MULTIPLIER
-                    : zombie.speed;
+            float currentSpeed = zombie.getCurrentSpeed();
             float nextX = zombie.position.x - currentSpeed;
 
             if (zombie.hasSandstorm() && nextX <= zombie.getSandstorm().finalX) {
