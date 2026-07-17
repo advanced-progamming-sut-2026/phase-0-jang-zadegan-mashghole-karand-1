@@ -106,7 +106,9 @@ public enum Commands {
     SHOP_BUY_WITH_TYPE("shop\\s+buy\\s+-i\\s+(?<itemid>.*?)\\s+-n\\s+(?<count>\\d+)\\s+-t\\s+(?<planttype>.*)$"),
 
     //quests / travel log
-    TRAVEL_LOG_PAGE("travel\\s+log\\s+page\\s+(?<pagename>.*)$");
+    TRAVEL_LOG_PAGE("travel\\s+log\\s+page\\s+(?<pagename>.*)$"),
+    //leaderboard
+    SORT_SCORE("menu\\s+leaderboard\\s+sort\\s+-c\\s+(?<sortclass>.*)\\s+-t\\s+(?<sorttype>.*)");
 
     private final String regex;
     private final Pattern pattern;

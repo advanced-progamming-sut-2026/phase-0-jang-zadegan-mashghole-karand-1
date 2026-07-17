@@ -4,11 +4,7 @@ import controller.CommandResult.CommandResult;
 import model.ModelManager;
 import model.core.EventBus;
 import model.core.GameLoop;
-import model.service.AuthState;
-import model.service.GameNavigationState;
-import model.service.NewsViewState;
-import model.service.ProfileViewState;
-import model.service.SettingsViewState;
+import model.service.*;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
 import view.MenuType;
@@ -34,6 +30,7 @@ public class ControllerManager {
     private final GreenhouseController greenhouseController = new GreenhouseController();
     private ShopController shopController;
     private final QuestMenuController questMenuController = new QuestMenuController();
+    private final LeaderboardMenuController leaderboardMenuController;
 
     private ScreenType currentScreen = ScreenType.REGISTER;
     private MenuType currentMenu = MenuType.NONE;
@@ -42,6 +39,7 @@ public class ControllerManager {
     private ProfileViewState profileViewState = ProfileViewState.empty();
     private NewsViewState newsViewState = NewsViewState.empty();
     private SettingsViewState settingsViewState = SettingsViewState.empty();
+    private LeaderboardViewState leaderboardViewState = LeaderboardViewState.empty();
     private boolean hasUnreadNews = false;
 
     public ControllerManager(ModelManager model,
@@ -59,7 +57,7 @@ public class ControllerManager {
         new AppEventHandler(eventBus, storage).register();
         this.gameMenuController = new GameMenuController(this, storage, gameNavigation);
         this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
-
+        this.leaderboardMenuController = new LeaderboardMenuController(this,storage,leaderboardViewState);
         this.gameLoop.setOnTickHandler(() -> {
             model.tick();
             tick();
@@ -102,6 +100,7 @@ public class ControllerManager {
                 gameNavigation.unlockedPlants = storage.getUnlockedPlants();
                 profileViewState = ProfileViewState.fromUser(storage.getCurrentUser());
                 settingsViewState = SettingsViewState.fromUser(storage.getCurrentUser());
+                leaderboardViewState = leaderboardMenuController.getViewState();
                 hasUnreadNews = storage.getCurrentUser().newsFeed.hasUnread();
                 if (currentMenu == MenuType.NEWS) {
                     newsViewState = newsMenuController.getViewState();
@@ -115,7 +114,7 @@ public class ControllerManager {
                 hasUnreadNews = false;
             }
             view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation,
-                    profileViewState, newsViewState, settingsViewState, hasUnreadNews);
+                    profileViewState, newsViewState, settingsViewState,leaderboardViewState ,hasUnreadNews);
         }
     }
 
@@ -214,6 +213,8 @@ public class ControllerManager {
             if (name.equals("profile")) {
                 return openMainMenu(MenuType.PROFILE, "profile");
             }
+            if (name.equals("leaderboard"))
+                return openMainMenu(MenuType.LEADERBOARD,"leaderboard");
         }
 
         return new CommandResult("Cannot enter menu from here.", false);
@@ -341,6 +342,10 @@ public class ControllerManager {
 
     public GreenhouseController getGreenhouseController() {
         return greenhouseController;
+    }
+
+    public LeaderboardMenuController getLeaderboardMenuController() {
+        return leaderboardMenuController;
     }
 
     public ShopController getShopController() {

@@ -1,5 +1,6 @@
 package model.storage.user;
 
+import model.data.content.chapter.ChapterType;
 import model.gameSetting.GameSetting;
 import model.greenhouse.Greenhouse;
 import model.news.NewsFeed;
