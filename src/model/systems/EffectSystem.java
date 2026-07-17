@@ -10,7 +10,12 @@ public class EffectSystem {
 
     public void update(GameState state) {
         for (Zombie zombie : state.zombies) {
-            zombie.tick(state);
+            if (zombie.isFrozen) {
+                zombie.frozenTicks--;
+                if (zombie.frozenTicks <= 0) {
+                    zombie.isFrozen = false;
+                }
+            }
         }
         for (Plant plant : state.plants) {
             if (!plant.isFrostbiteFreezeActive())

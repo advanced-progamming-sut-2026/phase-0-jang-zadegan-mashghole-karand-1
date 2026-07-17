@@ -62,7 +62,7 @@ public class ModelManager {
         ruleEngine.preTick(sessionContext, state, eventBus);
 
         plantAbilitySystem.update(state, eventBus);
-        zombieAbilitySystem.update(state);
+        zombieAbilitySystem.update(state, eventBus);
         sunSpawnSystem.update(state);
         sunSystem.update(state);
         movementSystem.update(state);

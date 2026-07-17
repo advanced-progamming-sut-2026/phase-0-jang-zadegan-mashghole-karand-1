@@ -2,13 +2,9 @@ package model.data.zombie;
 
 import java.util.*;
 
-import model.board.IceDirection;
-import model.board.Tile;
-import model.board.TileType;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
-import model.core.ReadOnlyGameState;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.data.zombie.armor.runtime.ZombieArmor;
 import model.events.GlowingZombieDiedEvent;
@@ -16,8 +12,7 @@ import model.events.ZombieDiedEvent;
 import model.events.ZombieDroppedLootEvent;
 
 public class Zombie {
-    // Frostbite caves chapter specific
-    private static final int FROSTBITE_FREEZE_HP = 600;
+    private static final int ICE_HP = 600;
 
     public final int instanceId;
     public final ZombieType type;
@@ -38,11 +33,11 @@ public class Zombie {
     public boolean isHypnotized = false;
     public final boolean isGlowing;
 
+    private int iceHP = 0;
+    private boolean isIced = false;
+
     // Ancient Egypt chapter specific
     private SandstormEffect activeSandstorm = null;
-    // Frostbite caves chapter specific
-    private int frostbiteFreezeHP = 0;
-    private boolean isFrostbiteFreezeActive = false;
 
     Random randomizer = new Random();
 
@@ -50,20 +45,6 @@ public class Zombie {
 
     private static int nextId = 0;
     public final boolean canBeFrozen;
-
-
-    public class Ice{
-        public boolean active = false;
-        public int hp = 600;
-        public void takeDamage(float damage){
-            hp -= damage;
-            if(hp <= 0){
-                active = false;
-            }
-        }
-    }
-
-    public Ice ice;
 
     public Zombie(ZombieType type, int row, int col, Position position, EventBus bus) {
         this.instanceId = nextId++;
@@ -90,16 +71,11 @@ public class Zombie {
 
         isGlowing = randomizer.nextInt(20) == 0;
 
-        canBeFrozen = !(type == ZombieType.DODO_RIDER_ZOMBIE || type == ZombieType.HUNTER || type == ZombieType.TROGLOBITE);
-        this.ice = new Ice();
+        canBeFrozen = !(type == ZombieType.DODO_RIDER_ZOMBIE || type == ZombieType.HUNTER
+                || type == ZombieType.TROGLOBITE);
     }
 
     public void takeDamage(int damage) {
-        if(ice.active){
-            ice.takeDamage(damage);
-            return;
-        }
-
         if (armor != null && armor.isIntact()) {
             damage = armor.absorbDamage(damage);
         }
@@ -108,24 +84,6 @@ public class Zombie {
 
         if (this.hp <= 0) {
             this.isAlive = false;
-        }
-    }
-
-    public void tick(GameState state) {
-        if (isFrozen) {
-            frozenTicks--;
-            if (frozenTicks <= 0) {
-                isFrozen = false;
-            }
-            return;
-        }
-
-    }
-
-    public void onTickAbilities(GameState state) {
-        if(ice.active) return;
-        for (ZombieAbilityConfig ability : abilities) {
-            ability.onTick(this, state, eventBus);
         }
     }
 
@@ -152,6 +110,45 @@ public class Zombie {
 
     }
 
+    public float getCurrentSpeed() {
+        float s = speed;
+        if (isIced)
+            return 0;
+        if (hasSandstorm()) {
+            s *= activeSandstorm.SPEED_MULTIPLIER;
+        }
+        if (isFrozen)
+            s *= 0.5f;
+        return s;
+    }
+
+    public void ice() {
+        this.isIced = true;
+        this.iceHP = ICE_HP;
+    }
+
+    public void damageIce(int damage) {
+        if (!isIced)
+            return;
+        iceHP -= damage;
+        if (iceHP <= 0) {
+            removeIce();
+        }
+    }
+
+    public void removeIce() {
+        this.isIced = false;
+        this.iceHP = 0;
+    }
+
+    public boolean isIced() {
+        return isIced;
+    }
+
+    public int getIceHP() {
+        return iceHP;
+    }
+
     // Ancient Egypt chapter specific
     public boolean hasSandstorm() {
         return activeSandstorm != null;
@@ -169,41 +166,4 @@ public class Zombie {
         return activeSandstorm;
     }
 
-    public float getCurrentSpeed() {
-        float s = speed;
-        if(ice.active)return 0;
-        if (hasSandstorm()) {
-            s*= activeSandstorm.SPEED_MULTIPLIER;
-        }
-        if(isFrozen) s *= 0.5f;
-        return s;
-    }
-
-    // Frostbite caves chapter specific
-    public void frostbiteFreeze() {
-        this.isFrostbiteFreezeActive = true;
-        this.frostbiteFreezeHP = FROSTBITE_FREEZE_HP;
-    }
-
-    public void damageFrostbiteFreeze(int damage) {
-        if (!isFrostbiteFreezeActive)
-            return;
-        frostbiteFreezeHP -= damage;
-        if (frostbiteFreezeHP <= 0) {
-            removeFrostbiteFreeze();
-        }
-    }
-
-    public void removeFrostbiteFreeze() {
-        this.isFrostbiteFreezeActive = false;
-        this.frostbiteFreezeHP = 0;
-    }
-
-    public boolean isFrostbiteFreezeActive() {
-        return isFrostbiteFreezeActive;
-    }
-
-    public int getFrostbiteFreezeHP() {
-        return frostbiteFreezeHP;
-    }
 }

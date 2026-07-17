@@ -60,11 +60,11 @@ public class CombatSystem {
                         // handle projectile effects here, for freezing projectiles respect
                         // freezeProjectilesEnabled
 
-                        if (z.isFrostbiteFreezeActive()) {
+                        if (z.isIced()) {
                             if (p.type == ProjectileType.FIRE || p.type == ProjectileType.BLUE_FIRE) {
-                                z.removeFrostbiteFreeze();
+                                z.removeIce();
                             } else {
-                                z.damageFrostbiteFreeze(p.damage);
+                                z.damageIce(p.damage);
                             }
                         } else {
                             z.takeDamage(p.damage);

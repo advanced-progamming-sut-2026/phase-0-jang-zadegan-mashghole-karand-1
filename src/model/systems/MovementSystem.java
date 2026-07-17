@@ -6,17 +6,12 @@ import model.board.TileType;
 import model.core.GameState;
 import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
-import model.data.zombie.SandstormEffect;
 
 public class MovementSystem {
 
     public void update(GameState state) {
         for (Zombie zombie : state.zombies) {
-            if (zombie.isFrostbiteFreezeActive())
-                continue;
-
-            float currentSpeed = zombie.hasSandstorm() ? zombie.speed * SandstormEffect.SPEED_MULTIPLIER
-                    : zombie.speed;
+            float currentSpeed = zombie.getCurrentSpeed();
             float nextX = zombie.position.x - currentSpeed;
 
             if (zombie.hasSandstorm() && nextX <= zombie.getSandstorm().finalX) {
@@ -42,8 +37,6 @@ public class MovementSystem {
                     zombie.position.y = GameState.CELL_HEIGHT * newRow + (GameState.CELL_HEIGHT / 2);
                 }
             }
-
-            zombie.tick(state);
         }
 
         for (Projectile projectile : state.projectiles) {
