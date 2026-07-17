@@ -13,6 +13,7 @@ public class FreezeEffect implements HitEffect {
 
     @Override
     public void apply(Zombie zombie, GameState state, EventBus event) {
+        if(!zombie.canBeFrozen) return;
         zombie.isFrozen = true;
         zombie.frozenTicks = Math.max(zombie.frozenTicks, ticks);
     }
