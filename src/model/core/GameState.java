@@ -17,7 +17,7 @@ public class GameState implements ReadOnlyGameState {
     public List<Projectile> projectiles = new ArrayList<>();
     public List<Sun> sunDrops = new ArrayList<>();
     public List<Grave> graves = new ArrayList<>();
-    private GameBoard board = new GameBoard(GameState.GRID_ROWS, GameState.GRID_COLS);
+    private GameBoard board = new GameBoard(GameState.GRID_ROWS, GameState.GRID_COLS, this);
 
     public int sunAmount = INITIAL_SUN_AMOUNT;
     public int plantFoodAmount = 0;
