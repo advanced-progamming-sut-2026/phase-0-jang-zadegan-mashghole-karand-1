@@ -11,11 +11,8 @@ import model.data.content.chapter.ChapterType;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
-import model.service.GameNavigationState;
+import model.service.*;
 import model.service.GameNavigationState.Phase;
-import model.service.NewsViewState;
-import model.service.ProfileViewState;
-import model.service.SettingsViewState;
 import model.storage.user.SafetyQuestion;
 
 public class ConsoleRenderer implements Renderer {
@@ -402,7 +399,39 @@ public class ConsoleRenderer implements Renderer {
         sb.append(getMessages());
         return sb.toString();
     }
-
+    @Override
+    public void renderLeaderboardOverlay(LeaderboardViewState leaderboardViewState){
+            render(getLeaderboardOverlay(leaderboardViewState));
+    }
+    private String getLeaderboardOverlay(LeaderboardViewState leaderboard) {
+        StringBuilder sb = new StringBuilder();
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Leaderboard" + RESET + "  🧟";
+        sb.append(getHeaderBox(title, YELLOW));
+        sb.append("\n");
+        if (leaderboard == null || leaderboard.entries.isEmpty()) {
+            sb.append("  No players to show.\n");
+        } else {
+            sb.append(String.format("  %s%-4s %-12s %-18s %-8s %-8s%s%n",
+                    BOLD, "Rank", "User", "Progress", "Score", "Minigames", RESET));
+            sb.append("  " + GRAY + "─".repeat(52) + RESET + "\n");
+            for (LeaderboardViewState.Entry e : leaderboard.entries) {
+                String progress = "Ch " + e.chapter + " Lv " + e.level;
+                sb.append(String.format("  %s%-4d%s %-12s %-18s %-8d %-8d%n",
+                        CYAN, e.rank, RESET,
+                        e.username,
+                        progress,
+                        e.score,
+                        e.minigames));
+            }
+        }
+        sb.append("\n");
+        sb.append("  " + CYAN + "1." + RESET + " Sort: " + GREEN
+                + "menu leaderboard sort -c <SCORE|LEVELS|MINIGAMES> -t <HTL|LTH>" + RESET + "\n");
+        sb.append("  " + CYAN + "2." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("\n");
+        sb.append(getMessages());
+        return sb.toString();
+    }
     @Override
     public void renderProfileOverlay(ProfileViewState profile) {
         render(getProfileOverlay(profile));

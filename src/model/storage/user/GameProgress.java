@@ -1,5 +1,6 @@
 package model.storage.user;
 
+import model.data.content.chapter.ChapterCatalog;
 import model.data.content.chapter.ChapterType;
 import model.minigame.MinigameType;
 
@@ -11,7 +12,8 @@ public class GameProgress {
     private final Set<String> completedLevels = new HashSet<>();
     private final Set<ChapterType> unlockedChapters = new HashSet<>();
     private final Set<MinigameType> unlockedMinigames = new HashSet<>();
-
+    private ChapterType lastChapter = ChapterType.ANCIENT_EGYPT;
+    private int lastLevel = 1;
     public boolean isChapterUnlocked(ChapterType chapter) {
         return unlockedChapters.contains(chapter);
     }
@@ -48,5 +50,24 @@ public class GameProgress {
 
     public Set<String> getCompletedLevelIds() {
         return Collections.unmodifiableSet(completedLevels);
+    }
+    public void setLastProgress(ChapterType chapter, int level) {
+        if (chapter == null) return;
+        if (level < 1 || level > ChapterCatalog.LEVELS_PER_CHAPTER) return;
+
+        int newChapter = chapter.ordinal() + 1;
+        int oldChapter = lastChapter.ordinal() + 1;
+        if (newChapter > oldChapter
+                || (newChapter == oldChapter && level > lastLevel)) {
+            lastChapter = chapter;
+            lastLevel = level;
+        }
+    }
+    public int getLastChapter() {
+        return lastChapter.ordinal() + 1;
+    }
+
+    public int getLastLevel() {
+        return lastLevel;
     }
 }

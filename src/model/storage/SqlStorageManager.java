@@ -140,7 +140,27 @@ public class SqlStorageManager implements StorageManager {
             }
         }
     }
-
+    @Override
+    public List<User> getUsers() {
+        synchronized (lock) {
+            List<User> users = new ArrayList<>();
+            try (Connection connection = openConnection();
+                 PreparedStatement statement = connection.prepareStatement(
+                         "SELECT username FROM users");
+                 ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String username = resultSet.getString("username");
+                    User user = loadUser(username);
+                    if (user != null) {
+                        users.add(user);
+                    }
+                }
+                return users;
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to load users", e);
+            }
+        }
+    }
     @Override
     public User getUserByUsername(String username) {
         if (username == null) {

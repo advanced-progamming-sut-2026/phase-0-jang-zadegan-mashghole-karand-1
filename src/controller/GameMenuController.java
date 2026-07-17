@@ -77,7 +77,7 @@ public class GameMenuController {
     }
 
     public CommandResult leaderboard() {
-        return requireMainMenu("Leaderboard is not available right now.");
+        return controllerManager.enterMenu("leaderboard");
     }
 
     public CommandResult coin_wallet() {

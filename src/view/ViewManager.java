@@ -2,11 +2,7 @@ package view;
 
 import controller.InputHandler;
 import model.core.ReadOnlyGameState;
-import model.service.AuthState;
-import model.service.GameNavigationState;
-import model.service.NewsViewState;
-import model.service.ProfileViewState;
-import model.service.SettingsViewState;
+import model.service.*;
 import view.renderer.Renderer;
 
 public class ViewManager {
@@ -28,7 +24,7 @@ public class ViewManager {
 
     public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
             AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
-            NewsViewState newsViewState, SettingsViewState settingsViewState, boolean hasUnreadNews) {
+            NewsViewState newsViewState, SettingsViewState settingsViewState,LeaderboardViewState leaderboardViewState ,boolean hasUnreadNews) {
         String screenKey = currentScreen.name();
         if (currentScreen == ScreenType.LEVEL_SELECTOR) {
             screenKey += "-" + gameNavigation.phase.name();
@@ -48,7 +44,7 @@ public class ViewManager {
                 if (currentMenu == MenuType.NONE) {
                     renderer.renderMainScreen(hasUnreadNews);
                 } else {
-                    renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState);
+                    renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState,leaderboardViewState);
                 }
                 break;
             case LEVEL_SELECTOR:
@@ -69,12 +65,12 @@ public class ViewManager {
         }
 
         if (currentMenu != MenuType.NONE && currentScreen != ScreenType.MAIN) {
-            renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState);
+            renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState,leaderboardViewState);
         }
     }
 
     private void renderMenuOverlay(MenuType currentMenu, ProfileViewState profileViewState,
-            NewsViewState newsViewState, SettingsViewState settingsViewState) {
+                                   NewsViewState newsViewState, SettingsViewState settingsViewState, LeaderboardViewState leaderboardViewState) {
         switch (currentMenu) {
             case PAUSE:
                 renderer.renderPauseOverlay();
@@ -93,6 +89,9 @@ public class ViewManager {
                 break;
             case PLANT_SELECTOR:
                 renderer.renderPlantSelectorOverlay();
+                break;
+            case LEADERBOARD:
+                renderer.renderLeaderboardOverlay(leaderboardViewState);
                 break;
             default:
                 break;

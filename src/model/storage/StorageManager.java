@@ -18,7 +18,7 @@ public interface StorageManager {
     void logout();
 
     User getCurrentUser();
-
+    List<User> getUsers();
     boolean isLoggedIn();
 
     boolean usernameExists(String username);

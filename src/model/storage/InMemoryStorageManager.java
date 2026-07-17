@@ -89,6 +89,11 @@ public class InMemoryStorageManager implements StorageManager {
     public User getCurrentUser() {
         return currentUser;
     }
+    @Override
+    public List<User> getUsers(){
+        List<User> userList = new ArrayList<>(users.values());
+        return userList;
+    }
 
     @Override
     public boolean isLoggedIn() {
@@ -155,7 +160,11 @@ public class InMemoryStorageManager implements StorageManager {
             return;
         }
         boolean alreadyCompleted = currentUser.gameProgress.getCompletedLevelIds().contains(levelId);
+        int underline = levelId.lastIndexOf("_");
+        ChapterType chapter = ChapterType.valueOf(levelId.substring(0,underline));
+        int level = Integer.parseInt(levelId.substring(underline));
         currentUser.gameProgress.completeLevel(levelId);
+        currentUser.gameProgress.setLastProgress(chapter,level);
         if (!alreadyCompleted) {
             addNews("You unlocked a new level: " + levelId);
         }

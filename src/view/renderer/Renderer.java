@@ -4,10 +4,7 @@ import java.util.List;
 
 import model.core.ReadOnlyGameState;
 import model.data.plant.PlantType;
-import model.service.GameNavigationState;
-import model.service.NewsViewState;
-import model.service.ProfileViewState;
-import model.service.SettingsViewState;
+import model.service.*;
 import model.storage.user.SafetyQuestion;
 
 public interface Renderer {
@@ -38,6 +35,8 @@ public interface Renderer {
     void renderProfileOverlay(ProfileViewState profile);
 
     void renderNewsOverlay(NewsViewState news);
+
+    void renderLeaderboardOverlay(LeaderboardViewState leaderboardViewState);
 
     void renderQuestsOverlay();
 
