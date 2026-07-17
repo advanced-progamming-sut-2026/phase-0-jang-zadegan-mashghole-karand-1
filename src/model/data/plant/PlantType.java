@@ -999,6 +999,10 @@ public enum PlantType {
         this.levelUpgrades = levelUpgrades;
     }
 
+    public boolean hasTag(PlantTag tag) {
+        return tags != null && tags.contains(tag);
+    }
+
     public static PlantType fromName(String name) {
         if (name == null || name.isEmpty()) {
             return null;

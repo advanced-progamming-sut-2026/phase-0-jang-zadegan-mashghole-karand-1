@@ -9,6 +9,9 @@ public class PlantAbilitySystem {
 
     public void update(GameState state, EventBus eventBus) {
         for (Plant plant : state.plants) {
+            if (plant.isFrostbiteFreezeActive()) {
+                continue;
+            }
             for (PlantAbilityConfig ability : plant.abilities) {
                 ability.onTick(plant, state, eventBus);
             }

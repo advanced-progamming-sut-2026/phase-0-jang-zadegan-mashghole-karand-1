@@ -12,6 +12,10 @@ import model.data.plant.upgrades.PlantLevelUpgrade;
 public class Plant {
     private static final int DOUBLE_SUN_DROP_CHANCE = 25;
 
+    // Frostbite caves chapter specific
+    private static final int FROSTBITE_FREEZE_MAX_LEVEL = 3;
+    private static final int FROSTBITE_FREEZE_HP = 600;
+
     public final int instanceId;
     public final PlantType type;
     public int row;
@@ -37,6 +41,11 @@ public class Plant {
 
     private static int nextId = 0;
     public boolean resetFamilyCooldowns = false;
+
+    // Frostbite caves chapter specific
+    private int frostbiteFreezeLevel = 0;
+    private int frostbiteFreezeHP = 0;
+    private boolean isFrostbiteFreezeActive = false;
 
     public Plant(PlantType type, int row, int col, int level, EventBus bus) {
         this.instanceId = nextId++;
@@ -91,7 +100,7 @@ public class Plant {
                 case RESET_FAMILY_COOLDOWN:
                     this.resetFamilyCooldowns = true;
                     break;
-                    //...
+                // ...
             }
         }
     }
@@ -99,13 +108,14 @@ public class Plant {
     public boolean activatePlantFood(
             GameState state,
             EventBus event) {
-        if (plantFoodEffect == null) return false;
+        if (plantFoodEffect == null)
+            return false;
         return activatePlantFood(
                 state,
                 event,
-                plantFoodEffect.getDurationTicks()
-        );
+                plantFoodEffect.getDurationTicks());
     }
+
     public boolean activatePlantFood(
             GameState state,
             EventBus event,
@@ -139,5 +149,49 @@ public class Plant {
 
     public float getY() {
         return col * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2;
+    }
+
+    public boolean hasTag(PlantTag tag) {
+        return type.hasTag(tag);
+    }
+
+    // Frostbite caves chapter specific
+    public void increaseFrostbiteFreezeLevel() {
+        if (type.hasTag(PlantTag.FIRE))
+            return;
+
+        frostbiteFreezeLevel++;
+        if (frostbiteFreezeLevel >= FROSTBITE_FREEZE_MAX_LEVEL) {
+            frostbiteFreezeLevel = FROSTBITE_FREEZE_MAX_LEVEL;
+            isFrostbiteFreezeActive = true;
+            frostbiteFreezeHP = FROSTBITE_FREEZE_HP;
+        }
+    }
+
+    public void damageFrostbiteFreeze(int damage) {
+        if (!isFrostbiteFreezeActive)
+            return;
+        frostbiteFreezeHP -= damage;
+        if (frostbiteFreezeHP <= 0) {
+            removeFrostbiteFreeze();
+        }
+    }
+
+    public void removeFrostbiteFreeze() {
+        frostbiteFreezeLevel = 0;
+        frostbiteFreezeHP = 0;
+        isFrostbiteFreezeActive = false;
+    }
+
+    public boolean isFrostbiteFreezeActive() {
+        return isFrostbiteFreezeActive;
+    }
+
+    public int getFrostbiteFreezeLevel() {
+        return frostbiteFreezeLevel;
+    }
+
+    public int getFrostbiteFreezeHP() {
+        return frostbiteFreezeHP;
     }
 }
