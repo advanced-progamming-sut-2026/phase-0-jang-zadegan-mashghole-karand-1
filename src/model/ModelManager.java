@@ -33,9 +33,10 @@ public class ModelManager {
     private final MovementSystem movementSystem;
     private final CombatSystem combatSystem;
     private final PlantAbilitySystem plantAbilitySystem;
-    private final ZombieAbilitySystem  zombieAbilitySystem;
+    private final ZombieAbilitySystem zombieAbilitySystem;
     private final SunSpawnSystem sunSpawnSystem;
     private final SunSystem sunSystem;
+    private final EffectSystem effectSystem;
 
     public ModelManager(StorageManager storage, EventBus eventBus) {
         this.state = new GameState();
@@ -50,6 +51,7 @@ public class ModelManager {
         this.zombieAbilitySystem = new ZombieAbilitySystem();
         this.sunSpawnSystem = new SunSpawnSystem(eventBus);
         this.sunSystem = new SunSystem(eventBus);
+        this.effectSystem = new EffectSystem();
     }
 
     public void tick() {
@@ -64,15 +66,16 @@ public class ModelManager {
         sunSpawnSystem.update(state);
         sunSystem.update(state);
         movementSystem.update(state);
-        combatSystem.update(state, eventBus);
+        effectSystem.update(state);
+        combatSystem.update(state, eventBus, ruleEngine.freezeProjectilesEnabled());
         waveManager.update(state, eventBus);
 
         ruleEngine.postTick(sessionContext, state, eventBus);
 
-
         eventBus.subscribe(ZombieDroppedLootEvent.class, e -> {
             User user = storage.getCurrentUser();
-            if (user == null) return;
+            if (user == null)
+                return;
             switch (e.type) {
                 case COIN -> {
                     user.coins += e.amount;
@@ -83,7 +86,8 @@ public class ModelManager {
                     storage.updateUserProfile(user);
                 }
                 case POT -> {
-                    if(user.greenhouse == null) return;
+                    if (user.greenhouse == null)
+                        return;
                     user.greenhouse.addPot(new Pot());
                     storage.updateUserProfile(user);
                 }
@@ -186,7 +190,7 @@ public class ModelManager {
         if (plant == null) {
             return false;
         }
-        plant.activatePlantFood(state , eventBus);
+        plant.activatePlantFood(state, eventBus);
         state.plantFoodAmount--;
         return true;
     }

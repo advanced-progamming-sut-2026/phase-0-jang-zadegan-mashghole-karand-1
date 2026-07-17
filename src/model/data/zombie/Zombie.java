@@ -12,9 +12,13 @@ import model.core.ReadOnlyGameState;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.data.zombie.armor.runtime.ZombieArmor;
 import model.events.GlowingZombieDiedEvent;
+import model.events.ZombieDiedEvent;
 import model.events.ZombieDroppedLootEvent;
 
 public class Zombie {
+    // Frostbite caves chapter specific
+    private static final int FROSTBITE_FREEZE_HP = 600;
+
     public final int instanceId;
     public final ZombieType type;
     public int row;
@@ -24,7 +28,6 @@ public class Zombie {
     public int hp;
     public int totalHp;
     public boolean isAlive = true;
-    private SandstormEffect activeSandstorm = null;
 
     public List<ZombieAbilityConfig> abilities = new ArrayList<>();
 
@@ -34,6 +37,13 @@ public class Zombie {
     public int frozenTicks = 0;
     public boolean isHypnotized = false;
     public final boolean isGlowing;
+
+    // Ancient Egypt chapter specific
+    private SandstormEffect activeSandstorm = null;
+    // Frostbite caves chapter specific
+    private int frostbiteFreezeHP = 0;
+    private boolean isFrostbiteFreezeActive = false;
+
     Random randomizer = new Random();
 
     public EventBus eventBus;
@@ -102,24 +112,13 @@ public class Zombie {
     }
 
     public void tick(GameState state) {
-         if (isFrozen) {
-           frozenTicks--;
-           if (frozenTicks <= 0) isFrozen = false;
-         }
-
-        Tile tileIn = state.getBoard().getTile(row, col);
-       if (tileIn == null) return;
-       if(tileIn.getType()== TileType.ICE
-               && tileIn.getDirection()!= IceDirection.NONE
-               && type!= ZombieType.DODO_RIDER_ZOMBIE) {
-           int delta = tileIn.getDirection() == IceDirection.DOWN ? 1 : -1;
-           int newRow = row + delta;
-
-           if(state.getBoard().isValid(newRow,col)) {
-               row = newRow;
-               position.y += ReadOnlyGameState.CELL_HEIGHT * delta;
-           }
-       }
+        if (isFrozen) {
+            frozenTicks--;
+            if (frozenTicks <= 0) {
+                isFrozen = false;
+            }
+            return;
+        }
 
     }
 
@@ -134,12 +133,14 @@ public class Zombie {
         for (ZombieAbilityConfig ability : abilities) {
             ability.onDeath(this, state, eventBus);
         }
-        if(isGlowing) {
+        if (isGlowing) {
             state.plantFoodAmount++;
             eventBus.publish(new GlowingZombieDiedEvent(this));
+        } else {
+            eventBus.publish(new ZombieDiedEvent(this));
         }
 
-        boolean drop = randomizer.nextInt(10)==0;
+        boolean drop = randomizer.nextInt(10) == 0;
         if (drop) {
             ZombieLootType lootType = ZombieLootType.values()[randomizer.nextInt(ZombieLootType.values().length)];
             if (Objects.requireNonNull(lootType) == ZombieLootType.COIN) {
@@ -151,6 +152,7 @@ public class Zombie {
 
     }
 
+    // Ancient Egypt chapter specific
     public boolean hasSandstorm() {
         return activeSandstorm != null;
     }
@@ -175,5 +177,33 @@ public class Zombie {
         }
         if(isFrozen) s *= 0.5f;
         return s;
+    }
+
+    // Frostbite caves chapter specific
+    public void frostbiteFreeze() {
+        this.isFrostbiteFreezeActive = true;
+        this.frostbiteFreezeHP = FROSTBITE_FREEZE_HP;
+    }
+
+    public void damageFrostbiteFreeze(int damage) {
+        if (!isFrostbiteFreezeActive)
+            return;
+        frostbiteFreezeHP -= damage;
+        if (frostbiteFreezeHP <= 0) {
+            removeFrostbiteFreeze();
+        }
+    }
+
+    public void removeFrostbiteFreeze() {
+        this.isFrostbiteFreezeActive = false;
+        this.frostbiteFreezeHP = 0;
+    }
+
+    public boolean isFrostbiteFreezeActive() {
+        return isFrostbiteFreezeActive;
+    }
+
+    public int getFrostbiteFreezeHP() {
+        return frostbiteFreezeHP;
     }
 }
