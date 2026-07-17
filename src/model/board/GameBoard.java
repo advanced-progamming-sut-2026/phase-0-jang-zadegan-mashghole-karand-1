@@ -19,12 +19,21 @@ public class GameBoard {
                 tiles[i][j] = new Tile(i, j);
             }
         }
+        this.lawnMowers = new LawnMower[rows];
+        for (int i = 0 ; i < rows ; i++){
+            lawnMowers[i] = new LawnMower(i);
+        }
     }
 
     public Tile getTile(int row, int col) {
         if (!isValid(row, col))
             return null;
         return tiles[row][col];
+    }
+
+    public LawnMower getLawnMowers(int rows) {
+        if (rows < 0 || rows >= this.rows) return null;
+        return lawnMowers[rows];
     }
 
     public boolean isValid(int row, int col) {
@@ -36,6 +45,9 @@ public class GameBoard {
             for (int col = 0; col < cols; col++) {
                 tiles[row][col] = new Tile(row, col);
             }
+        }
+        for (int i = 0 ; i < rows ; i++){
+            lawnMowers[i] = new LawnMower(i);
         }
     }
 }

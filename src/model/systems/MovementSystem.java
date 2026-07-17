@@ -6,6 +6,9 @@ import model.board.TileType;
 import model.core.GameState;
 import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
+import model.lawnmower.LawnMower;
+
+import java.util.ArrayList;
 
 public class MovementSystem {
 
@@ -38,7 +41,20 @@ public class MovementSystem {
                 }
             }
         }
-
+        boolean[] rowHandled = new boolean[GameState.GRID_ROWS];
+        for (Zombie z :new ArrayList<>(state.zombies)){
+            if (!z.isAlive || z.isHypnotized) continue;
+            if (z.position.x > 0) continue;
+            if (rowHandled[z.row]) continue;
+            rowHandled[z.row] = true;
+            LawnMower lawnMower = state.getBoard().getLawnMowers(z.row);
+            if (lawnMower!= null && lawnMower.isActive()){
+                lawnMower.destroyZombiesInRow(state);
+            }else {
+                state.gameOver = true;
+                return;
+            }
+        }
         for (Projectile projectile : state.projectiles) {
             projectile.position.x += projectile.speed;
         }
