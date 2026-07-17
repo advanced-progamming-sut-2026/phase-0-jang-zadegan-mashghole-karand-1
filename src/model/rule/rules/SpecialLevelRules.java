@@ -5,6 +5,9 @@ import java.util.ArrayList;
 
 import model.data.content.specialLevel.SpecialLevelType;
 import model.rule.LevelRule;
+import model.rule.rules.specialLevel.LoveYourPlantsRules;
+import model.rule.rules.specialLevel.NightOpsRules;
+import model.rule.rules.specialLevel.SaveOurSeedsRules;
 
 public class SpecialLevelRules {
 
@@ -13,31 +16,25 @@ public class SpecialLevelRules {
 
         switch (specialLevelType) {
             case CONVEYOR_BELT:
-                // will implement later
                 break;
             case LOCKED_PLANTS:
-                // will implement later
                 break;
             case SAVE_OUR_SEEDS:
-                // will implement later
+                rules.add(new SaveOurSeedsRules());
                 break;
             case TIMED_WAR:
-                // will implement later
                 break;
             case NIGHT_OPS:
-                // will implement later
+                rules.add(new NightOpsRules());
                 break;
             case DEAD_LINE:
-                // will implement later
                 break;
             case LOVE_YOUR_PLANTS:
-                // will implement later
+                rules.add(new LoveYourPlantsRules());
                 break;
             case PLANT_WHAT_YOU_GET:
-                // will implement later
                 break;
             default:
-                // no rules
                 break;
         }
 

@@ -1,8 +1,6 @@
 package model.rule.rules.chapter;
 
-import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
 
 import model.board.Tile;
 import model.board.TileType;
@@ -11,7 +9,7 @@ import model.core.GameState;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 
-public class BeachRules implements LevelRule {
+public class BigWaveBeachRules implements LevelRule {
     private static final Random RANDOM = new Random();
     private static final int MIN_COL = 5;
     private static final int MIN_BEACH_POSTS = 1;

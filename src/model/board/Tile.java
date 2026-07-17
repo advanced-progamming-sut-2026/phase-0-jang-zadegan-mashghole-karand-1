@@ -84,14 +84,12 @@ public class Tile {
         if (hasPlant())
             return false;
         if (type == TileType.WATER) {
-            // uncomment when lily pad is added
-
-            // if (plantType == PlantType.LilyPad && hasLilyPad()) {
-            // return false;
-            // }
-            // if (plantType != PlantType.LilyPad && !hasLilyPad()) {
-            // return false;
-            // }
+            if (plantType == PlantType.Lily_Pad && hasLilyPad()) {
+                return false;
+            }
+            if (plantType != PlantType.Lily_Pad && !hasLilyPad()) {
+                return false;
+            }
         }
         if (hasGrave())
             return false;
