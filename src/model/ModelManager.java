@@ -113,7 +113,7 @@ public class ModelManager {
             ruleEngine.addRules(minigameRules);
         }
 
-        this.sessionContext = new SessionContext(config, ruleEngine);
+        this.sessionContext = new SessionContext(config, ruleEngine, waveManager);
 
         waveManager.initialize(config.levelConfig);
 
