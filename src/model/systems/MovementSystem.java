@@ -11,6 +11,7 @@ public class MovementSystem {
 
     public void update(GameState state) {
         for (Zombie zombie : state.zombies) {
+            if (zombie.stunned) continue;
             float currentSpeed = zombie.getCurrentSpeed();
             float nextX = zombie.position.x - currentSpeed;
 

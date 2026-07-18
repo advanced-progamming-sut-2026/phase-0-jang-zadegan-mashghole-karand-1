@@ -12,10 +12,6 @@ public class DamageEffect  implements HitEffect{
     }
     @Override
     public void apply(Zombie zombie, GameState state, EventBus event) {
-        zombie.hp -= amount;
-        if (zombie.hp <= 0) {
-            zombie.isAlive = false;
-            event.publish(new ZombieDiedEvent(zombie));
-        }
+        zombie.takeDamage(amount);
     }
 }
