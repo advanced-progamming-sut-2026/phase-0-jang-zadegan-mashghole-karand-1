@@ -8,6 +8,7 @@ import model.rule.LevelRule;
 import model.rule.rules.chapter.AncientEgyptRules;
 import model.rule.rules.chapter.BigWaveBeachRules;
 import model.rule.rules.chapter.DarkAgesRules;
+import model.rule.rules.chapter.FrostbiteCavesRules;
 
 public class ChapterRules {
 
@@ -19,7 +20,7 @@ public class ChapterRules {
                 rules.add(new AncientEgyptRules());
                 break;
             case FROSTBITE_CAVES:
-                rules.add(new AncientEgyptRules());
+                rules.add(new FrostbiteCavesRules());
                 break;
             case BIG_WAVE_BEACH:
                 rules.add(new BigWaveBeachRules());
