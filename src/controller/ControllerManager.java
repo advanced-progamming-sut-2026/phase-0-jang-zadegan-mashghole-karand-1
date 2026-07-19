@@ -55,7 +55,7 @@ public class ControllerManager {
         this.settingController = new SettingController(this, storage);
         this.newsMenuController = new NewsMenuController(this, storage);
         new AppEventHandler(eventBus, storage).register();
-        this.gameMenuController = new GameMenuController(this, storage, gameNavigation);
+        this.gameMenuController = new GameMenuController(this, model, storage, gameNavigation);
         this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
         this.leaderboardMenuController = new LeaderboardMenuController(this,storage,leaderboardViewState);
         this.gameLoop.setOnTickHandler(() -> {
