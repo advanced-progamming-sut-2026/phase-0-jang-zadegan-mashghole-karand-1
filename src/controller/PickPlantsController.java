@@ -101,12 +101,15 @@ public class PickPlantsController {
             return failure("No level selected.");
         }
 
-        SessionConfig session = SessionConfig.builder()
+        SessionConfig.Builder sessionBuilder = SessionConfig.builder()
                 .levelConfig(gameNavigation.pendingLevel)
-                .selectedPlants(gameNavigation.selectedPlants)
-                .build();
+                .selectedPlants(gameNavigation.selectedPlants);
 
-        model.startSession(session);
+        if (gameNavigation.pendingSpecialLevel != null) {
+            sessionBuilder.specialLevel(gameNavigation.pendingSpecialLevel);
+        }
+
+        model.startSession(sessionBuilder.build());
         storage.recordGamePlayed();
         gameNavigation.reset();
         controllerManager.setScreen(ScreenType.GAME);

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import model.data.content.specialLevel.SpecialLevelType;
 import model.rule.LevelRule;
+import model.rule.rules.specialLevel.ConveyorBeltRules;
 import model.rule.rules.specialLevel.LoveYourPlantsRules;
 import model.rule.rules.specialLevel.NightOpsRules;
 import model.rule.rules.specialLevel.SaveOurSeedsRules;
@@ -16,6 +17,7 @@ public class SpecialLevelRules {
 
         switch (specialLevelType) {
             case CONVEYOR_BELT:
+                rules.add(new ConveyorBeltRules());
                 break;
             case LOCKED_PLANTS:
                 break;

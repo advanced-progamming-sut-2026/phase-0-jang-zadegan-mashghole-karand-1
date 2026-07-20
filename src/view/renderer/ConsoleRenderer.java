@@ -3,6 +3,7 @@ package view.renderer;
 import java.util.ArrayList;
 import java.util.List;
 
+import controller.ChapterCommands;
 import controller.PickPlantsController;
 import model.core.GameLoop;
 import model.core.ReadOnlyGameState;
@@ -240,12 +241,12 @@ public class ConsoleRenderer implements Renderer {
             for (ChapterType chapter : ChapterType.values()) {
                 boolean unlocked = gameNavigation.unlockedChapters.contains(chapter);
                 String status = unlocked ? GREEN + "unlocked" + RESET : RED + "locked" + RESET;
-                sb.append("    ").append(CYAN).append(ChapterCatalog.commandName(chapter)).append(RESET)
-                        .append(" - ").append(ChapterCatalog.displayName(chapter))
+                sb.append("    ").append(CYAN).append(ChapterCommands.commandName(chapter)).append(RESET)
+                        .append(" - ").append(ChapterCommands.displayName(chapter))
                         .append(" (").append(status).append(")\n");
             }
         } else if (gameNavigation.phase == Phase.LEVEL) {
-            String chapterName = ChapterCatalog.displayName(gameNavigation.selectedChapter);
+            String chapterName = ChapterCommands.displayName(gameNavigation.selectedChapter);
             String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | " + chapterName + RESET + "  🧟";
             sb.append(getHeaderBox(title, GREEN));
             sb.append("\n");
