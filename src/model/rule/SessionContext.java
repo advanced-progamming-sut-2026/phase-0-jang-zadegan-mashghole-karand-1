@@ -4,15 +4,18 @@ import model.data.content.specialLevel.SpecialLevelType;
 import model.data.plant.PlantType;
 
 import java.util.List;
+import model.systems.WaveManager;
 
 public class SessionContext {
     private final SessionConfig config;
     private final RuleEngine ruleEngine;
     private ConveyorState conveyorState = null;
+    private final WaveManager waveManager;
 
-    public SessionContext(SessionConfig config, RuleEngine ruleEngine) {
+    public SessionContext(SessionConfig config, RuleEngine ruleEngine, WaveManager waveManager) {
         this.config = config;
         this.ruleEngine = ruleEngine;
+        this.waveManager = waveManager;
     }
 
     public SessionConfig getConfig() {
@@ -52,5 +55,9 @@ public class SessionContext {
 
     public int getConveyorRemaining() {
         return conveyorState != null ? conveyorState.getRemainingPlants() : 0;
+    }
+}
+    public WaveManager getWaveManager() {
+        return waveManager;
     }
 }

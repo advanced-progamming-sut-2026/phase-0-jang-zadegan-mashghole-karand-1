@@ -199,6 +199,23 @@ public class WaveManager {
         return (float) currentHp / (float) totalHp < 0.25f;
     }
 
+    public void spawnIcedZombies(int row, GameState state, EventBus eventBus) {
+        int col = 3+ (int) (Math.random() * 6);
+
+        int budget = calculateWaveBudget(1);
+
+        ZombieType type = zombiePool != null ? zombiePool.getRandomZombie(budget): null;
+        if (type == null) type = ZombieType.BASIC;
+
+        Zombie zombie = new Zombie(type,row,col,new Position(
+                col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f,
+                row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),eventBus);
+        zombie.ice();
+        state.addZombie(zombie);
+        eventBus.publish(new ZombieSpawnedEvent(zombie));
+
+    }
+
     public int getTotalWaves() {
         return totalWaves;
     }

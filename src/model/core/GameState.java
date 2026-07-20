@@ -116,6 +116,7 @@ public class GameState implements ReadOnlyGameState {
         projectiles.clear();
         sunDrops.clear();
         graves.clear();
+        board.reset();
         sunAmount = INITIAL_SUN_AMOUNT;
         plantFoodAmount = 0;
         currentWave = 0;
@@ -123,5 +124,6 @@ public class GameState implements ReadOnlyGameState {
         gameOver = false;
         levelComplete = false;
         totalTicks = 0;
+
     }
 }
