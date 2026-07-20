@@ -6,7 +6,6 @@ import java.util.List;
 
 import model.data.content.chapter.ChapterType;
 import model.data.content.specialLevel.SpecialLevelType;
-import model.data.plant.PlantType;
 import model.data.zombie.ZombieType;
 
 public class LevelConfig {
@@ -16,13 +15,11 @@ public class LevelConfig {
     public final int wavePointBase;
     public final int startingSun;
     public final List<ZombieType> availableZombies;
-    public final List<PlantType> availablePlants;
     public final SpecialLevelType specialLevelType;
 
     public LevelConfig(ChapterType chapterType, int levelNumber, int totalWaves,
             int wavePointBase, int startingSun,
             List<ZombieType> availableZombies,
-            List<PlantType> availablePlants,
             SpecialLevelType specialLevelType) {
         this.chapterType = chapterType;
         this.levelNumber = levelNumber;
@@ -31,9 +28,6 @@ public class LevelConfig {
         this.startingSun = startingSun;
         this.availableZombies = availableZombies != null
                 ? Collections.unmodifiableList(new ArrayList<>(availableZombies))
-                : List.of();
-        this.availablePlants = availablePlants != null
-                ? Collections.unmodifiableList(new ArrayList<>(availablePlants))
                 : List.of();
         this.specialLevelType = specialLevelType;
     }
@@ -49,7 +43,6 @@ public class LevelConfig {
     public static final class Builder {
         private final ChapterType chapterType;
         private final int levelNumber;
-        private List<PlantType> availablePlants = List.of();
         private List<ZombieType> availableZombies = List.of();
         private SpecialLevelType specialLevelType = null;
         private int totalWaves = 5;
@@ -59,11 +52,6 @@ public class LevelConfig {
         private Builder(ChapterType chapterType, int levelNumber) {
             this.chapterType = chapterType;
             this.levelNumber = levelNumber;
-        }
-
-        public Builder plants(List<PlantType> plants) {
-            this.availablePlants = plants;
-            return this;
         }
 
         public Builder zombies(List<ZombieType> zombies) {
@@ -99,7 +87,6 @@ public class LevelConfig {
                     wavePointBase,
                     startingSun,
                     availableZombies,
-                    availablePlants,
                     specialLevelType);
         }
     }

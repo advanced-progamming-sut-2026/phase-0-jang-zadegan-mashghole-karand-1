@@ -80,14 +80,12 @@ public final class ChapterCatalog {
 
     private static LevelConfig normalLevel(ChapterType chapter, int number) {
         return LevelConfig.builder(chapter, number)
-                .plants(List.of())
                 .zombies(PLACEHOLDER_ZOMBIES)
                 .build();
     }
 
     private static LevelConfig specialLevel(ChapterType chapter, int number, SpecialLevelType special) {
         return LevelConfig.builder(chapter, number)
-                .plants(List.of())
                 .zombies(PLACEHOLDER_ZOMBIES)
                 .special(special)
                 .build();

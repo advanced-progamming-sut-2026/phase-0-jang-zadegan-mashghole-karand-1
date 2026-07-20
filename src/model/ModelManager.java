@@ -117,20 +117,7 @@ public class ModelManager {
 
         waveManager.initialize(config.levelConfig);
 
-        unlockLevelPlants(config);
-
         ruleEngine.onSessionStart(sessionContext, state, eventBus);
-    }
-
-    private void unlockLevelPlants(SessionConfig config) {
-        if (config == null || config.levelConfig == null) {
-            return;
-        }
-        for (PlantType plant : config.levelConfig.availablePlants) {
-            if (plant != null) {
-                storage.unlockPlant(plant);
-            }
-        }
     }
 
     public GameState getState() {
