@@ -11,7 +11,6 @@ import model.core.EventBus;
 import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantTag;
-import model.events.FrostbiteZombieSpawnEvent;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 
@@ -33,7 +32,7 @@ public class FrostbiteCavesRules implements LevelRule {
     @Override
     public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
         placeIceTiles(state);
-        spawnFrozenZombies(state, bus);
+        spawnFrozenZombies(state, bus, context);
     }
 
     private void placeIceTiles(GameState state) {
@@ -64,7 +63,7 @@ public class FrostbiteCavesRules implements LevelRule {
         }
     }
 
-    private void spawnFrozenZombies(GameState state, EventBus bus) {
+    private void spawnFrozenZombies(GameState state, EventBus bus, SessionContext context) {
         int frozenCount = MIN_FROZEN_ZOMBIES + RANDOM.nextInt(MAX_FROZEN_ZOMBIES - MIN_FROZEN_ZOMBIES + 1);
 
         boolean[] rowUsed = new boolean[GameState.GRID_ROWS];
@@ -81,7 +80,7 @@ public class FrostbiteCavesRules implements LevelRule {
                 continue;
 
             rowUsed[row] = true;
-            bus.publish(new FrostbiteZombieSpawnEvent(row));
+            context.getWaveManager().spawnIcedZombies(row, state, bus);
         }
     }
 

@@ -23,7 +23,7 @@ public interface Renderer {
 
     void renderGameScreen(ReadOnlyGameState state);
 
-    void renderCollectionScreen();
+    void renderCollectionScreen(CollectionViewState collection);
 
     void renderGreenHouseScreen();
 

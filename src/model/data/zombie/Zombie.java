@@ -33,6 +33,9 @@ public class Zombie {
     public boolean isHypnotized = false;
     public final boolean isGlowing;
 
+    public boolean stunned = false;
+    public int stunTicks = 0;
+
     private int iceHP = 0;
     private boolean isIced = false;
 
@@ -87,6 +90,18 @@ public class Zombie {
         }
     }
 
+    public void takeDamage(int damage, boolean poisonous) {
+        if(!poisonous) {
+            takeDamage(damage);
+            return;
+        }
+        this.hp -= damage;
+
+        if (this.hp <= 0) {
+            this.isAlive = false;
+        }
+    }
+
     public void onDeath(GameState state) {
         for (ZombieAbilityConfig ability : abilities) {
             ability.onDeath(this, state, eventBus);
@@ -119,6 +134,8 @@ public class Zombie {
         }
         if (isFrozen)
             s *= 0.5f;
+        if(isHypnotized)
+            s *= -1;
         return s;
     }
 

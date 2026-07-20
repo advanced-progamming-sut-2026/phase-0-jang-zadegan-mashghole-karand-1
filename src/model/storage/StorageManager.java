@@ -65,6 +65,12 @@ public interface StorageManager {
 
     List<PlantType> getUnlockedPlants();
 
+    void unlockZombie(model.data.zombie.ZombieType zombieType);
+
+    boolean isZombieUnlocked(model.data.zombie.ZombieType zombieType);
+
+    List<model.data.zombie.ZombieType> getUnlockedZombies();
+
     class SaveFile {
         public final String name;
         public final String chapterId;

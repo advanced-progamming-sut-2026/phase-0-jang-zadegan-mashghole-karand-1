@@ -4,13 +4,19 @@ import model.board.IceDirection;
 import model.board.Tile;
 import model.board.TileType;
 import model.core.GameState;
+import model.data.plant.abilities.config.Direction;
+import model.data.projectile.HomingProjectile;
 import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
+import model.lawnmower.LawnMower;
+
+import java.util.ArrayList;
 
 public class MovementSystem {
 
     public void update(GameState state) {
         for (Zombie zombie : state.zombies) {
+            if (zombie.stunned) continue;
             float currentSpeed = zombie.getCurrentSpeed();
             float nextX = zombie.position.x - currentSpeed;
 
@@ -38,11 +44,45 @@ public class MovementSystem {
                 }
             }
         }
-
+        boolean[] rowHandled = new boolean[GameState.GRID_ROWS];
+        for (Zombie z :new ArrayList<>(state.zombies)){
+            if (!z.isAlive || z.isHypnotized) continue;
+            if (z.position.x > 0) continue;
+            if (rowHandled[z.row]) continue;
+            rowHandled[z.row] = true;
+            LawnMower lawnMower = state.getBoard().getLawnMowers(z.row);
+            if (lawnMower!= null && lawnMower.isActive()){
+                lawnMower.destroyZombiesInRow(state);
+            }else {
+                state.gameOver = true;
+                return;
+            }
+        }
         for (Projectile projectile : state.projectiles) {
-            projectile.position.x += projectile.speed;
+            if (projectile instanceof HomingProjectile homing) {
+                homing.updateMovement();
+            }else {
+                Direction direction = projectile.direction;
+                float dx = direction.vx * projectile.speed;
+                float dy = direction.vy * projectile.speed;
+                if (direction.vx != 0 && direction.vy != 0) {
+                    float inv = 1f / (float) Math.sqrt(2);
+                    dx *= inv;
+                    dy *= inv;
+                }
+                projectile.position.x += dx;
+                projectile.position.y += dy;
+            }
+            projectile.row = (int) (projectile.position.y / GameState.CELL_HEIGHT);
+            projectile.col = (int) (projectile.position.x / GameState.CELL_WIDTH);
         }
 
-        state.projectiles.removeIf(p -> p.position.x > GameState.SCREEN_WIDTH);
+        state.projectiles.removeIf(p -> (p.position.x > GameState.SCREEN_WIDTH ||
+                p.position.y > GameState.SCREEN_HEIGHT ||
+                p.position.x < 0 ||
+                p.position.y < 0 ||
+                p.row < 0 ||
+                p.row >= GameState.GRID_ROWS));
+        state.zombies.removeIf(z -> z.isHypnotized && z.position.x > GameState.SCREEN_WIDTH);
     }
 }

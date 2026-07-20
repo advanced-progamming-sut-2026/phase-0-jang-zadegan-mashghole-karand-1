@@ -13,6 +13,7 @@ import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.events.GraveCreatedEvent;
 import model.events.NecromancySpawnEvent;
+import model.events.ZombieSpawnedEvent;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 
@@ -99,6 +100,7 @@ public class DarkAgesRules implements LevelRule {
                     Zombie zombie = new Zombie(type, row, col, new Position((col + 0.5f) * GameState.CELL_WIDTH,
                             (row + 0.5f) * GameState.CELL_HEIGHT), bus);
                     state.addZombie(zombie);
+                    bus.publish(new ZombieSpawnedEvent(zombie));
                 }
             }
         }

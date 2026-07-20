@@ -9,6 +9,5 @@ public class HypnotizeEffect implements HitEffect{
     public void apply(Zombie zombie, GameState state, EventBus event) {
         if (!zombie.isAlive || zombie == null) return;
         zombie.isHypnotized = true;
-        zombie.speed = -Math.abs(zombie.speed);
     }
 }

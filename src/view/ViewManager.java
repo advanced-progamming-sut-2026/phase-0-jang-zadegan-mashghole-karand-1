@@ -26,12 +26,17 @@ public class ViewManager {
 
     public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
                        AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
-                       NewsViewState newsViewState, SettingsViewState settingsViewState, LeaderboardViewState leaderboardViewState, ControllerManager controllerManager, boolean hasUnreadNews) {
+                       NewsViewState newsViewState, SettingsViewState settingsViewState, LeaderboardViewState leaderboardViewState,CollectionViewState collectionViewState, ControllerManager controllerManager, boolean hasUnreadNews) {
         String screenKey = currentScreen.name();
         if (currentScreen == ScreenType.LEVEL_SELECTOR) {
             screenKey += "-" + gameNavigation.phase.name();
         } else if (currentScreen == ScreenType.MAIN && currentMenu != MenuType.NONE) {
             screenKey += "-" + currentMenu.name();
+        } else if (currentScreen == ScreenType.COLLECTION) {
+            screenKey += "-" + collectionViewState.tab.name() + "-" + collectionViewState.mode.name();
+            if (collectionViewState.hasDetail()) {
+                screenKey += "-detail-" + collectionViewState.detailTitle;
+            }
         }
         renderer.prepareScreen(screenKey);
         switch (currentScreen) {
@@ -56,7 +61,7 @@ public class ViewManager {
                 renderer.renderGameScreen(state);
                 break;
             case COLLECTION:
-                renderer.renderCollectionScreen();
+                renderer.renderCollectionScreen(collectionViewState);
                 break;
             case GREEN_HOUSE:
                 renderer.renderGreenHouseScreen();

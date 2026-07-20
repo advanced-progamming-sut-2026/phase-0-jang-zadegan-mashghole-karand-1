@@ -5,6 +5,10 @@ import java.util.List;
 
 import model.data.content.chapter.ChapterType;
 import model.rule.LevelRule;
+import model.rule.rules.chapter.AncientEgyptRules;
+import model.rule.rules.chapter.BigWaveBeachRules;
+import model.rule.rules.chapter.DarkAgesRules;
+import model.rule.rules.chapter.FrostbiteCavesRules;
 
 public class ChapterRules {
 
@@ -13,19 +17,18 @@ public class ChapterRules {
 
         switch (chapterType) {
             case ANCIENT_EGYPT:
-                // will implement later
+                rules.add(new AncientEgyptRules());
                 break;
             case FROSTBITE_CAVES:
-                // will implement later
+                rules.add(new FrostbiteCavesRules());
                 break;
             case BIG_WAVE_BEACH:
-                // will implement later
+                rules.add(new BigWaveBeachRules());
                 break;
             case DARK_AGES:
-                // will implement later
+                rules.add(new DarkAgesRules());
                 break;
             default:
-                // no rules
                 break;
         }
 

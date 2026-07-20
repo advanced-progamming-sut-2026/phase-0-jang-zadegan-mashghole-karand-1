@@ -113,7 +113,7 @@ public class ModelManager {
             ruleEngine.addRules(minigameRules);
         }
 
-        this.sessionContext = new SessionContext(config, ruleEngine);
+        this.sessionContext = new SessionContext(config, ruleEngine, waveManager);
 
         waveManager.initialize(config.levelConfig);
 
@@ -145,6 +145,10 @@ public class ModelManager {
     }
 
     public boolean placePlant(int row, int col, PlantType plantType, int level) {
+        return placePlant(row, col, plantType, level, true);
+    }
+
+    public boolean placePlant(int row, int col, PlantType plantType, int level, boolean chargeSun) {
         Tile tile = state.getBoard().getTile(row, col);
         if (tile == null)
             return false;
@@ -154,14 +158,32 @@ public class ModelManager {
         if (!ruleEngine.canPlant(plantType, row, col, state))
             return false;
 
-        if (state.sunAmount < plantType.baseStats.cost)
+        if (chargeSun && state.sunAmount < plantType.baseStats.cost)
             return false;
 
         Plant plant = new Plant(plantType, row, col, level, eventBus);
         state.plants.add(plant);
-        state.sunAmount -= plant.cost;
+        if (chargeSun) {
+            state.sunAmount -= plant.cost;
+        }
 
         eventBus.publish(new PlantPlacedEvent(plant));
+        ruleEngine.onPlantPlaced(plant, state);
+        return true;
+    }
+
+    public boolean placeConveyorPlant(int row, int col) {
+        if (sessionContext == null || !sessionContext.isConveyorMode()) {
+            return false;
+        }
+        PlantType offered = sessionContext.getConveyorOffer();
+        if (offered == null) {
+            return false;
+        }
+        if (!placePlant(row, col, offered, 1, false)) {
+            return false;
+        }
+        sessionContext.consumeConveyorOffer();
         return true;
     }
 

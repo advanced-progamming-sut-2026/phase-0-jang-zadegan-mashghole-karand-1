@@ -1,9 +1,13 @@
 package controller;
 
 import controller.CommandResult.CommandResult;
+import model.ModelManager;
 import model.data.content.chapter.ChapterCatalog;
 import model.data.content.chapter.ChapterType;
+import model.data.content.specialLevel.SpecialLevelCatalog;
+import model.data.content.specialLevel.SpecialLevelType;
 import model.data.wave.LevelConfig;
+import model.rule.SessionConfig;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
@@ -13,12 +17,14 @@ import view.ScreenType;
 public class GameMenuController {
 
     private final ControllerManager controllerManager;
+    private final ModelManager model;
     private final StorageManager storage;
     private final GameNavigationState gameNavigation;
 
-    public GameMenuController(ControllerManager controllerManager, StorageManager storage,
-            GameNavigationState gameNavigation) {
+    public GameMenuController(ControllerManager controllerManager, ModelManager model,
+            StorageManager storage, GameNavigationState gameNavigation) {
         this.controllerManager = controllerManager;
+        this.model = model;
         this.storage = storage;
         this.gameNavigation = gameNavigation;
     }
@@ -33,7 +39,7 @@ public class GameMenuController {
             return loggedInCheck;
         }
 
-        ChapterType chapter = ChapterCatalog.fromCommandName(chapterName);
+        ChapterType chapter = ChapterCommands.fromCommandName(chapterName);
         if (chapter == null) {
             return failure("Unknown chapter.");
         }
@@ -44,7 +50,7 @@ public class GameMenuController {
         gameNavigation.selectedChapter = chapter;
         gameNavigation.phase = Phase.LEVEL;
         controllerManager.refreshView();
-        return success("Entered " + ChapterCatalog.displayName(chapter) + ". Select a level.");
+        return success("Entered " + ChapterCommands.displayName(chapter) + ". Select a level.");
     }
 
     public CommandResult selectLevel(int levelNumber) {
@@ -61,12 +67,43 @@ public class GameMenuController {
             return failure("Invalid level number.");
         }
 
+        LevelConfig level = ChapterCatalog.getLevel(gameNavigation.selectedChapter, levelNumber);
+        if (level == null) {
+            return failure("Level " + levelNumber + " is not defined for this chapter.");
+        }
+
         gameNavigation.selectedLevel = levelNumber;
-        gameNavigation.pendingLevel = LevelConfig.createDefault(gameNavigation.selectedChapter, levelNumber);
+        gameNavigation.pendingLevel = level;
         gameNavigation.selectedPlants.clear();
+
+        SpecialLevelType special = level.specialLevelType;
+        gameNavigation.pendingSpecialLevel = special;
+
+        if (SpecialLevelCatalog.skipsPlantSelection(special)) {
+            return startConveyorSession(special);
+        }
+
         gameNavigation.phase = Phase.PLANT;
         controllerManager.refreshView();
+        if (special != null) {
+            return success("Level " + levelNumber + " selected (" + special.name().toLowerCase().replace('_', ' ')
+                    + "). Pick your plants.");
+        }
         return success("Level " + levelNumber + " selected. Pick your plants.");
+    }
+
+    private CommandResult startConveyorSession(SpecialLevelType special) {
+        SessionConfig session = SessionConfig.builder()
+                .levelConfig(gameNavigation.pendingLevel)
+                .specialLevel(special)
+                .selectedPlants(storage.getUnlockedPlants())
+                .build();
+
+        model.startSession(session);
+        storage.recordGamePlayed();
+        gameNavigation.reset();
+        controllerManager.setScreen(ScreenType.GAME);
+        return success("Conveyor Belt started! Plants will be offered every 12 seconds.");
     }
 
     public CommandResult greenHouse() {

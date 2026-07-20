@@ -16,6 +16,12 @@ public class EffectSystem {
                     zombie.isFrozen = false;
                 }
             }
+            if(zombie.stunned){
+                zombie.stunTicks--;
+                if (zombie.stunTicks <= 0) {
+                    zombie.stunned = false;
+                }
+            }
         }
         for (Plant plant : state.plants) {
             if (!plant.isFrostbiteFreezeActive())

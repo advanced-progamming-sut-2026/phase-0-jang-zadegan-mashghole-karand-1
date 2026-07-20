@@ -7,6 +7,7 @@ import model.data.plant.Plant;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
+import model.events.ZombieSpawnedEvent;
 
 public class PlantHypnotizeAbility implements PlantAbilityConfig {
     private boolean transformToGargantuar = false;
@@ -27,11 +28,10 @@ public class PlantHypnotizeAbility implements PlantAbilityConfig {
                 killer.isAlive = false;
                 Zombie garg = new Zombie(ZombieType.GARGANTUAR, killer.row, killer.col,new Position(killer.row, killer.col),event);
                 garg.isHypnotized = true;
-                garg.speed = -Math.abs(garg.speed);
                 state.zombies.add(garg);
+                event.publish(new ZombieSpawnedEvent(garg));
             } else {
                 killer.isHypnotized = true;
-                killer.speed = -Math.abs(killer.speed);
             }
         }
     }

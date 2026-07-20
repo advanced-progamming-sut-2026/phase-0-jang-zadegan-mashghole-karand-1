@@ -98,6 +98,9 @@ public class GameMechanismController {
         if (screenCheck != null) {
             return screenCheck;
         }
+        if (model.getPlayContext() != null && model.getPlayContext().isConveyorMode()) {
+            return failure("Conveyor Belt mode: use plant conveyor -l (row,col) instead.");
+        }
         if (plantType == null) {
             return failure("Plant type not found.");
         }
@@ -114,6 +117,27 @@ public class GameMechanismController {
             return success("Planted " + plantType.name + " at (" + row + ", " + col + ").");
         }
         return failure("Could not plant " + plantType.name + " at (" + row + ", " + col + ").");
+    }
+
+    public CommandResult placeConveyorPlant(int row, int col) {
+        CommandResult screenCheck = requireGameScreen();
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        if (model.getPlayContext() == null || !model.getPlayContext().isConveyorMode()) {
+            return failure("Not in Conveyor Belt mode.");
+        }
+        if (!isValidCell(row, col)) {
+            return failure("Invalid cell (" + row + ", " + col + ").");
+        }
+        if (!model.getPlayContext().hasConveyorOffer()) {
+            return failure("No plant is currently offered on the conveyor.");
+        }
+        PlantType offered = model.getPlayContext().getConveyorOffer();
+        if (model.placeConveyorPlant(row, col)) {
+            return success("Planted " + offered.name + " from conveyor at (" + row + ", " + col + ").");
+        }
+        return failure("Could not place " + offered.name + " at (" + row + ", " + col + ").");
     }
 
     public CommandResult removeCooldown() {

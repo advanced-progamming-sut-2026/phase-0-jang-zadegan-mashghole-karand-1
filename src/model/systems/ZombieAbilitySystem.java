@@ -12,6 +12,8 @@ public class ZombieAbilitySystem {
                 continue;
             if (zombie.isIced())
                 continue;
+            if(zombie.stunned)
+                continue;
             for (ZombieAbilityConfig ability : zombie.abilities) {
                 ability.onTick(zombie, state, eventBus);
             }

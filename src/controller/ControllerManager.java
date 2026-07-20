@@ -30,7 +30,7 @@ public class ControllerManager {
     private final NewsMenuController newsMenuController;
     private final ProfileController profileController;
     private final PickPlantsController pickPlantsController;
-    private final CollectionController collectionController = new CollectionController();
+    private final CollectionController collectionController;
     private final GameMechanismController gameMechanismController;
     private final GreenhouseController greenhouseController;
     private ShopController shopController;
@@ -45,6 +45,7 @@ public class ControllerManager {
     private NewsViewState newsViewState = NewsViewState.empty();
     private SettingsViewState settingsViewState = SettingsViewState.empty();
     private LeaderboardViewState leaderboardViewState = LeaderboardViewState.empty();
+    private CollectionViewState collectionViewState = CollectionViewState.empty();
     private boolean hasUnreadNews = false;
     private Shop shop;
 
@@ -61,8 +62,9 @@ public class ControllerManager {
         this.settingController = new SettingController(this, storage);
         this.newsMenuController = new NewsMenuController(this, storage);
         new AppEventHandler(eventBus, storage).register();
-        this.gameMenuController = new GameMenuController(this, storage, gameNavigation);
+        this.gameMenuController = new GameMenuController(this, model, storage, gameNavigation);
         this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
+        this.collectionController = new CollectionController(this, storage);
         this.leaderboardMenuController = new LeaderboardMenuController(this,storage,leaderboardViewState);
         this.gameLoop.setOnTickHandler(() -> {
             model.tick();
@@ -114,14 +116,20 @@ public class ControllerManager {
                 } else {
                     newsViewState = NewsViewState.empty();
                 }
+                if (currentScreen == ScreenType.COLLECTION) {
+                    collectionViewState = collectionController.getViewState();
+                } else {
+                    collectionViewState = CollectionViewState.empty();
+                }
             } else {
                 profileViewState = ProfileViewState.empty();
                 newsViewState = NewsViewState.empty();
                 settingsViewState = SettingsViewState.empty();
+                collectionViewState = CollectionViewState.empty();
                 hasUnreadNews = false;
             }
             view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation,
-                    profileViewState, newsViewState, settingsViewState,leaderboardViewState, this,hasUnreadNews);
+                    profileViewState, newsViewState, settingsViewState,leaderboardViewState,collectionViewState, this,hasUnreadNews);
         }
     }
 
@@ -224,6 +232,18 @@ public class ControllerManager {
                 return openMainMenu(MenuType.LEADERBOARD,"leaderboard");
         }
 
+        if (currentScreen == ScreenType.LEVEL_SELECTOR
+                && gameNavigation.phase == Phase.CHAPTER
+                && name.equals("collection")) {
+            CommandResult openCheck = collectionController.requireCanOpenCollection();
+            if (openCheck != null) {
+                return openCheck;
+            }
+            collectionController.onOpened();
+            setScreen(ScreenType.COLLECTION);
+            return new CommandResult("Opened collection. Default tab: plants.", true);
+        }
+
         return new CommandResult("Cannot enter menu from here.", false);
     }
 
@@ -296,10 +316,13 @@ public class ControllerManager {
                 }
                 setScreen(ScreenType.GREEN_HOUSE);
                 return new CommandResult("Returned to greenhouse.", true);
-
             case GREEN_HOUSE:
                 setScreen(ScreenType.MAIN);
                 return new CommandResult("Returned to main menu.", true);
+            case COLLECTION:
+                gameNavigation.phase = Phase.CHAPTER;
+                setScreen(ScreenType.LEVEL_SELECTOR);
+                return new CommandResult("Returned to game menu.", true);
             default:
                 return new CommandResult("Cannot exit this menu.", false);
         }

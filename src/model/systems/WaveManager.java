@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import model.board.Tile;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
@@ -40,7 +41,9 @@ public class WaveManager {
     public void initialize(LevelConfig config) {
         this.levelConfig = config;
         this.totalWaves = config.totalWaves;
-        this.zombiePool = ZombiePool.forChapter(config.chapterType);
+        this.zombiePool = config.availableZombies.isEmpty()
+                ? ZombiePool.forChapter(config.chapterType)
+                : ZombiePool.fromTypes(config.availableZombies);
         this.waveActive = false;
         clearWaveTracking();
     }
@@ -195,6 +198,39 @@ public class WaveManager {
         }
 
         return (float) currentHp / (float) totalHp < 0.25f;
+    }
+
+    public void spawnIcedZombies(int row, GameState state, EventBus eventBus) {
+        int col = 3+ (int) (Math.random() * 6);
+
+        int budget = calculateWaveBudget(1);
+
+        ZombieType type = zombiePool != null ? zombiePool.getRandomZombie(budget): null;
+        if (type == null) type = ZombieType.BASIC;
+
+        Zombie zombie = new Zombie(type,row,col,new Position(
+                col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f,
+                row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),eventBus);
+        zombie.ice();
+        state.addZombie(zombie);
+        eventBus.publish(new ZombieSpawnedEvent(zombie));
+
+    }
+
+    public void spawnPostBeachZombies(GameState state, EventBus eventBus, Tile tile) {
+        int row = tile.getRow();
+        int col = tile.getCol();
+        int budget = calculateWaveBudget(state.getCurrentWave());
+
+        ZombieType type = zombiePool != null ? zombiePool.getRandomZombie(budget): null;
+        if (type == null) type = ZombieType.BASIC;
+
+        Zombie zombie = new Zombie(type,row,col,new Position(
+                col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f,
+                row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),eventBus);
+
+        state.addZombie(zombie);
+        eventBus.publish(new ZombieSpawnedEvent(zombie));
     }
 
     public int getTotalWaves() {

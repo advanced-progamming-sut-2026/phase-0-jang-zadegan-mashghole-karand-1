@@ -9,16 +9,21 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.time.LocalDateTime;
 
 import model.gameSetting.GameSetting;
 import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
+import model.data.zombie.ZombieType;
 import model.minigame.MinigameType;
 import model.news.NewsItem;
 import model.service.Hash;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
+import model.storage.user.SafetyQuestionType;
 import model.storage.user.User;
 
 public class SqlStorageManager implements StorageManager {
@@ -69,11 +74,16 @@ public class SqlStorageManager implements StorageManager {
                     statement.setString(3, email);
                     statement.setString(4, nickname);
                     statement.setString(5, gender.name());
-                    statement.setString(6, safetyQuestion.question);
+                    statement.setString(6, safetyQuestion.type.name());
                     statement.setString(7, safetyQuestion.answer);
                     statement.setInt(8, GameSetting.DEFAULT_DIFFICULTY);
                     statement.executeUpdate();
                 }
+
+                User registered = new User(username, Hash.hashPassword(password), email, nickname, gender,
+                        safetyQuestion);
+                registered.collection.unlockStarterPlants();
+                saveUnlockedPlants(registered);
                 return true;
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to register user", e);
@@ -491,6 +501,46 @@ public class SqlStorageManager implements StorageManager {
         return new ArrayList<>(currentUser.collection.getUnlockedPlants());
     }
 
+    @Override
+    public void unlockZombie(ZombieType zombie) {
+        if (!isLoggedIn() || zombie == null) {
+            return;
+        }
+
+        synchronized (lock) {
+            if (currentUser.collection.isZombieUnlocked(zombie)) {
+                return;
+            }
+            currentUser.collection.unlockZombie(zombie);
+            try (Connection connection = openConnection();
+                    PreparedStatement statement = connection.prepareStatement(
+                            "INSERT OR IGNORE INTO unlocked_zombies (username, zombie) VALUES (?, ?)")) {
+                statement.setString(1, currentUser.username);
+                statement.setString(2, zombie.name());
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to unlock zombie", e);
+            }
+            addNews("You unlocked a new zombie: " + zombie.name);
+        }
+    }
+
+    @Override
+    public boolean isZombieUnlocked(ZombieType zombie) {
+        if (!isLoggedIn() || zombie == null) {
+            return false;
+        }
+        return currentUser.collection.isZombieUnlocked(zombie);
+    }
+
+    @Override
+    public List<ZombieType> getUnlockedZombies() {
+        if (!isLoggedIn()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(currentUser.collection.getUnlockedZombies());
+    }
+
     private void initializeDatabase() {
         File databaseFile = new File(databasePath);
         File parent = databaseFile.getParentFile();
@@ -545,6 +595,14 @@ public class SqlStorageManager implements StorageManager {
                             username TEXT NOT NULL,
                             plant TEXT NOT NULL,
                             PRIMARY KEY (username, plant),
+                            FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+                        )
+                        """);
+                statement.execute("""
+                        CREATE TABLE IF NOT EXISTS unlocked_zombies (
+                            username TEXT NOT NULL,
+                            zombie TEXT NOT NULL,
+                            PRIMARY KEY (username, zombie),
                             FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
                         )
                         """);
@@ -613,7 +671,7 @@ public class SqlStorageManager implements StorageManager {
             return;
         }
 
-        SafetyQuestion safetyQuestion = new SafetyQuestion("DEMO_QUESTION", "DEMO_ANSWER");
+        SafetyQuestion safetyQuestion = new SafetyQuestion(SafetyQuestionType.BIRTH_CITY, "DEMO_ANSWER");
         register("player", "password", "test@test.com", "player", Gender.MALE, safetyQuestion);
 
         User demoUser = loadUser("player");
@@ -622,8 +680,6 @@ public class SqlStorageManager implements StorageManager {
         }
 
         demoUser.gameProgress.unlockChapter(ChapterType.ANCIENT_EGYPT);
-        demoUser.collection.unlockPlants(Arrays.asList(
-                PlantType.Sunflower, PlantType.PeaShooter, PlantType.Repeater));
         saveUserProgress(demoUser);
     }
 
@@ -652,7 +708,7 @@ public class SqlStorageManager implements StorageManager {
                         resultSet.getString("nickname"),
                         Gender.valueOf(resultSet.getString("gender")),
                         new SafetyQuestion(
-                                resultSet.getString("safety_question"),
+                                SafetyQuestionType.fromStored(resultSet.getString("safety_question")),
                                 resultSet.getString("safety_answer")));
                 user.coins = resultSet.getInt("coins");
                 user.gems = resultSet.getInt("gems");
@@ -663,6 +719,7 @@ public class SqlStorageManager implements StorageManager {
                 loadShopStateFromUsersRow(resultSet, user);
                 loadUnlockedChapters(connection, user);
                 loadUnlockedPlants(connection, user);
+                loadUnlockedZombies(connection, user);
                 loadUnlockedMinigames(connection, user);
                 loadCompletedLevels(connection, user);
                 loadNews(connection, user);
@@ -702,6 +759,19 @@ public class SqlStorageManager implements StorageManager {
                 while (resultSet.next()) {
                     PlantType plant = PlantType.valueOf(resultSet.getString("plant"));
                     user.collection.unlockPlant(plant);
+                }
+            }
+        }
+    }
+
+    private void loadUnlockedZombies(Connection connection, User user) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT zombie FROM unlocked_zombies WHERE username = ?")) {
+            statement.setString(1, user.username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ZombieType zombie = ZombieType.valueOf(resultSet.getString("zombie"));
+                    user.collection.unlockZombie(zombie);
                 }
             }
         }
@@ -833,6 +903,7 @@ public class SqlStorageManager implements StorageManager {
         saveUserProfile(user);
         saveUnlockedChapters(user);
         saveUnlockedPlants(user);
+        saveUnlockedZombies(user);
         saveCompletedLevels(user);
         saveSeedPackets(user);
     }
@@ -854,7 +925,7 @@ public class SqlStorageManager implements StorageManager {
             statement.setString(2, user.email);
             statement.setString(3, user.nickname);
             statement.setString(4, user.gender.name());
-            statement.setString(5, user.safetyQuestion.question);
+            statement.setString(5, user.safetyQuestion.type.name());
             statement.setString(6, user.safetyQuestion.answer);
             statement.setInt(7, user.coins);
             statement.setInt(8, user.gems);
@@ -919,6 +990,28 @@ public class SqlStorageManager implements StorageManager {
         }
     }
 
+    private void saveUnlockedZombies(User user) {
+        try (Connection connection = openConnection()) {
+            try (PreparedStatement deleteStatement = connection.prepareStatement(
+                    "DELETE FROM unlocked_zombies WHERE username = ?")) {
+                deleteStatement.setString(1, user.username);
+                deleteStatement.executeUpdate();
+            }
+
+            try (PreparedStatement insertStatement = connection.prepareStatement(
+                    "INSERT INTO unlocked_zombies (username, zombie) VALUES (?, ?)")) {
+                for (ZombieType zombie : user.collection.getUnlockedZombies()) {
+                    insertStatement.setString(1, user.username);
+                    insertStatement.setString(2, zombie.name());
+                    insertStatement.addBatch();
+                }
+                insertStatement.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save unlocked zombies", e);
+        }
+    }
+
     private void saveCompletedLevels(User user) {
         try (Connection connection = openConnection()) {
             try (PreparedStatement deleteStatement = connection.prepareStatement(
@@ -966,6 +1059,7 @@ public class SqlStorageManager implements StorageManager {
             throws SQLException {
         updateChildUsername(connection, "unlocked_chapters", oldUsername, newUsername);
         updateChildUsername(connection, "unlocked_plants", oldUsername, newUsername);
+        updateChildUsername(connection, "unlocked_zombies", oldUsername, newUsername);
         updateChildUsername(connection, "completed_levels", oldUsername, newUsername);
         updateChildUsername(connection, "unlocked_minigames", oldUsername, newUsername);
         updateChildUsername(connection, "user_news", oldUsername, newUsername);

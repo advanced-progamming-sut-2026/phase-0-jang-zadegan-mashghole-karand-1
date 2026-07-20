@@ -1,5 +1,6 @@
 package model.board;
 
+import model.core.GameState;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
@@ -8,6 +9,7 @@ public class Tile {
     private final int row;
     private final int col;
     private TileType type;
+    private GameState state;
 
     private IceDirection direction; // for ice tiles
     private boolean hasBeachPost;
@@ -16,13 +18,14 @@ public class Tile {
 
     private Grave grave; // null if doesn't have grave
 
-    public Tile(int row, int col) {
+    public Tile(int row, int col, GameState state) {
         this.row = row;
         this.col = col;
         this.type = TileType.NORMAL;
         this.direction = IceDirection.NONE;
         this.hasBeachPost = false;
         this.grave = null;
+        this.state = state;
     }
 
     public boolean hasPlant() {
@@ -37,7 +40,7 @@ public class Tile {
         this.plant = plant;
     }
 
-    public void removePlant() {
+    private void removePlant() {
         this.plant = null;
     }
 
@@ -45,7 +48,7 @@ public class Tile {
         this.lilyPad = lilyPad;
     }
 
-    public void removeLilyPad() {
+    private void removeLilyPad() {
         this.lilyPad = null;
     }
 
@@ -81,14 +84,12 @@ public class Tile {
         if (hasPlant())
             return false;
         if (type == TileType.WATER) {
-            // uncomment when lily pad is added
-
-            // if (plantType == PlantType.LilyPad && hasLilyPad()) {
-            // return false;
-            // }
-            // if (plantType != PlantType.LilyPad && !hasLilyPad()) {
-            // return false;
-            // }
+            if (plantType == PlantType.Lily_Pad && hasLilyPad()) {
+                return false;
+            }
+            if (plantType != PlantType.Lily_Pad && !hasLilyPad()) {
+                return false;
+            }
         }
         if (hasGrave())
             return false;
@@ -123,6 +124,10 @@ public class Tile {
 
     public void setType(TileType type) {
         this.type = type;
+        if (type == TileType.WATER && !hasLilyPad() && hasPlant()) {
+            removePlant();
+            state.plants.remove(plant);
+        }
     }
 
     public IceDirection getDirection() {

@@ -1,80 +1,93 @@
 package model.data.content.chapter;
 
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
+import model.data.content.specialLevel.SpecialLevelType;
+import model.data.wave.LevelConfig;
+import model.data.zombie.ZombieType;
+
 public final class ChapterCatalog {
 
-    public static final int LEVELS_PER_CHAPTER = 5;
+    public static final int LEVELS_PER_CHAPTER = 4;
+
+    private static final List<ZombieType> PLACEHOLDER_ZOMBIES = List.of(
+            ZombieType.BASIC, ZombieType.CONE_HEAD);
+
+    private static final Map<ChapterType, ChapterDefinition> CHAPTERS = buildChapters();
 
     private ChapterCatalog() {
     }
 
-    public static ChapterType fromCommandName(String name) {
-        if (name == null) {
+    public static ChapterDefinition getChapter(ChapterType type) {
+        return CHAPTERS.get(type);
+    }
+
+    public static LevelConfig getLevel(ChapterType chapter, int levelNumber) {
+        ChapterDefinition definition = CHAPTERS.get(chapter);
+        if (definition == null) {
             return null;
         }
-        String normalized = name.trim().toLowerCase().replace('_', '-').replace(' ', '-');
-        switch (normalized) {
-            case "egypt":
-            case "ancient-egypt":
-            case "ancientegypt":
-                return ChapterType.ANCIENT_EGYPT;
-            case "frostbite":
-            case "frostbite-caves":
-            case "frostbitecaves":
-                return ChapterType.FROSTBITE_CAVES;
-            case "beach":
-            case "big-wave-beach":
-            case "bigwavebeach":
-                return ChapterType.BIG_WAVE_BEACH;
-            case "dark-ages":
-            case "darkages":
-                return ChapterType.DARK_AGES;
-            default:
-                return null;
-        }
+        return definition.getLevel(levelNumber);
     }
 
-    public static String toChapterId(ChapterType type) {
-        switch (type) {
-            case ANCIENT_EGYPT:
-                return "egypt";
-            case FROSTBITE_CAVES:
-                return "frostbite";
-            case BIG_WAVE_BEACH:
-                return "beach";
-            case DARK_AGES:
-                return "darkages";
-            default:
-                return "egypt";
-        }
+    private static Map<ChapterType, ChapterDefinition> buildChapters() {
+        Map<ChapterType, ChapterDefinition> map = new EnumMap<>(ChapterType.class);
+        map.put(ChapterType.ANCIENT_EGYPT, ancientEgypt());
+        map.put(ChapterType.FROSTBITE_CAVES, frostbiteCaves());
+        map.put(ChapterType.BIG_WAVE_BEACH, bigWaveBeach());
+        map.put(ChapterType.DARK_AGES, darkAges());
+        return Collections.unmodifiableMap(map);
     }
 
-    public static String displayName(ChapterType type) {
-        switch (type) {
-            case ANCIENT_EGYPT:
-                return "Ancient Egypt";
-            case FROSTBITE_CAVES:
-                return "Frostbite Caves";
-            case BIG_WAVE_BEACH:
-                return "Big Wave Beach";
-            case DARK_AGES:
-                return "Dark Ages";
-            default:
-                return type.name();
-        }
+    private static ChapterDefinition ancientEgypt() {
+        ChapterType chapter = ChapterType.ANCIENT_EGYPT;
+        return new ChapterDefinition(chapter, List.of(
+                normalLevel(chapter, 1),
+                normalLevel(chapter, 2),
+                specialLevel(chapter, 3, SpecialLevelType.CONVEYOR_BELT),
+                specialLevel(chapter, 4, SpecialLevelType.SAVE_OUR_SEEDS)));
     }
 
-    public static String commandName(ChapterType type) {
-        switch (type) {
-            case ANCIENT_EGYPT:
-                return "ancient-egypt";
-            case FROSTBITE_CAVES:
-                return "frostbite-caves";
-            case BIG_WAVE_BEACH:
-                return "big-wave-beach";
-            case DARK_AGES:
-                return "dark-ages";
-            default:
-                return type.name().toLowerCase();
-        }
+    private static ChapterDefinition frostbiteCaves() {
+        ChapterType chapter = ChapterType.FROSTBITE_CAVES;
+        return new ChapterDefinition(chapter, List.of(
+                normalLevel(chapter, 1),
+                normalLevel(chapter, 2),
+                specialLevel(chapter, 3, SpecialLevelType.LOVE_YOUR_PLANTS),
+                specialLevel(chapter, 4, SpecialLevelType.TIMED_WAR)));
+    }
+
+    private static ChapterDefinition bigWaveBeach() {
+        ChapterType chapter = ChapterType.BIG_WAVE_BEACH;
+        return new ChapterDefinition(chapter, List.of(
+                normalLevel(chapter, 1),
+                normalLevel(chapter, 2),
+                specialLevel(chapter, 3, SpecialLevelType.DEAD_LINE),
+                specialLevel(chapter, 4, SpecialLevelType.LOCKED_PLANTS)));
+    }
+
+    private static ChapterDefinition darkAges() {
+        ChapterType chapter = ChapterType.DARK_AGES;
+        return new ChapterDefinition(chapter, List.of(
+                normalLevel(chapter, 1),
+                normalLevel(chapter, 2),
+                specialLevel(chapter, 3, SpecialLevelType.NIGHT_OPS),
+                specialLevel(chapter, 4, SpecialLevelType.PLANT_WHAT_YOU_GET)));
+    }
+
+    private static LevelConfig normalLevel(ChapterType chapter, int number) {
+        return LevelConfig.builder(chapter, number)
+                .zombies(PLACEHOLDER_ZOMBIES)
+                .build();
+    }
+
+    private static LevelConfig specialLevel(ChapterType chapter, int number, SpecialLevelType special) {
+        return LevelConfig.builder(chapter, number)
+                .zombies(PLACEHOLDER_ZOMBIES)
+                .special(special)
+                .build();
     }
 }
