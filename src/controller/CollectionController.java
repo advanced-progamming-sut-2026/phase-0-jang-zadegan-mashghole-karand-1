@@ -19,6 +19,8 @@ import view.messages.ErrorMessages;
 
 public class CollectionController {
 
+    private static final int PLANT_PURCHASE_COST = 2000;
+
     private final ControllerManager controllerManager;
     private final StorageManager storage;
 
@@ -180,7 +182,36 @@ public class CollectionController {
     }
 
     public CommandResult purchasePlant(String plantName) {
-        return failure("Plant purchase is not available yet.");
+        CommandResult check = requireCollectionScreen();
+        if (check != null) {
+            return check;
+        }
+        if (plantName == null || plantName.isBlank()) {
+            return failure("Usage: menu collection purchase-plant -p <plantname>");
+        }
+
+        PlantType type = PlantType.fromName(plantName.trim());
+        if (type == null) {
+            return failure(ErrorMessages.PLANT_NOT_FOUND.getMessage());
+        }
+        if (storage.isPlantUnlocked(type)) {
+            return failure(ErrorMessages.PLANT_ALREADY_PURCHASED.getMessage());
+        }
+
+        var user = storage.getCurrentUser();
+        if (user == null) {
+            return failure("You must be logged in.");
+        }
+        if (user.coins < PLANT_PURCHASE_COST) {
+            return failure(ErrorMessages.NOT_ENOUGH_COINS_PURCHASE.getMessage());
+        }
+
+        user.coins -= PLANT_PURCHASE_COST;
+        storage.updateUserProfile(user);
+        storage.unlockPlant(type);
+
+        tab = Tab.PLANTS;
+        return success("Purchased " + type.name + " for " + PLANT_PURCHASE_COST + " coins.");
     }
 
     private List<Entry> buildEntries() {

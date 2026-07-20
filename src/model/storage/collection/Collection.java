@@ -8,6 +8,9 @@ import model.data.zombie.ZombieType;
 
 public class Collection {
 
+    public static final List<PlantType> DEFAULT_STARTER_PLANTS = List.of(
+            PlantType.Sunflower, PlantType.PeaShooter, PlantType.Repeater);
+
     private final Set<PlantType> unlockedPlants = new HashSet<>();
     private final Set<ZombieType> unlockedZombies = new HashSet<>();
 
@@ -17,6 +20,10 @@ public class Collection {
 
     public void unlockPlants(List<PlantType> types) {
         unlockedPlants.addAll(types);
+    }
+
+    public void unlockStarterPlants() {
+        unlockPlants(DEFAULT_STARTER_PLANTS);
     }
 
     public void unlockZombie(ZombieType type) {

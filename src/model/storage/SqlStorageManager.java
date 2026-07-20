@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.time.LocalDateTime;
@@ -77,6 +76,11 @@ public class SqlStorageManager implements StorageManager {
                     statement.setInt(8, GameSetting.DEFAULT_DIFFICULTY);
                     statement.executeUpdate();
                 }
+
+                User registered = new User(username, Hash.hashPassword(password), email, nickname, gender,
+                        safetyQuestion);
+                registered.collection.unlockStarterPlants();
+                saveUnlockedPlants(registered);
                 return true;
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to register user", e);
@@ -643,8 +647,6 @@ public class SqlStorageManager implements StorageManager {
         }
 
         demoUser.gameProgress.unlockChapter(ChapterType.ANCIENT_EGYPT);
-        demoUser.collection.unlockPlants(Arrays.asList(
-                PlantType.Sunflower, PlantType.PeaShooter, PlantType.Repeater));
         saveUserProgress(demoUser);
     }
 

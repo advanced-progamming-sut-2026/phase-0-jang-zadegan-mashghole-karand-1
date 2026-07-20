@@ -352,7 +352,9 @@ public class ConsoleRenderer implements Renderer {
                 + "menu collection show-plant -p <name>" + RESET + "\n");
         sb.append("  " + CYAN + "6." + RESET + " Zombie Details: " + GREEN
                 + "menu collection show-zombie -z <name>" + RESET + "\n");
-        sb.append("  " + CYAN + "7." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("  " + CYAN + "7." + RESET + " Buy Plant (2000 coins): " + GREEN
+                + "menu collection purchase-plant -p <name>" + RESET + "\n");
+        sb.append("  " + CYAN + "8." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
         sb.append("\n");
         sb.append(getMessages());
         return sb.toString();
