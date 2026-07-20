@@ -7,6 +7,7 @@ import model.data.wave.LevelConfig;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
+import model.storage.user.User;
 import view.ScreenType;
 
 public class GameMenuController {
@@ -93,7 +94,13 @@ public class GameMenuController {
         if (screenCheck != null) {
             return screenCheck;
         }
-        return failure("Coin cheat is not available yet.");
+        if (amount <= 0) {
+            return failure("Amount must be positive.");
+        }
+        User user = storage.getCurrentUser();
+        user.coins += amount;
+        storage.saveProgress();
+        return success("Added " + amount + " coins. Total: " + user.coins);
     }
 
     public CommandResult CHEAT_add_gem(int amount) {
@@ -101,7 +108,13 @@ public class GameMenuController {
         if (screenCheck != null) {
             return screenCheck;
         }
-        return failure("Gem cheat is not available yet.");
+        if (amount <= 0) {
+            return failure("Amount must be positive.");
+        }
+        User user = storage.getCurrentUser();
+        user.gems += amount;
+        storage.saveProgress();
+        return success("Added " + amount + " gems. Total: " + user.gems);
     }
 
     private CommandResult requireMainMenu(String unavailableMessage) {
