@@ -33,6 +33,9 @@ public class Zombie {
     public boolean isHypnotized = false;
     public final boolean isGlowing;
 
+    public boolean stunned = false;
+    public int stunTicks = 0;
+
     private int iceHP = 0;
     private boolean isIced = false;
 
@@ -80,6 +83,18 @@ public class Zombie {
             damage = armor.absorbDamage(damage);
         }
 
+        this.hp -= damage;
+
+        if (this.hp <= 0) {
+            this.isAlive = false;
+        }
+    }
+
+    public void takeDamage(int damage, boolean poisonous) {
+        if(!poisonous) {
+            takeDamage(damage);
+            return;
+        }
         this.hp -= damage;
 
         if (this.hp <= 0) {

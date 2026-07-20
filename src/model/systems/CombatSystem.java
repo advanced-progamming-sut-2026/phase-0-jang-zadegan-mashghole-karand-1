@@ -4,6 +4,9 @@ import model.core.EventBus;
 import model.core.GameState;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
+import model.data.plant.abilities.effects.DamageEffect;
+import model.data.plant.abilities.effects.FreezeEffect;
+import model.data.projectile.PiercingProjectile;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
 import model.data.projectile.ProjectileType;
@@ -12,6 +15,7 @@ import model.events.PlantDiedEvent;
 
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 
 public class CombatSystem {
     public EventBus eventBus;
@@ -57,23 +61,41 @@ public class CombatSystem {
                             projIter.remove();
                             break;
                         }
+
+                        if(p instanceof PiercingProjectile piercingProjectile) {
+                            if(piercingProjectile.hitZombies.contains(z)){
+                                continue;
+                            }
+                            piercingProjectile.hitZombies.add(z);
+                        }
+
+                        z.abilities.forEach(a -> a.onProjectileHit(z, p));
+
+
+
+                        applyProjectileEffects(state, p, z,freezeProjectilesEnabled);
                         // handle projectile effects here, for freezing projectiles respect
                         // freezeProjectilesEnabled
 
-                        if (z.isIced()) {
-                            if (p.type == ProjectileType.FIRE || p.type == ProjectileType.BLUE_FIRE) {
-                                z.removeIce();
-                            } else {
-                                z.damageIce(p.damage);
-                            }
-                        } else {
-                            z.takeDamage(p.damage);
+                        if (z.isIced()) z.damageIce(p.damage);
+
+                        else if(p.type != ProjectileType.POISON) {
+                            new DamageEffect(p.damage).apply(z, state, eventBus);
                         }
-                        projIter.remove();
+                        if(p instanceof PiercingProjectile piercingProjectile) {
+                            piercingProjectile.pierceCount--;
+
+                            if(piercingProjectile.pierceCount<=0){
+                                projIter.remove();
+                            }
+                        }else {
+                            projIter.remove();
+                        }
+
 
                         if (!z.isAlive) {
                             z.onDeath(state);
-                            state.zombies.remove(z);
+                            zombieIter.remove();
                         }
                         break;
                     }
@@ -94,7 +116,7 @@ public class CombatSystem {
         Iterator<Zombie> zombieIter = state.zombies.iterator();
         while (zombieIter.hasNext()) {
             Zombie z = zombieIter.next();
-
+            if (z.stunned) continue;
             Plant targetPlant = findPlantAt(state, z.row, z.position.x);
             if (targetPlant != null) {
                 targetPlant.hp -= z.type.baseStats.eatDPS / 10;
@@ -115,5 +137,34 @@ public class CombatSystem {
     private Plant findPlantAt(GameState state, int row, float x) {
         int col = (int) (x / GameState.CELL_WIDTH);
         return state.getPlantAt(row, col);
+    }
+
+    private void applyProjectileEffects(GameState state, Projectile projectile, Zombie zombie, boolean freezeProjectilesEnabled) {
+        switch (projectile.type) {
+            case FIRE, BLUE_FIRE:
+                if(zombie.isIced()) zombie.removeIce();
+                break;
+            case ICE, ICE_MELON:
+                if(freezeProjectilesEnabled) {
+                    new FreezeEffect(30).apply(zombie, state, eventBus);
+                }
+                break;
+            case POISON:
+                if(zombie.isIced()) return;
+                zombie.takeDamage(projectile.damage, true);
+                break;
+            case BUTTER:
+                zombie.stunned = true;
+                zombie.stunTicks = 30;
+                break;
+            case FREEZE_LINE:
+                if(!freezeProjectilesEnabled) break;
+                for(Zombie z : state.zombies) {
+                    if(z.row == projectile.row){
+                        new FreezeEffect(30).apply(z, state, eventBus);
+                    }
+                }
+                break;
+        }
     }
 }
