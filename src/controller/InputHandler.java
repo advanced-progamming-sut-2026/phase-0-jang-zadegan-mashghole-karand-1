@@ -139,25 +139,41 @@ public class InputHandler {
             controllerManager.handleCommandResult(
                     controllerManager.getProfileController().refreshInfo());
         } else if (Commands.SHOW_PLANTS.getMatcher(input).matches()) {
-            String plants = controllerManager.getCollectionController().ShowPlants();
+            controllerManager.handleCommandResult(
+                    controllerManager.getCollectionController().showPlants());
         } else if (Commands.SHOW_ALL_PLANTS.getMatcher(input).matches()) {
-            String plants = controllerManager.getCollectionController().showAllPlants();
+            controllerManager.handleCommandResult(
+                    controllerManager.getCollectionController().showAllPlants());
         } else if (Commands.SHOW_ZOMBIES.getMatcher(input).matches()) {
-            String zombies = controllerManager.getCollectionController().showZombies();
+            controllerManager.handleCommandResult(
+                    controllerManager.getCollectionController().showZombies());
         } else if (Commands.SHOW_ALL_ZOMBIES.getMatcher(input).matches()) {
-            String zombies = controllerManager.getCollectionController().showAllZombies();
+            controllerManager.handleCommandResult(
+                    controllerManager.getCollectionController().showAllZombies());
         } else if ((matcher = Commands.SHOW_PLANT.getMatcher(input)).matches()) {
-            String plantName = matcher.group(1);
-            String plant = controllerManager.getCollectionController().showPlant(plantName);
+            String plantName = matcher.group("plantname");
+            controllerManager.handleCommandResult(
+                    controllerManager.getCollectionController().showPlant(plantName));
         } else if ((matcher = Commands.SHOW_ZOMBIE.getMatcher(input)).matches()) {
-            String zombieName = matcher.group(1);
-            String zombie = controllerManager.getCollectionController().showZombie(zombieName);
+            String zombieName = matcher.group("zombiename");
+            controllerManager.handleCommandResult(
+                    controllerManager.getCollectionController().showZombie(zombieName));
+        } else if ((matcher = Commands.DEBUG_SHOW_PLANT.getMatcher(input)).matches()) {
+            String plantName = matcher.group("plantname");
+            controllerManager.handleCommandResult(
+                    controllerManager.getCollectionController().showPlantDebug(plantName));
+        } else if ((matcher = Commands.DEBUG_SHOW_ZOMBIE.getMatcher(input)).matches()) {
+            String zombieName = matcher.group("zombiename");
+            controllerManager.handleCommandResult(
+                    controllerManager.getCollectionController().showZombieDebug(zombieName));
         } else if ((matcher = Commands.UPGRADE_PLANT.getMatcher(input)).matches()) {
-            String plantName = matcher.group(1);
-            CommandResult result = controllerManager.getCollectionController().upgradePlant(plantName);
+            String plantName = matcher.group("plantname");
+            controllerManager.handleCommandResult(
+                    controllerManager.getCollectionController().upgradePlant(plantName));
         } else if ((matcher = Commands.PURCHASE_PLANT.getMatcher(input)).matches()) {
-            String plantName = matcher.group(1);
-            CommandResult result = controllerManager.getCollectionController().purchasePlant(plantName);
+            String plantName = matcher.group("plantname");
+            controllerManager.handleCommandResult(
+                    controllerManager.getCollectionController().purchasePlant(plantName));
         } else if (Commands.SHOW_ALL_PLANTS_SELECT.getMatcher(input).matches()) {
             CommandResult result = controllerManager.getPickPlantsController().showAllPlants();
             controllerManager.handleCommandResult(result);

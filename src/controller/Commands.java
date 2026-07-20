@@ -57,6 +57,8 @@ public enum Commands {
     SHOW_ALL_ZOMBIES("menu\\s+collection\\s+show-all-zombies"),
     SHOW_PLANT("menu\\s+collection\\s+show-plant\\s+-p\\s+(?<plantname>.*)$"),
     SHOW_ZOMBIE("menu\\s+collection\\s+show-zombie\\s+-z\\s+(?<zombiename>.*)$"),
+    DEBUG_SHOW_PLANT("debug\\s+show-plant\\s+-p\\s+(?<plantname>.*)$"),
+    DEBUG_SHOW_ZOMBIE("debug\\s+show-zombie\\s+-z\\s+(?<zombiename>.*)$"),
     UPGRADE_PLANT("menu\\s+collection\\s+upgrade-plant\\s+-p\\s+(?<plantname>.*)$"),
     PURCHASE_PLANT("menu\\s+collection\\s+purchase-plant\\s+-p\\s+(?<plantname>.*)$"),
 

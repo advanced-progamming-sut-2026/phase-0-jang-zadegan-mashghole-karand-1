@@ -1,7 +1,6 @@
 package model.storage;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +8,7 @@ import java.util.UUID;
 
 import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
+import model.data.zombie.ZombieType;
 import model.minigame.MinigameType;
 import model.service.Hash;
 import model.storage.user.Gender;
@@ -33,8 +33,7 @@ public class InMemoryStorageManager implements StorageManager {
         // Add demo user for testing
         User demoUser = new User(DEMO_USER, Hash.hashPassword(DEMO_PASSWORD), DEMO_EMAIL, DEMO_NICKNAME, Gender.MALE, DEMO_SAFETY);
         demoUser.gameProgress.unlockChapter(ChapterType.ANCIENT_EGYPT);
-        demoUser.collection.unlockPlants(Arrays.asList(
-                PlantType.Sunflower, PlantType.PeaShooter, PlantType.Repeater));
+        demoUser.collection.unlockStarterPlants();
         users.put(DEMO_USER, demoUser);
     }
 
@@ -51,6 +50,7 @@ public class InMemoryStorageManager implements StorageManager {
             return false;
         String hashedPassword = Hash.hashPassword(password);
         User profile = new User(username, hashedPassword, email, nickname, gender, safetyQuestion);
+        profile.collection.unlockStarterPlants();
         users.put(username, profile);
         return true;
     }
@@ -279,8 +279,36 @@ public class InMemoryStorageManager implements StorageManager {
 
     @Override
     public List<PlantType> getUnlockedPlants() {
-        if (!isLoggedIn())
+        if (!isLoggedIn()) {
             return new ArrayList<>();
+        }
         return new ArrayList<>(currentUser.collection.getUnlockedPlants());
+    }
+
+    @Override
+    public void unlockZombie(ZombieType zombie) {
+        if (!isLoggedIn() || zombie == null) {
+            return;
+        }
+        if (!currentUser.collection.isZombieUnlocked(zombie)) {
+            currentUser.collection.unlockZombie(zombie);
+            addNews("You unlocked a new zombie: " + zombie.name);
+        }
+    }
+
+    @Override
+    public boolean isZombieUnlocked(ZombieType zombie) {
+        if (!isLoggedIn() || zombie == null) {
+            return false;
+        }
+        return currentUser.collection.isZombieUnlocked(zombie);
+    }
+
+    @Override
+    public List<ZombieType> getUnlockedZombies() {
+        if (!isLoggedIn()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(currentUser.collection.getUnlockedZombies());
     }
 }

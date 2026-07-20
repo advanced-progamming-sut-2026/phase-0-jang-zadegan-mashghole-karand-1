@@ -234,8 +234,9 @@ public class ConsoleRenderer implements Renderer {
             sb.append("\n");
             sb.append("  " + CYAN + "1." + RESET + " Enter Chapter: " + GREEN
                     + "menu enter chapter -c <chaptername>" + RESET + "\n");
-            sb.append("  " + CYAN + "2." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
-            sb.append("  " + CYAN + "3." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+            sb.append("  " + CYAN + "2." + RESET + " Collection: " + GREEN + "menu enter collection" + RESET + "\n");
+            sb.append("  " + CYAN + "3." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+            sb.append("  " + CYAN + "4." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
             sb.append("\n");
             sb.append("  " + BOLD + "Chapters:" + RESET + "\n");
             for (ChapterType chapter : ChapterType.values()) {
@@ -302,7 +303,90 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderCollectionScreen() {
+    public void renderCollectionScreen(CollectionViewState collection) {
+        render(getCollectionScreen(collection));
+    }
+
+    private String getCollectionScreen(CollectionViewState collection) {
+        StringBuilder sb = new StringBuilder();
+        boolean plantsTab = collection.tab == CollectionViewState.Tab.PLANTS;
+        boolean unlockedMode = collection.mode == CollectionViewState.Mode.UNLOCKED;
+        String tabLabel = plantsTab ? "Plants" : "Zombies";
+        String modeLabel = unlockedMode ? "Unlocked" : "All";
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Collection | " + tabLabel
+                + " (" + modeLabel + ")" + RESET + "  🧟";
+
+        sb.append(getHeaderBox(title, PURPLE));
+        sb.append("\n");
+
+        String plantsTabMark = plantsTab ? GREEN + "[plants]" + RESET : GRAY + "plants" + RESET;
+        String zombiesTabMark = !plantsTab ? GREEN + "[zombies]" + RESET : GRAY + "zombies" + RESET;
+        sb.append("  Tabs: ").append(plantsTabMark).append("  ").append(zombiesTabMark).append("\n");
+        sb.append("\n");
+
+        if (collection.entries.isEmpty()) {
+            sb.append("  ").append(GRAY).append("(none)").append(RESET).append("\n");
+        } else {
+            sb.append(formatCollectionGrid(collection.entries));
+        }
+
+        if (collection.hasDetail()) {
+            sb.append("\n");
+            sb.append("  ").append(BOLD).append("Details: ").append(RESET)
+                    .append(CYAN).append(collection.detailTitle).append(RESET).append("\n");
+            for (String line : collection.detailLines) {
+                sb.append("    ").append(line).append("\n");
+            }
+        }
+
+        sb.append("\n");
+        sb.append("  " + CYAN + "1." + RESET + " Unlocked Plants: " + GREEN
+                + "menu collection show-plants" + RESET + "\n");
+        sb.append("  " + CYAN + "2." + RESET + " Unlocked Zombies: " + GREEN
+                + "menu collection show-zombies" + RESET + "\n");
+        sb.append("  " + CYAN + "3." + RESET + " All Plants: " + GREEN
+                + "menu collection show-all-plants" + RESET + "\n");
+        sb.append("  " + CYAN + "4." + RESET + " All Zombies: " + GREEN
+                + "menu collection show-all-zombies" + RESET + "\n");
+        sb.append("  " + CYAN + "5." + RESET + " Plant Details: " + GREEN
+                + "menu collection show-plant -p <name>" + RESET + "\n");
+        sb.append("  " + CYAN + "6." + RESET + " Zombie Details: " + GREEN
+                + "menu collection show-zombie -z <name>" + RESET + "\n");
+        sb.append("  " + CYAN + "7." + RESET + " Buy Plant (2000 coins): " + GREEN
+                + "menu collection purchase-plant -p <name>" + RESET + "\n");
+        sb.append("  " + CYAN + "8." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("\n");
+        sb.append(getMessages());
+        return sb.toString();
+    }
+
+    private String formatCollectionGrid(List<CollectionViewState.Entry> entries) {
+        final int columns = 3;
+        final int colWidth = 18;
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < entries.size(); i++) {
+            CollectionViewState.Entry entry = entries.get(i);
+            if (i % columns == 0) {
+                sb.append("  ");
+            }
+
+            String label = entry.name;
+            if (label.length() > colWidth - 1) {
+                label = label.substring(0, colWidth - 2) + ".";
+            }
+            String padded = String.format("%-" + colWidth + "s", label);
+            if (entry.unlocked) {
+                sb.append(CYAN).append(padded).append(RESET);
+            } else {
+                sb.append(GRAY).append(padded).append(RESET);
+            }
+
+            if ((i + 1) % columns == 0 || i == entries.size() - 1) {
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
     }
 
     @Override
