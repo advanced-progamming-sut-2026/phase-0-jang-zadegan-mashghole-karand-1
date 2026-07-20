@@ -2,9 +2,9 @@ package model.rule;
 
 import model.data.content.specialLevel.SpecialLevelType;
 import model.data.plant.PlantType;
+import model.systems.WaveManager;
 
 import java.util.List;
-import model.systems.WaveManager;
 
 public class SessionContext {
     private final SessionConfig config;
@@ -56,7 +56,7 @@ public class SessionContext {
     public int getConveyorRemaining() {
         return conveyorState != null ? conveyorState.getRemainingPlants() : 0;
     }
-}
+
     public WaveManager getWaveManager() {
         return waveManager;
     }
