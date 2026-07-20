@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import model.board.Tile;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
@@ -214,6 +215,22 @@ public class WaveManager {
         state.addZombie(zombie);
         eventBus.publish(new ZombieSpawnedEvent(zombie));
 
+    }
+
+    public void spawnPostBeachZombies(GameState state, EventBus eventBus, Tile tile) {
+        int row = tile.getRow();
+        int col = tile.getCol();
+        int budget = calculateWaveBudget(state.getCurrentWave());
+
+        ZombieType type = zombiePool != null ? zombiePool.getRandomZombie(budget): null;
+        if (type == null) type = ZombieType.BASIC;
+
+        Zombie zombie = new Zombie(type,row,col,new Position(
+                col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f,
+                row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),eventBus);
+
+        state.addZombie(zombie);
+        eventBus.publish(new ZombieSpawnedEvent(zombie));
     }
 
     public int getTotalWaves() {

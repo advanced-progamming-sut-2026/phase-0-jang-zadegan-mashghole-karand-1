@@ -1,11 +1,15 @@
 package model.rule.rules.chapter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
+import model.board.GameBoard;
 import model.board.Tile;
 import model.board.TileType;
 import model.core.EventBus;
 import model.core.GameState;
+import model.core.ReadOnlyGameState;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 
@@ -33,7 +37,7 @@ public class BigWaveBeachRules implements LevelRule {
             int col = MIN_COL + RANDOM.nextInt(GameState.GRID_COLS - MIN_COL);
 
             Tile tile = state.getBoard().getTile(row, col);
-            if (tile.hasBeachPost()) {
+            if (!tile.hasBeachPost()) {
                 tile.setBeachPost(true);
                 placed++;
             }
@@ -57,5 +61,17 @@ public class BigWaveBeachRules implements LevelRule {
                 tile.setType(TileType.WATER);
             }
         }
+        spawnPostBeachZombies(context, state, bus);
+    }
+
+    private void spawnPostBeachZombies(SessionContext context, GameState state, EventBus bus) {
+        GameBoard board = state.getBoard();
+        for(int i = 0; i< ReadOnlyGameState.GRID_ROWS * ReadOnlyGameState.GRID_COLS; i++ ){
+            Tile tile = board.getTile(i/ReadOnlyGameState.GRID_COLS, i%ReadOnlyGameState.GRID_COLS);
+            if(tile.isWater() && tile.hasBeachPost() && RANDOM.nextBoolean()){
+                context.getWaveManager().spawnPostBeachZombies(state,bus,tile);
+            }
+        }
+
     }
 }
