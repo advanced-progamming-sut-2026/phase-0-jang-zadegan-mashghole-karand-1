@@ -213,6 +213,11 @@ public class InputHandler {
             int col = Integer.parseInt(matcher.group("y"));
             controllerManager.handleCommandResult(
                     controllerManager.getGameMechanismController().plantPlant(row, col, type));
+        } else if ((matcher = Commands.PLANT_CONVEYOR.getMatcher(input)).matches()) {
+            int row = Integer.parseInt(matcher.group("x"));
+            int col = Integer.parseInt(matcher.group("y"));
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().placeConveyorPlant(row, col));
         } else if (Commands.CHEAT_REMOVE_COOLDOWN.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(
                     controllerManager.getGameMechanismController().removeCooldown());

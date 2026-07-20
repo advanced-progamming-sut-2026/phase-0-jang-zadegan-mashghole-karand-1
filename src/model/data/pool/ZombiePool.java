@@ -44,6 +44,21 @@ public class ZombiePool {
         return pool;
     }
 
+    public static ZombiePool fromTypes(List<ZombieType> types) {
+        ZombiePool pool = new ZombiePool();
+        if (types != null) {
+            for (ZombieType type : types) {
+                if (type != null) {
+                    pool.addZombie(type);
+                }
+            }
+        }
+        if (pool.isEmpty()) {
+            pool.addZombie(ZombieType.BASIC).addZombie(ZombieType.CONE_HEAD);
+        }
+        return pool;
+    }
+
     public ZombiePool addZombie(ZombieType type) {
         availableZombies.add(type);
         return this;
