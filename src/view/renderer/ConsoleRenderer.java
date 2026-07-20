@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import controller.PickPlantsController;
+import controller.ShopController;
 import model.core.GameLoop;
 import model.core.ReadOnlyGameState;
 import model.data.content.chapter.ChapterCatalog;
@@ -13,6 +14,9 @@ import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
 import model.service.*;
 import model.service.GameNavigationState.Phase;
+import model.shop.ShopCurrency;
+import model.shop.ShopItem;
+import model.shop.ShopItems;
 import model.storage.user.SafetyQuestion;
 
 public class ConsoleRenderer implements Renderer {
@@ -139,7 +143,7 @@ public class ConsoleRenderer implements Renderer {
     }
 
     private String getLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
-            String passwordResetQuestion) {
+                                  String passwordResetQuestion) {
         StringBuilder sb = new StringBuilder();
         String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Login" + RESET + "  🧟";
 
@@ -176,7 +180,7 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
-            String passwordResetQuestion) {
+                                  String passwordResetQuestion) {
         render(getLoginScreen(isAwaitingSecurityAnswer, isAwaitingNewPassword, passwordResetQuestion));
     }
 
@@ -297,10 +301,6 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderShopScreen() {
-    }
-
-    @Override
     public void renderCollectionScreen() {
     }
 
@@ -399,10 +399,12 @@ public class ConsoleRenderer implements Renderer {
         sb.append(getMessages());
         return sb.toString();
     }
+
     @Override
-    public void renderLeaderboardOverlay(LeaderboardViewState leaderboardViewState){
-            render(getLeaderboardOverlay(leaderboardViewState));
+    public void renderLeaderboardOverlay(LeaderboardViewState leaderboardViewState) {
+        render(getLeaderboardOverlay(leaderboardViewState));
     }
+
     private String getLeaderboardOverlay(LeaderboardViewState leaderboard) {
         StringBuilder sb = new StringBuilder();
         String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Leaderboard" + RESET + "  🧟";
@@ -432,6 +434,7 @@ public class ConsoleRenderer implements Renderer {
         sb.append(getMessages());
         return sb.toString();
     }
+
     @Override
     public void renderProfileOverlay(ProfileViewState profile) {
         render(getProfileOverlay(profile));
@@ -470,6 +473,76 @@ public class ConsoleRenderer implements Renderer {
         sb.append("\n");
         sb.append(getMessages());
         return sb.toString();
+    }
+
+    @Override
+    public void renderShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased, ShopController.ShopDisplayMode mode) {
+        render(getShopScreen(coins, gems, dailyPlant, dailyPrice, dailyPurchased, mode));
+    }
+
+    private String getShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased, ShopController.ShopDisplayMode mode) {
+        StringBuilder sb = new StringBuilder();
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Shop" + RESET + "  🧟";
+
+        sb.append(getHeaderBox(title, YELLOW));
+        sb.append("\n");
+        sb.append("  ").append(BOLD).append("Coins:").append(RESET).append(" ").append(coins).append("\n");
+        sb.append("  ").append(BOLD).append("Gems:").append(RESET).append(" ").append(gems).append("\n");
+        sb.append("\n");
+        if (mode == ShopController.ShopDisplayMode.LIST) {
+            sb.append("  ").append(BOLD).append("Shop Items:").append(RESET).append("\n");
+            for (ShopItems entry : ShopItems.values()) {
+                sb.append(formatShopItem(entry.getShopItem()));
+            }
+        } else if (mode == ShopController.ShopDisplayMode.DAILY) {
+
+            sb.append("\n");
+            sb.append("  ").append(BOLD).append("Daily Deal:").append(RESET).append("\n");
+            sb.append(formatDailyDeal(dailyPlant, dailyPrice, dailyPurchased));
+        }
+            sb.append("\n");
+            sb.append("  ").append(CYAN).append("1.").append(RESET).append(" List: ")
+                    .append(GREEN).append("shop list").append(RESET).append("\n");
+            sb.append("  ").append(CYAN).append("2.").append(RESET).append(" Daily: ")
+                    .append(GREEN).append("shop daily").append(RESET).append("\n");
+            sb.append("  ").append(CYAN).append("3.").append(RESET).append(" Buy: ")
+                    .append(GREEN).append("shop buy -i <itemid> -n <count>").append(RESET).append("\n");
+            sb.append("  ").append(CYAN).append("4.").append(RESET).append(" Buy with plant: ")
+                    .append(GREEN).append("shop buy -i <itemid> -n <count> -t <planttype>").append(RESET).append("\n");
+            sb.append("  ").append(CYAN).append("5.").append(RESET).append(" Back: ")
+                    .append(GREEN).append("menu exit").append(RESET).append("\n");
+            sb.append("\n");
+            sb.append(getMessages());
+
+        return sb.toString();
+    }
+
+    private String formatShopItem(ShopItem item) {
+        String currency = item.getCurrency() == ShopCurrency.COIN ? "coins" : "gems";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("    ")
+                .append(CYAN).append(item.getId()).append(RESET)
+                .append(" | ")
+                .append(item.getName())
+                .append(" | ")
+                .append(item.getPrice()).append(" ").append(currency)
+                .append(" | unit: ").append(item.getPurchaseUnit())
+                .append("\n");
+        sb.append("      ").append(GRAY).append(item.getDescription()).append(RESET).append("\n");
+        return sb.toString();
+    }
+
+    private String formatDailyDeal(PlantType dailyPlant, int dailyPrice, boolean dailyPurchased) {
+        if (dailyPlant == null) {
+            return "    " + GRAY + "No daily deal available." + RESET + "\n";
+        }
+
+        String status = dailyPurchased ? RED + "purchased" + RESET : GREEN + "available" + RESET;
+
+        return "    " + dailyPlant.name
+                + " | " + dailyPrice + " coins"
+                + " | " + status + "\n";
     }
 
     private String getMenuOverlay(String menuName, String color) {
@@ -521,12 +594,12 @@ public class ConsoleRenderer implements Renderer {
     private String getHUD(ReadOnlyGameState state) {
         String status = state.isGameOver() ? "💀" : state.isLevelComplete() ? "⭐" : "▶️";
         String title = String.format("%s☀️ : %-4d  " +
-                "%s🌊 : %-3d  " +
-                "%s🧟 : %-3d  " +
-                "%s🌿 : %-2d  " +
-                "%s⏱️ %-4ds  " +
-                CYAN + "%s" + RESET +
-                CYAN + " %2s" + RESET,
+                        "%s🌊 : %-3d  " +
+                        "%s🧟 : %-3d  " +
+                        "%s🌿 : %-2d  " +
+                        "%s⏱️ %-4ds  " +
+                        CYAN + "%s" + RESET +
+                        CYAN + " %2s" + RESET,
                 YELLOW, state.getSunAmount(),
                 CYAN, state.getCurrentWave(),
                 RED, state.getZombies().size(),

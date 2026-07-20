@@ -19,10 +19,8 @@ public class Greenhouse {
         }
         production.add(p);
     }
-<<<<<<< Updated upstream
-=======
+
     public int getPotCount() {
         return production == null ? 0 : production.size();
     }
->>>>>>> Stashed changes
 }

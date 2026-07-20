@@ -26,6 +26,7 @@ public class MainMenuController {
 
         storage.saveProgress();
         storage.logout();
+        controllerManager.initShopForCurrentUser();
         controllerManager.clearCurrentMenu();
         controllerManager.getAuthController().clearPasswordResetState();
         controllerManager.setScreen(ScreenType.REGISTER);

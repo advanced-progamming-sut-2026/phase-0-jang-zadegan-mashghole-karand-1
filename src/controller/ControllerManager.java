@@ -6,10 +6,15 @@ import model.core.EventBus;
 import model.core.GameLoop;
 import model.service.*;
 import model.service.GameNavigationState.Phase;
+import model.shop.Shop;
+import model.shop.ShopItems;
 import model.storage.StorageManager;
+import model.storage.user.User;
 import view.MenuType;
 import view.ScreenType;
 import view.ViewManager;
+
+import java.util.Arrays;
 
 public class ControllerManager {
     private ModelManager model;
@@ -27,7 +32,7 @@ public class ControllerManager {
     private final PickPlantsController pickPlantsController;
     private final CollectionController collectionController = new CollectionController();
     private final GameMechanismController gameMechanismController;
-    private final GreenhouseController greenhouseController = new GreenhouseController();
+    private final GreenhouseController greenhouseController;
     private ShopController shopController;
     private final QuestMenuController questMenuController = new QuestMenuController();
     private final LeaderboardMenuController leaderboardMenuController;
@@ -41,6 +46,7 @@ public class ControllerManager {
     private SettingsViewState settingsViewState = SettingsViewState.empty();
     private LeaderboardViewState leaderboardViewState = LeaderboardViewState.empty();
     private boolean hasUnreadNews = false;
+    private Shop shop;
 
     public ControllerManager(ModelManager model,
             EventBus eventBus, GameLoop gameLoop, StorageManager storage) {
@@ -48,7 +54,7 @@ public class ControllerManager {
         this.eventBus = eventBus;
         this.gameLoop = gameLoop;
         this.storage = storage;
-
+        this.greenhouseController = new GreenhouseController(this);
         this.authController = new AuthController(this, storage);
         this.mainMenuController = new MainMenuController(this, storage);
         this.profileController = new ProfileController(this, storage);
@@ -73,6 +79,7 @@ public class ControllerManager {
 
     public void start() {
         storage.loadProgress();
+        initShopForCurrentUser();
         currentScreen = storage.isLoggedIn() ? ScreenType.MAIN : ScreenType.REGISTER;
         refreshView();
     }
@@ -114,7 +121,7 @@ public class ControllerManager {
                 hasUnreadNews = false;
             }
             view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation,
-                    profileViewState, newsViewState, settingsViewState,leaderboardViewState ,hasUnreadNews);
+                    profileViewState, newsViewState, settingsViewState,leaderboardViewState, this,hasUnreadNews);
         }
     }
 
@@ -283,6 +290,16 @@ public class ControllerManager {
                 gameNavigation.reset();
                 setScreen(ScreenType.MAIN);
                 return new CommandResult("Returned to main menu.", true);
+            case SHOP:
+                if (shopController != null) {
+                    shopController.setShopDisplayMode(ShopController.ShopDisplayMode.MENU);
+                }
+                setScreen(ScreenType.GREEN_HOUSE);
+                return new CommandResult("Returned to greenhouse.", true);
+
+            case GREEN_HOUSE:
+                setScreen(ScreenType.MAIN);
+                return new CommandResult("Returned to main menu.", true);
             default:
                 return new CommandResult("Cannot exit this menu.", false);
         }
@@ -294,6 +311,18 @@ public class ControllerManager {
                     "Current screen: main (" + currentMenu.name().toLowerCase() + " menu open).", true);
         }
         return new CommandResult("Current screen: " + currentScreen.name().toLowerCase(), true);
+    }
+    public void initShopForCurrentUser() {
+        if (!storage.isLoggedIn()) {
+            shop = null;
+            shopController = null;
+            return;
+        }
+
+        User user = storage.getCurrentUser();
+        shop = new Shop( user);
+        shop.ensureDailyFresh();
+        shopController = new ShopController(shop, storage);
     }
 
     public void sendMessage(String message) {
