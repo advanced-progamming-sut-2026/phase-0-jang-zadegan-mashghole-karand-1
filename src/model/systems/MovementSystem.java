@@ -83,5 +83,6 @@ public class MovementSystem {
                 p.position.y < 0 ||
                 p.row < 0 ||
                 p.row >= GameState.GRID_ROWS));
+        state.zombies.removeIf(z -> z.isHypnotized && z.position.x > GameState.SCREEN_WIDTH);
     }
 }
