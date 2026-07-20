@@ -2,6 +2,7 @@ package model.systems;
 
 import model.core.EventBus;
 import model.core.GameState;
+import model.core.ReadOnlyGameState;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
 import model.data.plant.abilities.effects.DamageEffect;
@@ -117,6 +118,18 @@ public class CombatSystem {
         while (zombieIter.hasNext()) {
             Zombie z = zombieIter.next();
             if (z.stunned) continue;
+            if(z.isHypnotized) {
+                Zombie targetZombie = state.zombies.stream()
+                        .filter(zombie -> zombie.row == z.row && zombie.position.x>= z.position.x
+                                && !zombie.isHypnotized && Math.abs(zombie.position.x - z.position.x) < ReadOnlyGameState.ZOMBIE_ATTACK_RANGE)
+                        .min(Comparator.comparingDouble(zombie -> zombie.position.x - z.position.x)).orElse(null);
+                if (targetZombie == null) continue;
+                targetZombie.takeDamage(z.type.baseStats.eatDPS / 10);
+                if(!targetZombie.isAlive) {
+                    targetZombie.onDeath(state);
+                }
+                continue;
+            }
             Plant targetPlant = findPlantAt(state, z.row, z.position.x);
             if (targetPlant != null) {
                 targetPlant.hp -= z.type.baseStats.eatDPS / 10;

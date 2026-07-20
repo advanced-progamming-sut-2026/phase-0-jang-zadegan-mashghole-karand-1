@@ -27,11 +27,9 @@ public class PlantHypnotizeAbility implements PlantAbilityConfig {
                 killer.isAlive = false;
                 Zombie garg = new Zombie(ZombieType.GARGANTUAR, killer.row, killer.col,new Position(killer.row, killer.col),event);
                 garg.isHypnotized = true;
-                garg.speed = -Math.abs(garg.speed);
                 state.zombies.add(garg);
             } else {
                 killer.isHypnotized = true;
-                killer.speed = -Math.abs(killer.speed);
             }
         }
     }

@@ -134,6 +134,8 @@ public class Zombie {
         }
         if (isFrozen)
             s *= 0.5f;
+        if(isHypnotized)
+            s *= -1;
         return s;
     }
 
