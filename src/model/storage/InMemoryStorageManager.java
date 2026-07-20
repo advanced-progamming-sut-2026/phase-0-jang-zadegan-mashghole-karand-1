@@ -13,6 +13,7 @@ import model.minigame.MinigameType;
 import model.service.Hash;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
+import model.storage.user.SafetyQuestionType;
 import model.storage.user.User;
 
 public class InMemoryStorageManager implements StorageManager {
@@ -27,11 +28,12 @@ public class InMemoryStorageManager implements StorageManager {
     private static final String DEMO_PASSWORD = "password";
     private static final String DEMO_EMAIL = "test@test.com";
     private static final String DEMO_NICKNAME = "password";
-    private static final SafetyQuestion DEMO_SAFETY = new SafetyQuestion("DEMO_QUESTION", "DEMO_ANSWER");
+    private static final SafetyQuestion DEMO_SAFETY = new SafetyQuestion(SafetyQuestionType.BIRTH_CITY, "DEMO_ANSWER");
 
     public InMemoryStorageManager() {
         // Add demo user for testing
-        User demoUser = new User(DEMO_USER, Hash.hashPassword(DEMO_PASSWORD), DEMO_EMAIL, DEMO_NICKNAME, Gender.MALE, DEMO_SAFETY);
+        User demoUser = new User(DEMO_USER, Hash.hashPassword(DEMO_PASSWORD), DEMO_EMAIL, DEMO_NICKNAME, Gender.MALE,
+                DEMO_SAFETY);
         demoUser.gameProgress.unlockChapter(ChapterType.ANCIENT_EGYPT);
         demoUser.collection.unlockStarterPlants();
         users.put(DEMO_USER, demoUser);
@@ -89,8 +91,9 @@ public class InMemoryStorageManager implements StorageManager {
     public User getCurrentUser() {
         return currentUser;
     }
+
     @Override
-    public List<User> getUsers(){
+    public List<User> getUsers() {
         List<User> userList = new ArrayList<>(users.values());
         return userList;
     }
@@ -161,10 +164,10 @@ public class InMemoryStorageManager implements StorageManager {
         }
         boolean alreadyCompleted = currentUser.gameProgress.getCompletedLevelIds().contains(levelId);
         int underline = levelId.lastIndexOf("_");
-        ChapterType chapter = ChapterType.valueOf(levelId.substring(0,underline));
+        ChapterType chapter = ChapterType.valueOf(levelId.substring(0, underline));
         int level = Integer.parseInt(levelId.substring(underline));
         currentUser.gameProgress.completeLevel(levelId);
-        currentUser.gameProgress.setLastProgress(chapter,level);
+        currentUser.gameProgress.setLastProgress(chapter, level);
         if (!alreadyCompleted) {
             addNews("You unlocked a new level: " + levelId);
         }

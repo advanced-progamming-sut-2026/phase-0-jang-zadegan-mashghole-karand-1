@@ -126,7 +126,7 @@ public class ConsoleRenderer implements Renderer {
         sb.append("  " + BOLD + "Safety Questions:" + RESET + "\n");
         for (int i = 0; i < questions.size(); i++) {
             sb.append("    ").append(CYAN).append(i + 1).append(".").append(RESET).append(" ")
-                    .append(questions.get(i).question).append("\n");
+                    .append(questions.get(i).type.question).append("\n");
         }
         sb.append("\n");
         sb.append(getMessages());
@@ -484,10 +484,12 @@ public class ConsoleRenderer implements Renderer {
         sb.append(getMessages());
         return sb.toString();
     }
+
     @Override
-    public void renderLeaderboardOverlay(LeaderboardViewState leaderboardViewState){
-            render(getLeaderboardOverlay(leaderboardViewState));
+    public void renderLeaderboardOverlay(LeaderboardViewState leaderboardViewState) {
+        render(getLeaderboardOverlay(leaderboardViewState));
     }
+
     private String getLeaderboardOverlay(LeaderboardViewState leaderboard) {
         StringBuilder sb = new StringBuilder();
         String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Leaderboard" + RESET + "  🧟";
@@ -517,6 +519,7 @@ public class ConsoleRenderer implements Renderer {
         sb.append(getMessages());
         return sb.toString();
     }
+
     @Override
     public void renderProfileOverlay(ProfileViewState profile) {
         render(getProfileOverlay(profile));

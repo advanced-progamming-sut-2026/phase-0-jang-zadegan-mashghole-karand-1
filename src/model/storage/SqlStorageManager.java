@@ -21,6 +21,7 @@ import model.news.NewsItem;
 import model.service.Hash;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
+import model.storage.user.SafetyQuestionType;
 import model.storage.user.User;
 
 public class SqlStorageManager implements StorageManager {
@@ -71,7 +72,7 @@ public class SqlStorageManager implements StorageManager {
                     statement.setString(3, email);
                     statement.setString(4, nickname);
                     statement.setString(5, gender.name());
-                    statement.setString(6, safetyQuestion.question);
+                    statement.setString(6, safetyQuestion.type.name());
                     statement.setString(7, safetyQuestion.answer);
                     statement.setInt(8, GameSetting.DEFAULT_DIFFICULTY);
                     statement.executeUpdate();
@@ -638,7 +639,7 @@ public class SqlStorageManager implements StorageManager {
             return;
         }
 
-        SafetyQuestion safetyQuestion = new SafetyQuestion("DEMO_QUESTION", "DEMO_ANSWER");
+        SafetyQuestion safetyQuestion = new SafetyQuestion(SafetyQuestionType.BIRTH_CITY, "DEMO_ANSWER");
         register("player", "password", "test@test.com", "player", Gender.MALE, safetyQuestion);
 
         User demoUser = loadUser("player");
@@ -675,7 +676,7 @@ public class SqlStorageManager implements StorageManager {
                         resultSet.getString("nickname"),
                         Gender.valueOf(resultSet.getString("gender")),
                         new SafetyQuestion(
-                                resultSet.getString("safety_question"),
+                                SafetyQuestionType.fromStored(resultSet.getString("safety_question")),
                                 resultSet.getString("safety_answer")));
                 user.coins = resultSet.getInt("coins");
                 user.gems = resultSet.getInt("gems");
@@ -850,7 +851,7 @@ public class SqlStorageManager implements StorageManager {
             statement.setString(2, user.email);
             statement.setString(3, user.nickname);
             statement.setString(4, user.gender.name());
-            statement.setString(5, user.safetyQuestion.question);
+            statement.setString(5, user.safetyQuestion.type.name());
             statement.setString(6, user.safetyQuestion.answer);
             statement.setInt(7, user.coins);
             statement.setInt(8, user.gems);

@@ -4,6 +4,7 @@ import model.service.AuthValidator;
 import model.storage.StorageManager;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
+import model.storage.user.SafetyQuestionType;
 import model.storage.user.User;
 import view.ScreenType;
 import view.messages.ErrorMessages;
@@ -19,7 +20,7 @@ public class AuthController {
     private final ControllerManager controllerManager;
     private final StorageManager storage;
 
-    private final List<SafetyQuestion> questions = new ArrayList<>();
+    private final List<SafetyQuestion> questions;
 
     private PendingRegistration pendingRegistration;
     private String passwordResetUsername;
@@ -29,11 +30,15 @@ public class AuthController {
     public AuthController(ControllerManager controllerManager, StorageManager storage) {
         this.controllerManager = controllerManager;
         this.storage = storage;
-        questions.add(new SafetyQuestion("DEMO_QUESTION", "DEMO_ANSWER"));
+        List<SafetyQuestion> available = new ArrayList<>();
+        for (SafetyQuestionType type : SafetyQuestionType.values()) {
+            available.add(new SafetyQuestion(type, ""));
+        }
+        this.questions = Collections.unmodifiableList(available);
     }
 
     public List<SafetyQuestion> getQuestions() {
-        return Collections.unmodifiableList(questions);
+        return questions;
     }
 
     public String getPasswordResetQuestion() {
@@ -44,7 +49,7 @@ public class AuthController {
         if (user == null || user.safetyQuestion == null) {
             return null;
         }
-        return user.safetyQuestion.question;
+        return user.safetyQuestion.type.question;
     }
 
     public boolean isAwaitingSecurityAnswer() {
@@ -126,7 +131,7 @@ public class AuthController {
         }
 
         SafetyQuestion selectedQuestion = questions.get(questionNum - 1);
-        SafetyQuestion userQuestion = new SafetyQuestion(selectedQuestion.question, answer);
+        SafetyQuestion userQuestion = new SafetyQuestion(selectedQuestion.type, answer);
 
         boolean registered = storage.register(
                 pendingRegistration.username,
@@ -181,7 +186,7 @@ public class AuthController {
 
         passwordResetUsername = username;
         awaitingSecurityAnswer = true;
-        return success("Answer your security question: " + user.safetyQuestion.question);
+        return success("Answer your security question: " + user.safetyQuestion.type.question);
     }
 
     public CommandResult answer(String answer) {
