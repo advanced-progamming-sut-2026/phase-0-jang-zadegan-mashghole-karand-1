@@ -27,10 +27,6 @@ public enum Commands {
 
     // game menu
     ENTER_CHAPTER("menu\\s+enter\\s+chapter\\s+-c\\s+(?<chaptername>.*)"),
-    GREENHOUSE("menu\\s+greenhouse"),
-    TRAVEL_LOG("menu\\s+travel-log"),
-    COIN_WALLET("menu\\s+coin-wallet"),
-    GEM_WALLET("menu\\s+gem-wallet"),
     ADD_COIN("menu\\s+cheat\\s+add\\s+(?<n>\\d+)\\s+coin"),
     ADD_DIAMOND("menu\\s+cheat\\s+add\\s+(?<n>\\d+)\\s+diamond"),
 

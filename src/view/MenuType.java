@@ -7,6 +7,5 @@ public enum MenuType {
     PROFILE,
     NEWS,
     QUESTS,
-    PLANT_SELECTOR,
-    LEADERBOARD
+    PLANT_SELECTOR
 }

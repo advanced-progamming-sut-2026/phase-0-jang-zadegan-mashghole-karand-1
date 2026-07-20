@@ -3,7 +3,6 @@ package controller;
 import controller.CommandResult.CommandResult;
 import model.service.LeaderboardViewState;
 import model.storage.StorageManager;
-import view.MenuType;
 import view.ScreenType;
 
 public class LeaderboardMenuController {
@@ -18,12 +17,9 @@ public class LeaderboardMenuController {
     }
 
     public CommandResult sort(String sortClass, String sortType) {
-        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.MAIN);
+        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.LEADERBOARD);
         if (screenCheck != null) {
             return screenCheck;
-        }
-        if (controllerManager.getCurrentMenu() != MenuType.LEADERBOARD) {
-            return failure("Open the leaderboard first with: menu enter leaderboard");
         }
         if (sortClass == null || sortType == null) {
             return failure("Usage: menu leaderboard sort -c <SCORE|LEVELS|MINIGAMES> -t <HTL|LTH>");

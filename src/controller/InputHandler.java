@@ -85,14 +85,6 @@ public class InputHandler {
             controllerManager.handleCommandResult(result);
         } else if (Commands.LOGOUT.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(controllerManager.getMainMenuController().logout());
-        } else if (Commands.GREENHOUSE.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(controllerManager.getGameMenuController().greenHouse());
-        } else if (Commands.TRAVEL_LOG.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(controllerManager.getGameMenuController().quest());
-        } else if (Commands.COIN_WALLET.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(controllerManager.getGameMenuController().coin_wallet());
-        } else if (Commands.GEM_WALLET.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(controllerManager.getGameMenuController().gem_wallet());
         } else if ((matcher = Commands.ADD_COIN.getMatcher(input)).matches()) {
             int amount = Integer.parseInt(matcher.group(1));
             controllerManager.handleCommandResult(controllerManager.getGameMenuController().CHEAT_add_coin(amount));

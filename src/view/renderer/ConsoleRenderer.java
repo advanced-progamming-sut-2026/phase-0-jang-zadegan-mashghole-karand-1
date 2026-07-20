@@ -144,7 +144,7 @@ public class ConsoleRenderer implements Renderer {
     }
 
     private String getLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
-                                  String passwordResetQuestion) {
+            String passwordResetQuestion) {
         StringBuilder sb = new StringBuilder();
         String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Login" + RESET + "  🧟";
 
@@ -181,7 +181,7 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
-                                  String passwordResetQuestion) {
+            String passwordResetQuestion) {
         render(getLoginScreen(isAwaitingSecurityAnswer, isAwaitingNewPassword, passwordResetQuestion));
     }
 
@@ -196,9 +196,8 @@ public class ConsoleRenderer implements Renderer {
         sb.append("  " + CYAN + "2." + RESET + " Settings: " + GREEN + "menu enter settings" + RESET + "\n");
         sb.append("  " + CYAN + "3." + RESET + " News: " + GREEN + "menu enter news" + RESET + unreadIndicator + "\n");
         sb.append("  " + CYAN + "4." + RESET + " Profile: " + GREEN + "menu enter profile" + RESET + "\n");
-        sb.append("  " + CYAN + "5." + RESET + " Leaderboard: " + GREEN + "menu enter leaderboard" + RESET + "\n");
-        sb.append("  " + CYAN + "6." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
-        sb.append("  " + CYAN + "7." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+        sb.append("  " + CYAN + "5." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
+        sb.append("  " + CYAN + "6." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
         sb.append("\n");
         sb.append(getMessages());
 
@@ -240,8 +239,10 @@ public class ConsoleRenderer implements Renderer {
             sb.append("  " + CYAN + "1." + RESET + " Enter Chapter: " + GREEN
                     + "menu enter chapter -c <chaptername>" + RESET + "\n");
             sb.append("  " + CYAN + "2." + RESET + " Collection: " + GREEN + "menu enter collection" + RESET + "\n");
-            sb.append("  " + CYAN + "3." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
-            sb.append("  " + CYAN + "4." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+            sb.append("  " + CYAN + "3." + RESET + " Greenhouse: " + GREEN + "menu enter greenhouse" + RESET + "\n");
+            sb.append("  " + CYAN + "4." + RESET + " Leaderboard: " + GREEN + "menu enter leaderboard" + RESET + "\n");
+            sb.append("  " + CYAN + "5." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+            sb.append("  " + CYAN + "6." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
             sb.append("\n");
             sb.append("  " + BOLD + "Chapters:" + RESET + "\n");
             for (ChapterType chapter : ChapterType.values()) {
@@ -301,10 +302,19 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderGreenHouseScreen() {
+        render(getGreenHouseScreen());
     }
 
-    @Override
-    public void renderShopScreen() {
+    private String getGreenHouseScreen() {
+        StringBuilder sb = new StringBuilder();
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Greenhouse" + RESET + "  🧟";
+        sb.append(getHeaderBox(title, GREEN));
+        sb.append("\n");
+        sb.append("  " + CYAN + "1." + RESET + " Shop: " + GREEN + "enter shop" + RESET + "\n");
+        sb.append("  " + CYAN + "2." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("\n");
+        sb.append(getMessages());
+        return sb.toString();
     }
 
     @Override
@@ -569,11 +579,13 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased, ShopController.ShopDisplayMode mode) {
+    public void renderShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased,
+            ShopController.ShopDisplayMode mode) {
         render(getShopScreen(coins, gems, dailyPlant, dailyPrice, dailyPurchased, mode));
     }
 
-    private String getShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased, ShopController.ShopDisplayMode mode) {
+    private String getShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased,
+            ShopController.ShopDisplayMode mode) {
         StringBuilder sb = new StringBuilder();
         String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Shop" + RESET + "  🧟";
 
@@ -593,19 +605,19 @@ public class ConsoleRenderer implements Renderer {
             sb.append("  ").append(BOLD).append("Daily Deal:").append(RESET).append("\n");
             sb.append(formatDailyDeal(dailyPlant, dailyPrice, dailyPurchased));
         }
-            sb.append("\n");
-            sb.append("  ").append(CYAN).append("1.").append(RESET).append(" List: ")
-                    .append(GREEN).append("shop list").append(RESET).append("\n");
-            sb.append("  ").append(CYAN).append("2.").append(RESET).append(" Daily: ")
-                    .append(GREEN).append("shop daily").append(RESET).append("\n");
-            sb.append("  ").append(CYAN).append("3.").append(RESET).append(" Buy: ")
-                    .append(GREEN).append("shop buy -i <itemid> -n <count>").append(RESET).append("\n");
-            sb.append("  ").append(CYAN).append("4.").append(RESET).append(" Buy with plant: ")
-                    .append(GREEN).append("shop buy -i <itemid> -n <count> -t <planttype>").append(RESET).append("\n");
-            sb.append("  ").append(CYAN).append("5.").append(RESET).append(" Back: ")
-                    .append(GREEN).append("menu exit").append(RESET).append("\n");
-            sb.append("\n");
-            sb.append(getMessages());
+        sb.append("\n");
+        sb.append("  ").append(CYAN).append("1.").append(RESET).append(" List: ")
+                .append(GREEN).append("shop list").append(RESET).append("\n");
+        sb.append("  ").append(CYAN).append("2.").append(RESET).append(" Daily: ")
+                .append(GREEN).append("shop daily").append(RESET).append("\n");
+        sb.append("  ").append(CYAN).append("3.").append(RESET).append(" Buy: ")
+                .append(GREEN).append("shop buy -i <itemid> -n <count>").append(RESET).append("\n");
+        sb.append("  ").append(CYAN).append("4.").append(RESET).append(" Buy with plant: ")
+                .append(GREEN).append("shop buy -i <itemid> -n <count> -t <planttype>").append(RESET).append("\n");
+        sb.append("  ").append(CYAN).append("5.").append(RESET).append(" Back: ")
+                .append(GREEN).append("menu exit").append(RESET).append("\n");
+        sb.append("\n");
+        sb.append(getMessages());
 
         return sb.toString();
     }
@@ -636,18 +648,6 @@ public class ConsoleRenderer implements Renderer {
         return "    " + dailyPlant.name
                 + " | " + dailyPrice + " coins"
                 + " | " + status + "\n";
-    }
-
-    private String getMenuOverlay(String menuName, String color) {
-        StringBuilder sb = new StringBuilder();
-        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | " + menuName + RESET + "  🧟";
-
-        sb.append(getHeaderBox(title, color));
-        sb.append("\n");
-        sb.append("  " + CYAN + "1." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
-        sb.append("\n");
-        sb.append(getMessages());
-        return sb.toString();
     }
 
     @Override
@@ -687,12 +687,12 @@ public class ConsoleRenderer implements Renderer {
     private String getHUD(ReadOnlyGameState state) {
         String status = state.isGameOver() ? "💀" : state.isLevelComplete() ? "⭐" : "▶️";
         String title = String.format("%s☀️ : %-4d  " +
-                        "%s🌊 : %-3d  " +
-                        "%s🧟 : %-3d  " +
-                        "%s🌿 : %-2d  " +
-                        "%s⏱️ %-4ds  " +
-                        CYAN + "%s" + RESET +
-                        CYAN + " %2s" + RESET,
+                "%s🌊 : %-3d  " +
+                "%s🧟 : %-3d  " +
+                "%s🌿 : %-2d  " +
+                "%s⏱️ %-4ds  " +
+                CYAN + "%s" + RESET +
+                CYAN + " %2s" + RESET,
                 YELLOW, state.getSunAmount(),
                 CYAN, state.getCurrentWave(),
                 RED, state.getZombies().size(),

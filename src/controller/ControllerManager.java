@@ -176,6 +176,7 @@ public class ControllerManager {
             case LEVEL_SELECTOR -> "Level Selection";
             case GAME -> "Game";
             case COLLECTION -> "Collection";
+            case LEADERBOARD -> "Leaderboard";
             case GREEN_HOUSE -> "Greenhouse";
             case SHOP -> "Shop";
         };
@@ -229,20 +230,35 @@ public class ControllerManager {
             if (name.equals("profile")) {
                 return openMainMenu(MenuType.PROFILE, "profile");
             }
-            if (name.equals("leaderboard"))
-                return openMainMenu(MenuType.LEADERBOARD,"leaderboard");
         }
 
         if (currentScreen == ScreenType.LEVEL_SELECTOR
-                && gameNavigation.phase == Phase.CHAPTER
-                && name.equals("collection")) {
-            CommandResult openCheck = collectionController.requireCanOpenCollection();
-            if (openCheck != null) {
-                return openCheck;
+                && gameNavigation.phase == Phase.CHAPTER) {
+            if (name.equals("collection")) {
+                CommandResult openCheck = collectionController.requireCanOpenCollection();
+                if (openCheck != null) {
+                    return openCheck;
+                }
+                collectionController.onOpened();
+                setScreen(ScreenType.COLLECTION);
+                return new CommandResult("Opened collection. Default tab: plants.", true);
             }
-            collectionController.onOpened();
-            setScreen(ScreenType.COLLECTION);
-            return new CommandResult("Opened collection. Default tab: plants.", true);
+            if (name.equals("leaderboard")) {
+                CommandResult loggedInCheck = requireLoggedIn();
+                if (loggedInCheck != null) {
+                    return loggedInCheck;
+                }
+                setScreen(ScreenType.LEADERBOARD);
+                return new CommandResult("Opened leaderboard.", true);
+            }
+            if (name.equals("greenhouse") || name.equals("green-house") || name.equals("green house")) {
+                CommandResult loggedInCheck = requireLoggedIn();
+                if (loggedInCheck != null) {
+                    return loggedInCheck;
+                }
+                setScreen(ScreenType.GREEN_HOUSE);
+                return new CommandResult("Opened greenhouse.", true);
+            }
         }
 
         return new CommandResult("Cannot enter menu from here.", false);
@@ -318,9 +334,14 @@ public class ControllerManager {
                 setScreen(ScreenType.GREEN_HOUSE);
                 return new CommandResult("Returned to greenhouse.", true);
             case GREEN_HOUSE:
-                setScreen(ScreenType.MAIN);
-                return new CommandResult("Returned to main menu.", true);
+                gameNavigation.phase = Phase.CHAPTER;
+                setScreen(ScreenType.LEVEL_SELECTOR);
+                return new CommandResult("Returned to game menu.", true);
             case COLLECTION:
+                gameNavigation.phase = Phase.CHAPTER;
+                setScreen(ScreenType.LEVEL_SELECTOR);
+                return new CommandResult("Returned to game menu.", true);
+            case LEADERBOARD:
                 gameNavigation.phase = Phase.CHAPTER;
                 setScreen(ScreenType.LEVEL_SELECTOR);
                 return new CommandResult("Returned to game menu.", true);

@@ -106,22 +106,6 @@ public class GameMenuController {
         return success("Conveyor Belt started! Plants will be offered every 12 seconds.");
     }
 
-    public CommandResult greenHouse() {
-        return requireMainMenu("Greenhouse is not available right now.");
-    }
-
-    public CommandResult quest() {
-        return requireMainMenu("Travel log is not available right now.");
-    }
-
-    public CommandResult coin_wallet() {
-        return requireMainMenu("Coin wallet is not available right now.");
-    }
-
-    public CommandResult gem_wallet() {
-        return requireMainMenu("Gem wallet is not available right now.");
-    }
-
     public CommandResult CHEAT_add_coin(int amount) {
         CommandResult screenCheck = requireMainMenu(null);
         if (screenCheck != null) {

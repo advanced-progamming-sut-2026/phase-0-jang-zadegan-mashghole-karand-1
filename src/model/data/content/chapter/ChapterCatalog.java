@@ -85,9 +85,6 @@ public final class ChapterCatalog {
     }
 
     private static LevelConfig specialLevel(ChapterType chapter, int number, SpecialLevelType special) {
-        return LevelConfig.builder(chapter, number)
-                .zombies(PLACEHOLDER_ZOMBIES)
-                .special(special)
-                .build();
+        return LevelConfig.builder(chapter, number).zombies(PLACEHOLDER_ZOMBIES).special(special).build();
     }
 }

@@ -667,7 +667,25 @@ public class SqlStorageManager implements StorageManager {
     }
 
     private void seedDemoUserIfMissing() {
+        String demoPasswordHash = Hash.hashPassword("password");
         if (usernameExists("player")) {
+            User demoUser = loadUser("player");
+            if (demoUser == null) {
+                return;
+            }
+            // Repair older DBs that stored the demo password in plaintext.
+            boolean repaired = false;
+            if (!demoPasswordHash.equals(demoUser.password)) {
+                demoUser.password = demoPasswordHash;
+                repaired = true;
+            }
+            if (!demoUser.gameProgress.isChapterUnlocked(ChapterType.ANCIENT_EGYPT)) {
+                demoUser.gameProgress.unlockChapter(ChapterType.ANCIENT_EGYPT);
+                repaired = true;
+            }
+            if (repaired) {
+                saveUserProgress(demoUser);
+            }
             return;
         }
 

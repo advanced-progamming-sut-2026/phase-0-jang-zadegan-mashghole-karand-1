@@ -7,6 +7,7 @@ public enum ScreenType {
     LEVEL_SELECTOR,
     GAME,
     COLLECTION,
+    LEADERBOARD,
     GREEN_HOUSE,
     SHOP,
 }

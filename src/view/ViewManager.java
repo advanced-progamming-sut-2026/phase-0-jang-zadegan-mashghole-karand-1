@@ -32,10 +32,9 @@ public class ViewManager {
             screenKey += "-" + gameNavigation.phase.name();
         } else if (currentScreen == ScreenType.MAIN && currentMenu != MenuType.NONE) {
             screenKey += "-" + currentMenu.name();
-            if (currentMenu == MenuType.LEADERBOARD) {
-                screenKey += "-" + leaderboardViewState.sortColumn.name()
-                        + "-" + leaderboardViewState.sortDirection.name();
-            }
+        } else if (currentScreen == ScreenType.LEADERBOARD) {
+            screenKey += "-" + leaderboardViewState.sortColumn.name()
+                    + "-" + leaderboardViewState.sortDirection.name();
         } else if (currentScreen == ScreenType.COLLECTION) {
             screenKey += "-" + collectionViewState.tab.name() + "-" + collectionViewState.mode.name();
             if (collectionViewState.hasDetail()) {
@@ -55,7 +54,7 @@ public class ViewManager {
                 if (currentMenu == MenuType.NONE) {
                     renderer.renderMainScreen(hasUnreadNews);
                 } else {
-                    renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState,leaderboardViewState);
+                    renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState, leaderboardViewState);
                 }
                 break;
             case LEVEL_SELECTOR:
@@ -67,6 +66,9 @@ public class ViewManager {
             case COLLECTION:
                 renderer.renderCollectionScreen(collectionViewState);
                 break;
+            case LEADERBOARD:
+                renderer.renderLeaderboardOverlay(leaderboardViewState);
+                break;
             case GREEN_HOUSE:
                 renderer.renderGreenHouseScreen();
                 break;
@@ -75,18 +77,19 @@ public class ViewManager {
                 if (user == null)
                     return;
                 renderer.renderShopScreen(user.getCoins(), user.getGems(),
-                        user.dailyDeal.dailyDealPlant,user.dailyDeal.dailyDealPrice,
+                        user.dailyDeal.dailyDealPlant, user.dailyDeal.dailyDealPrice,
                         user.dailyDeal.dailyDealPurchased, controllerManager.getShopController().getShopDisplayMode());
                 break;
         }
 
         if (currentMenu != MenuType.NONE && currentScreen != ScreenType.MAIN) {
-            renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState,leaderboardViewState);
+            renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState, leaderboardViewState);
         }
     }
 
     private void renderMenuOverlay(MenuType currentMenu, ProfileViewState profileViewState,
-                                   NewsViewState newsViewState, SettingsViewState settingsViewState, LeaderboardViewState leaderboardViewState) {
+            NewsViewState newsViewState, SettingsViewState settingsViewState,
+            LeaderboardViewState leaderboardViewState) {
         switch (currentMenu) {
             case PAUSE:
                 renderer.renderPauseOverlay();
@@ -105,9 +108,6 @@ public class ViewManager {
                 break;
             case PLANT_SELECTOR:
                 renderer.renderPlantSelectorOverlay();
-                break;
-            case LEADERBOARD:
-                renderer.renderLeaderboardOverlay(leaderboardViewState);
                 break;
             default:
                 break;
