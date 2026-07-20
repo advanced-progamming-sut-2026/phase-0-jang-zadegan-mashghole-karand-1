@@ -278,21 +278,26 @@ public class InputHandler {
             Position pos = new Position(x, y);
             // controllerManager.getGreenhouseController().grow(user,pos)
         } else if (Commands.ENTER_SHOP.getMatcher(input).matches()) {
-            controllerManager.getGreenhouseController().enterShop();
+            CommandResult result = controllerManager.getGreenhouseController().enterShop();
+            controllerManager.handleCommandResult(result);
         } else if (Commands.SHOP_LIST.getMatcher(input).matches()) {
-            String list = controllerManager.getShopController().List();
+            CommandResult list = controllerManager.getShopController().List();
+            controllerManager.handleCommandResult(list);
         } else if (Commands.SHOP_DAILY.getMatcher(input).matches()) {
-            String dailyList = controllerManager.getShopController().daily();
+            CommandResult dailyList = controllerManager.getShopController().daily();
+            controllerManager.handleCommandResult(dailyList);
         } else if ((matcher = Commands.SHOP_BUY.getMatcher(input)).matches()) {
             String itemId = matcher.group(1);
             int quantity = Integer.parseInt(matcher.group(2));
             CommandResult result = controllerManager.getShopController().buy(itemId, quantity);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.SHOP_BUY_WITH_TYPE.getMatcher(input)).matches()) {
             String itemId = matcher.group(1);
             int quantity = Integer.parseInt(matcher.group(2));
             String plantTypeStr = matcher.group(3);
             PlantType plantType = PlantType.fromName(plantTypeStr);
             CommandResult result = controllerManager.getShopController().buy(itemId, quantity, plantType);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.TRAVEL_LOG_PAGE.getMatcher(input)).matches()) {
             String pageName = matcher.group(1);
             CommandResult result = controllerManager.getQuestMenuController().enterPage(pageName);

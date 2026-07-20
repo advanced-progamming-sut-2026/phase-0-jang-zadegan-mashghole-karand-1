@@ -1,14 +1,17 @@
 package model.storage.user;
 
-import model.data.content.chapter.ChapterType;
+import model.data.plant.PlantType;
 import model.gameSetting.GameSetting;
 import model.greenhouse.Greenhouse;
 import model.news.NewsFeed;
 import model.quest.Quest;
+import model.shop.DailyDeal;
 import model.storage.collection.Collection;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class User {
     public String username;
@@ -27,6 +30,9 @@ public class User {
     public int gems;
     public int highestScore;
     public int gamesPlayed;
+    public Map<PlantType, Integer> seedPackets = new HashMap<>();
+    public int plantFood;
+    public DailyDeal dailyDeal;
 
     public User(String username, String password, String email, String nickname, Gender gender, SafetyQuestion safety) {
         this.username = username;
@@ -40,5 +46,33 @@ public class User {
         this.preferredSetting = new GameSetting();
         this.quests = new ArrayList<>();
         this.newsFeed = new NewsFeed();
+        this.seedPackets = new HashMap<>();
+        this.dailyDeal = new DailyDeal();
+        this.greenhouse = new Greenhouse();
     }
+    public int getSeedPackets(PlantType plant) {
+        return seedPackets.getOrDefault(plant, 0);
+    }
+
+    public void addSeedPackets(PlantType plant, int amount) {
+        seedPackets.put(plant, getSeedPackets(plant) + amount);
+    }
+
+    public boolean useSeedPackets(PlantType plant, int amount) {
+        if (getSeedPackets(plant) < amount) return false;
+        seedPackets.put(plant, getSeedPackets(plant) - amount);
+        return true;
+    }
+
+    public int getCoins() {
+        return coins;
+    }
+
+
+
+    public int getGems() {
+        return gems;
+    }
+
+
 }

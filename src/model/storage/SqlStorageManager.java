@@ -7,6 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -47,7 +49,7 @@ public class SqlStorageManager implements StorageManager {
 
     @Override
     public boolean register(String username, String password, String email, String nickname, Gender gender,
-            SafetyQuestion safetyQuestion) {
+                            SafetyQuestion safetyQuestion) {
         if (username == null || username.trim().isEmpty()
                 || password == null || password.trim().isEmpty()
                 || safetyQuestion == null) {
@@ -135,8 +137,8 @@ public class SqlStorageManager implements StorageManager {
 
         synchronized (lock) {
             try (Connection connection = openConnection();
-                    PreparedStatement statement = connection.prepareStatement(
-                            "SELECT 1 FROM users WHERE username = ? LIMIT 1")) {
+                 PreparedStatement statement = connection.prepareStatement(
+                         "SELECT 1 FROM users WHERE username = ? LIMIT 1")) {
                 statement.setString(1, username);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     return resultSet.next();
@@ -146,6 +148,7 @@ public class SqlStorageManager implements StorageManager {
             }
         }
     }
+
     @Override
     public List<User> getUsers() {
         synchronized (lock) {
@@ -167,6 +170,7 @@ public class SqlStorageManager implements StorageManager {
             }
         }
     }
+
     @Override
     public User getUserByUsername(String username) {
         if (username == null) {
@@ -186,8 +190,8 @@ public class SqlStorageManager implements StorageManager {
         String hashedPassword = Hash.hashPassword(newPassword);
         synchronized (lock) {
             try (Connection connection = openConnection();
-                    PreparedStatement statement = connection.prepareStatement(
-                            "UPDATE users SET password = ? WHERE username = ?")) {
+                 PreparedStatement statement = connection.prepareStatement(
+                         "UPDATE users SET password = ? WHERE username = ?")) {
                 statement.setString(1, hashedPassword);
                 statement.setString(2, username);
                 boolean updated = statement.executeUpdate() > 0;
@@ -223,8 +227,8 @@ public class SqlStorageManager implements StorageManager {
 
         synchronized (lock) {
             try (Connection connection = openConnection();
-                    PreparedStatement statement = connection.prepareStatement(
-                            "SELECT username, stay_logged_in FROM app_session WHERE id = ?")) {
+                 PreparedStatement statement = connection.prepareStatement(
+                         "SELECT username, stay_logged_in FROM app_session WHERE id = ?")) {
                 statement.setInt(1, SESSION_ROW_ID);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next() && resultSet.getBoolean("stay_logged_in")) {
@@ -271,8 +275,8 @@ public class SqlStorageManager implements StorageManager {
             boolean alreadyCompleted = currentUser.gameProgress.getCompletedLevelIds().contains(levelId);
             currentUser.gameProgress.completeLevel(levelId);
             try (Connection connection = openConnection();
-                    PreparedStatement statement = connection.prepareStatement(
-                            "INSERT OR IGNORE INTO completed_levels (username, level_id) VALUES (?, ?)")) {
+                 PreparedStatement statement = connection.prepareStatement(
+                         "INSERT OR IGNORE INTO completed_levels (username, level_id) VALUES (?, ?)")) {
                 statement.setString(1, currentUser.username);
                 statement.setString(2, levelId);
                 statement.executeUpdate();
@@ -406,8 +410,8 @@ public class SqlStorageManager implements StorageManager {
             }
             currentUser.gameProgress.unlockMinigame(minigame);
             try (Connection connection = openConnection();
-                    PreparedStatement statement = connection.prepareStatement(
-                            "INSERT OR IGNORE INTO unlocked_minigames (username, minigame) VALUES (?, ?)")) {
+                 PreparedStatement statement = connection.prepareStatement(
+                         "INSERT OR IGNORE INTO unlocked_minigames (username, minigame) VALUES (?, ?)")) {
                 statement.setString(1, currentUser.username);
                 statement.setString(2, minigame.name());
                 statement.executeUpdate();
@@ -430,8 +434,8 @@ public class SqlStorageManager implements StorageManager {
             }
             currentUser.gameProgress.unlockChapter(chapter);
             try (Connection connection = openConnection();
-                    PreparedStatement statement = connection.prepareStatement(
-                            "INSERT OR IGNORE INTO unlocked_chapters (username, chapter) VALUES (?, ?)")) {
+                 PreparedStatement statement = connection.prepareStatement(
+                         "INSERT OR IGNORE INTO unlocked_chapters (username, chapter) VALUES (?, ?)")) {
                 statement.setString(1, currentUser.username);
                 statement.setString(2, chapter.name());
                 statement.executeUpdate();
@@ -469,8 +473,8 @@ public class SqlStorageManager implements StorageManager {
             }
             currentUser.collection.unlockPlant(plant);
             try (Connection connection = openConnection();
-                    PreparedStatement statement = connection.prepareStatement(
-                            "INSERT OR IGNORE INTO unlocked_plants (username, plant) VALUES (?, ?)")) {
+                 PreparedStatement statement = connection.prepareStatement(
+                         "INSERT OR IGNORE INTO unlocked_plants (username, plant) VALUES (?, ?)")) {
                 statement.setString(1, currentUser.username);
                 statement.setString(2, plant.name());
                 statement.executeUpdate();
@@ -628,6 +632,34 @@ public class SqlStorageManager implements StorageManager {
                 } catch (SQLException ignored) {
                     // Column already exists.
                 }
+                try {
+                    statement.execute("ALTER TABLE users ADD COLUMN shop_last_refresh_date TEXT");
+                } catch (SQLException ignored) {
+                }
+
+                try {
+                    statement.execute("ALTER TABLE users ADD COLUMN shop_daily_deal_plant TEXT");
+                } catch (SQLException ignored) {
+                }
+
+                try {
+                    statement.execute("ALTER TABLE users ADD COLUMN shop_daily_deal_purchased INTEGER NOT NULL DEFAULT 0");
+                } catch (SQLException ignored) {
+                }
+
+                try {
+                    statement.execute("ALTER TABLE users ADD COLUMN plant_food INTEGER NOT NULL DEFAULT 0");
+                } catch (SQLException ignored) {
+                }
+                statement.execute("""
+                        CREATE TABLE IF NOT EXISTS user_seed_packets (
+                            username TEXT NOT NULL,
+                            plant TEXT NOT NULL,
+                            amount INTEGER NOT NULL DEFAULT 0,
+                            PRIMARY KEY (username, plant),
+                            FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+                        )
+                        """);
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to initialize database", e);
             }
@@ -661,8 +693,8 @@ public class SqlStorageManager implements StorageManager {
 
     private User loadUser(String username) {
         try (Connection connection = openConnection();
-                PreparedStatement statement = connection.prepareStatement(
-                        "SELECT * FROM users WHERE username = ?")) {
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT * FROM users WHERE username = ?")) {
             statement.setString(1, username);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
@@ -684,12 +716,14 @@ public class SqlStorageManager implements StorageManager {
                 user.gamesPlayed = resultSet.getInt("games_played");
                 user.preferredSetting.setDifficultyLevel(readDifficultyLevel(resultSet));
 
+                loadShopStateFromUsersRow(resultSet, user);
                 loadUnlockedChapters(connection, user);
                 loadUnlockedPlants(connection, user);
                 loadUnlockedZombies(connection, user);
                 loadUnlockedMinigames(connection, user);
                 loadCompletedLevels(connection, user);
                 loadNews(connection, user);
+                loadSeedPackets(connection, user);
                 return user;
             }
         } catch (SQLException e) {
@@ -784,11 +818,47 @@ public class SqlStorageManager implements StorageManager {
             }
         }
     }
+    private void loadShopStateFromUsersRow(ResultSet resultSet, User user) {
+        try {
+            String refreshDate = resultSet.getString("shop_last_refresh_date");
+            String dailyPlant = resultSet.getString("shop_daily_deal_plant");
+            int purchased = resultSet.getInt("shop_daily_deal_purchased");
 
+            user.dailyDeal.lastRefreshDate = (refreshDate == null || refreshDate.isBlank())
+                    ? null
+                    : LocalDate.parse(refreshDate);
+
+            user.dailyDeal.dailyDealPlant = (dailyPlant == null || dailyPlant.isBlank())
+                    ? null
+                    : PlantType.valueOf(dailyPlant);
+
+            user.dailyDeal.dailyDealPurchased = purchased == 1;
+        } catch (SQLException ignored) {
+            // Columns may not exist yet on older DBs.
+        }
+    }
+
+    private void loadSeedPackets(Connection connection, User user) throws SQLException {
+        user.seedPackets.clear();
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT plant, amount FROM user_seed_packets WHERE username = ?")) {
+            statement.setString(1, user.username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String plant = resultSet.getString("plant");
+                    int amount = resultSet.getInt("amount");
+                    if (plant == null || plant.isBlank()) {
+                        continue;
+                    }
+                    user.seedPackets.put(PlantType.valueOf(plant), amount);
+                }
+            }
+        }
+    }
     private void insertNewsItem(String username, NewsItem item) {
         try (Connection connection = openConnection();
-                PreparedStatement statement = connection.prepareStatement(
-                        "INSERT INTO user_news (username, news_id, message, is_read, created_at) VALUES (?, ?, ?, ?, ?)")) {
+             PreparedStatement statement = connection.prepareStatement(
+                     "INSERT INTO user_news (username, news_id, message, is_read, created_at) VALUES (?, ?, ?, ?, ?)")) {
             statement.setString(1, username);
             statement.setString(2, item.getId());
             statement.setString(3, item.getMessage());
@@ -802,8 +872,8 @@ public class SqlStorageManager implements StorageManager {
 
     private void markAllNewsRead(String username) {
         try (Connection connection = openConnection();
-                PreparedStatement statement = connection.prepareStatement(
-                        "UPDATE user_news SET is_read = 1 WHERE username = ? AND is_read = 0")) {
+             PreparedStatement statement = connection.prepareStatement(
+                     "UPDATE user_news SET is_read = 1 WHERE username = ? AND is_read = 0")) {
             statement.setString(1, username);
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -835,18 +905,22 @@ public class SqlStorageManager implements StorageManager {
         saveUnlockedPlants(user);
         saveUnlockedZombies(user);
         saveCompletedLevels(user);
+        saveSeedPackets(user);
     }
 
     private void saveUserProfile(User user) {
         try (Connection connection = openConnection();
-                PreparedStatement statement = connection.prepareStatement("""
-                        UPDATE users
-                        SET password = ?, email = ?, nickname = ?, gender = ?,
-                            safety_question = ?, safety_answer = ?,
-                            coins = ?, gems = ?, highest_score = ?, games_played = ?,
-                            difficulty_level = ?
-                        WHERE username = ?
-                        """)) {
+
+             PreparedStatement statement = connection.prepareStatement("""
+                     UPDATE users
+                     SET password = ?, email = ?, nickname = ?, gender = ?,
+                         safety_question = ?, safety_answer = ?,
+                         coins = ?, gems = ?, highest_score = ?, games_played = ?,
+                         difficulty_level = ?,
+                         shop_last_refresh_date = ?, shop_daily_deal_plant = ?, shop_daily_deal_purchased = ?
+                     
+                     WHERE username = ?
+                     """)) {
             statement.setString(1, user.password);
             statement.setString(2, user.email);
             statement.setString(3, user.nickname);
@@ -858,7 +932,14 @@ public class SqlStorageManager implements StorageManager {
             statement.setInt(9, user.highestScore);
             statement.setInt(10, user.gamesPlayed);
             statement.setInt(11, user.preferredSetting.getDifficultyLevel());
-            statement.setString(12, user.username);
+            statement.setString(12, user.dailyDeal.lastRefreshDate == null
+                    ? null
+                    : user.dailyDeal.lastRefreshDate.toString());
+            statement.setString(13, user.dailyDeal.dailyDealPlant == null
+                    ? null
+                    : user.dailyDeal.dailyDealPlant.name());
+            statement.setInt(14, user.dailyDeal.dailyDealPurchased ? 1 : 0);
+            statement.setString(15, user.username);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to save user profile", e);
@@ -952,7 +1033,28 @@ public class SqlStorageManager implements StorageManager {
             throw new RuntimeException("Failed to save completed levels", e);
         }
     }
+    private void saveSeedPackets(User user) {
+        try (Connection connection = openConnection()) {
+            try (PreparedStatement deleteStatement = connection.prepareStatement(
+                    "DELETE FROM user_seed_packets WHERE username = ?")) {
+                deleteStatement.setString(1, user.username);
+                deleteStatement.executeUpdate();
+            }
 
+            try (PreparedStatement insertStatement = connection.prepareStatement(
+                    "INSERT INTO user_seed_packets (username, plant, amount) VALUES (?, ?, ?)")) {
+                for (Map.Entry<PlantType, Integer> entry : user.seedPackets.entrySet()) {
+                    insertStatement.setString(1, user.username);
+                    insertStatement.setString(2, entry.getKey().name());
+                    insertStatement.setInt(3, entry.getValue());
+                    insertStatement.addBatch();
+                }
+                insertStatement.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save seed packets", e);
+        }
+    }
     private void updateUsernameReferences(Connection connection, String oldUsername, String newUsername)
             throws SQLException {
         updateChildUsername(connection, "unlocked_chapters", oldUsername, newUsername);
@@ -961,6 +1063,7 @@ public class SqlStorageManager implements StorageManager {
         updateChildUsername(connection, "completed_levels", oldUsername, newUsername);
         updateChildUsername(connection, "unlocked_minigames", oldUsername, newUsername);
         updateChildUsername(connection, "user_news", oldUsername, newUsername);
+        updateChildUsername(connection, "user_seed_packets", oldUsername, newUsername);
 
         try (PreparedStatement statement = connection.prepareStatement(
                 "UPDATE app_session SET username = ? WHERE username = ?")) {
@@ -991,13 +1094,13 @@ public class SqlStorageManager implements StorageManager {
 
     private void persistSession(String username, boolean stayLoggedIn) {
         try (Connection connection = openConnection();
-                PreparedStatement statement = connection.prepareStatement("""
-                        INSERT INTO app_session (id, username, stay_logged_in)
-                        VALUES (?, ?, ?)
-                        ON CONFLICT(id) DO UPDATE SET
-                            username = excluded.username,
-                            stay_logged_in = excluded.stay_logged_in
-                        """)) {
+             PreparedStatement statement = connection.prepareStatement("""
+                     INSERT INTO app_session (id, username, stay_logged_in)
+                     VALUES (?, ?, ?)
+                     ON CONFLICT(id) DO UPDATE SET
+                         username = excluded.username,
+                         stay_logged_in = excluded.stay_logged_in
+                     """)) {
             statement.setInt(1, SESSION_ROW_ID);
             if (stayLoggedIn && username != null) {
                 statement.setString(2, username);

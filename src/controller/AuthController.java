@@ -163,6 +163,7 @@ public class AuthController {
 
         if (storage.login(username, password, stayLoggedIn)) {
             storage.saveProgress();
+            controllerManager.initShopForCurrentUser();
             controllerManager.setScreen(ScreenType.MAIN);
             return success("Welcome back, " + username + "!");
         }

@@ -2,6 +2,7 @@ package view.renderer;
 
 import java.util.List;
 
+import controller.ShopController;
 import model.core.ReadOnlyGameState;
 import model.data.plant.PlantType;
 import model.service.*;
@@ -14,7 +15,7 @@ public interface Renderer {
     void renderRegisterScreen(List<SafetyQuestion> questions);
 
     void renderLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
-            String passwordResetQuestion);
+                           String passwordResetQuestion);
 
     void renderMainScreen(boolean hasUnreadNews);
 
@@ -26,7 +27,7 @@ public interface Renderer {
 
     void renderGreenHouseScreen();
 
-    void renderShopScreen();
+    void renderShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased, ShopController.ShopDisplayMode mode);
 
     void renderPauseOverlay();
 

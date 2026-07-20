@@ -1,8 +1,10 @@
 package view;
 
+import controller.ControllerManager;
 import controller.InputHandler;
 import model.core.ReadOnlyGameState;
 import model.service.*;
+import model.storage.user.User;
 import view.renderer.Renderer;
 
 public class ViewManager {
@@ -23,10 +25,8 @@ public class ViewManager {
     }
 
     public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
-            AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
-            NewsViewState newsViewState, SettingsViewState settingsViewState,
-            LeaderboardViewState leaderboardViewState, CollectionViewState collectionViewState,
-            boolean hasUnreadNews) {
+                       AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
+                       NewsViewState newsViewState, SettingsViewState settingsViewState, LeaderboardViewState leaderboardViewState,CollectionViewState collectionViewState, ControllerManager controllerManager, boolean hasUnreadNews) {
         String screenKey = currentScreen.name();
         if (currentScreen == ScreenType.LEVEL_SELECTOR) {
             screenKey += "-" + gameNavigation.phase.name();
@@ -71,7 +71,12 @@ public class ViewManager {
                 renderer.renderGreenHouseScreen();
                 break;
             case SHOP:
-                renderer.renderShopScreen();
+                User user = controllerManager.getStorage().getCurrentUser();
+                if (user == null)
+                    return;
+                renderer.renderShopScreen(user.getCoins(), user.getGems(),
+                        user.dailyDeal.dailyDealPlant,user.dailyDeal.dailyDealPrice,
+                        user.dailyDeal.dailyDealPurchased, controllerManager.getShopController().getShopDisplayMode());
                 break;
         }
 
