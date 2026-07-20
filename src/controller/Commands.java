@@ -29,7 +29,6 @@ public enum Commands {
     ENTER_CHAPTER("menu\\s+enter\\s+chapter\\s+-c\\s+(?<chaptername>.*)"),
     GREENHOUSE("menu\\s+greenhouse"),
     TRAVEL_LOG("menu\\s+travel-log"),
-    LEADERBOARD("menu\\s+leaderboard"),
     COIN_WALLET("menu\\s+coin-wallet"),
     GEM_WALLET("menu\\s+gem-wallet"),
     ADD_COIN("menu\\s+cheat\\s+add\\s+(?<n>\\d+)\\s+coin"),
@@ -111,7 +110,7 @@ public enum Commands {
     // quests / travel log
     TRAVEL_LOG_PAGE("travel\\s+log\\s+page\\s+(?<pagename>.*)$"),
     // leaderboard
-    SORT_SCORE("menu\\s+leaderboard\\s+sort\\s+-c\\s+(?<sortclass>.*)\\s+-t\\s+(?<sorttype>.*)");
+    SORT_SCORE("menu\\s+leaderboard\\s+sort\\s+-c\\s+(?<sortclass>\\S+)\\s+-t\\s+(?<sorttype>\\S+)\\s*$");
 
     private final String regex;
     private final Pattern pattern;

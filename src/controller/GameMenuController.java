@@ -113,10 +113,6 @@ public class GameMenuController {
         return requireMainMenu("Travel log is not available right now.");
     }
 
-    public CommandResult leaderboard() {
-        return controllerManager.enterMenu("leaderboard");
-    }
-
     public CommandResult coin_wallet() {
         return requireMainMenu("Coin wallet is not available right now.");
     }

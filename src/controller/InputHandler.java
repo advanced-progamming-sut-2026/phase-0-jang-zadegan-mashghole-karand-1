@@ -89,8 +89,6 @@ public class InputHandler {
             controllerManager.handleCommandResult(controllerManager.getGameMenuController().greenHouse());
         } else if (Commands.TRAVEL_LOG.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(controllerManager.getGameMenuController().quest());
-        } else if (Commands.LEADERBOARD.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(controllerManager.getGameMenuController().leaderboard());
         } else if (Commands.COIN_WALLET.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(controllerManager.getGameMenuController().coin_wallet());
         } else if (Commands.GEM_WALLET.getMatcher(input).matches()) {
@@ -299,8 +297,8 @@ public class InputHandler {
             String pageName = matcher.group(1);
             CommandResult result = controllerManager.getQuestMenuController().enterPage(pageName);
         } else if ((matcher = Commands.SORT_SCORE.getMatcher(input)).matches()) {
-            String sortClass = matcher.group(1);
-            String sortType = matcher.group(2);
+            String sortClass = matcher.group("sortclass");
+            String sortType = matcher.group("sorttype");
             controllerManager.handleCommandResult(
                     controllerManager.getLeaderboardMenuController().sort(sortClass, sortType));
         } else {

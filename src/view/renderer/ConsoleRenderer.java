@@ -192,8 +192,9 @@ public class ConsoleRenderer implements Renderer {
         sb.append("  " + CYAN + "2." + RESET + " Settings: " + GREEN + "menu enter settings" + RESET + "\n");
         sb.append("  " + CYAN + "3." + RESET + " News: " + GREEN + "menu enter news" + RESET + unreadIndicator + "\n");
         sb.append("  " + CYAN + "4." + RESET + " Profile: " + GREEN + "menu enter profile" + RESET + "\n");
-        sb.append("  " + CYAN + "5." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
-        sb.append("  " + CYAN + "6." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+        sb.append("  " + CYAN + "5." + RESET + " Leaderboard: " + GREEN + "menu enter leaderboard" + RESET + "\n");
+        sb.append("  " + CYAN + "6." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
+        sb.append("  " + CYAN + "7." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
         sb.append("\n");
         sb.append(getMessages());
 
@@ -498,6 +499,9 @@ public class ConsoleRenderer implements Renderer {
         if (leaderboard == null || leaderboard.entries.isEmpty()) {
             sb.append("  No players to show.\n");
         } else {
+            sb.append("  ").append(GRAY).append("Sorted by ").append(leaderboard.sortColumn.name())
+                    .append(" (").append(leaderboard.sortDirection.name()).append(")").append(RESET).append("\n");
+            sb.append("\n");
             sb.append(String.format("  %s%-4s %-12s %-18s %-8s %-8s%s%n",
                     BOLD, "Rank", "User", "Progress", "Score", "Minigames", RESET));
             sb.append("  " + GRAY + "─".repeat(52) + RESET + "\n");

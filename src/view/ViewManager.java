@@ -32,6 +32,10 @@ public class ViewManager {
             screenKey += "-" + gameNavigation.phase.name();
         } else if (currentScreen == ScreenType.MAIN && currentMenu != MenuType.NONE) {
             screenKey += "-" + currentMenu.name();
+            if (currentMenu == MenuType.LEADERBOARD) {
+                screenKey += "-" + leaderboardViewState.sortColumn.name()
+                        + "-" + leaderboardViewState.sortDirection.name();
+            }
         } else if (currentScreen == ScreenType.COLLECTION) {
             screenKey += "-" + collectionViewState.tab.name() + "-" + collectionViewState.mode.name();
             if (collectionViewState.hasDetail()) {

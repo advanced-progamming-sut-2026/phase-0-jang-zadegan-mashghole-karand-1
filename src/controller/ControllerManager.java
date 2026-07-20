@@ -59,7 +59,7 @@ public class ControllerManager {
         this.gameMenuController = new GameMenuController(this, model, storage, gameNavigation);
         this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
         this.collectionController = new CollectionController(this, storage);
-        this.leaderboardMenuController = new LeaderboardMenuController(this,storage,leaderboardViewState);
+        this.leaderboardMenuController = new LeaderboardMenuController(this, storage);
         this.gameLoop.setOnTickHandler(() -> {
             model.tick();
             tick();
@@ -119,6 +119,7 @@ public class ControllerManager {
                 newsViewState = NewsViewState.empty();
                 settingsViewState = SettingsViewState.empty();
                 collectionViewState = CollectionViewState.empty();
+                leaderboardViewState = LeaderboardViewState.empty();
                 hasUnreadNews = false;
             }
             view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation,
