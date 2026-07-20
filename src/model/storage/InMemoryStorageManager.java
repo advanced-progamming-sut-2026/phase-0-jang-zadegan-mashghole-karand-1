@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
+import model.data.zombie.ZombieType;
 import model.minigame.MinigameType;
 import model.service.Hash;
 import model.storage.user.Gender;
@@ -279,8 +280,36 @@ public class InMemoryStorageManager implements StorageManager {
 
     @Override
     public List<PlantType> getUnlockedPlants() {
-        if (!isLoggedIn())
+        if (!isLoggedIn()) {
             return new ArrayList<>();
+        }
         return new ArrayList<>(currentUser.collection.getUnlockedPlants());
+    }
+
+    @Override
+    public void unlockZombie(ZombieType zombie) {
+        if (!isLoggedIn() || zombie == null) {
+            return;
+        }
+        if (!currentUser.collection.isZombieUnlocked(zombie)) {
+            currentUser.collection.unlockZombie(zombie);
+            addNews("You unlocked a new zombie: " + zombie.name);
+        }
+    }
+
+    @Override
+    public boolean isZombieUnlocked(ZombieType zombie) {
+        if (!isLoggedIn() || zombie == null) {
+            return false;
+        }
+        return currentUser.collection.isZombieUnlocked(zombie);
+    }
+
+    @Override
+    public List<ZombieType> getUnlockedZombies() {
+        if (!isLoggedIn()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(currentUser.collection.getUnlockedZombies());
     }
 }

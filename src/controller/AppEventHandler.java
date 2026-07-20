@@ -1,7 +1,7 @@
 package controller;
 
 import model.core.EventBus;
-import model.events.ZombieUnlockedEvent;
+import model.events.ZombieSpawnedEvent;
 import model.storage.StorageManager;
 
 public class AppEventHandler {
@@ -15,14 +15,17 @@ public class AppEventHandler {
     }
 
     public void register() {
-        registerNewsHandlers();
+        registerCollectionHandlers();
     }
 
-    private void registerNewsHandlers() {
-        eventBus.subscribe(ZombieUnlockedEvent.class, this::onZombieUnlocked);
+    private void registerCollectionHandlers() {
+        eventBus.subscribe(ZombieSpawnedEvent.class, this::onZombieSpawned);
     }
 
-    private void onZombieUnlocked(ZombieUnlockedEvent event) {
-        storage.addNews("You unlocked a new zombie: " + event.zombieType.name);
+    private void onZombieSpawned(ZombieSpawnedEvent event) {
+        if (event == null || event.zombie == null || event.zombie.type == null) {
+            return;
+        }
+        storage.unlockZombie(event.zombie.type);
     }
 }
