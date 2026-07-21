@@ -7,6 +7,7 @@ import model.core.EventBus;
 import model.core.GameState;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.effects.config.PlantEffectConfig;
+import model.data.plant.stuns.PlantStun;
 import model.data.plant.upgrades.PlantLevelUpgrade;
 
 public class Plant {
@@ -27,7 +28,6 @@ public class Plant {
     public int cost;
     public int damage;
     public float actionInterval;
-
     public List<PlantAbilityConfig> abilities = new ArrayList<>();
 
     public PlantEffectConfig plantFoodEffect;
@@ -46,6 +46,8 @@ public class Plant {
     private int frostbiteFreezeLevel = 0;
     private int frostbiteFreezeHP = 0;
     private boolean isFrostbiteFreezeActive = false;
+
+    private PlantStun activeStun;
 
     public Plant(PlantType type, int row, int col, int level, EventBus bus) {
         this.instanceId = nextId++;
@@ -123,6 +125,9 @@ public class Plant {
         if (plantFoodEffect == null || isPlantFoodActive) {
             return false;
         }
+        if (!canUseAbilities()) {
+            return false;
+        }
         plantFoodEffect.onActivate(this, state, event);
         if (durationTicks > 0) {
             isPlantFoodActive = true;
@@ -193,5 +198,44 @@ public class Plant {
 
     public int getFrostbiteFreezeHP() {
         return frostbiteFreezeHP;
+    }
+    public void applyStun(PlantStun stun) {
+        if (activeStun != null) {
+            activeStun.onRemove(this);
+        }
+        activeStun = stun;
+        if (activeStun != null) {
+            activeStun.onApply(this);
+        }
+    }
+    public void clearStun() {
+        if (activeStun != null) {
+            activeStun.onRemove(this);
+            activeStun = null;
+        }
+    }
+    public PlantStun getActiveStun() {
+        return activeStun;
+    }
+    public boolean canAttack() {
+        return activeStun == null || activeStun.canAttack();
+    }
+    public boolean canUseAbilities() {
+        return activeStun == null || activeStun.canUseAbilities();
+    }
+    public boolean canBeDamaged() {
+        return activeStun == null || activeStun.canBeDamaged();
+    }
+    public boolean canBeEaten() {
+        return activeStun == null || activeStun.canBeEaten();
+    }
+    public boolean blocksProjectile(model.data.projectile.Projectile projectile) {
+        return activeStun != null && activeStun.blocksProjectile(projectile);
+    }
+    public void receiveAllyHit(int damage) {
+        if (activeStun != null) {
+            activeStun.onHitByAlly(this, damage);
+            return;
+        }
     }
 }
