@@ -468,11 +468,19 @@ public class ConsoleRenderer implements Renderer {
 
     private String potLine(String text, String color) {
         String plain = truncate(text, POT_WIDTH - 2);
-        int pad = POT_WIDTH - 2 - stripAnsi(plain).length();
+        int pad = POT_WIDTH - 2 - displayWidth(stripAnsi(plain));
         return GRAY + "│" + RESET + color + plain + RESET
                 + " ".repeat(Math.max(0, pad)) + GRAY + "│" + RESET;
     }
-
+    private int displayWidth(String text) {
+        int width = 0;
+        for (int i = 0; i < text.length(); ) {
+            int cp = text.codePointAt(i);
+            i += Character.charCount(cp);
+            width += (cp > 0x1F000 || cp == 0x2705 || cp == 0x26A0) ? 2 : 1;
+        }
+        return width;
+    }
     private String potCoord(int row, int col) {
         String coord = "(" + col + "," + row + ")";
         int pad = POT_WIDTH - coord.length();
