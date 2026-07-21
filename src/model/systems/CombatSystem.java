@@ -3,6 +3,7 @@ package model.systems;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.ReadOnlyGameState;
+import model.data.Barrel.Barrel;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
 import model.data.plant.abilities.effects.DamageEffect;
@@ -12,6 +13,7 @@ import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
 import model.data.projectile.ProjectileType;
 import model.data.zombie.Zombie;
+import model.events.BarrelCreatedEvent;
 import model.events.PlantDiedEvent;
 
 import java.util.Comparator;
@@ -40,6 +42,17 @@ public class CombatSystem {
                         continue;
                     }
                 }
+
+                Barrel barrelAhead = state.barrels.stream().filter(barrel -> barrel.row == p.row && barrel.col>= p.col).
+                        min(Comparator.comparingInt(barrel -> barrel.col)).orElse(null);
+
+                if(barrelAhead != null) {
+                    if(Math.abs(barrelAhead.pos.x -  p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+                        barrelAhead.takeDamage(p.damage, state, eventBus);
+                        projIter.remove();
+                        continue;
+                    }
+                }
                 Plant frostbiteFrozenPlantAhead = state.plants.stream()
                         .filter(plant -> plant.isFrostbiteFreezeActive() && plant.row == p.row && plant.col > p.col)
                         .min(Comparator.comparingInt(plant -> plant.col)).orElse(null);
@@ -63,6 +76,10 @@ public class CombatSystem {
                             break;
                         }
 
+                        boolean pass = z.abilities.stream().anyMatch(a -> a.passProjectiles(z, p));
+                        if (pass) {
+                            continue;
+                        }
                         if(p instanceof PiercingProjectile piercingProjectile) {
                             if(piercingProjectile.hitZombies.contains(z)){
                                 continue;
@@ -75,8 +92,6 @@ public class CombatSystem {
 
 
                         applyProjectileEffects(state, p, z,freezeProjectilesEnabled);
-                        // handle projectile effects here, for freezing projectiles respect
-                        // freezeProjectilesEnabled
 
                         if (z.isIced()) z.damageIce(p.damage);
 
