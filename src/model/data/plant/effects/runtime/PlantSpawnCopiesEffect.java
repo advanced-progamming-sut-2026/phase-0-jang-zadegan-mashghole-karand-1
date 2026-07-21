@@ -6,6 +6,6 @@ import model.data.plant.effects.config.PlantEffectConfig;
 public class PlantSpawnCopiesEffect implements PlantEffectConfig {
     @Override
     public PlantEffectConfig createInstance(Plant plant) {
-        return null;
+        return new PlantSpawnCopiesEffect();
     }
 }

@@ -136,14 +136,14 @@ public class Plant {
         return true;
     }
 
-    public void tickPlantFood() {
+    public void tickPlantFood(GameState state , EventBus bus) {
         if (isPlantFoodActive) {
             plantFoodDuration--;
-            // plantFoodEffect.onTick(this, state, bus);
+             plantFoodEffect.onTick(this, state, bus);
 
             if (plantFoodDuration <= 0) {
                 isPlantFoodActive = false;
-                // plantFoodEffect.onDeactivate(this);
+                 plantFoodEffect.onDeactivate(this,state,bus);
             }
         }
     }

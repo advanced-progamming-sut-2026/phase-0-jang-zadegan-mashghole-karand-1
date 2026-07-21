@@ -72,9 +72,8 @@ public class PlantShootAbility implements PlantAbilityConfig {
 
     public PlantShootAbility createInstance(Plant plant) {
         int finalDamage = damage + plant.damage - plant.type.baseStats.damage;
-        int cooldownTicks = (int) (plant.actionInterval * 10);
 
-        return new PlantShootAbility(finalDamage, cooldownTicks, projectileType , shootPattern,pierceCount,maxRange);
+        return new PlantShootAbility(finalDamage, plant.actionInterval, projectileType , shootPattern,pierceCount,maxRange);
     }
 
     @Override

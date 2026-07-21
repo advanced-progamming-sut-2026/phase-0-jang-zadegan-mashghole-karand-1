@@ -6,6 +6,7 @@ import java.util.Collections;
 
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
+import model.data.plant.PlantType;
 import model.data.projectile.Projectile;
 import model.data.seed.PlantSeedDrop;
 import model.data.sun.Sun;
@@ -115,7 +116,11 @@ public class GameState implements ReadOnlyGameState {
 
     @Override
     public Plant getPlantAt(int row, int col) {
-        return plants.stream().filter(p -> p.row == row && p.col == col).findFirst().orElse(null);
+        return plants.stream().filter(p -> p.row == row && p.col == col)
+                .filter(p -> p.type != PlantType.Lily_Pad)
+                .findFirst().orElseGet(() ->plants.stream().filter(p -> p.row == row && p.col == col)
+                                .findFirst().orElse(null)
+                        );
     }
 
     public Grave getGraveAt(int row, int col) {

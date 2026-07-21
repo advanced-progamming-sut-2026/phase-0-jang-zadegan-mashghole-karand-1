@@ -20,7 +20,7 @@ public class PlantExplodeAbility implements PlantAbilityConfig {
     private final boolean requiresWater;
     private final  List<HitEffect> onHit;
     private int timer;
-
+    private boolean hasExploded = false;
 
 
     public PlantExplodeAbility(ExplodeTrigger trigger, AreaShape shape, int maxTargets, int delayTicks, boolean requiresWater,
@@ -44,11 +44,14 @@ public class PlantExplodeAbility implements PlantAbilityConfig {
 
     @Override
     public void onTick(Plant plant, GameState state, EventBus event) {
+        if (hasExploded) return;
         if (timer < delayTicks) {
             timer++;
             return;
         }
         if (!shouldActivate(plant,state)) return;
+        hasExploded = true;
+        plant.hp = 0;
         List<Zombie> targets = findTarget(state , plant);
         for (Zombie z : targets) {
             for (HitEffect effect : onHit) {
@@ -89,6 +92,9 @@ public class PlantExplodeAbility implements PlantAbilityConfig {
         }
     }
     private boolean shouldActivate(Plant plant, GameState state) {
+        if (requiresWater && !state.getBoard().getTile(plant.row, plant.col).isWater()) {
+            return false;
+        }
         switch (trigger) {
             case INSTANT:
                 return true;

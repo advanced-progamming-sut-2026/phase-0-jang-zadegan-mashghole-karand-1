@@ -1,6 +1,7 @@
 package model.data.plant.abilities.runtime;
 
 import model.core.EventBus;
+import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
@@ -33,7 +34,7 @@ public class PlantHomingAbility implements PlantAbilityConfig {
     @Override
     public PlantAbilityConfig createInstance(Plant plant) {
         int finalDamage = damage + plant.damage - plant.type.baseStats.damage;
-        return new PlantHomingAbility(finalDamage, cooldownSeconds, projectileType, strategy);
+        return new PlantHomingAbility(finalDamage, plant.actionInterval, projectileType, strategy);
     }
 
     @Override
@@ -57,8 +58,8 @@ public class PlantHomingAbility implements PlantAbilityConfig {
         } else if (this.strategy == TargetStrategy.RANDOM) {
             target = aliveZombies.get(new Random().nextInt(aliveZombies.size()));
         }
-        if (target!=null){
-            Position ps = new Position(plant.getX(),plant.getY());
+        if (target != null) {
+            Position ps = new Position(plant.getX(), plant.getY());
             Projectile pj = new HomingProjectile(
                     damage,
                     ps,
@@ -70,11 +71,12 @@ public class PlantHomingAbility implements PlantAbilityConfig {
                     target
             );
             state.projectiles.add(pj);
+            currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
         }
     }
 
     @Override
     public void resetCooldown() {
-        PlantAbilityConfig.super.resetCooldown();
+        currentCooldown = 0;
     }
 }

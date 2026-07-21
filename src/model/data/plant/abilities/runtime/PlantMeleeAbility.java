@@ -34,7 +34,7 @@ public class PlantMeleeAbility implements PlantAbilityConfig {
 
     @Override
     public PlantAbilityConfig createInstance(Plant plant) {
-        return null;
+        return new PlantMeleeAbility(shape,maxTargets,cooldownSeconds,onHit,digestTicksOnKill);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class PlantMeleeAbility implements PlantAbilityConfig {
             case FULL_BOARD:
                 return true;
             case FRONT_OR_BACK:
-                return z.row == plant.row && zombieCol == plant.col + 1 && zombieCol == plant.col - 1;
+                return z.row == plant.row && (zombieCol == plant.col + 1 || zombieCol == plant.col - 1);
             default:
                 return false;
         }
