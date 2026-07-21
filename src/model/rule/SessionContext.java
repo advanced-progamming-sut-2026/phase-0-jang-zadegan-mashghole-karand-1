@@ -1,6 +1,5 @@
 package model.rule;
 
-import model.data.content.specialLevel.SpecialLevelType;
 import model.data.plant.PlantType;
 import model.systems.WaveManager;
 
@@ -35,8 +34,7 @@ public class SessionContext {
     }
 
     public boolean isConveyorMode() {
-        return config.isSpecial()
-                && config.specialLevelType == SpecialLevelType.CONVEYOR_BELT;
+        return conveyorState != null;
     }
 
     public ConveyorState getConveyorState() {

@@ -974,7 +974,29 @@ public enum PlantType {
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.EFFECT_DURATION, 1),
                     PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -5),
                     PlantLevelUpgrade.atLevel(4, PlantStatBonus.RESET_FAMILY_COOLDOWN, true)
-            ));
+            )),
+    Bowling_Wall_nut(70, "Bowling Wall-nut", PlantCategory.DEFENDER, EnumSet.of(PlantTag.BOWLING),
+            new PlantBaseStats(0, 300, 1800, 0, 0),
+            Arrays.asList(
+                    new PlantBowlAbility(BowlingNutMode.NORMAL)
+            ),
+            null,
+            new PlantLevelUpgrades()),
+    Bowling_Explode_o_nut(71, "Bowling Explode-o-nut", PlantCategory.DEFENDER,
+            EnumSet.of(PlantTag.BOWLING, PlantTag.EXPLOSIVE),
+            new PlantBaseStats(0, 300, 1800, 0, 0),
+            Arrays.asList(
+                    new PlantBowlAbility(BowlingNutMode.EXPLODE)
+            ),
+            null,
+            new PlantLevelUpgrades()),
+    Giant_Bowling_Wall_nut(72, "Giant Bowling Wall-nut", PlantCategory.DEFENDER, EnumSet.of(PlantTag.BOWLING),
+            new PlantBaseStats(0, 300, 1800, 0, 0),
+            Arrays.asList(
+                    new PlantBowlAbility(BowlingNutMode.GIANT)
+            ),
+            null,
+            new PlantLevelUpgrades());
 
 
     public final int id;
@@ -1001,6 +1023,14 @@ public enum PlantType {
 
     public boolean hasTag(PlantTag tag) {
         return tags != null && tags.contains(tag);
+    }
+
+    public boolean isBowlingExclusive() {
+        return hasTag(PlantTag.BOWLING);
+    }
+
+    public static List<PlantType> bowlingPlants() {
+        return List.of(Bowling_Wall_nut, Bowling_Explode_o_nut, Giant_Bowling_Wall_nut);
     }
 
     public static PlantType fromName(String name) {

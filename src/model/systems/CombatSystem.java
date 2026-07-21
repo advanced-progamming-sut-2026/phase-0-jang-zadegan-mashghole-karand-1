@@ -50,9 +50,10 @@ public class CombatSystem {
                         .orElse(null);
                 if (blocker != null
                         && Math.abs(blocker.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
-                    blocker.receiveAllyHit(p.damage); 
+                    blocker.receiveAllyHit(p.damage);
                     projIter.remove();
                     continue;
+                }
 
                 Barrel barrelAhead = state.barrels.stream().filter(barrel -> barrel.row == p.row && barrel.col>= p.col).
                         min(Comparator.comparingInt(barrel -> barrel.col)).orElse(null);
