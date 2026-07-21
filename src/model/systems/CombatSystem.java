@@ -7,6 +7,8 @@ import model.data.Grave.Grave;
 import model.data.plant.Plant;
 import model.data.plant.abilities.effects.DamageEffect;
 import model.data.plant.abilities.effects.FreezeEffect;
+import model.data.plant.stuns.BlockingStun;
+import model.data.plant.stuns.StunKind;
 import model.data.projectile.PiercingProjectile;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
@@ -39,6 +41,16 @@ public class CombatSystem {
                         projIter.remove();
                         continue;
                     }
+                }
+                Plant blocker = state.plants.stream()
+                        .filter(plant -> plant.blocksProjectile(p) && plant.row == p.row && plant.col > p.col)
+                        .min(Comparator.comparingInt(plant -> plant.col))
+                        .orElse(null);
+                if (blocker != null
+                        && Math.abs(blocker.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+                    blocker.receiveAllyHit(p.damage); 
+                    projIter.remove();
+                    continue;
                 }
                 Plant frostbiteFrozenPlantAhead = state.plants.stream()
                         .filter(plant -> plant.isFrostbiteFreezeActive() && plant.row == p.row && plant.col > p.col)
@@ -106,7 +118,11 @@ public class CombatSystem {
                 if (target != null && Math.abs(target.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
                     target.hp -= p.damage;
                     projIter.remove();
-                    // stun plant...
+                    if (p.type == ProjectileType.OCTOPUS) {
+                        target.applyStun(new BlockingStun(StunKind.OCTOPUS));
+                    } else if (p.type == ProjectileType.ICE) {
+                        target.applyStun(new BlockingStun(StunKind.FROZEN));
+                    }
                     if (target.hp <= 0) {
                         eventBus.publish(new PlantDiedEvent(target));
                     }
@@ -132,6 +148,9 @@ public class CombatSystem {
             }
             Plant targetPlant = findPlantAt(state, z.row, z.position.x);
             if (targetPlant != null) {
+                if (!targetPlant.canBeEaten() || !targetPlant.canBeDamaged()) {
+                    continue;
+                }
                 targetPlant.hp -= z.type.baseStats.eatDPS / 10;
                 if (targetPlant.hp <= 0) {
                     state.plants.remove(targetPlant);
