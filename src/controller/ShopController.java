@@ -3,7 +3,6 @@ package controller;
 import controller.CommandResult.CommandResult;
 import model.data.plant.PlantType;
 import model.greenhouse.Greenhouse;
-import model.greenhouse.Pot;
 import model.shop.Shop;
 import model.shop.ShopItem;
 import model.shop.ShopItems;
@@ -85,7 +84,7 @@ public class ShopController {
                 if (user.greenhouse == null) {
                     user.greenhouse = new Greenhouse();
                 }
-                if (user.greenhouse.getPotCount() + quantity > Shop.LIMIT_OF_POT) {
+                if (user.greenhouse.getUnlockPotCount() + quantity > Shop.LIMIT_OF_POT) {
                     return failure("Greenhouse is full. Max pots is 20.");
                 }
                 int totalCost = item.getPrice() * quantity;
@@ -93,7 +92,7 @@ public class ShopController {
                     return failure("Not enough coins.");
                 }
                 for (int i = 0; i < quantity; i++) {
-                    user.greenhouse.addPot(new Pot());
+                    user.greenhouse.unlockSlot();
                 }
                 user.coins -= totalCost;
                 storageManager.saveProgress();

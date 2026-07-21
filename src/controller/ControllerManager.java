@@ -55,7 +55,7 @@ public class ControllerManager {
         this.eventBus = eventBus;
         this.gameLoop = gameLoop;
         this.storage = storage;
-        this.greenhouseController = new GreenhouseController(this);
+        this.greenhouseController = new GreenhouseController(this , storage);
         this.authController = new AuthController(this, storage);
         this.mainMenuController = new MainMenuController(this, storage);
         this.profileController = new ProfileController(this, storage);
@@ -256,6 +256,7 @@ public class ControllerManager {
                 if (loggedInCheck != null) {
                     return loggedInCheck;
                 }
+                greenhouseController.hidePots();
                 setScreen(ScreenType.GREEN_HOUSE);
                 return new CommandResult("Opened greenhouse.", true);
             }

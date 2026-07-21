@@ -14,10 +14,13 @@ import java.util.List;
 import java.util.UUID;
 import java.time.LocalDateTime;
 
+import model.core.Position;
 import model.gameSetting.GameSetting;
 import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
 import model.data.zombie.ZombieType;
+import model.greenhouse.Greenhouse;
+import model.greenhouse.Pot;
 import model.minigame.MinigameType;
 import model.news.NewsItem;
 import model.service.Hash;
@@ -513,8 +516,8 @@ public class SqlStorageManager implements StorageManager {
             }
             currentUser.collection.unlockZombie(zombie);
             try (Connection connection = openConnection();
-                    PreparedStatement statement = connection.prepareStatement(
-                            "INSERT OR IGNORE INTO unlocked_zombies (username, zombie) VALUES (?, ?)")) {
+                 PreparedStatement statement = connection.prepareStatement(
+                         "INSERT OR IGNORE INTO unlocked_zombies (username, zombie) VALUES (?, ?)")) {
                 statement.setString(1, currentUser.username);
                 statement.setString(2, zombie.name());
                 statement.executeUpdate();
@@ -660,6 +663,28 @@ public class SqlStorageManager implements StorageManager {
                             FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
                         )
                         """);
+                statement.execute("""
+                        
+                            CREATE TABLE IF NOT EXISTS user_greenhouse_pots (
+                            username TEXT NOT NULL,
+                            col INTEGER NOT NULL,
+                            row INTEGER NOT NULL,
+                            locked INTEGER NOT NULL,
+                            empty INTEGER NOT NULL,
+                            plant_class TEXT,
+                            plant_type TEXT,
+                            planted_at TEXT,
+                            PRIMARY KEY (username, col, row),
+                            FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+                        )
+                        """);
+                statement.execute("""
+                        CREATE TABLE IF NOT EXISTS user_stored_boosts (
+                            username TEXT NOT NULL,
+                            plant TEXT NOT NULL,
+                            PRIMARY KEY (username, plant)
+                        )
+                        """);
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to initialize database", e);
             }
@@ -742,6 +767,8 @@ public class SqlStorageManager implements StorageManager {
                 loadCompletedLevels(connection, user);
                 loadNews(connection, user);
                 loadSeedPackets(connection, user);
+                loadGreenhousePots(connection, user);
+                loadStoredBoosts(connection, user);
                 return user;
             }
         } catch (SQLException e) {
@@ -873,6 +900,59 @@ public class SqlStorageManager implements StorageManager {
             }
         }
     }
+
+    private void loadGreenhousePots(Connection connection, User user) throws SQLException {
+        user.greenhouse = new Greenhouse();
+
+        try (PreparedStatement ps = connection.prepareStatement(
+                "SELECT col, row, locked, empty, plant_class, plant_type, planted_at " +
+                        "FROM user_greenhouse_pots WHERE username = ?")) {
+            ps.setString(1, user.username);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Position pos = new Position(rs.getInt("col"), rs.getInt("row"));
+                    Pot pot = user.greenhouse.getPot(pos);
+                    if (pot == null) continue;
+
+                    if (rs.getInt("locked") == 0) pot.setUnlocked();
+
+                    if (rs.getInt("empty") == 1) continue;
+
+                    String plantClassStr = rs.getString("plant_class");
+                    String plantTypeStr = rs.getString("plant_type");
+                    String plantedAtStr = rs.getString("planted_at");
+
+                    Pot.PlantClass plantClass = Pot.PlantClass.valueOf(plantClassStr);
+                    PlantType plantType = plantTypeStr == null ? null : PlantType.valueOf(plantTypeStr);
+
+                    pot.plant(plantClass, plantType);
+                    if (plantedAtStr != null && !plantedAtStr.isBlank()) {
+                        pot.setPlantedAt(LocalDateTime.parse(plantedAtStr));
+                    }
+                }
+            }
+        }
+    }
+
+    private void loadStoredBoosts(Connection connection, User user) throws SQLException {
+        user.storedBoosts.clear();
+
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT plant FROM user_stored_boosts WHERE username = ?")) {
+            statement.setString(1, user.username);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String plant = resultSet.getString("plant");
+                    if (plant == null || plant.isBlank()) {
+                        continue;
+                    }
+                    user.storedBoosts.add(PlantType.valueOf(plant));
+                }
+            }
+        }
+    }
+
     private void insertNewsItem(String username, NewsItem item) {
         try (Connection connection = openConnection();
              PreparedStatement statement = connection.prepareStatement(
@@ -924,6 +1004,8 @@ public class SqlStorageManager implements StorageManager {
         saveUnlockedZombies(user);
         saveCompletedLevels(user);
         saveSeedPackets(user);
+        saveGreenhousePots(user);
+        saveStoredBoosts(user);
     }
 
     private void saveUserProfile(User user) {
@@ -1051,6 +1133,7 @@ public class SqlStorageManager implements StorageManager {
             throw new RuntimeException("Failed to save completed levels", e);
         }
     }
+
     private void saveSeedPackets(User user) {
         try (Connection connection = openConnection()) {
             try (PreparedStatement deleteStatement = connection.prepareStatement(
@@ -1071,6 +1154,79 @@ public class SqlStorageManager implements StorageManager {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to save seed packets", e);
+        }
+    }
+    private void saveGreenhousePots(User user) {
+        if (user == null || user.greenhouse == null) {
+            return;
+        }
+
+        try (Connection connection = openConnection()) {
+            try (PreparedStatement deleteStatement = connection.prepareStatement(
+                    "DELETE FROM user_greenhouse_pots WHERE username = ?")) {
+                deleteStatement.setString(1, user.username);
+                deleteStatement.executeUpdate();
+            }
+
+            try (PreparedStatement insertStatement = connection.prepareStatement("""
+                INSERT INTO user_greenhouse_pots
+                (username, col, row, locked, empty, plant_class, plant_type, planted_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """)) {
+                for (Pot pot : user.greenhouse.getProduction()) {
+                    Position pos = pot.getPosition();
+
+                    insertStatement.setString(1, user.username);
+                    insertStatement.setInt(2, (int) pos.x); // col
+                    insertStatement.setInt(3, (int) pos.y); // row
+                    insertStatement.setInt(4, pot.isLocked() ? 1 : 0);
+                    insertStatement.setInt(5, pot.isEmpty() ? 1 : 0);
+
+                    if (pot.getPlantClass() == null) {
+                        insertStatement.setString(6, null);
+                    } else {
+                        insertStatement.setString(6, pot.getPlantClass().name());
+                    }
+
+                    if (pot.getPlantType() == null) {
+                        insertStatement.setString(7, null);
+                    } else {
+                        insertStatement.setString(7, pot.getPlantType().name());
+                    }
+
+                    if (pot.getPlantedAt() == null) {
+                        insertStatement.setString(8, null);
+                    } else {
+                        insertStatement.setString(8, pot.getPlantedAt().toString());
+                    }
+
+                    insertStatement.addBatch();
+                }
+                insertStatement.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save greenhouse pots", e);
+        }
+    }
+    private void saveStoredBoosts(User user) {
+        try (Connection connection = openConnection()) {
+            try (PreparedStatement deleteStatement = connection.prepareStatement(
+                    "DELETE FROM user_stored_boosts WHERE username = ?")) {
+                deleteStatement.setString(1, user.username);
+                deleteStatement.executeUpdate();
+            }
+
+            try (PreparedStatement insertStatement = connection.prepareStatement(
+                    "INSERT INTO user_stored_boosts (username, plant) VALUES (?, ?)")) {
+                for (PlantType plant : user.storedBoosts) {
+                    insertStatement.setString(1, user.username);
+                    insertStatement.setString(2, plant.name());
+                    insertStatement.addBatch();
+                }
+                insertStatement.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save stored boosts", e);
         }
     }
     private void updateUsernameReferences(Connection connection, String oldUsername, String newUsername)

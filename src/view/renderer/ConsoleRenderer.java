@@ -4,21 +4,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 import controller.ChapterCommands;
+import controller.GreenhouseController;
 import controller.PickPlantsController;
 import controller.ShopController;
 import model.core.GameLoop;
+import model.core.Position;
 import model.core.ReadOnlyGameState;
 import model.data.content.chapter.ChapterCatalog;
 import model.data.content.chapter.ChapterType;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
+import model.greenhouse.Greenhouse;
+import model.greenhouse.Pot;
 import model.service.*;
 import model.service.GameNavigationState.Phase;
 import model.shop.ShopCurrency;
 import model.shop.ShopItem;
 import model.shop.ShopItems;
 import model.storage.user.SafetyQuestion;
+import model.storage.user.User;
 
 public class ConsoleRenderer implements Renderer {
 
@@ -29,6 +34,11 @@ public class ConsoleRenderer implements Renderer {
     private static final int MAX_MESSAGES = 4;
     private static final int SCREEN_WIDTH = 59;
     private static final int RENDER_HEIGHT = 40;
+    private static final int GH_ROWS = 4;
+    private static final int GH_COLS = 5;
+    private static final int POT_WIDTH = 13;
+    private static final int POT_HEIGHT = 5;
+
 
     private static final String RESET = "\u001B[0m";
     private static final String RED = "\u001B[31m";
@@ -144,7 +154,7 @@ public class ConsoleRenderer implements Renderer {
     }
 
     private String getLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
-            String passwordResetQuestion) {
+                                  String passwordResetQuestion) {
         StringBuilder sb = new StringBuilder();
         String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Login" + RESET + "  🧟";
 
@@ -181,7 +191,7 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
-            String passwordResetQuestion) {
+                                  String passwordResetQuestion) {
         render(getLoginScreen(isAwaitingSecurityAnswer, isAwaitingNewPassword, passwordResetQuestion));
     }
 
@@ -301,20 +311,195 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderGreenHouseScreen() {
-        render(getGreenHouseScreen());
+    public void renderGreenHouseScreen(GreenhouseController greenhouseController) {
+        render(getGreenHouseScreen(greenhouseController));
     }
 
-    private String getGreenHouseScreen() {
+    private String getGreenHouseScreen(GreenhouseController greenhouseController) {
         StringBuilder sb = new StringBuilder();
-        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Greenhouse" + RESET + "  🧟";
-        sb.append(getHeaderBox(title, GREEN));
+        User user = greenhouseController.getUser();
+        Greenhouse greenhouse = user != null ? user.greenhouse : null;
+
+        sb.append(getHeaderBox("🌱  " + BOLD + "GREENHOUSE" + RESET + "  🧟", GREEN));
         sb.append("\n");
-        sb.append("  " + CYAN + "1." + RESET + " Shop: " + GREEN + "enter shop" + RESET + "\n");
-        sb.append("  " + CYAN + "2." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+
+        int coins = user != null ? user.coins : 0;
+        int gems = user != null ? user.gems : 0;
+        sb.append("  ").append(BOLD).append("Coins:").append(RESET).append(" ").append(coins);
+        sb.append("    ").append(BOLD).append("Gems:").append(RESET).append(" ").append(gems).append("\n");
         sb.append("\n");
         sb.append(getMessages());
+        sb.append("\n");
+        if (!greenhouseController.isPotsVisible()) {
+            sb.append("  " + CYAN + "1." + RESET + " Greenhouse: " + GREEN + "show greenhouse" + RESET + "\n");
+            sb.append("  " + CYAN + "2." + RESET + " Shop: " + GREEN + "enter shop" + RESET + "\n");
+            sb.append("  " + CYAN + "3." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+            sb.append("  " + CYAN + "4." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+        }else {
+            sb.append(drawGreenhousePanel(greenhouse));
+            sb.append("\n");
+
+        sb.append("  ").append(CYAN).append("Commands:").append(RESET).append("\n");
+        sb.append("  ").append(GREEN).append("plant pot at (row,col)").append(RESET).append("  ");
+        sb.append(GREEN).append("grow (row,col)").append(RESET).append("  ");
+        sb.append(GREEN).append("collect (row,col)").append(RESET).append("\n");
+        sb.append("  ").append(GREEN).append("enter shop").append(RESET).append("  ");
+        sb.append(GREEN).append("menu exit").append(RESET).append("\n");
+        sb.append("\n");
+        }
         return sb.toString();
+    }
+
+    private String drawGreenhousePanel(Greenhouse greenhouse) {
+        StringBuilder sb = new StringBuilder();
+        int innerWidth = GH_COLS * (POT_WIDTH + 1) - 1;
+        sb.append("  ").append(GREEN).append("┌").append("─".repeat(innerWidth + 2)).append("┐").append(RESET).append("\n");
+
+        for (int row = 1; row <= GH_ROWS; row++) {
+            String[][] potLines = new String[GH_COLS][POT_HEIGHT];
+            for (int col = 1; col <= GH_COLS; col++) {
+                Pot pot = greenhouse != null ? greenhouse.getPot(new Position(col, row)) : null;
+                potLines[col - 1] = drawPot(pot, row, col);
+            }
+
+            for (int line = 0; line < POT_HEIGHT; line++) {
+                sb.append("  ").append(GREEN).append("│ ").append(RESET);
+                for (int col = 0; col < GH_COLS; col++) {
+                    sb.append(potLines[col][line]);
+                    if (col < GH_COLS - 1) {
+                        sb.append(" ");
+                    }
+                }
+                sb.append(GREEN).append(" │").append(RESET).append("\n");
+            }
+        }
+
+        sb.append("  ").append(GREEN).append("└").append("─".repeat(innerWidth + 2)).append("┘").append(RESET);
+        return sb.toString();
+    }
+
+    private String[] drawPot(Pot pot, int row, int col) {
+        if (pot == null || pot.isLocked()) {
+            return drawLockedPot(row, col);
+        }
+        if (pot.isEmpty()) {
+            return drawEmptyPot(row, col);
+        }
+        if (pot.isReady()) {
+            return drawReadyPot(pot, row, col);
+        }
+        return drawGrowingPot(pot, row, col);
+    }
+
+    private String[] drawLockedPot(int row, int col) {
+        String[] lines = new String[POT_HEIGHT];
+        lines[0] = potTop();
+        lines[1] = potLine("🔒", GRAY);
+        lines[2] = potLine("LOCKED", GRAY);
+        lines[3] = potBottom();
+        lines[4] = potCoord(row, col);
+        return lines;
+    }
+
+    private String[] drawEmptyPot(int row, int col) {
+        String[] lines = new String[POT_HEIGHT];
+        lines[0] = potTop();
+        lines[1] = potLine("🪴", YELLOW);
+        lines[2] = potLine("Empty", WHITE);
+        lines[3] = potBottom();
+        lines[4] = potCoord(row, col);
+        return lines;
+    }
+
+    private String[] drawGrowingPot(Pot pot, int row, int col) {
+        String[] lines = new String[POT_HEIGHT];
+        String plantLabel = getPlantLabel(pot);
+
+        lines[0] = potTop();
+        lines[1] = potLine("🌱", GREEN);
+        lines[2] = potLine(plantLabel, CYAN);
+        lines[3] = potLine(drawTimer(pot), YELLOW);
+        lines[4] = potCoord(row, col);
+        return lines;
+    }
+
+    private String[] drawReadyPot(Pot pot, int row, int col) {
+        String[] lines = new String[POT_HEIGHT];
+        String icon = getPlantIcon(pot);
+        String plantLabel = getPlantLabel(pot);
+
+        lines[0] = potTop();
+        lines[1] = potLine(icon, GREEN);
+        lines[2] = potLine(plantLabel, CYAN);
+        lines[3] = potLine(drawReadyLabel(), GREEN);
+        lines[4] = potCoord(row, col);
+        return lines;
+    }
+
+    private String drawTimer(Pot pot) {
+        return pot.getRemainingTimeText();
+    }
+
+    private String drawReadyLabel() {
+        return "✅ READY";
+    }
+
+    private String getPlantIcon(Pot pot) {
+        if (pot.getPlantClass() == Pot.PlantClass.NORMAL_PLANT || pot.getPlantType() == null) {
+            return "🌼";
+        }
+        return "🌿";
+    }
+
+    private String getPlantLabel(Pot pot) {
+        if (pot.getPlantClass() == Pot.PlantClass.NORMAL_PLANT || pot.getPlantType() == null) {
+            return "Marigold";
+        }
+        return truncate(pot.getPlantType().name, POT_WIDTH - 2);
+    }
+
+    private String potTop() {
+        return GRAY + "┌" + "─".repeat(POT_WIDTH - 2) + "┐" + RESET;
+    }
+
+    private String potBottom() {
+        return GRAY + "└" + "─".repeat(POT_WIDTH - 2) + "┘" + RESET;
+    }
+
+    private String potLine(String text, String color) {
+        String plain = truncate(text, POT_WIDTH - 2);
+        int pad = POT_WIDTH - 2 - displayWidth(stripAnsi(plain));
+        return GRAY + "│" + RESET + color + plain + RESET
+                + " ".repeat(Math.max(0, pad)) + GRAY + "│" + RESET;
+    }
+    private int displayWidth(String text) {
+        int width = 0;
+        for (int i = 0; i < text.length(); ) {
+            int cp = text.codePointAt(i);
+            i += Character.charCount(cp);
+            width += (cp > 0x1F000 || cp == 0x2705 || cp == 0x26A0) ? 2 : 1;
+        }
+        return width;
+    }
+    private String potCoord(int row, int col) {
+        String coord = "(" + col + "," + row + ")";
+        int pad = POT_WIDTH - coord.length();
+        int left = Math.max(0, pad / 2);
+        return " ".repeat(left) + GRAY + coord + RESET
+                + " ".repeat(Math.max(0, pad - left));
+    }
+
+    private String truncate(String text, int maxLen) {
+        if (text == null) {
+            return "";
+        }
+        if (text.length() <= maxLen) {
+            return text;
+        }
+        if (maxLen <= 1) {
+            return text.substring(0, maxLen);
+        }
+        return text.substring(0, maxLen - 1) + ".";
     }
 
     @Override
@@ -580,12 +765,12 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased,
-            ShopController.ShopDisplayMode mode) {
+                                 ShopController.ShopDisplayMode mode) {
         render(getShopScreen(coins, gems, dailyPlant, dailyPrice, dailyPurchased, mode));
     }
 
     private String getShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased,
-            ShopController.ShopDisplayMode mode) {
+                                 ShopController.ShopDisplayMode mode) {
         StringBuilder sb = new StringBuilder();
         String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Shop" + RESET + "  🧟";
 
@@ -687,12 +872,12 @@ public class ConsoleRenderer implements Renderer {
     private String getHUD(ReadOnlyGameState state) {
         String status = state.isGameOver() ? "💀" : state.isLevelComplete() ? "⭐" : "▶️";
         String title = String.format("%s☀️ : %-4d  " +
-                "%s🌊 : %-3d  " +
-                "%s🧟 : %-3d  " +
-                "%s🌿 : %-2d  " +
-                "%s⏱️ %-4ds  " +
-                CYAN + "%s" + RESET +
-                CYAN + " %2s" + RESET,
+                        "%s🌊 : %-3d  " +
+                        "%s🧟 : %-3d  " +
+                        "%s🌿 : %-2d  " +
+                        "%s⏱️ %-4ds  " +
+                        CYAN + "%s" + RESET +
+                        CYAN + " %2s" + RESET,
                 YELLOW, state.getSunAmount(),
                 CYAN, state.getCurrentWave(),
                 RED, state.getZombies().size(),
