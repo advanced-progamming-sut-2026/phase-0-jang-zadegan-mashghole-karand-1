@@ -83,6 +83,11 @@ public enum Commands {
     SHOW_PLANTS_STATUS("show\\s+plants\\s+status"),
     SHOW_TILE_STATUS("show\\s+tile\\s+status\\s+-l\\s*\\(\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)\\s*\\)"),
 
+    // vase breaker commands
+    COLLECT_SEED("collect\\s+seed\\s+-l\\s*\\(\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)\\s*\\)"),
+    BREAK_VASE("break\\s+vase\\s+-l\\s*\\(\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)\\s*\\)"),
+    SHOW_HELD_SEEDS("show\\s+held\\s+seeds"),
+
     // zombie commands
     ZOMBIES_INFO("zombies\\s+info"),
     CHEAT_SPAWN_ZOMBIE("cheat\\s+spawn-zombie\\s+-t\\s+(?<zombietype>.*?)\\s+-l\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)"),

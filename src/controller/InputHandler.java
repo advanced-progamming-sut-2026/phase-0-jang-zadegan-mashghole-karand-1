@@ -203,6 +203,19 @@ public class InputHandler {
             int col = Integer.parseInt(matcher.group("y"));
             controllerManager.handleCommandResult(
                     controllerManager.getGameMechanismController().collectSun(row, col));
+        } else if ((matcher = Commands.COLLECT_SEED.getMatcher(input)).matches()) {
+            int row = Integer.parseInt(matcher.group("x"));
+            int col = Integer.parseInt(matcher.group("y"));
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().collectSeed(row, col));
+        } else if ((matcher = Commands.BREAK_VASE.getMatcher(input)).matches()) {
+            int row = Integer.parseInt(matcher.group("x"));
+            int col = Integer.parseInt(matcher.group("y"));
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().breakVase(row, col));
+        } else if (Commands.SHOW_HELD_SEEDS.getMatcher(input).matches()) {
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().showHeldSeeds());
         } else if (Commands.SHOW_SUN_AMOUNT.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(
                     controllerManager.getGameMechanismController().showSunAmount());

@@ -51,7 +51,7 @@ public interface StorageManager {
 
     void markAllNewsAsRead();
 
-    void unlockMinigame(model.minigame.MinigameType minigame);
+    void unlockMinigame(model.data.content.minigame.MiniGameType minigame);
 
     void unlockChapter(ChapterType chapter);
 

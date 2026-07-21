@@ -10,6 +10,9 @@ import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantStats;
 import model.data.plant.PlantType;
+import model.data.seed.PlantSeedDrop;
+import model.data.vase.Vase;
+import model.data.vase.VaseContentType;
 import model.storage.user.User;
 import view.ScreenType;
 
@@ -67,6 +70,54 @@ public class GameMechanismController {
         return failure("No collectible sun at (" + row + ", " + col + ").");
     }
 
+    public CommandResult collectSeed(int row, int col) {
+        CommandResult screenCheck = requireGameScreen();
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        if (!isValidCell(row, col)) {
+            return failure("Invalid cell (" + row + ", " + col + ").");
+        }
+        PlantSeedDrop seed = gameState.getSeedDropAt(row, col);
+        if (seed == null) {
+            return failure("No plant seed at (" + row + ", " + col + ").");
+        }
+        PlantType type = seed.plantType;
+        if (model.collectSeedAt(row, col)) {
+            return success("Collected " + type.name + " seed at (" + row + ", " + col + ").");
+        }
+        return failure("Could not collect seed at (" + row + ", " + col + ").");
+    }
+
+    public CommandResult breakVase(int row, int col) {
+        CommandResult screenCheck = requireGameScreen();
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        if (!isValidCell(row, col)) {
+            return failure("Invalid cell (" + row + ", " + col + ").");
+        }
+        Vase vase = model.breakVase(row, col);
+        if (vase == null) {
+            return failure("No vase at (" + row + ", " + col + ").");
+        }
+        return success(describeBrokenVase(vase, row, col));
+    }
+
+    public CommandResult showHeldSeeds() {
+        CommandResult screenCheck = requireGameScreen();
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        if (model.getPlayContext() == null || model.getPlayContext().getHeldSeeds().isEmpty()) {
+            return success("No held seeds.");
+        }
+        String seeds = model.getPlayContext().getHeldSeeds().entrySet().stream()
+                .map(e -> e.getKey().name + " x" + e.getValue())
+                .collect(Collectors.joining(", "));
+        return success("Held seeds: " + seeds + ".");
+    }
+
     public CommandResult showSunAmount() {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
@@ -114,8 +165,14 @@ public class GameMechanismController {
         User user = controllerManager.getStorage().getCurrentUser();
         int level = user != null ? user.getPlantLevel(plantType) : PlantStats.DEFAULT_LEVEL;
         PlantStats stats = PlantStats.forLevel(plantType, level);
-        if (gameState.sunAmount < stats.cost) {
+        boolean usesSun = model.getRuleEngine().usesSunCurrency();
+        boolean hasHeldSeed = model.getPlayContext() != null
+                && model.getPlayContext().hasHeldSeed(plantType);
+        if (usesSun && !hasHeldSeed && gameState.sunAmount < stats.cost) {
             return failure("Not enough sun. Need " + stats.cost + ", have " + gameState.sunAmount + ".");
+        }
+        if (!usesSun && !hasHeldSeed) {
+            return failure("You need to collect a " + plantType.name + " seed before planting.");
         }
         if (model.placePlant(row, col, plantType, level)) {
             return success("Planted " + plantType.name + " (Lv." + level + ") at (" + row + ", " + col + ").");
@@ -234,6 +291,18 @@ public class GameMechanismController {
             return success("Plant: " + plant.type.name + " HP " + plant.hp + "/" + plant.totalHP + ".");
         }
 
+        Vase vase = gameState.getVaseAt(row, col);
+        if (vase != null) {
+            return success("Tile (" + row + ", " + col + "): vase (" + vase.vaseType.name().toLowerCase() + ").");
+        }
+
+        PlantSeedDrop seed = gameState.getSeedDropAt(row, col);
+        if (seed != null) {
+            int remaining = Math.max(0, PlantSeedDrop.TTL_TICKS - seed.age);
+            return success("Tile (" + row + ", " + col + "): " + seed.plantType.name
+                    + " seed (" + remaining + " ticks left).");
+        }
+
         int cellStartX = col * ReadOnlyGameState.CELL_WIDTH;
         int cellEndX = (col + 1) * ReadOnlyGameState.CELL_WIDTH;
         long zombiesInCell = gameState.zombies.stream()
@@ -247,6 +316,22 @@ public class GameMechanismController {
             return success("Tile (" + row + ", " + col + "): zombies=" + zombiesInCell + ", sun=" + hasSun + ".");
         }
         return success("Tile (" + row + ", " + col + ") is empty.");
+    }
+
+    private String describeBrokenVase(Vase vase, int row, int col) {
+        String location = "(" + row + ", " + col + ")";
+        if (vase.contentType == VaseContentType.EMPTY) {
+            return "Broke vase at " + location + ". It was empty.";
+        }
+        if (vase.contentType == VaseContentType.PLANT_SEED) {
+            String plantName = vase.plantType != null ? vase.plantType.name : "unknown";
+            return "Broke vase at " + location + ". A " + plantName + " seed dropped.";
+        }
+        if (vase.contentType == VaseContentType.ZOMBIE) {
+            String zombieName = vase.zombieType != null ? vase.zombieType.name : "zombie";
+            return "Broke vase at " + location + ". A " + zombieName + " appeared!";
+        }
+        return "Broke vase at " + location + ".";
     }
 
     private CommandResult requireGameScreen() {

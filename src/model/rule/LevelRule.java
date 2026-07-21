@@ -51,14 +51,23 @@ public interface LevelRule {
         return true;
     }
 
-    default boolean canPlant(PlantType type, int row, int col, GameState state) {
+    default boolean skipsPlantSelection() {
+        return false;
+    }
+
+    default boolean shouldSpawnWaves() {
         return true;
     }
 
-    /**
-     * use this for additional spawn offset for zombies
-     */
-    default int getSpawnOffset(Zombie zombie) {
-        return 0;
+    default boolean lawnMowersEnabled() {
+        return true;
+    }
+
+    default boolean usesSunCurrency() {
+        return true;
+    }
+
+    default boolean canPlant(PlantType type, int row, int col, GameState state, SessionContext context) {
+        return true;
     }
 }

@@ -5,7 +5,9 @@ import java.util.List;
 import model.board.GameBoard;
 import model.data.plant.Plant;
 import model.data.projectile.Projectile;
+import model.data.seed.PlantSeedDrop;
 import model.data.sun.Sun;
+import model.data.vase.Vase;
 import model.data.zombie.Zombie;
 
 public interface ReadOnlyGameState {
@@ -32,6 +34,10 @@ public interface ReadOnlyGameState {
 
     List<Sun> getSunDrops();
 
+    List<Vase> getVases();
+
+    List<PlantSeedDrop> getSeedDrops();
+
     int getSunAmount();
 
     int getPlantFoodAmount();
@@ -47,4 +53,8 @@ public interface ReadOnlyGameState {
     int getTotalTicks();
 
     Plant getPlantAt(int row, int col);
+
+    Vase getVaseAt(int row, int col);
+
+    PlantSeedDrop getSeedDropAt(int row, int col);
 }

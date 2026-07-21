@@ -916,8 +916,10 @@ public class ConsoleRenderer implements Renderer {
                     Zombie zombie = findZombieAt(state, row, col);
                     boolean hasProjectile = hasProjectileInCell(state, row, col);
                     boolean hasSun = hasSunInCell(state, row, col);
+                    boolean hasSeed = state.getSeedDropAt(row, col) != null;
+                    boolean hasVase = state.getVaseAt(row, col) != null;
 
-                    String cellContent = getCellLayer(plant, zombie, hasProjectile, hasSun, layer);
+                    String cellContent = getCellLayer(plant, zombie, hasProjectile, hasSeed, hasSun, hasVase, layer);
                     sb.append(String.format(" %s │", cellContent));
                 }
                 sb.append("\n");
@@ -937,15 +939,20 @@ public class ConsoleRenderer implements Renderer {
     public void renderGrid(ReadOnlyGameState state) {
     }
 
-    private String getCellLayer(Plant plant, Zombie zombie, boolean hasProjectile, boolean hasSun, int layer) {
+    private String getCellLayer(Plant plant, Zombie zombie, boolean hasProjectile, boolean hasSeed,
+            boolean hasSun, boolean hasVase, int layer) {
         if (plant != null) {
             return getPlantLayer(plant, layer);
         } else if (zombie != null) {
             return getZombieLayer(zombie, layer);
         } else if (hasProjectile) {
             return getProjectileLayer(layer);
+        } else if (hasSeed) {
+            return getSeedLayer(layer);
         } else if (hasSun) {
             return getSunLayer(layer);
+        } else if (hasVase) {
+            return getVaseLayer(layer);
         } else {
             return getEmptyLayer(layer);
         }
@@ -992,6 +999,28 @@ public class ConsoleRenderer implements Renderer {
         switch (layer) {
             case 0:
                 return YELLOW + "☀️ " + RESET;
+            case 1:
+                return "   ";
+            default:
+                return "   ";
+        }
+    }
+
+    private String getSeedLayer(int layer) {
+        switch (layer) {
+            case 0:
+                return GREEN + "🌱 " + RESET;
+            case 1:
+                return "   ";
+            default:
+                return "   ";
+        }
+    }
+
+    private String getVaseLayer(int layer) {
+        switch (layer) {
+            case 0:
+                return PURPLE + "🏺 " + RESET;
             case 1:
                 return "   ";
             default:

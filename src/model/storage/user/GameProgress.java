@@ -2,7 +2,7 @@ package model.storage.user;
 
 import model.data.content.chapter.ChapterCatalog;
 import model.data.content.chapter.ChapterType;
-import model.minigame.MinigameType;
+import model.data.content.minigame.MiniGameType;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -11,7 +11,7 @@ import java.util.Collections;
 public class GameProgress {
     private final Set<String> completedLevels = new HashSet<>();
     private final Set<ChapterType> unlockedChapters = new HashSet<>();
-    private final Set<MinigameType> unlockedMinigames = new HashSet<>();
+    private final Set<MiniGameType> unlockedMinigames = new HashSet<>();
     private ChapterType lastChapter = ChapterType.ANCIENT_EGYPT;
     private int lastLevel = 1;
     public boolean isChapterUnlocked(ChapterType chapter) {
@@ -22,15 +22,15 @@ public class GameProgress {
         unlockedChapters.add(chapter);
     }
 
-    public void unlockMinigame(MinigameType minigame) {
+    public void unlockMinigame(MiniGameType minigame) {
         unlockedMinigames.add(minigame);
     }
 
-    public boolean isMinigameUnlocked(MinigameType minigame) {
+    public boolean isMinigameUnlocked(MiniGameType minigame) {
         return unlockedMinigames.contains(minigame);
     }
 
-    public Set<MinigameType> getUnlockedMinigames() {
+    public Set<MiniGameType> getUnlockedMinigames() {
         return unlockedMinigames;
     }
 

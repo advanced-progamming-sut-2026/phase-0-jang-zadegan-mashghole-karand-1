@@ -9,7 +9,7 @@ import java.util.UUID;
 import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
 import model.data.zombie.ZombieType;
-import model.minigame.MinigameType;
+import model.data.content.minigame.MiniGameType;
 import model.service.Hash;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
@@ -189,7 +189,7 @@ public class InMemoryStorageManager implements StorageManager {
     }
 
     @Override
-    public void unlockMinigame(MinigameType minigame) {
+    public void unlockMinigame(MiniGameType minigame) {
         if (!isLoggedIn() || minigame == null) {
             return;
         }
