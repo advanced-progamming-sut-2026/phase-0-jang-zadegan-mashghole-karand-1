@@ -42,8 +42,8 @@ public enum ZombieType {
                         List.of(new ZombiePianoAbility(), new ZombieKillForwardAbility())),
         NEWSPAPER_ZOMBIE("Newspaper Zombie", new ZombieBaseStats(460, 200, 0.22f, 700, 0),
                         ZombieArmorConfig.newspaper(), null),
-        // BARREL_ROLLER("Barrel Roller Zombie",new ZombieBaseStats()) no data?
-
+        BARREL_ROLLER("Barrel Roller Zombie",new ZombieBaseStats(200, 100,0.185f, 300, 500),null,
+                        List.of(new ZombieBarrelRollerAbility())),
         RA_ZOMBIE("Ra Zombie", new ZombieBaseStats(190, 100, 0.2f, 100, 700), null,
                         List.of(new ZombieStealSunAbility())),
         EXPLORER_ZOMBIE("Explorer Zombie", new ZombieBaseStats(250, 100, 0.25f, 250, 3000), null,
