@@ -8,8 +8,9 @@ import model.core.GameLoop;
 import model.core.GameState;
 import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
+import model.data.plant.PlantStats;
 import model.data.plant.PlantType;
-import model.data.zombie.Zombie;
+import model.storage.user.User;
 import view.ScreenType;
 
 public class GameMechanismController {
@@ -110,11 +111,14 @@ public class GameMechanismController {
         if (gameState.getPlantAt(row, col) != null) {
             return failure("Cell (" + row + ", " + col + ") already has a plant.");
         }
-        if (gameState.sunAmount < plantType.baseStats.cost) {
-            return failure("Not enough sun. Need " + plantType.baseStats.cost + ", have " + gameState.sunAmount + ".");
+        User user = controllerManager.getStorage().getCurrentUser();
+        int level = user != null ? user.getPlantLevel(plantType) : PlantStats.DEFAULT_LEVEL;
+        PlantStats stats = PlantStats.forLevel(plantType, level);
+        if (gameState.sunAmount < stats.cost) {
+            return failure("Not enough sun. Need " + stats.cost + ", have " + gameState.sunAmount + ".");
         }
-        if (model.placePlant(row, col, plantType, 1)) {
-            return success("Planted " + plantType.name + " at (" + row + ", " + col + ").");
+        if (model.placePlant(row, col, plantType, level)) {
+            return success("Planted " + plantType.name + " (Lv." + level + ") at (" + row + ", " + col + ").");
         }
         return failure("Could not plant " + plantType.name + " at (" + row + ", " + col + ").");
     }

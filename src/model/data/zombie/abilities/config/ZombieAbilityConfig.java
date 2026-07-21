@@ -18,6 +18,10 @@ public interface ZombieAbilityConfig {
         return false;
     }
 
+    default public boolean passProjectiles(Zombie zombie, Projectile projectile) {
+        return false;
+    }
+
     default public void onProjectileHit(Zombie zombie, Projectile projectile) {
     }
 

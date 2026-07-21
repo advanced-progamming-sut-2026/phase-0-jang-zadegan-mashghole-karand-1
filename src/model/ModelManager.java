@@ -7,6 +7,7 @@ import model.core.EventBus;
 import model.core.GameState;
 import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
+import model.data.plant.PlantStats;
 import model.data.plant.PlantType;
 import model.events.PlantPlacedEvent;
 import model.events.ZombieDroppedLootEvent;
@@ -88,7 +89,7 @@ public class ModelManager {
                 case POT -> {
                     if (user.greenhouse == null)
                         return;
-                    user.greenhouse.addPot(new Pot());
+                    user.greenhouse.unlockSlot();
                     storage.updateUserProfile(user);
                 }
             }
@@ -158,10 +159,10 @@ public class ModelManager {
         if (!ruleEngine.canPlant(plantType, row, col, state))
             return false;
 
-        if (chargeSun && state.sunAmount < plantType.baseStats.cost)
+        Plant plant = new Plant(plantType, row, col, level, eventBus);
+        if (chargeSun && state.sunAmount < plant.cost)
             return false;
 
-        Plant plant = new Plant(plantType, row, col, level, eventBus);
         state.plants.add(plant);
         if (chargeSun) {
             state.sunAmount -= plant.cost;
@@ -180,7 +181,11 @@ public class ModelManager {
         if (offered == null) {
             return false;
         }
-        if (!placePlant(row, col, offered, 1, false)) {
+        int level = PlantStats.DEFAULT_LEVEL;
+        if (storage.getCurrentUser() != null) {
+            level = storage.getCurrentUser().getPlantLevel(offered);
+        }
+        if (!placePlant(row, col, offered, level, false)) {
             return false;
         }
         sessionContext.consumeConveyorOffer();

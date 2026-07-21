@@ -70,7 +70,7 @@ public class ViewManager {
                 renderer.renderLeaderboardOverlay(leaderboardViewState);
                 break;
             case GREEN_HOUSE:
-                renderer.renderGreenHouseScreen();
+                renderer.renderGreenHouseScreen(controllerManager.getGreenhouseController());
                 break;
             case SHOP:
                 User user = controllerManager.getStorage().getCurrentUser();

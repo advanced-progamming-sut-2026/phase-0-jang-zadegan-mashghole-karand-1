@@ -252,23 +252,26 @@ public class InputHandler {
             controllerManager.handleCommandResult(
                     controllerManager.getGameMechanismController().showTileStatus(row, col));
         } else if (Commands.SHOW_GREENHOUSE.getMatcher(input).matches()) {
-            // CommandResult result =
-            // controllerManager.getGreenhouseController().showGreenhouse(user);
+             CommandResult result = controllerManager.getGreenhouseController().showGreenhouse();
+             controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.PLANT_POT.getMatcher(input)).matches()) {
             int x = Integer.parseInt(matcher.group(1));
             int y = Integer.parseInt(matcher.group(2));
             Position pos = new Position(x, y);
-            // controllerManager.getGreenhouseController().plantPot(user,pos);
+             CommandResult result = controllerManager.getGreenhouseController().plantPot(pos);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.COLLECT_POT.getMatcher(input)).matches()) {
             int x = Integer.parseInt(matcher.group(1));
             int y = Integer.parseInt(matcher.group(2));
             Position pos = new Position(x, y);
-            // controllerManager.getGreenhouseController().collect(user,pos);
+            CommandResult result =  controllerManager.getGreenhouseController().collect(pos);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.GROW_POT.getMatcher(input)).matches()) {
             int x = Integer.parseInt(matcher.group(1));
             int y = Integer.parseInt(matcher.group(2));
             Position pos = new Position(x, y);
-            // controllerManager.getGreenhouseController().grow(user,pos)
+             CommandResult result = controllerManager.getGreenhouseController().grow(pos);
+            controllerManager.handleCommandResult(result);
         } else if (Commands.ENTER_SHOP.getMatcher(input).matches()) {
             CommandResult result = controllerManager.getGreenhouseController().enterShop();
             controllerManager.handleCommandResult(result);

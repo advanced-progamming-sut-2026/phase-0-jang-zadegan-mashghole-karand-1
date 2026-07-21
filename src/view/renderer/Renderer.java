@@ -2,6 +2,7 @@ package view.renderer;
 
 import java.util.List;
 
+import controller.GreenhouseController;
 import controller.ShopController;
 import model.core.ReadOnlyGameState;
 import model.data.plant.PlantType;
@@ -25,7 +26,7 @@ public interface Renderer {
 
     void renderCollectionScreen(CollectionViewState collection);
 
-    void renderGreenHouseScreen();
+    void renderGreenHouseScreen(GreenhouseController greenhouseController);
 
     void renderShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased, ShopController.ShopDisplayMode mode);
 
