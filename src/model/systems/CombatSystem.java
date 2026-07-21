@@ -6,8 +6,11 @@ import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
+import model.data.plant.PlantType;
+import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.effects.DamageEffect;
 import model.data.plant.abilities.effects.FreezeEffect;
+import model.data.plant.abilities.runtime.PlantDefenderAbility;
 import model.data.plant.stuns.BlockingStun;
 import model.data.plant.stuns.StunKind;
 import model.data.projectile.PiercingProjectile;
@@ -50,9 +53,10 @@ public class CombatSystem {
                         .orElse(null);
                 if (blocker != null
                         && Math.abs(blocker.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
-                    blocker.receiveAllyHit(p.damage); 
+                    blocker.receiveAllyHit(p.damage);
                     projIter.remove();
                     continue;
+                }
 
                 Barrel barrelAhead = state.barrels.stream().filter(barrel -> barrel.row == p.row && barrel.col>= p.col).
                         min(Comparator.comparingInt(barrel -> barrel.col)).orElse(null);
@@ -138,6 +142,12 @@ public class CombatSystem {
                         target.applyStun(new BlockingStun(StunKind.FROZEN));
                     }
                     if (target.hp <= 0) {
+                        for (PlantAbilityConfig ability : target.abilities) {
+                            ability.onDeath(target, null, state, eventBus);
+                            if (ability instanceof PlantDefenderAbility defender) {
+                                defender.onDeath(target, state, eventBus);
+                            }
+                        }
                         eventBus.publish(new PlantDiedEvent(target));
                     }
                 }
@@ -166,7 +176,18 @@ public class CombatSystem {
                     continue;
                 }
                 targetPlant.hp -= z.type.baseStats.eatDPS / 10;
+                for (PlantAbilityConfig ability : targetPlant.abilities) {
+                    if (ability instanceof PlantDefenderAbility defender) {
+                        defender.onDamaged(targetPlant, z, state, eventBus);
+                    }
+                }
                 if (targetPlant.hp <= 0) {
+                    for (PlantAbilityConfig ability : targetPlant.abilities) {
+                        ability.onDeath(targetPlant, z, state, eventBus);
+                        if (ability instanceof PlantDefenderAbility defender) {
+                            defender.onDeath(targetPlant, state, eventBus);
+                        }
+                    }
                     state.plants.remove(targetPlant);
                     eventBus.publish(new PlantDiedEvent(targetPlant));
                 }

@@ -67,6 +67,9 @@ public class ModelManager {
         ruleEngine.preTick(sessionContext, state, eventBus);
 
         plantAbilitySystem.update(state, eventBus);
+        for (Plant plant : state.plants) {
+            plant.tickPlantFood(state, eventBus);
+        }
         zombieAbilitySystem.update(state, eventBus);
         if (ruleEngine.shouldDropSkySun()) {
             sunSpawnSystem.update(state);
@@ -184,6 +187,11 @@ public class ModelManager {
             return false;
 
         state.plants.add(plant);
+        if (plantType == PlantType.Lily_Pad) {
+            tile.setLilyPad(plant);
+        } else {
+            tile.setPlant(plant);
+        }
         if (shouldChargeSun) {
             state.sunAmount -= plant.cost;
         }
@@ -247,11 +255,17 @@ public class ModelManager {
     }
 
     public boolean pluckPlant(int row, int col) {
+        Tile tile = state.getBoard().getTile(row, col);
         Plant plant = state.getPlantAt(row, col);
         if (plant == null) {
             return false;
         }
         state.plants.remove(plant);
+        if (plant.type == PlantType.Lily_Pad){
+            tile.setLilyPad(null);
+        }else {
+            tile.setPlant(null);
+        }
         return true;
     }
 

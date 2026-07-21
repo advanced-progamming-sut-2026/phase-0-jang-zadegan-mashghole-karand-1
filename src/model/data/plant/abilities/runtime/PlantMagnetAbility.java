@@ -23,11 +23,16 @@ public class PlantMagnetAbility implements PlantAbilityConfig {
         }
 
         Zombie metalZombie = state.zombies.stream()
-                .filter(z -> z.isAlive && z.armor.type.material.equals("metallic"))
-                .findFirst().orElse(null);
+                .filter(z -> z.isAlive
+                        && z.armor != null
+                        && z.armor.isIntact()
+                        && "metallic".equals(z.armor.type.material))
+                .findFirst()
+                .orElse(null);
 
         if (metalZombie != null) {
-//            metalZombie.hasMetalArmor = false;
+            metalZombie.armor.currentHealth = 0;
+            metalZombie.armor.isIntact = false;
             cooldown = 10 * GameLoop.TICKS_PER_SECOND;
         }
     }
@@ -39,7 +44,7 @@ public class PlantMagnetAbility implements PlantAbilityConfig {
 
     @Override
     public void resetCooldown() {
-        PlantAbilityConfig.super.resetCooldown();
+        cooldown = 0;
     }
 }
 
