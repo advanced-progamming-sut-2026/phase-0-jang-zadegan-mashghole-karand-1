@@ -9,9 +9,11 @@ import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantStats;
 import model.data.plant.PlantType;
+import model.data.seed.PlantSeedDrop;
+import model.data.vase.Vase;
 import model.events.PlantPlacedEvent;
+import model.events.SeedCollectedEvent;
 import model.events.ZombieDroppedLootEvent;
-import model.greenhouse.Pot;
 import model.rule.LevelRule;
 import model.rule.RuleEngine;
 import model.rule.SessionConfig;
@@ -37,6 +39,7 @@ public class ModelManager {
     private final ZombieAbilitySystem zombieAbilitySystem;
     private final SunSpawnSystem sunSpawnSystem;
     private final SunSystem sunSystem;
+    private final SeedDropSystem seedDropSystem;
     private final EffectSystem effectSystem;
 
     public ModelManager(StorageManager storage, EventBus eventBus) {
@@ -52,6 +55,7 @@ public class ModelManager {
         this.zombieAbilitySystem = new ZombieAbilitySystem();
         this.sunSpawnSystem = new SunSpawnSystem(eventBus);
         this.sunSystem = new SunSystem(eventBus);
+        this.seedDropSystem = new SeedDropSystem();
         this.effectSystem = new EffectSystem();
     }
 
@@ -64,12 +68,17 @@ public class ModelManager {
 
         plantAbilitySystem.update(state, eventBus);
         zombieAbilitySystem.update(state, eventBus);
-        sunSpawnSystem.update(state);
+        if (ruleEngine.shouldDropSkySun()) {
+            sunSpawnSystem.update(state);
+        }
         sunSystem.update(state);
+        seedDropSystem.update(state);
         movementSystem.update(state);
         effectSystem.update(state);
         combatSystem.update(state, eventBus, ruleEngine.freezeProjectilesEnabled());
-        waveManager.update(state, eventBus);
+        if (ruleEngine.shouldSpawnWaves()) {
+            waveManager.update(state, eventBus);
+        }
 
         ruleEngine.postTick(sessionContext, state, eventBus);
 
@@ -119,6 +128,15 @@ public class ModelManager {
         waveManager.initialize(config.levelConfig);
 
         ruleEngine.onSessionStart(sessionContext, state, eventBus);
+
+        if (!ruleEngine.lawnMowersEnabled()) {
+            for (int row = 0; row < GameState.GRID_ROWS; row++) {
+                var mower = state.getBoard().getLawnMowers(row);
+                if (mower != null) {
+                    mower.deactivate();
+                }
+            }
+        }
     }
 
     public GameState getState() {
@@ -142,7 +160,7 @@ public class ModelManager {
     }
 
     public boolean canPlant(PlantType type, int row, int col) {
-        return ruleEngine.canPlant(type, row, col, state);
+        return ruleEngine.canPlant(type, row, col, state, sessionContext);
     }
 
     public boolean placePlant(int row, int col, PlantType plantType, int level) {
@@ -156,16 +174,21 @@ public class ModelManager {
         if (!tile.isPlantable(plantType))
             return false;
 
-        if (!ruleEngine.canPlant(plantType, row, col, state))
+        if (!ruleEngine.canPlant(plantType, row, col, state, sessionContext))
             return false;
 
+        boolean shouldChargeSun = chargeSun && ruleEngine.usesSunCurrency();
+
         Plant plant = new Plant(plantType, row, col, level, eventBus);
-        if (chargeSun && state.sunAmount < plant.cost)
+        if (shouldChargeSun && state.sunAmount < plant.cost)
             return false;
 
         state.plants.add(plant);
-        if (chargeSun) {
+        if (shouldChargeSun) {
             state.sunAmount -= plant.cost;
+        }
+        if (sessionContext != null && sessionContext.hasHeldSeed(plantType)) {
+            sessionContext.consumeHeldSeed(plantType);
         }
 
         eventBus.publish(new PlantPlacedEvent(plant));
@@ -198,6 +221,29 @@ public class ModelManager {
 
     public boolean collectSunAt(int row, int col) {
         return sunSystem.collectSunAt(state, eventBus, row, col);
+    }
+
+    public Vase breakVase(int row, int col) {
+        Vase vase = state.getVaseAt(row, col);
+        if (vase == null) {
+            return null;
+        }
+        vase.breakOpen(state, eventBus);
+        return vase;
+    }
+
+    public boolean collectSeedAt(int row, int col) {
+        if (sessionContext == null) {
+            return false;
+        }
+        PlantSeedDrop seed = state.getSeedDropAt(row, col);
+        if (seed == null) {
+            return false;
+        }
+        sessionContext.addHeldSeed(seed.plantType);
+        state.seedDrops.remove(seed);
+        eventBus.publish(new SeedCollectedEvent(seed));
+        return true;
     }
 
     public boolean pluckPlant(int row, int col) {

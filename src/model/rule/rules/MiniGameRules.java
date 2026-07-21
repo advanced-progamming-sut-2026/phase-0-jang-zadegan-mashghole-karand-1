@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import model.data.content.minigame.MiniGameType;
 import model.rule.LevelRule;
+import model.rule.rules.minigame.VaseBreakerRules;
 
 public class MiniGameRules {
 
@@ -13,7 +14,7 @@ public class MiniGameRules {
 
         switch (miniGameType) {
             case VASE_BREAKER:
-                // will implement later
+                rules.add(new VaseBreakerRules());
                 break;
             case WALLNUT_BOWLING:
                 // will implement later

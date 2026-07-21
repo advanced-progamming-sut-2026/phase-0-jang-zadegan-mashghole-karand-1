@@ -4,13 +4,17 @@ import model.data.content.specialLevel.SpecialLevelType;
 import model.data.plant.PlantType;
 import model.systems.WaveManager;
 
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 public class SessionContext {
     private final SessionConfig config;
     private final RuleEngine ruleEngine;
     private ConveyorState conveyorState = null;
     private final WaveManager waveManager;
+    private final Map<PlantType, Integer> heldSeeds = new EnumMap<>(PlantType.class);
 
     public SessionContext(SessionConfig config, RuleEngine ruleEngine, WaveManager waveManager) {
         this.config = config;
@@ -59,5 +63,33 @@ public class SessionContext {
 
     public WaveManager getWaveManager() {
         return waveManager;
+    }
+
+    public void addHeldSeed(PlantType type) {
+        if (type == null) {
+            return;
+        }
+        heldSeeds.merge(type, 1, Integer::sum);
+    }
+
+    public boolean hasHeldSeed(PlantType type) {
+        return type != null && heldSeeds.getOrDefault(type, 0) > 0;
+    }
+
+    public boolean consumeHeldSeed(PlantType type) {
+        if (!hasHeldSeed(type)) {
+            return false;
+        }
+        int remaining = heldSeeds.get(type) - 1;
+        if (remaining <= 0) {
+            heldSeeds.remove(type);
+        } else {
+            heldSeeds.put(type, remaining);
+        }
+        return true;
+    }
+
+    public Map<PlantType, Integer> getHeldSeeds() {
+        return Collections.unmodifiableMap(heldSeeds);
     }
 }

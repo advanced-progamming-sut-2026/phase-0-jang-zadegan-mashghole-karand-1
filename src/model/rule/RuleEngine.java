@@ -105,20 +105,48 @@ public class RuleEngine {
         return true;
     }
 
-    public boolean canPlant(PlantType type, int row, int col, GameState state) {
+    public boolean skipsPlantSelection() {
         for (LevelRule rule : activeRules) {
-            if (!rule.canPlant(type, row, col, state)) {
+            if (rule.skipsPlantSelection()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean shouldSpawnWaves() {
+        for (LevelRule rule : activeRules) {
+            if (!rule.shouldSpawnWaves()) {
                 return false;
             }
         }
         return true;
     }
 
-    public int getSpawnOffset(Zombie zombie) {
-        int totalOffset = 0;
+    public boolean lawnMowersEnabled() {
         for (LevelRule rule : activeRules) {
-            totalOffset += rule.getSpawnOffset(zombie);
+            if (!rule.lawnMowersEnabled()) {
+                return false;
+            }
         }
-        return totalOffset;
+        return true;
+    }
+
+    public boolean usesSunCurrency() {
+        for (LevelRule rule : activeRules) {
+            if (!rule.usesSunCurrency()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean canPlant(PlantType type, int row, int col, GameState state, SessionContext context) {
+        for (LevelRule rule : activeRules) {
+            if (!rule.canPlant(type, row, col, state, context)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

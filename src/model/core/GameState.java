@@ -6,10 +6,12 @@ import java.util.Collections;
 
 import model.data.plant.Plant;
 import model.data.projectile.Projectile;
+import model.data.seed.PlantSeedDrop;
 import model.data.sun.Sun;
 import model.data.zombie.Zombie;
 import model.board.GameBoard;
 import model.data.Grave.Grave;
+import model.data.vase.Vase;
 
 public class GameState implements ReadOnlyGameState {
     public List<Plant> plants = new ArrayList<>();
@@ -17,6 +19,8 @@ public class GameState implements ReadOnlyGameState {
     public List<Projectile> projectiles = new ArrayList<>();
     public List<Sun> sunDrops = new ArrayList<>();
     public List<Grave> graves = new ArrayList<>();
+    public List<Vase> vases = new ArrayList<>();
+    public List<PlantSeedDrop> seedDrops = new ArrayList<>();
     private GameBoard board = new GameBoard(GameState.GRID_ROWS, GameState.GRID_COLS, this);
 
     public int sunAmount = INITIAL_SUN_AMOUNT;
@@ -52,6 +56,16 @@ public class GameState implements ReadOnlyGameState {
     @Override
     public List<Sun> getSunDrops() {
         return Collections.unmodifiableList(sunDrops);
+    }
+
+    @Override
+    public List<Vase> getVases() {
+        return Collections.unmodifiableList(vases);
+    }
+
+    @Override
+    public List<PlantSeedDrop> getSeedDrops() {
+        return Collections.unmodifiableList(seedDrops);
     }
 
     @Override
@@ -106,6 +120,16 @@ public class GameState implements ReadOnlyGameState {
         return graves.stream().filter(g -> g.row == row && g.col == col).findFirst().orElse(null);
     }
 
+    @Override
+    public Vase getVaseAt(int row, int col) {
+        return vases.stream().filter(v -> v.row == row && v.col == col).findFirst().orElse(null);
+    }
+
+    @Override
+    public PlantSeedDrop getSeedDropAt(int row, int col) {
+        return seedDrops.stream().filter(s -> s.row == row && s.col == col).findFirst().orElse(null);
+    }
+
     public void addZombie(Zombie zombie) {
         zombies.add(zombie);
     }
@@ -116,6 +140,8 @@ public class GameState implements ReadOnlyGameState {
         projectiles.clear();
         sunDrops.clear();
         graves.clear();
+        vases.clear();
+        seedDrops.clear();
         board.reset();
         sunAmount = INITIAL_SUN_AMOUNT;
         plantFoodAmount = 0;

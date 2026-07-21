@@ -4,6 +4,7 @@ import model.core.GameState;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
+import model.data.vase.Vase;
 
 public class Tile {
     private final int row;
@@ -17,6 +18,7 @@ public class Tile {
     private Plant lilyPad;
 
     private Grave grave; // null if doesn't have grave
+    private Vase vase; // null if doesn't have vase
 
     public Tile(int row, int col, GameState state) {
         this.row = row;
@@ -25,6 +27,7 @@ public class Tile {
         this.direction = IceDirection.NONE;
         this.hasBeachPost = false;
         this.grave = null;
+        this.vase = null;
         this.state = state;
     }
 
@@ -67,6 +70,8 @@ public class Tile {
             return false;
         if (hasGrave())
             return false;
+        if (hasVase())
+            return false;
         if (hasBeachPost())
             return false;
         return true;
@@ -78,6 +83,36 @@ public class Tile {
 
     public void removeGrave() {
         this.grave = null;
+    }
+
+    public boolean hasVase() {
+        return vase != null;
+    }
+
+    public Vase getVase() {
+        return vase;
+    }
+
+    public boolean canSetVase() {
+        if (type != TileType.NORMAL)
+            return false;
+        if (hasPlant() || hasLilyPad())
+            return false;
+        if (hasGrave())
+            return false;
+        if (hasVase())
+            return false;
+        if (hasBeachPost())
+            return false;
+        return true;
+    }
+
+    public void setVase(Vase vase) {
+        this.vase = vase;
+    }
+
+    public void removeVase() {
+        this.vase = null;
     }
 
     public boolean isPlantable(PlantType plantType) {
@@ -92,6 +127,8 @@ public class Tile {
             }
         }
         if (hasGrave())
+            return false;
+        if (hasVase())
             return false;
         if (hasBeachPost())
             return false;
