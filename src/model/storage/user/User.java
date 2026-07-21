@@ -1,5 +1,6 @@
 package model.storage.user;
 
+import model.data.plant.PlantStats;
 import model.data.plant.PlantType;
 import model.gameSetting.GameSetting;
 import model.greenhouse.Greenhouse;
@@ -31,6 +32,7 @@ public class User {
     public int highestScore;
     public int gamesPlayed;
     public Map<PlantType, Integer> seedPackets = new HashMap<>();
+    public Map<PlantType, Integer> plantLevels = new HashMap<>();
     public int plantFood;
     public DailyDeal dailyDeal;
 
@@ -47,9 +49,11 @@ public class User {
         this.quests = new ArrayList<>();
         this.newsFeed = new NewsFeed();
         this.seedPackets = new HashMap<>();
+        this.plantLevels = new HashMap<>();
         this.dailyDeal = new DailyDeal();
         this.greenhouse = new Greenhouse();
     }
+
     public int getSeedPackets(PlantType plant) {
         return seedPackets.getOrDefault(plant, 0);
     }
@@ -59,20 +63,30 @@ public class User {
     }
 
     public boolean useSeedPackets(PlantType plant, int amount) {
-        if (getSeedPackets(plant) < amount) return false;
+        if (getSeedPackets(plant) < amount) {
+            return false;
+        }
         seedPackets.put(plant, getSeedPackets(plant) - amount);
         return true;
+    }
+
+    public int getPlantLevel(PlantType plant) {
+        return plantLevels.getOrDefault(plant, PlantStats.DEFAULT_LEVEL);
+    }
+
+    public void setPlantLevel(PlantType plant, int level) {
+        if (plant == null) {
+            return;
+        }
+        int clamped = Math.max(PlantStats.DEFAULT_LEVEL, Math.min(level, PlantStats.MAX_LEVEL));
+        plantLevels.put(plant, clamped);
     }
 
     public int getCoins() {
         return coins;
     }
 
-
-
     public int getGems() {
         return gems;
     }
-
-
 }

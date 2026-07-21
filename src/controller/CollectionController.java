@@ -7,6 +7,7 @@ import java.util.List;
 import controller.CommandResult.CommandResult;
 import model.data.plant.PlantStats;
 import model.data.plant.PlantType;
+import model.data.plant.PlantUpgradeCosts;
 import model.data.zombie.ZombieType;
 import model.service.CollectionViewState;
 import model.service.CollectionViewState.Entry;
@@ -126,17 +127,31 @@ public class CollectionController {
             return failure(ErrorMessages.PLANT_LOCKED.getMessage());
         }
 
-        PlantStats stats = PlantStats.forLevel(type, PlantStats.DEFAULT_LEVEL);
+        int level = PlantStats.DEFAULT_LEVEL;
+        var user = storage.getCurrentUser();
+        if (user != null && storage.isPlantUnlocked(type)) {
+            level = user.getPlantLevel(type);
+        }
+        PlantStats stats = PlantStats.forLevel(type, level);
         tab = Tab.PLANTS;
         detailTitle = type.name;
-        detailLines = List.of(
-                "Level: " + stats.level,
-                "Category: " + type.category.name(),
-                "Cost: " + stats.cost,
-                "HP: " + stats.hp,
-                "Damage: " + stats.damage,
-                "Action Interval: " + formatFloat(stats.actionInterval) + "s",
-                "Recharge: " + formatFloat(stats.recharge) + "s");
+        List<String> lines = new ArrayList<>();
+        lines.add("Level: " + stats.level + "/" + PlantStats.MAX_LEVEL);
+        lines.add("Category: " + type.category.name());
+        lines.add("Cost: " + stats.cost);
+        lines.add("HP: " + stats.hp);
+        lines.add("Damage: " + stats.damage);
+        lines.add("Action Interval: " + formatFloat(stats.actionInterval) + "s");
+        lines.add("Recharge: " + formatFloat(stats.recharge) + "s");
+        if (user != null) {
+            lines.add("Seed Packets: " + user.getSeedPackets(type));
+            if (stats.level < PlantStats.MAX_LEVEL) {
+                int next = stats.level + 1;
+                lines.add("Next Upgrade: " + PlantUpgradeCosts.coinCostToReach(next) + " coins, "
+                        + PlantUpgradeCosts.seedPacketCostToReach(next) + " seed packets");
+            }
+        }
+        detailLines = lines;
         return success("Showing details for " + type.name + ".");
     }
 
@@ -178,7 +193,51 @@ public class CollectionController {
     }
 
     public CommandResult upgradePlant(String plantName) {
-        return failure("Plant upgrade is not available yet.");
+        CommandResult check = requireCollectionScreen();
+        if (check != null) {
+            return check;
+        }
+        if (plantName == null || plantName.isBlank()) {
+            return failure("Usage: menu collection upgrade-plant -p <plantname>");
+        }
+
+        PlantType type = PlantType.fromName(plantName.trim());
+        if (type == null) {
+            return failure(ErrorMessages.PLANT_NOT_FOUND.getMessage());
+        }
+        if (!storage.isPlantUnlocked(type)) {
+            return failure(ErrorMessages.PLANT_NOT_IN_COLLECTION.getMessage());
+        }
+
+        var user = storage.getCurrentUser();
+        if (user == null) {
+            return failure("You must be logged in.");
+        }
+
+        int currentLevel = user.getPlantLevel(type);
+        if (currentLevel >= PlantStats.MAX_LEVEL) {
+            return failure(ErrorMessages.PLANT_AT_MAX_LEVEL.getMessage());
+        }
+
+        int targetLevel = currentLevel + 1;
+        int coinCost = PlantUpgradeCosts.coinCostToReach(targetLevel);
+        int seedCost = PlantUpgradeCosts.seedPacketCostToReach(targetLevel);
+
+        if (user.coins < coinCost) {
+            return failure(ErrorMessages.NOT_ENOUGH_COINS_UPGRADE.getMessage());
+        }
+        if (user.getSeedPackets(type) < seedCost) {
+            return failure(ErrorMessages.NOT_ENOUGH_SEED_PACKETS.getMessage());
+        }
+
+        user.coins -= coinCost;
+        user.useSeedPackets(type, seedCost);
+        user.setPlantLevel(type, targetLevel);
+        storage.saveProgress();
+
+        tab = Tab.PLANTS;
+        return success("Upgraded " + type.name + " to level " + targetLevel
+                + " (-" + coinCost + " coins, -" + seedCost + " seed packets).");
     }
 
     public CommandResult purchasePlant(String plantName) {
