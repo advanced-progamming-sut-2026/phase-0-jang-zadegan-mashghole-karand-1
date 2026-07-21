@@ -8,10 +8,7 @@ import model.quest.Quest;
 import model.shop.DailyDeal;
 import model.storage.collection.Collection;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class User {
     public String username;
@@ -30,10 +27,10 @@ public class User {
     public int gems;
     public int highestScore;
     public int gamesPlayed;
-    public Map<PlantType, Integer> seedPackets = new HashMap<>();
+    public Map<PlantType, Integer> seedPackets;
     public int plantFood;
     public DailyDeal dailyDeal;
-
+    public Set<PlantType> storedBoosts;
     public User(String username, String password, String email, String nickname, Gender gender, SafetyQuestion safety) {
         this.username = username;
         this.password = password;
@@ -49,6 +46,7 @@ public class User {
         this.seedPackets = new HashMap<>();
         this.dailyDeal = new DailyDeal();
         this.greenhouse = new Greenhouse();
+        this.storedBoosts = new HashSet<>();
     }
     public int getSeedPackets(PlantType plant) {
         return seedPackets.getOrDefault(plant, 0);
@@ -58,21 +56,14 @@ public class User {
         seedPackets.put(plant, getSeedPackets(plant) + amount);
     }
 
-    public boolean useSeedPackets(PlantType plant, int amount) {
-        if (getSeedPackets(plant) < amount) return false;
-        seedPackets.put(plant, getSeedPackets(plant) - amount);
-        return true;
-    }
-
     public int getCoins() {
         return coins;
     }
 
-
-
     public int getGems() {
         return gems;
     }
+
 
 
 }

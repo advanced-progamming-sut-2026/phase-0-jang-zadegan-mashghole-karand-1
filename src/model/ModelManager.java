@@ -88,7 +88,7 @@ public class ModelManager {
                 case POT -> {
                     if (user.greenhouse == null)
                         return;
-                    user.greenhouse.addPot(new Pot());
+                    user.greenhouse.unlockSlot();
                     storage.updateUserProfile(user);
                 }
             }
