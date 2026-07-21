@@ -6,6 +6,7 @@ import model.data.content.chapter.ChapterCatalog;
 import model.data.content.chapter.ChapterType;
 import model.data.content.specialLevel.SpecialLevelCatalog;
 import model.data.content.specialLevel.SpecialLevelType;
+import model.data.plant.PlantType;
 import model.data.wave.LevelConfig;
 import model.rule.SessionConfig;
 import model.service.GameNavigationState;
@@ -13,6 +14,8 @@ import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
 import model.storage.user.User;
 import view.ScreenType;
+
+import java.util.List;
 
 public class GameMenuController {
 
@@ -93,10 +96,13 @@ public class GameMenuController {
     }
 
     private CommandResult startConveyorSession(SpecialLevelType special) {
+        List<PlantType> conveyorPlants = storage.getUnlockedPlants().stream()
+                .filter(p -> !p.isBowlingExclusive())
+                .toList();
         SessionConfig session = SessionConfig.builder()
                 .levelConfig(gameNavigation.pendingLevel)
                 .specialLevel(special)
-                .selectedPlants(storage.getUnlockedPlants())
+                .selectedPlants(conveyorPlants)
                 .build();
 
         model.startSession(session);

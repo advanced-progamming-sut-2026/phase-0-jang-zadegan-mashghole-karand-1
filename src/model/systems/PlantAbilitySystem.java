@@ -9,6 +9,9 @@ public class PlantAbilitySystem {
 
     public void update(GameState state, EventBus eventBus) {
         for (Plant plant : state.plants) {
+            if (!plant.isAlive || plant.hp <= 0) {
+                continue;
+            }
             if (plant.isFrostbiteFreezeActive()) {
                 continue;
             }

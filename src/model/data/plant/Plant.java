@@ -227,6 +227,9 @@ public class Plant {
         return activeStun == null || activeStun.canBeDamaged();
     }
     public boolean canBeEaten() {
+        if (hasTag(PlantTag.BOWLING)) {
+            return false;
+        }
         return activeStun == null || activeStun.canBeEaten();
     }
     public boolean blocksProjectile(model.data.projectile.Projectile projectile) {

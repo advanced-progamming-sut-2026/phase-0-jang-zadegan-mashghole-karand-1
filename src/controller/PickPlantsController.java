@@ -56,6 +56,9 @@ public class PickPlantsController {
         if (!storage.isPlantUnlocked(plantType)) {
             return failure(ErrorMessages.PLANT_LOCKED.getMessage());
         }
+        if (plantType.isBowlingExclusive()) {
+            return failure("Bowling plants are only used in Wall-nut Bowling.");
+        }
         if (gameNavigation.selectedPlants.contains(plantType)) {
             return failure(ErrorMessages.PLANT_ALREADY_ADDED.getMessage());
         }

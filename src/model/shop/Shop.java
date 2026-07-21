@@ -37,6 +37,7 @@ public class Shop {
     public PlantType pickRandomUnlockedPlant() {
         List<PlantType> unlocked = Arrays.stream(PlantType.values())
                 .filter(p -> user.collection.isPlantUnlocked(p))
+                .filter(p -> !p.isBowlingExclusive())
                 .toList();
         if (unlocked.isEmpty()) {
             return null;

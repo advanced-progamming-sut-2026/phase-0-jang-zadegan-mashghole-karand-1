@@ -148,7 +148,12 @@ public class VaseBreakerRules implements LevelRule {
     private List<PlantType> resolvePlantPool(SessionContext context) {
         List<PlantType> selected = context.getConfig().selectedPlants;
         if (selected != null && !selected.isEmpty()) {
-            return selected;
+            List<PlantType> filtered = selected.stream()
+                    .filter(p -> p != null && !p.isBowlingExclusive())
+                    .toList();
+            if (!filtered.isEmpty()) {
+                return filtered;
+            }
         }
         return FALLBACK_PLANT_POOL;
     }

@@ -1042,6 +1042,12 @@ public class ConsoleRenderer implements Renderer {
                 return "❄️ ";
             case "Wall-nut":
                 return "🧱 ";
+            case "Bowling Wall-nut":
+                return "🎳 ";
+            case "Bowling Explode-o-nut":
+                return "💣 ";
+            case "Giant Bowling Wall-nut":
+                return "⬤ ";
             case "Repeater":
                 return "🌿 ";
             case "Cherry Bomb":

@@ -18,4 +18,5 @@ public enum PlantTag {
     MOVE_ZOMBIES,
     SUN,
     EXPLOSIVE,
+    BOWLING,
 }
