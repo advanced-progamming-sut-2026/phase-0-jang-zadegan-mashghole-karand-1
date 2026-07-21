@@ -76,6 +76,10 @@ public class CombatSystem {
                             break;
                         }
 
+                        boolean pass = z.abilities.stream().anyMatch(a -> a.passProjectiles(z, p));
+                        if (pass) {
+                            continue;
+                        }
                         if(p instanceof PiercingProjectile piercingProjectile) {
                             if(piercingProjectile.hitZombies.contains(z)){
                                 continue;
@@ -88,8 +92,6 @@ public class CombatSystem {
 
 
                         applyProjectileEffects(state, p, z,freezeProjectilesEnabled);
-                        // handle projectile effects here, for freezing projectiles respect
-                        // freezeProjectilesEnabled
 
                         if (z.isIced()) z.damageIce(p.damage);
 
