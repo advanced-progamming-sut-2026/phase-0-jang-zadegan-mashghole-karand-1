@@ -1,5 +1,6 @@
 package model.storage.user;
 
+import model.data.plant.PlantStats;
 import model.data.plant.PlantType;
 import model.gameSetting.GameSetting;
 import model.greenhouse.Greenhouse;
@@ -28,9 +29,11 @@ public class User {
     public int highestScore;
     public int gamesPlayed;
     public Map<PlantType, Integer> seedPackets;
+    public Map<PlantType, Integer> plantLevels;
     public int plantFood;
     public DailyDeal dailyDeal;
     public Set<PlantType> storedBoosts;
+
     public User(String username, String password, String email, String nickname, Gender gender, SafetyQuestion safety) {
         this.username = username;
         this.password = password;
@@ -44,16 +47,38 @@ public class User {
         this.quests = new ArrayList<>();
         this.newsFeed = new NewsFeed();
         this.seedPackets = new HashMap<>();
+        this.plantLevels = new HashMap<>();
         this.dailyDeal = new DailyDeal();
         this.greenhouse = new Greenhouse();
         this.storedBoosts = new HashSet<>();
     }
+
     public int getSeedPackets(PlantType plant) {
         return seedPackets.getOrDefault(plant, 0);
     }
 
     public void addSeedPackets(PlantType plant, int amount) {
         seedPackets.put(plant, getSeedPackets(plant) + amount);
+    }
+
+    public boolean useSeedPackets(PlantType plant, int amount) {
+        if (getSeedPackets(plant) < amount) {
+            return false;
+        }
+        seedPackets.put(plant, getSeedPackets(plant) - amount);
+        return true;
+    }
+
+    public int getPlantLevel(PlantType plant) {
+        return plantLevels.getOrDefault(plant, PlantStats.DEFAULT_LEVEL);
+    }
+
+    public void setPlantLevel(PlantType plant, int level) {
+        if (plant == null) {
+            return;
+        }
+        int clamped = Math.max(PlantStats.DEFAULT_LEVEL, Math.min(level, PlantStats.MAX_LEVEL));
+        plantLevels.put(plant, clamped);
     }
 
     public int getCoins() {
@@ -63,7 +88,4 @@ public class User {
     public int getGems() {
         return gems;
     }
-
-
-
 }

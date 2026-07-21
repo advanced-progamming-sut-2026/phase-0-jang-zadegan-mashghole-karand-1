@@ -664,8 +664,7 @@ public class SqlStorageManager implements StorageManager {
                         )
                         """);
                 statement.execute("""
-                        
-                            CREATE TABLE IF NOT EXISTS user_greenhouse_pots (
+                        CREATE TABLE IF NOT EXISTS user_greenhouse_pots (
                             username TEXT NOT NULL,
                             col INTEGER NOT NULL,
                             row INTEGER NOT NULL,
@@ -683,6 +682,15 @@ public class SqlStorageManager implements StorageManager {
                             username TEXT NOT NULL,
                             plant TEXT NOT NULL,
                             PRIMARY KEY (username, plant)
+                        )
+                        """);
+                statement.execute("""
+                        CREATE TABLE IF NOT EXISTS user_plant_levels (
+                            username TEXT NOT NULL,
+                            plant TEXT NOT NULL,
+                            level INTEGER NOT NULL DEFAULT 1,
+                            PRIMARY KEY (username, plant),
+                            FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
                         )
                         """);
             } catch (SQLException e) {
@@ -769,6 +777,7 @@ public class SqlStorageManager implements StorageManager {
                 loadSeedPackets(connection, user);
                 loadGreenhousePots(connection, user);
                 loadStoredBoosts(connection, user);
+                loadPlantLevels(connection, user);
                 return user;
             }
         } catch (SQLException e) {
@@ -1006,6 +1015,7 @@ public class SqlStorageManager implements StorageManager {
         saveSeedPackets(user);
         saveGreenhousePots(user);
         saveStoredBoosts(user);
+        savePlantLevels(user);
     }
 
     private void saveUserProfile(User user) {
@@ -1208,6 +1218,7 @@ public class SqlStorageManager implements StorageManager {
             throw new RuntimeException("Failed to save greenhouse pots", e);
         }
     }
+
     private void saveStoredBoosts(User user) {
         try (Connection connection = openConnection()) {
             try (PreparedStatement deleteStatement = connection.prepareStatement(
@@ -1229,6 +1240,45 @@ public class SqlStorageManager implements StorageManager {
             throw new RuntimeException("Failed to save stored boosts", e);
         }
     }
+
+    private void loadPlantLevels(Connection connection, User user) throws SQLException {
+        user.plantLevels.clear();
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT plant, level FROM user_plant_levels WHERE username = ?")) {
+            statement.setString(1, user.username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String plant = resultSet.getString("plant");
+                    int level = resultSet.getInt("level");
+                    user.plantLevels.put(PlantType.valueOf(plant), level);
+                }
+            }
+        }
+    }
+
+    private void savePlantLevels(User user) {
+        try (Connection connection = openConnection()) {
+            try (PreparedStatement deleteStatement = connection.prepareStatement(
+                    "DELETE FROM user_plant_levels WHERE username = ?")) {
+                deleteStatement.setString(1, user.username);
+                deleteStatement.executeUpdate();
+            }
+
+            try (PreparedStatement insertStatement = connection.prepareStatement(
+                    "INSERT INTO user_plant_levels (username, plant, level) VALUES (?, ?, ?)")) {
+                for (Map.Entry<PlantType, Integer> entry : user.plantLevels.entrySet()) {
+                    insertStatement.setString(1, user.username);
+                    insertStatement.setString(2, entry.getKey().name());
+                    insertStatement.setInt(3, entry.getValue());
+                    insertStatement.addBatch();
+                }
+                insertStatement.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save plant levels", e);
+        }
+    }
+
     private void updateUsernameReferences(Connection connection, String oldUsername, String newUsername)
             throws SQLException {
         updateChildUsername(connection, "unlocked_chapters", oldUsername, newUsername);
@@ -1238,6 +1288,9 @@ public class SqlStorageManager implements StorageManager {
         updateChildUsername(connection, "unlocked_minigames", oldUsername, newUsername);
         updateChildUsername(connection, "user_news", oldUsername, newUsername);
         updateChildUsername(connection, "user_seed_packets", oldUsername, newUsername);
+        updateChildUsername(connection, "user_plant_levels", oldUsername, newUsername);
+        updateChildUsername(connection, "user_greenhouse_pots", oldUsername, newUsername);
+        updateChildUsername(connection, "user_stored_boosts", oldUsername, newUsername);
 
         try (PreparedStatement statement = connection.prepareStatement(
                 "UPDATE app_session SET username = ? WHERE username = ?")) {
