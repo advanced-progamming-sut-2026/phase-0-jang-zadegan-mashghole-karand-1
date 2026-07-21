@@ -3,6 +3,7 @@ package model.systems;
 import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantTag;
+import model.data.plant.stuns.CatStun;
 import model.data.zombie.Zombie;
 
 public class EffectSystem {
@@ -21,6 +22,12 @@ public class EffectSystem {
                 if (zombie.stunTicks <= 0) {
                     zombie.stunned = false;
                 }
+            }
+        }
+        for (Plant plant : state.plants) {
+            if (plant.getActiveStun() instanceof CatStun cat
+                    && cat.isWizardDead(state.zombies)) {
+                plant.clearStun();
             }
         }
         for (Plant plant : state.plants) {

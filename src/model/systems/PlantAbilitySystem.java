@@ -13,6 +13,7 @@ public class PlantAbilitySystem {
                 continue;
             }
             for (PlantAbilityConfig ability : plant.abilities) {
+                if (!plant.canUseAbilities()) continue;
                 ability.onTick(plant, state, eventBus);
             }
         }
