@@ -9,12 +9,14 @@ import model.data.plant.Plant;
 import model.data.plant.abilities.effects.DamageEffect;
 import model.data.plant.abilities.effects.FreezeEffect;
 import model.data.plant.stuns.BlockingStun;
+import model.data.plant.stuns.CatStun;
 import model.data.plant.stuns.StunKind;
 import model.data.projectile.PiercingProjectile;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
 import model.data.projectile.ProjectileType;
 import model.data.zombie.Zombie;
+import model.data.zombie.ZombieType;
 import model.events.BarrelCreatedEvent;
 import model.events.PlantDiedEvent;
 
@@ -155,7 +157,7 @@ public class CombatSystem {
                                 && !zombie.isHypnotized && Math.abs(zombie.position.x - z.position.x) < ReadOnlyGameState.ZOMBIE_ATTACK_RANGE)
                         .min(Comparator.comparingDouble(zombie -> zombie.position.x - z.position.x)).orElse(null);
                 if (targetZombie == null) continue;
-                targetZombie.takeDamage(z.type.baseStats.eatDPS / 10);
+                targetZombie.takeDamage((int)(z.getDPS() / 10));
                 if(!targetZombie.isAlive) {
                     targetZombie.onDeath(state);
                 }
@@ -163,12 +165,18 @@ public class CombatSystem {
             }
             Plant targetPlant = findPlantAt(state, z.row, z.position.x);
             if (targetPlant != null) {
+                if(z.type== ZombieType.WIZARD_ZOMBIE){
+                    targetPlant.applyStun(new CatStun(z)); //wizard don't eat plants
+                    continue;
+                }
                 if (!targetPlant.canBeEaten() || !targetPlant.canBeDamaged()) {
                     continue;
                 }
-                targetPlant.hp -= z.type.baseStats.eatDPS / 10;
+                targetPlant.hp -=(int) z.getDPS() / 10;
+                z.isEating = true;
                 if (targetPlant.hp <= 0) {
                     state.plants.remove(targetPlant);
+                    z.isEating = false;
                     eventBus.publish(new PlantDiedEvent(targetPlant));
                 }
                 break;
