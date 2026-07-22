@@ -23,6 +23,8 @@ public class Zombie {
     public int hp;
     public int totalHp;
     public boolean isAlive = true;
+    public boolean isEating = false;
+    public float DPS_MULTIPLIER = 1;
 
     public List<ZombieAbilityConfig> abilities = new ArrayList<>();
 
@@ -99,6 +101,7 @@ public class Zombie {
 
         if (this.hp <= 0) {
             this.isAlive = false;
+            isEating = false;
         }
     }
 
@@ -181,6 +184,14 @@ public class Zombie {
 
     public SandstormEffect getSandstorm() {
         return activeSandstorm;
+    }
+
+    public boolean canMove() {
+        return !isEating;
+    }
+
+    public float getDPS(){
+        return type.baseStats.eatDPS*DPS_MULTIPLIER;
     }
 
 }
