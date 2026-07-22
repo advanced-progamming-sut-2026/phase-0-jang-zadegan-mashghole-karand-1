@@ -37,6 +37,10 @@ public class GameMechanismController {
         if (screenCheck != null) {
             return screenCheck;
         }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         if (amount <= 0) {
             return failure("Tick count must be positive.");
         }
@@ -48,6 +52,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        boolean enabling = enable == null ? !gameLoop.isAutoTickRunning() : enable;
+        if (enabling && (gameState.gameOver || gameState.levelComplete)) {
+            return failure("Cannot resume ticks after the session has ended. Use 'menu exit'.");
         }
         if (enable == null) {
             gameLoop.toggleAutoTick();
@@ -64,6 +72,10 @@ public class GameMechanismController {
         if (screenCheck != null) {
             return screenCheck;
         }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
         }
@@ -77,6 +89,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
@@ -96,6 +112,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
@@ -125,6 +145,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         if (!model.getRuleEngine().canPlaceZombies()) {
             return failure("Zombie placement is not available in this mode.");
@@ -175,6 +199,10 @@ public class GameMechanismController {
         if (screenCheck != null) {
             return screenCheck;
         }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         model.addSun(count);
         return success("Added " + count + " sun.");
     }
@@ -183,6 +211,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         int cleared = gameState.zombies.size();
         model.releaseNuke();
@@ -193,6 +225,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         if (model.getPlayContext() != null && model.getPlayContext().isConveyorMode()) {
             return failure("Conveyor Belt mode: use plant conveyor -l (row,col) instead.");
@@ -229,6 +265,10 @@ public class GameMechanismController {
         if (screenCheck != null) {
             return screenCheck;
         }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         if (model.getPlayContext() == null || !model.getPlayContext().isConveyorMode()) {
             return failure("Not in Conveyor Belt mode.");
         }
@@ -250,6 +290,10 @@ public class GameMechanismController {
         if (screenCheck != null) {
             return screenCheck;
         }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         model.removeCooldowns();
         return success("Plant cooldowns removed.");
     }
@@ -258,6 +302,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
@@ -272,6 +320,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
@@ -292,6 +344,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         model.addPlantFood();
         return success("Added plant food.");
@@ -389,6 +445,13 @@ public class GameMechanismController {
     private CommandResult requireGameScreen() {
         if (controllerManager.getCurrentScreen() != ScreenType.GAME) {
             return failure("This command is only available during a game.");
+        }
+        return null;
+    }
+
+    private CommandResult requireSessionActive() {
+        if (gameState.gameOver || gameState.levelComplete) {
+            return failure("The session has ended. Use 'menu exit' to return.");
         }
         return null;
     }

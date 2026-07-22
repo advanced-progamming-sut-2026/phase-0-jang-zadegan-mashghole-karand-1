@@ -10,10 +10,6 @@ import model.data.zombie.Zombie;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.events.SunDroppedEvent;
 
-/**
- * Produces sun on a sunflower-length cooldown; amount grows with zombie age.
- * amount = min(50, floor(5 + 0.1 * ageSeconds))
- */
 public class ZombieSunProduceAbility implements ZombieAbilityConfig {
     private static final float COOLDOWN_SECONDS = 24f;
     private static final int COOLDOWN_TICKS = (int) (COOLDOWN_SECONDS * GameLoop.TICKS_PER_SECOND);

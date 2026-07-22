@@ -7,9 +7,6 @@ import java.util.Set;
 
 import model.data.zombie.ZombieType;
 
-/**
- * Purchasable zombies and sun costs for I, Zombie.
- */
 public final class IZombieShop {
     private static final Map<ZombieType, Integer> COSTS = new LinkedHashMap<>();
 

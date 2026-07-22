@@ -13,8 +13,13 @@ import model.data.seed.PlantSeedDrop;
 import model.data.vase.Vase;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
+import model.events.GlowingZombieDiedEvent;
+import model.events.PlantDiedEvent;
 import model.events.PlantPlacedEvent;
 import model.events.SeedCollectedEvent;
+import model.events.WaveCompleteEvent;
+import model.events.WaveStartedEvent;
+import model.events.ZombieDiedEvent;
 import model.events.ZombieDroppedLootEvent;
 import model.events.ZombieSpawnedEvent;
 import model.core.Position;
@@ -62,10 +67,80 @@ public class ModelManager {
         this.sunSystem = new SunSystem(eventBus);
         this.seedDropSystem = new SeedDropSystem();
         this.effectSystem = new EffectSystem();
+
+        registerEventBridges();
+    }
+
+    private void registerEventBridges() {
+        eventBus.subscribe(PlantDiedEvent.class, e -> {
+            if (e == null || e.plant == null) {
+                return;
+            }
+            ruleEngine.onPlantDied(e.plant, state, eventBus);
+        });
+        eventBus.subscribe(WaveStartedEvent.class, e -> {
+            if (sessionContext == null) {
+                return;
+            }
+            ruleEngine.onWaveStart(sessionContext, state, eventBus);
+        });
+        eventBus.subscribe(WaveCompleteEvent.class, e -> {
+            if (sessionContext == null) {
+                return;
+            }
+            ruleEngine.onWaveEnd(sessionContext, state, eventBus);
+        });
+        eventBus.subscribe(ZombieDiedEvent.class, e -> {
+            if (e == null || e.zombie == null) {
+                return;
+            }
+            ruleEngine.onZombieDied(e.zombie, state, eventBus);
+        });
+        eventBus.subscribe(GlowingZombieDiedEvent.class, e -> {
+            if (e == null || e.zombie == null) {
+                return;
+            }
+            ruleEngine.onZombieDied(e.zombie, state, eventBus);
+        });
+        eventBus.subscribe(ZombieSpawnedEvent.class, e -> {
+            if (e == null || e.zombie == null || sessionContext == null) {
+                return;
+            }
+            ruleEngine.onZombieSpawned(e.zombie, sessionContext, state);
+        });
+        eventBus.subscribe(PlantPlacedEvent.class, e -> {
+            if (e == null || e.plant == null) {
+                return;
+            }
+            ruleEngine.onPlantPlaced(e.plant, state);
+        });
+        eventBus.subscribe(ZombieDroppedLootEvent.class, e -> {
+            User user = storage.getCurrentUser();
+            if (user == null) {
+                return;
+            }
+            switch (e.type) {
+                case COIN -> {
+                    user.coins += e.amount;
+                    storage.updateUserProfile(user);
+                }
+                case DIAMOND -> {
+                    user.gems += e.amount;
+                    storage.updateUserProfile(user);
+                }
+                case POT -> {
+                    if (user.greenhouse == null) {
+                        return;
+                    }
+                    user.greenhouse.unlockSlot();
+                    storage.updateUserProfile(user);
+                }
+            }
+        });
     }
 
     public void tick() {
-        if (state.gameOver) {
+        if (state.gameOver || state.levelComplete) {
             return;
         }
 
@@ -78,7 +153,7 @@ public class ModelManager {
         }
         sunSystem.update(state);
         seedDropSystem.update(state);
-        movementSystem.update(state);
+        movementSystem.update(state, eventBus);
         effectSystem.update(state);
         combatSystem.update(state, eventBus, ruleEngine.freezeProjectilesEnabled());
         if (ruleEngine.shouldSpawnWaves()) {
@@ -86,28 +161,6 @@ public class ModelManager {
         }
 
         ruleEngine.postTick(sessionContext, state, eventBus);
-
-        eventBus.subscribe(ZombieDroppedLootEvent.class, e -> {
-            User user = storage.getCurrentUser();
-            if (user == null)
-                return;
-            switch (e.type) {
-                case COIN -> {
-                    user.coins += e.amount;
-                    storage.updateUserProfile(user);
-                }
-                case DIAMOND -> {
-                    user.gems += e.amount;
-                    storage.updateUserProfile(user);
-                }
-                case POT -> {
-                    if (user.greenhouse == null)
-                        return;
-                    user.greenhouse.unlockSlot();
-                    storage.updateUserProfile(user);
-                }
-            }
-        });
     }
 
     public void startSession(SessionConfig config) {
@@ -115,8 +168,10 @@ public class ModelManager {
         state.sunAmount = config.levelConfig.startingSun;
         ruleEngine.clearRules();
 
-        List<LevelRule> chapterRules = ChapterRules.forChapter(config.levelConfig.chapterType);
-        ruleEngine.addRules(chapterRules);
+        if (!config.isMinigame()) {
+            List<LevelRule> chapterRules = ChapterRules.forChapter(config.levelConfig.chapterType);
+            ruleEngine.addRules(chapterRules);
+        }
 
         if (config.isSpecial()) {
             List<LevelRule> specialRules = SpecialLevelRules.forSpecialLevel(config.specialLevelType);
@@ -197,7 +252,6 @@ public class ModelManager {
         }
 
         eventBus.publish(new PlantPlacedEvent(plant));
-        ruleEngine.onPlantPlaced(plant, state);
         return true;
     }
 
@@ -277,7 +331,6 @@ public class ModelManager {
         state.sunAmount -= cost;
         state.addZombie(zombie);
         eventBus.publish(new ZombieSpawnedEvent(zombie));
-        ruleEngine.onZombieSpawned(zombie, sessionContext, state);
         return true;
     }
 

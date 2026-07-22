@@ -31,7 +31,6 @@ public class MiniGameRules {
                 // will implement later
                 break;
             default:
-                // no rules
                 break;
         }
 

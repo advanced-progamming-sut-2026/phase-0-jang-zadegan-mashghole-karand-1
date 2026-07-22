@@ -7,20 +7,22 @@ import java.util.Random;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
+import model.core.SessionEnd;
 import model.data.brain.Brain;
 import model.data.content.minigame.IZombieShop;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
+import model.events.GameOverReason;
 import model.events.ZombieSpawnedEvent;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 
 public class IZombieRules implements LevelRule {
     private static final Random RANDOM = new Random();
-    private static final int PLANT_COLS = 6; // cols 0-5
-    private static final int MIN_ZOMBIE_SPAWN_COL = 6; // cols 6-8
+    private static final int PLANT_COLS = 6;
+    private static final int MIN_ZOMBIE_SPAWN_COL = 6;
     private static final int STARTING_SUN = 150;
 
     private static final List<PlantType> FALLBACK_PLANTS = List.of(
@@ -103,13 +105,13 @@ public class IZombieRules implements LevelRule {
         }
 
         if (state.getCollectedBrainCount() >= GameState.GRID_ROWS) {
-            state.levelComplete = true;
+            SessionEnd.win(state, bus);
             return;
         }
 
         boolean anyAlive = state.zombies.stream().anyMatch(z -> z.isAlive);
         if (!anyAlive && state.sunAmount < IZombieShop.getCheapestCost()) {
-            state.gameOver = true;
+            SessionEnd.lose(state, bus, GameOverReason.NO_RESOURCES);
         }
     }
 

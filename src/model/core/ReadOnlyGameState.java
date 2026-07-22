@@ -10,6 +10,7 @@ import model.data.seed.PlantSeedDrop;
 import model.data.sun.Sun;
 import model.data.vase.Vase;
 import model.data.zombie.Zombie;
+import model.events.GameOverReason;
 
 public interface ReadOnlyGameState {
     public static final int GRID_COLS = 9;
@@ -54,6 +55,8 @@ public interface ReadOnlyGameState {
     boolean isGameOver();
 
     boolean isLevelComplete();
+
+    GameOverReason getGameOverReason();
 
     int getTotalTicks();
 

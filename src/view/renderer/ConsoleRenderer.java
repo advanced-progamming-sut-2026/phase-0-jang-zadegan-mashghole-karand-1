@@ -5,6 +5,7 @@ import java.util.List;
 
 import controller.ChapterCommands;
 import controller.GreenhouseController;
+import controller.MiniGameCommands;
 import controller.PickPlantsController;
 import controller.ShopController;
 import model.core.GameLoop;
@@ -12,6 +13,8 @@ import model.core.Position;
 import model.core.ReadOnlyGameState;
 import model.data.content.chapter.ChapterCatalog;
 import model.data.content.chapter.ChapterType;
+import model.data.content.minigame.MiniGameCatalog;
+import model.data.content.minigame.MiniGameType;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
@@ -38,7 +41,6 @@ public class ConsoleRenderer implements Renderer {
     private static final int GH_COLS = 5;
     private static final int POT_WIDTH = 13;
     private static final int POT_HEIGHT = 5;
-
 
     private static final String RESET = "\u001B[0m";
     private static final String RED = "\u001B[31m";
@@ -154,7 +156,7 @@ public class ConsoleRenderer implements Renderer {
     }
 
     private String getLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
-                                  String passwordResetQuestion) {
+            String passwordResetQuestion) {
         StringBuilder sb = new StringBuilder();
         String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Login" + RESET + "  🧟";
 
@@ -191,7 +193,7 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderLoginScreen(boolean isAwaitingSecurityAnswer, boolean isAwaitingNewPassword,
-                                  String passwordResetQuestion) {
+            String passwordResetQuestion) {
         render(getLoginScreen(isAwaitingSecurityAnswer, isAwaitingNewPassword, passwordResetQuestion));
     }
 
@@ -224,6 +226,13 @@ public class ConsoleRenderer implements Renderer {
         sb.append(getHUD(state));
         sb.append("\n");
         sb.append(getGrid(state));
+        if (state.isLevelComplete()) {
+            sb.append("\n");
+            sb.append(buildLevelCompleteOverlay());
+        } else if (state.isGameOver()) {
+            sb.append("\n");
+            sb.append(buildGameOverOverlay(state));
+        }
         sb.append("\n");
         sb.append(getMessages());
         return sb.toString();
@@ -248,11 +257,12 @@ public class ConsoleRenderer implements Renderer {
             sb.append("\n");
             sb.append("  " + CYAN + "1." + RESET + " Enter Chapter: " + GREEN
                     + "menu enter chapter -c <chaptername>" + RESET + "\n");
-            sb.append("  " + CYAN + "2." + RESET + " Collection: " + GREEN + "menu enter collection" + RESET + "\n");
-            sb.append("  " + CYAN + "3." + RESET + " Greenhouse: " + GREEN + "menu enter greenhouse" + RESET + "\n");
-            sb.append("  " + CYAN + "4." + RESET + " Leaderboard: " + GREEN + "menu enter leaderboard" + RESET + "\n");
-            sb.append("  " + CYAN + "5." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
-            sb.append("  " + CYAN + "6." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+            sb.append("  " + CYAN + "2." + RESET + " Minigames: " + GREEN + "menu enter minigames" + RESET + "\n");
+            sb.append("  " + CYAN + "3." + RESET + " Collection: " + GREEN + "menu enter collection" + RESET + "\n");
+            sb.append("  " + CYAN + "4." + RESET + " Greenhouse: " + GREEN + "menu enter greenhouse" + RESET + "\n");
+            sb.append("  " + CYAN + "5." + RESET + " Leaderboard: " + GREEN + "menu enter leaderboard" + RESET + "\n");
+            sb.append("  " + CYAN + "6." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+            sb.append("  " + CYAN + "7." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
             sb.append("\n");
             sb.append("  " + BOLD + "Chapters:" + RESET + "\n");
             for (ChapterType chapter : ChapterType.values()) {
@@ -260,6 +270,31 @@ public class ConsoleRenderer implements Renderer {
                 String status = unlocked ? GREEN + "unlocked" + RESET : RED + "locked" + RESET;
                 sb.append("    ").append(CYAN).append(ChapterCommands.commandName(chapter)).append(RESET)
                         .append(" - ").append(ChapterCommands.displayName(chapter))
+                        .append(" (").append(status).append(")\n");
+            }
+        } else if (gameNavigation.phase == Phase.MINIGAME) {
+            String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Minigames" + RESET + "  🧟";
+            sb.append(getHeaderBox(title, GREEN));
+            sb.append("\n");
+            sb.append("  " + CYAN + "1." + RESET + " Select Minigame: " + GREEN
+                    + "select minigame -m <name>" + RESET + "\n");
+            sb.append("  " + CYAN + "2." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+            sb.append("  " + CYAN + "3." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+            sb.append("\n");
+            sb.append("  " + BOLD + "Minigames:" + RESET + "\n");
+            for (MiniGameType miniGame : MiniGameType.values()) {
+                boolean unlocked = gameNavigation.unlockedMinigames.contains(miniGame);
+                boolean playable = MiniGameCatalog.isPlayable(miniGame);
+                String status;
+                if (!unlocked) {
+                    status = RED + "locked" + RESET;
+                } else if (!playable) {
+                    status = YELLOW + "coming soon" + RESET;
+                } else {
+                    status = GREEN + "unlocked" + RESET;
+                }
+                sb.append("    ").append(CYAN).append(MiniGameCommands.commandName(miniGame)).append(RESET)
+                        .append(" - ").append(MiniGameCommands.displayName(miniGame))
                         .append(" (").append(status).append(")\n");
             }
         } else if (gameNavigation.phase == Phase.LEVEL) {
@@ -335,17 +370,17 @@ public class ConsoleRenderer implements Renderer {
             sb.append("  " + CYAN + "2." + RESET + " Shop: " + GREEN + "enter shop" + RESET + "\n");
             sb.append("  " + CYAN + "3." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
             sb.append("  " + CYAN + "4." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
-        }else {
+        } else {
             sb.append(drawGreenhousePanel(greenhouse));
             sb.append("\n");
 
-        sb.append("  ").append(CYAN).append("Commands:").append(RESET).append("\n");
-        sb.append("  ").append(GREEN).append("plant pot at (row,col)").append(RESET).append("  ");
-        sb.append(GREEN).append("grow (row,col)").append(RESET).append("  ");
-        sb.append(GREEN).append("collect (row,col)").append(RESET).append("\n");
-        sb.append("  ").append(GREEN).append("enter shop").append(RESET).append("  ");
-        sb.append(GREEN).append("menu exit").append(RESET).append("\n");
-        sb.append("\n");
+            sb.append("  ").append(CYAN).append("Commands:").append(RESET).append("\n");
+            sb.append("  ").append(GREEN).append("plant pot at (row,col)").append(RESET).append("  ");
+            sb.append(GREEN).append("grow (row,col)").append(RESET).append("  ");
+            sb.append(GREEN).append("collect (row,col)").append(RESET).append("\n");
+            sb.append("  ").append(GREEN).append("enter shop").append(RESET).append("  ");
+            sb.append(GREEN).append("menu exit").append(RESET).append("\n");
+            sb.append("\n");
         }
         return sb.toString();
     }
@@ -353,7 +388,8 @@ public class ConsoleRenderer implements Renderer {
     private String drawGreenhousePanel(Greenhouse greenhouse) {
         StringBuilder sb = new StringBuilder();
         int innerWidth = GH_COLS * (POT_WIDTH + 1) - 1;
-        sb.append("  ").append(GREEN).append("┌").append("─".repeat(innerWidth + 2)).append("┐").append(RESET).append("\n");
+        sb.append("  ").append(GREEN).append("┌").append("─".repeat(innerWidth + 2)).append("┐").append(RESET)
+                .append("\n");
 
         for (int row = 1; row <= GH_ROWS; row++) {
             String[][] potLines = new String[GH_COLS][POT_HEIGHT];
@@ -472,15 +508,17 @@ public class ConsoleRenderer implements Renderer {
         return GRAY + "│" + RESET + color + plain + RESET
                 + " ".repeat(Math.max(0, pad)) + GRAY + "│" + RESET;
     }
+
     private int displayWidth(String text) {
         int width = 0;
-        for (int i = 0; i < text.length(); ) {
+        for (int i = 0; i < text.length();) {
             int cp = text.codePointAt(i);
             i += Character.charCount(cp);
             width += (cp > 0x1F000 || cp == 0x2705 || cp == 0x26A0) ? 2 : 1;
         }
         return width;
     }
+
     private String potCoord(int row, int col) {
         String coord = "(" + col + "," + row + ")";
         int pad = POT_WIDTH - coord.length();
@@ -767,12 +805,12 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased,
-                                 ShopController.ShopDisplayMode mode) {
+            ShopController.ShopDisplayMode mode) {
         render(getShopScreen(coins, gems, dailyPlant, dailyPrice, dailyPurchased, mode));
     }
 
     private String getShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased,
-                                 ShopController.ShopDisplayMode mode) {
+            ShopController.ShopDisplayMode mode) {
         StringBuilder sb = new StringBuilder();
         String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Shop" + RESET + "  🧟";
 
@@ -851,24 +889,37 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderGameOverOverlay(boolean won, int score, int wavesSurvived) {
-        // if (won) {
-        // renderHeaderBox(" 🎉 " + BOLD + "LEVEL COMPLETE!", GREEN);
-        // } else {
-        // renderHeaderBox(" 💀 " + BOLD + "GAME OVER", RED);
-        // }
-        // System.out.println();
-        // System.out.println(" " + CYAN + "Score:" + RESET + " " + score);
-        // System.out.println(" " + CYAN + "Waves Survived:" + RESET + " " +
-        // wavesSurvived);
-        // System.out.println();
-        // // suggest commands for each option
-        // System.out.println(" " + CYAN + "1." + RESET + " Restart");
-        // System.out.println(" " + CYAN + "2." + RESET + " Main Menu");
-        // System.out.println();
+        // use getGameScreen
     }
 
     @Override
     public void renderLevelCompleteOverlay(int stars, int score) {
+        // use getGameScreen
+    }
+
+    private String buildGameOverOverlay(ReadOnlyGameState state) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getHeaderBox(" 💀 " + BOLD + "GAME OVER" + RESET, RED));
+        sb.append("\n");
+        if (state.getGameOverReason() != null) {
+            sb.append("  ").append(CYAN).append("Reason:").append(RESET).append(" ")
+                    .append(state.getGameOverReason().message).append("\n");
+        }
+        sb.append("  ").append(CYAN).append("Waves Survived:").append(RESET).append(" ")
+                .append(state.getCurrentWave()).append("\n");
+        sb.append("\n");
+        sb.append("  ").append(CYAN).append("1.").append(RESET).append(" Return to level select: ")
+                .append(GREEN).append("menu exit").append(RESET).append("\n");
+        return sb.toString();
+    }
+
+    private String buildLevelCompleteOverlay() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getHeaderBox(" 🎉 " + BOLD + "LEVEL COMPLETE!" + RESET, GREEN));
+        sb.append("\n");
+        sb.append("  ").append(CYAN).append("1.").append(RESET).append(" Return to level select: ")
+                .append(GREEN).append("menu exit").append(RESET).append("\n");
+        return sb.toString();
     }
 
     private String getHUD(ReadOnlyGameState state) {
@@ -876,10 +927,10 @@ public class ConsoleRenderer implements Renderer {
         if (state.isBrainsMode()) {
             long brains = state.getBrains().stream().filter(b -> b.isCollected()).count();
             String title = String.format("%s☀️ : %-4d  " +
-                            "%s🧠 : %d/%d  " +
-                            "%s🧟 : %-3d  " +
-                            "%s⏱️ %-4ds  " +
-                            CYAN + "%s" + RESET,
+                    "%s🧠 : %d/%d  " +
+                    "%s🧟 : %-3d  " +
+                    "%s⏱️ %-4ds  " +
+                    CYAN + "%s" + RESET,
                     YELLOW, state.getSunAmount(),
                     PURPLE, brains, ReadOnlyGameState.GRID_ROWS,
                     RED, state.getZombies().size(),
@@ -888,12 +939,12 @@ public class ConsoleRenderer implements Renderer {
             return getHeaderBox(title, CYAN);
         }
         String title = String.format("%s☀️ : %-4d  " +
-                        "%s🌊 : %-3d  " +
-                        "%s🧟 : %-3d  " +
-                        "%s🌿 : %-2d  " +
-                        "%s⏱️ %-4ds  " +
-                        CYAN + "%s" + RESET +
-                        CYAN + " %2s" + RESET,
+                "%s🌊 : %-3d  " +
+                "%s🧟 : %-3d  " +
+                "%s🌿 : %-2d  " +
+                "%s⏱️ %-4ds  " +
+                CYAN + "%s" + RESET +
+                CYAN + " %2s" + RESET,
                 YELLOW, state.getSunAmount(),
                 CYAN, state.getCurrentWave(),
                 RED, state.getZombies().size(),

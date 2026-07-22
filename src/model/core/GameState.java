@@ -14,6 +14,7 @@ import model.data.zombie.Zombie;
 import model.board.GameBoard;
 import model.data.Grave.Grave;
 import model.data.vase.Vase;
+import model.events.GameOverReason;
 
 public class GameState implements ReadOnlyGameState {
     public List<Plant> plants = new ArrayList<>();
@@ -25,7 +26,6 @@ public class GameState implements ReadOnlyGameState {
     public List<PlantSeedDrop> seedDrops = new ArrayList<>();
     public List<Barrel> barrels = new ArrayList<>();
     public List<Brain> brains = new ArrayList<>();
-    /** When true, reaching the left collects a brain instead of causing game over. */
     public boolean brainsMode = false;
     private GameBoard board = new GameBoard(GameState.GRID_ROWS, GameState.GRID_COLS, this);
 
@@ -36,6 +36,7 @@ public class GameState implements ReadOnlyGameState {
     public int zombiesRemaining = 0;
     public boolean gameOver = false;
     public boolean levelComplete = false;
+    public GameOverReason gameOverReason = null;
 
     public int totalTicks = 0;
 
@@ -137,6 +138,11 @@ public class GameState implements ReadOnlyGameState {
     }
 
     @Override
+    public GameOverReason getGameOverReason() {
+        return gameOverReason;
+    }
+
+    @Override
     public int getTotalTicks() {
         return totalTicks;
     }
@@ -159,7 +165,7 @@ public class GameState implements ReadOnlyGameState {
     public PlantSeedDrop getSeedDropAt(int row, int col) {
         return seedDrops.stream().filter(s -> s.row == row && s.col == col).findFirst().orElse(null);
     }
-  
+
     public Barrel getBarrelAt(int row, int col) {
         return barrels.stream().filter(b -> b.row == row && b.col == col).findFirst().orElse(null);
     }
@@ -186,6 +192,7 @@ public class GameState implements ReadOnlyGameState {
         zombiesRemaining = 0;
         gameOver = false;
         levelComplete = false;
+        gameOverReason = null;
         totalTicks = 0;
 
     }

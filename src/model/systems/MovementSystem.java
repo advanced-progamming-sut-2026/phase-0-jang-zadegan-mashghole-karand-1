@@ -3,21 +3,25 @@ package model.systems;
 import model.board.IceDirection;
 import model.board.Tile;
 import model.board.TileType;
+import model.core.EventBus;
 import model.core.GameState;
+import model.core.SessionEnd;
 import model.data.brain.Brain;
 import model.data.plant.abilities.config.Direction;
 import model.data.projectile.HomingProjectile;
 import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
+import model.events.GameOverReason;
 import model.lawnmower.LawnMower;
 
 import java.util.ArrayList;
 
 public class MovementSystem {
 
-    public void update(GameState state) {
+    public void update(GameState state, EventBus eventBus) {
         for (Zombie zombie : state.zombies) {
-            if (zombie.stunned) continue;
+            if (zombie.stunned)
+                continue;
             float currentSpeed = zombie.getCurrentSpeed();
             float nextX = zombie.position.x - currentSpeed;
 
@@ -49,9 +53,12 @@ public class MovementSystem {
 
         boolean[] rowHandled = new boolean[GameState.GRID_ROWS];
         for (Zombie z : new ArrayList<>(state.zombies)) {
-            if (!z.isAlive || z.isHypnotized) continue;
-            if (z.position.x > 0) continue;
-            if (rowHandled[z.row]) continue;
+            if (!z.isAlive || z.isHypnotized)
+                continue;
+            if (z.position.x > 0)
+                continue;
+            if (rowHandled[z.row])
+                continue;
             rowHandled[z.row] = true;
 
             if (state.brainsMode) {
@@ -66,7 +73,7 @@ public class MovementSystem {
             if (lawnMower != null && lawnMower.isActive()) {
                 lawnMower.destroyZombiesInRow(state);
             } else {
-                state.gameOver = true;
+                SessionEnd.lose(state, eventBus, GameOverReason.LAWN_BREACHED);
                 return;
             }
         }
@@ -97,7 +104,6 @@ public class MovementSystem {
                 p.row < 0 ||
                 p.row >= GameState.GRID_ROWS));
         state.zombies.removeIf(z -> z.isHypnotized && z.position.x > GameState.SCREEN_WIDTH);
-        // I, Zombie: walk off the left after collecting a brain
         state.zombies.removeIf(z -> z.position.x < -GameState.CELL_WIDTH);
     }
 }

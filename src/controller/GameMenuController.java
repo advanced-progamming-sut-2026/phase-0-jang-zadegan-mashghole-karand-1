@@ -4,6 +4,8 @@ import controller.CommandResult.CommandResult;
 import model.ModelManager;
 import model.data.content.chapter.ChapterCatalog;
 import model.data.content.chapter.ChapterType;
+import model.data.content.minigame.MiniGameCatalog;
+import model.data.content.minigame.MiniGameType;
 import model.data.content.specialLevel.SpecialLevelCatalog;
 import model.data.content.specialLevel.SpecialLevelType;
 import model.data.plant.PlantType;
@@ -56,6 +58,22 @@ public class GameMenuController {
         return success("Entered " + ChapterCommands.displayName(chapter) + ". Select a level.");
     }
 
+    public CommandResult enterMinigames() {
+        if (controllerManager.getCurrentScreen() != ScreenType.LEVEL_SELECTOR
+                || gameNavigation.phase != Phase.CHAPTER) {
+            return failure("Open minigames from the game menu.");
+        }
+        CommandResult loggedInCheck = controllerManager.requireLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
+
+        gameNavigation.pendingMiniGame = null;
+        gameNavigation.phase = Phase.MINIGAME;
+        controllerManager.refreshView();
+        return success("Minigames. Select one with select minigame -m <name>.");
+    }
+
     public CommandResult selectLevel(int levelNumber) {
         if (controllerManager.getCurrentScreen() != ScreenType.LEVEL_SELECTOR
                 || gameNavigation.phase != Phase.LEVEL) {
@@ -93,6 +111,45 @@ public class GameMenuController {
                     + "). Pick your plants.");
         }
         return success("Level " + levelNumber + " selected. Pick your plants.");
+    }
+
+    public CommandResult selectMinigame(String name) {
+        if (controllerManager.getCurrentScreen() != ScreenType.LEVEL_SELECTOR
+                || gameNavigation.phase != Phase.MINIGAME) {
+            return failure("Open minigames first.");
+        }
+        CommandResult loggedInCheck = controllerManager.requireLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
+
+        MiniGameType type = MiniGameCommands.fromCommandName(name);
+        if (type == null) {
+            return failure("Unknown minigame.");
+        }
+        if (!storage.isMinigameUnlocked(type)) {
+            return failure("This minigame is locked.");
+        }
+        if (!MiniGameCatalog.isPlayable(type)) {
+            return failure(MiniGameCommands.displayName(type) + " is not available yet.");
+        }
+
+        LevelConfig levelConfig = MiniGameCatalog.levelConfig(type);
+        if (levelConfig == null) {
+            return failure("Minigame configuration missing.");
+        }
+
+        SessionConfig session = SessionConfig.builder()
+                .miniGame(type)
+                .levelConfig(levelConfig)
+                .selectedPlants(List.of())
+                .build();
+
+        model.startSession(session);
+        storage.recordGamePlayed();
+        gameNavigation.reset();
+        controllerManager.setScreen(ScreenType.GAME);
+        return success(MiniGameCommands.displayName(type) + " started!");
     }
 
     private CommandResult startConveyorSession(SpecialLevelType special) {

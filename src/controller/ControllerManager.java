@@ -14,8 +14,6 @@ import view.MenuType;
 import view.ScreenType;
 import view.ViewManager;
 
-import java.util.Arrays;
-
 public class ControllerManager {
     private ModelManager model;
     private ViewManager view;
@@ -32,6 +30,7 @@ public class ControllerManager {
     private final PickPlantsController pickPlantsController;
     private final CollectionController collectionController;
     private final GameMechanismController gameMechanismController;
+    private final SessionLifecycleController sessionLifecycleController;
     private final GreenhouseController greenhouseController;
     private ShopController shopController;
     private final QuestMenuController questMenuController = new QuestMenuController();
@@ -55,7 +54,7 @@ public class ControllerManager {
         this.eventBus = eventBus;
         this.gameLoop = gameLoop;
         this.storage = storage;
-        this.greenhouseController = new GreenhouseController(this , storage);
+        this.greenhouseController = new GreenhouseController(this, storage);
         this.authController = new AuthController(this, storage);
         this.mainMenuController = new MainMenuController(this, storage);
         this.profileController = new ProfileController(this, storage);
@@ -66,6 +65,8 @@ public class ControllerManager {
         this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
         this.collectionController = new CollectionController(this, storage);
         this.leaderboardMenuController = new LeaderboardMenuController(this, storage);
+        this.sessionLifecycleController = new SessionLifecycleController(this, eventBus, gameLoop, model);
+        this.sessionLifecycleController.register();
         this.gameLoop.setOnTickHandler(() -> {
             model.tick();
             tick();
@@ -107,6 +108,7 @@ public class ControllerManager {
             if (storage.isLoggedIn()) {
                 gameNavigation.unlockedChapters = storage.getUnlockedChapters();
                 gameNavigation.unlockedPlants = storage.getUnlockedPlants();
+                gameNavigation.unlockedMinigames = storage.getUnlockedMinigames();
                 profileViewState = ProfileViewState.fromUser(storage.getCurrentUser());
                 settingsViewState = SettingsViewState.fromUser(storage.getCurrentUser());
                 leaderboardViewState = leaderboardMenuController.getViewState();
@@ -130,12 +132,16 @@ public class ControllerManager {
                 hasUnreadNews = false;
             }
             view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation,
-                    profileViewState, newsViewState, settingsViewState,leaderboardViewState,collectionViewState, this,hasUnreadNews);
+                    profileViewState, newsViewState, settingsViewState, leaderboardViewState, collectionViewState, this,
+                    hasUnreadNews);
         }
     }
 
     public void setScreen(ScreenType screen) {
         this.currentScreen = screen;
+        if (screen == ScreenType.GAME) {
+            sessionLifecycleController.onSessionStart();
+        }
         if (screen != ScreenType.MAIN) {
             currentMenu = MenuType.NONE;
         }
@@ -260,6 +266,9 @@ public class ControllerManager {
                 setScreen(ScreenType.GREEN_HOUSE);
                 return new CommandResult("Opened greenhouse.", true);
             }
+            if (name.equals("minigames") || name.equals("minigame")) {
+                return gameMenuController.enterMinigames();
+            }
         }
 
         return new CommandResult("Cannot enter menu from here.", false);
@@ -317,11 +326,13 @@ public class ControllerManager {
                     refreshView();
                     return new CommandResult("Returned to level selection.", true);
                 }
-                if (gameNavigation.phase == Phase.LEVEL) {
+                if (gameNavigation.phase == Phase.LEVEL || gameNavigation.phase == Phase.MINIGAME) {
                     gameNavigation.phase = Phase.CHAPTER;
                     gameNavigation.selectedChapter = null;
                     gameNavigation.selectedLevel = 0;
                     gameNavigation.pendingLevel = null;
+                    gameNavigation.pendingSpecialLevel = null;
+                    gameNavigation.pendingMiniGame = null;
                     refreshView();
                     return new CommandResult("Returned to chapter selection.", true);
                 }
@@ -346,6 +357,8 @@ public class ControllerManager {
                 gameNavigation.phase = Phase.CHAPTER;
                 setScreen(ScreenType.LEVEL_SELECTOR);
                 return new CommandResult("Returned to game menu.", true);
+            case GAME:
+                return sessionLifecycleController.returnToLevelSelect();
             default:
                 return new CommandResult("Cannot exit this menu.", false);
         }
@@ -358,6 +371,7 @@ public class ControllerManager {
         }
         return new CommandResult("Current screen: " + currentScreen.name().toLowerCase(), true);
     }
+
     public void initShopForCurrentUser() {
         if (!storage.isLoggedIn()) {
             shop = null;
@@ -366,7 +380,7 @@ public class ControllerManager {
         }
 
         User user = storage.getCurrentUser();
-        shop = new Shop( user);
+        shop = new Shop(user);
         shop.ensureDailyFresh();
         shopController = new ShopController(shop, storage);
     }
@@ -413,6 +427,10 @@ public class ControllerManager {
 
     public GameMechanismController getGameMechanismController() {
         return gameMechanismController;
+    }
+
+    public SessionLifecycleController getSessionLifecycleController() {
+        return sessionLifecycleController;
     }
 
     public GreenhouseController getGreenhouseController() {

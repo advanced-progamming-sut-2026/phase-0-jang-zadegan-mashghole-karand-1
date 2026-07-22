@@ -32,6 +32,10 @@ public class InputHandler {
             String chapterName = matcher.group(1);
             CommandResult result = controllerManager.getGameMenuController().enterChapter(chapterName);
             controllerManager.handleCommandResult(result);
+        } else if ((matcher = Commands.SELECT_MINIGAME.getMatcher(input)).matches()) {
+            String minigameName = matcher.group("minigamename");
+            CommandResult result = controllerManager.getGameMenuController().selectMinigame(minigameName);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.SELECT_LEVEL.getMatcher(input)).matches()) {
             int levelNumber = Integer.parseInt(matcher.group(1));
             CommandResult result = controllerManager.getGameMenuController().selectLevel(levelNumber);
@@ -327,7 +331,6 @@ public class InputHandler {
         } else {
             return false;
         }
-        // leaderboard and minigames...
 
         return true;
     }

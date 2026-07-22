@@ -27,6 +27,7 @@ public enum Commands {
 
     // game menu
     ENTER_CHAPTER("menu\\s+enter\\s+chapter\\s+-c\\s+(?<chaptername>.*)"),
+    SELECT_MINIGAME("select\\s+minigame\\s+-m\\s+(?<minigamename>.*)$"),
     ADD_COIN("menu\\s+cheat\\s+add\\s+(?<n>\\d+)\\s+coin"),
     ADD_DIAMOND("menu\\s+cheat\\s+add\\s+(?<n>\\d+)\\s+diamond"),
 
