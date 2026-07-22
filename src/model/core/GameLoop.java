@@ -61,15 +61,20 @@ public class GameLoop {
 
         running = false;
         autoTickEnabled = false;
-        if (autoTickThread != null) {
-            autoTickThread.interrupt();
-            try {
-                autoTickThread.join(1000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            autoTickThread = null;
+        Thread thread = autoTickThread;
+        if (thread == null) {
+            return;
         }
+        if (thread == Thread.currentThread()) {
+            return;
+        }
+        thread.interrupt();
+        try {
+            thread.join(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        autoTickThread = null;
     }
 
     public void toggleAutoTick() {
@@ -89,21 +94,27 @@ public class GameLoop {
     }
 
     private void autoTickLoop() {
-        while (running) {
-            long startTime = System.currentTimeMillis();
+        try {
+            while (running) {
+                long startTime = System.currentTimeMillis();
 
-            performTick();
+                performTick();
 
-            long elapsed = System.currentTimeMillis() - startTime;
-            long sleepTime = TICK_INTERVAL_MS - elapsed;
+                long elapsed = System.currentTimeMillis() - startTime;
+                long sleepTime = TICK_INTERVAL_MS - elapsed;
 
-            if (sleepTime > 0) {
-                try {
-                    Thread.sleep(sleepTime);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
+                if (sleepTime > 0) {
+                    try {
+                        Thread.sleep(sleepTime);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
                 }
+            }
+        } finally {
+            if (autoTickThread == Thread.currentThread()) {
+                autoTickThread = null;
             }
         }
     }

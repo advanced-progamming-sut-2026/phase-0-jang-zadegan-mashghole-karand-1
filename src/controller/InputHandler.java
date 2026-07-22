@@ -2,6 +2,7 @@ package controller;
 
 import model.core.Position;
 import model.data.plant.PlantType;
+import model.data.zombie.ZombieType;
 import view.messages.ErrorMessages;
 
 import java.util.regex.Matcher;
@@ -30,6 +31,10 @@ public class InputHandler {
         } else if ((matcher = Commands.ENTER_CHAPTER.getMatcher(input)).matches()) {
             String chapterName = matcher.group(1);
             CommandResult result = controllerManager.getGameMenuController().enterChapter(chapterName);
+            controllerManager.handleCommandResult(result);
+        } else if ((matcher = Commands.SELECT_MINIGAME.getMatcher(input)).matches()) {
+            String minigameName = matcher.group("minigamename");
+            CommandResult result = controllerManager.getGameMenuController().selectMinigame(minigameName);
             controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.SELECT_LEVEL.getMatcher(input)).matches()) {
             int levelNumber = Integer.parseInt(matcher.group(1));
@@ -216,6 +221,15 @@ public class InputHandler {
         } else if (Commands.SHOW_HELD_SEEDS.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(
                     controllerManager.getGameMechanismController().showHeldSeeds());
+        } else if ((matcher = Commands.PLACE_ZOMBIE.getMatcher(input)).matches()) {
+            ZombieType zombieType = ZombieType.fromName(matcher.group("type"));
+            int row = Integer.parseInt(matcher.group("x"));
+            int col = Integer.parseInt(matcher.group("y"));
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().placeZombie(row, col, zombieType));
+        } else if (Commands.SHOW_AVAILABLE_ZOMBIES.getMatcher(input).matches()) {
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().showAvailableZombies());
         } else if (Commands.SHOW_SUN_AMOUNT.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(
                     controllerManager.getGameMechanismController().showSunAmount());
@@ -317,7 +331,6 @@ public class InputHandler {
         } else {
             return false;
         }
-        // leaderboard and minigames...
 
         return true;
     }

@@ -17,11 +17,11 @@ import java.time.LocalDateTime;
 import model.core.Position;
 import model.gameSetting.GameSetting;
 import model.data.content.chapter.ChapterType;
+import model.data.content.minigame.MiniGameType;
 import model.data.plant.PlantType;
 import model.data.zombie.ZombieType;
 import model.greenhouse.Greenhouse;
 import model.greenhouse.Pot;
-import model.data.content.minigame.MiniGameType;
 import model.news.NewsItem;
 import model.service.Hash;
 import model.storage.user.Gender;
@@ -270,25 +270,47 @@ public class SqlStorageManager implements StorageManager {
     }
 
     @Override
-    public void markLevelCompleted(String levelId) {
-        if (!isLoggedIn() || levelId == null || levelId.isBlank()) {
+    public void markLevelCompleted(ChapterType chapter, int levelNumber) {
+        if (!isLoggedIn() || chapter == null) {
             return;
         }
         synchronized (lock) {
+            String levelId = CompletedLevelKey.campaign(chapter, levelNumber);
             boolean alreadyCompleted = currentUser.gameProgress.getCompletedLevelIds().contains(levelId);
             currentUser.gameProgress.completeLevel(levelId);
-            try (Connection connection = openConnection();
-                    PreparedStatement statement = connection.prepareStatement(
-                            "INSERT OR IGNORE INTO completed_levels (username, level_id) VALUES (?, ?)")) {
-                statement.setString(1, currentUser.username);
-                statement.setString(2, levelId);
-                statement.executeUpdate();
-            } catch (SQLException e) {
-                throw new RuntimeException("Failed to mark level completed", e);
-            }
+            currentUser.gameProgress.setLastProgress(chapter, levelNumber);
+            persistCompletedLevelId(levelId);
             if (!alreadyCompleted) {
-                addNews("You unlocked a new level: " + levelId);
+                addNews("You completed level: " + chapter.name() + " " + levelNumber);
             }
+        }
+    }
+
+    @Override
+    public void markMinigameCompleted(MiniGameType miniGame) {
+        if (!isLoggedIn() || miniGame == null) {
+            return;
+        }
+        synchronized (lock) {
+            String levelId = CompletedLevelKey.minigame(miniGame);
+            boolean alreadyCompleted = currentUser.gameProgress.getCompletedLevelIds().contains(levelId);
+            currentUser.gameProgress.completeLevel(levelId);
+            persistCompletedLevelId(levelId);
+            if (!alreadyCompleted) {
+                addNews("You completed minigame: " + miniGame.name().replace('_', ' '));
+            }
+        }
+    }
+
+    private void persistCompletedLevelId(String levelId) {
+        try (Connection connection = openConnection();
+                PreparedStatement statement = connection.prepareStatement(
+                        "INSERT OR IGNORE INTO completed_levels (username, level_id) VALUES (?, ?)")) {
+            statement.setString(1, currentUser.username);
+            statement.setString(2, levelId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to mark level completed", e);
         }
     }
 
@@ -423,6 +445,22 @@ public class SqlStorageManager implements StorageManager {
             }
             addNews("You unlocked a new minigame: " + formatMinigameName(minigame));
         }
+    }
+
+    @Override
+    public boolean isMinigameUnlocked(MiniGameType minigame) {
+        if (!isLoggedIn() || minigame == null) {
+            return false;
+        }
+        return currentUser.gameProgress.isMinigameUnlocked(minigame);
+    }
+
+    @Override
+    public List<MiniGameType> getUnlockedMinigames() {
+        if (!isLoggedIn()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(currentUser.gameProgress.getUnlockedMinigames());
     }
 
     @Override
@@ -717,6 +755,10 @@ public class SqlStorageManager implements StorageManager {
                 demoUser.gameProgress.unlockChapter(ChapterType.ANCIENT_EGYPT);
                 repaired = true;
             }
+            if (!demoUser.gameProgress.isMinigameUnlocked(MiniGameType.VASE_BREAKER)) {
+                demoUser.gameProgress.unlockMinigame(MiniGameType.VASE_BREAKER);
+                repaired = true;
+            }
             if (repaired) {
                 saveUserProgress(demoUser);
             }
@@ -732,6 +774,7 @@ public class SqlStorageManager implements StorageManager {
         }
 
         demoUser.gameProgress.unlockChapter(ChapterType.ANCIENT_EGYPT);
+        demoUser.gameProgress.unlockMinigame(MiniGameType.VASE_BREAKER);
         saveUserProgress(demoUser);
     }
 

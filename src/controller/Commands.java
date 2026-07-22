@@ -27,6 +27,7 @@ public enum Commands {
 
     // game menu
     ENTER_CHAPTER("menu\\s+enter\\s+chapter\\s+-c\\s+(?<chaptername>.*)"),
+    SELECT_MINIGAME("select\\s+minigame\\s+-m\\s+(?<minigamename>.*)$"),
     ADD_COIN("menu\\s+cheat\\s+add\\s+(?<n>\\d+)\\s+coin"),
     ADD_DIAMOND("menu\\s+cheat\\s+add\\s+(?<n>\\d+)\\s+diamond"),
 
@@ -87,6 +88,10 @@ public enum Commands {
     COLLECT_SEED("collect\\s+seed\\s+-l\\s*\\(\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)\\s*\\)"),
     BREAK_VASE("break\\s+vase\\s+-l\\s*\\(\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)\\s*\\)"),
     SHOW_HELD_SEEDS("show\\s+held\\s+seeds"),
+
+    // i, zombie commands
+    PLACE_ZOMBIE("place\\s+zombie\\s+-t\\s+(?<type>.*?)\\s+-l\\s*\\(\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)\\s*\\)"),
+    SHOW_AVAILABLE_ZOMBIES("show\\s+available\\s+zombies"),
 
     // zombie commands
     ZOMBIES_INFO("zombies\\s+info"),

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Collections;
 
 import model.data.Barrel.Barrel;
+import model.data.brain.Brain;
 import model.data.plant.Plant;
 import model.data.projectile.Projectile;
 import model.data.seed.PlantSeedDrop;
@@ -13,6 +14,7 @@ import model.data.zombie.Zombie;
 import model.board.GameBoard;
 import model.data.Grave.Grave;
 import model.data.vase.Vase;
+import model.events.GameOverReason;
 
 public class GameState implements ReadOnlyGameState {
     public List<Plant> plants = new ArrayList<>();
@@ -23,6 +25,8 @@ public class GameState implements ReadOnlyGameState {
     public List<Vase> vases = new ArrayList<>();
     public List<PlantSeedDrop> seedDrops = new ArrayList<>();
     public List<Barrel> barrels = new ArrayList<>();
+    public List<Brain> brains = new ArrayList<>();
+    public boolean brainsMode = false;
     private GameBoard board = new GameBoard(GameState.GRID_ROWS, GameState.GRID_COLS, this);
 
     public int sunAmount = INITIAL_SUN_AMOUNT;
@@ -32,6 +36,7 @@ public class GameState implements ReadOnlyGameState {
     public int zombiesRemaining = 0;
     public boolean gameOver = false;
     public boolean levelComplete = false;
+    public GameOverReason gameOverReason = null;
 
     public int totalTicks = 0;
 
@@ -68,6 +73,30 @@ public class GameState implements ReadOnlyGameState {
     @Override
     public List<PlantSeedDrop> getSeedDrops() {
         return Collections.unmodifiableList(seedDrops);
+    }
+
+    @Override
+    public List<Brain> getBrains() {
+        return Collections.unmodifiableList(brains);
+    }
+
+    @Override
+    public boolean isBrainsMode() {
+        return brainsMode;
+    }
+
+    public Brain getBrainAtRow(int row) {
+        return brains.stream().filter(b -> b.row == row).findFirst().orElse(null);
+    }
+
+    public int getCollectedBrainCount() {
+        int count = 0;
+        for (Brain brain : brains) {
+            if (brain.isCollected()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     @Override
@@ -109,6 +138,11 @@ public class GameState implements ReadOnlyGameState {
     }
 
     @Override
+    public GameOverReason getGameOverReason() {
+        return gameOverReason;
+    }
+
+    @Override
     public int getTotalTicks() {
         return totalTicks;
     }
@@ -131,7 +165,7 @@ public class GameState implements ReadOnlyGameState {
     public PlantSeedDrop getSeedDropAt(int row, int col) {
         return seedDrops.stream().filter(s -> s.row == row && s.col == col).findFirst().orElse(null);
     }
-  
+
     public Barrel getBarrelAt(int row, int col) {
         return barrels.stream().filter(b -> b.row == row && b.col == col).findFirst().orElse(null);
     }
@@ -150,12 +184,15 @@ public class GameState implements ReadOnlyGameState {
         seedDrops.clear();
         board.reset();
         barrels.clear();
+        brains.clear();
+        brainsMode = false;
         sunAmount = INITIAL_SUN_AMOUNT;
         plantFoodAmount = 0;
         currentWave = 0;
         zombiesRemaining = 0;
         gameOver = false;
         levelComplete = false;
+        gameOverReason = null;
         totalTicks = 0;
 
     }

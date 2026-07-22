@@ -25,8 +25,9 @@ public class ViewManager {
     }
 
     public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
-                       AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
-                       NewsViewState newsViewState, SettingsViewState settingsViewState, LeaderboardViewState leaderboardViewState,CollectionViewState collectionViewState, ControllerManager controllerManager, boolean hasUnreadNews) {
+            AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
+            NewsViewState newsViewState, SettingsViewState settingsViewState, LeaderboardViewState leaderboardViewState,
+            CollectionViewState collectionViewState, ControllerManager controllerManager, boolean hasUnreadNews) {
         String screenKey = currentScreen.name();
         if (currentScreen == ScreenType.LEVEL_SELECTOR) {
             screenKey += "-" + gameNavigation.phase.name();
@@ -39,6 +40,12 @@ public class ViewManager {
             screenKey += "-" + collectionViewState.tab.name() + "-" + collectionViewState.mode.name();
             if (collectionViewState.hasDetail()) {
                 screenKey += "-detail-" + collectionViewState.detailTitle;
+            }
+        } else if (currentScreen == ScreenType.GAME) {
+            if (state.isLevelComplete()) {
+                screenKey += "-WIN";
+            } else if (state.isGameOver()) {
+                screenKey += "-LOSE";
             }
         }
         renderer.prepareScreen(screenKey);
@@ -54,7 +61,8 @@ public class ViewManager {
                 if (currentMenu == MenuType.NONE) {
                     renderer.renderMainScreen(hasUnreadNews);
                 } else {
-                    renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState, leaderboardViewState);
+                    renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState,
+                            leaderboardViewState);
                 }
                 break;
             case LEVEL_SELECTOR:

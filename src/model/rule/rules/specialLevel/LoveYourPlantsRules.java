@@ -2,8 +2,9 @@ package model.rule.rules.specialLevel;
 
 import model.core.EventBus;
 import model.core.GameState;
+import model.core.SessionEnd;
 import model.data.plant.Plant;
-import model.events.GameOverEvent;
+import model.events.GameOverReason;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 
@@ -21,7 +22,7 @@ public class LoveYourPlantsRules implements LevelRule {
         plantDeaths++;
 
         if (plantDeaths >= MAX_PLANT_DEATHS) {
-            bus.publish(new GameOverEvent());
+            SessionEnd.lose(state, bus, GameOverReason.PLANT_DEATH_LIMIT);
         }
     }
 }

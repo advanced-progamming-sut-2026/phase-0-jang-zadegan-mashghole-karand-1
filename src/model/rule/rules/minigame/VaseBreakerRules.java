@@ -8,6 +8,7 @@ import java.util.Random;
 import model.board.Tile;
 import model.core.EventBus;
 import model.core.GameState;
+import model.core.SessionEnd;
 import model.data.plant.PlantType;
 import model.data.vase.Vase;
 import model.data.vase.VaseType;
@@ -88,7 +89,7 @@ public class VaseBreakerRules implements LevelRule {
         }
         boolean zombiesAlive = state.zombies.stream().anyMatch(z -> z.isAlive);
         if (!zombiesAlive) {
-            state.levelComplete = true;
+            SessionEnd.win(state, bus);
         }
     }
 

@@ -67,7 +67,16 @@ public interface LevelRule {
         return true;
     }
 
+    default boolean canPlaceZombies() {
+        return false;
+    }
+
     default boolean canPlant(PlantType type, int row, int col, GameState state, SessionContext context) {
+        return true;
+    }
+
+    default boolean canPlaceZombie(model.data.zombie.ZombieType type, int row, int col, GameState state,
+            SessionContext context) {
         return true;
     }
 }

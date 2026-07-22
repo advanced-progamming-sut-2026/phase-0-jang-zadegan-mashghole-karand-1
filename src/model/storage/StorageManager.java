@@ -37,7 +37,9 @@ public interface StorageManager {
 
     void recordGamePlayed();
 
-    void markLevelCompleted(String levelId);
+    void markLevelCompleted(ChapterType chapter, int levelNumber);
+
+    void markMinigameCompleted(model.data.content.minigame.MiniGameType miniGame);
 
     boolean changeUsername(String newUsername);
 
@@ -52,6 +54,10 @@ public interface StorageManager {
     void markAllNewsAsRead();
 
     void unlockMinigame(model.data.content.minigame.MiniGameType minigame);
+
+    boolean isMinigameUnlocked(model.data.content.minigame.MiniGameType minigame);
+
+    List<model.data.content.minigame.MiniGameType> getUnlockedMinigames();
 
     void unlockChapter(ChapterType chapter);
 
