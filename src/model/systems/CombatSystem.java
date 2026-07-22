@@ -158,6 +158,7 @@ public class CombatSystem {
                         .min(Comparator.comparingDouble(zombie -> zombie.position.x - z.position.x)).orElse(null);
                 if (targetZombie == null) continue;
                 targetZombie.takeDamage((int)(z.getDPS() / 10));
+                z.isEating = true;
                 if(!targetZombie.isAlive) {
                     targetZombie.onDeath(state);
                 }
