@@ -13,10 +13,7 @@ import model.data.plant.abilities.effects.FreezeEffect;
 import model.data.plant.abilities.runtime.PlantDefenderAbility;
 import model.data.plant.stuns.BlockingStun;
 import model.data.plant.stuns.StunKind;
-import model.data.projectile.PiercingProjectile;
-import model.data.projectile.Projectile;
-import model.data.projectile.ProjectileTarget;
-import model.data.projectile.ProjectileType;
+import model.data.projectile.*;
 import model.data.zombie.Zombie;
 import model.events.BarrelCreatedEvent;
 import model.events.PlantDiedEvent;
@@ -103,7 +100,17 @@ public class CombatSystem {
                         }
 
                         z.abilities.forEach(a -> a.onProjectileHit(z, p));
-
+                        if (p instanceof LobbedProjectile lob && lob.aoeRadius > 0) {
+                            int splash = lob.damage / 4 + lob.aoeDamage;
+                            for (Zombie other : state.zombies) {
+                                if (!other.isAlive || other == z) continue;
+                                int otherCol = (int) (other.position.x / GameState.CELL_WIDTH);
+                                if (Math.abs(other.row - lob.row) <= lob.aoeRadius
+                                        && Math.abs(otherCol - lob.col) <= lob.aoeRadius) {
+                                    other.takeDamage(splash);
+                                }
+                            }
+                        }
 
 
                         applyProjectileEffects(state, p, z,freezeProjectilesEnabled);
@@ -213,7 +220,7 @@ public class CombatSystem {
                 break;
             case ICE, ICE_MELON:
                 if(freezeProjectilesEnabled) {
-                    new FreezeEffect(30).apply(zombie, state, eventBus);
+                    new FreezeEffect(30 + projectile.effectDurationBonus).apply(zombie, state, eventBus);
                 }
                 break;
             case POISON:
@@ -228,7 +235,7 @@ public class CombatSystem {
                 if(!freezeProjectilesEnabled) break;
                 for(Zombie z : state.zombies) {
                     if(z.row == projectile.row){
-                        new FreezeEffect(30).apply(z, state, eventBus);
+                        new FreezeEffect(30 + projectile.effectDurationBonus).apply(z, state, eventBus);
                     }
                 }
                 break;

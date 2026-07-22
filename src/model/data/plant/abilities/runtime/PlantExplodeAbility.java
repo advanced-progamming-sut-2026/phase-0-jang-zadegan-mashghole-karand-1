@@ -6,11 +6,15 @@ import model.data.plant.Plant;
 import model.data.plant.abilities.config.AreaShape;
 import model.data.plant.abilities.config.ExplodeTrigger;
 import model.data.plant.abilities.config.PlantAbilityConfig;
+import model.data.plant.abilities.effects.DamageEffect;
+import model.data.plant.abilities.effects.FreezeEffect;
 import model.data.plant.abilities.effects.HitEffect;
 import model.data.zombie.Zombie;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static model.core.GameLoop.TICKS_PER_SECOND;
 
 public class PlantExplodeAbility implements PlantAbilityConfig {
     private final ExplodeTrigger trigger;
@@ -38,8 +42,28 @@ public class PlantExplodeAbility implements PlantAbilityConfig {
 
     @Override
     public PlantAbilityConfig createInstance(Plant plant) {
-        return new PlantExplodeAbility(trigger,shape,maxTargets,delayTicks,
-                requiresWater,onHit);
+        List<HitEffect> boosted = onHit.stream().map(e -> {
+            if (e instanceof FreezeEffect f) {
+                return new FreezeEffect(f.getTicks() + plant.upgradeState.effectDurationBonus);
+            }
+            if (e instanceof DamageEffect d) {
+                return new DamageEffect(d.getAmount() + plant.damage - plant.type.baseStats.damage);
+            }
+            return e;
+        }).toList();
+        int finalTarget = maxTargets;
+        AreaShape finalShape = shape;
+        if (plant.upgradeState.targetPriorityBonus>0){
+            finalTarget += plant.upgradeState.targetPriorityBonus;
+            finalShape = AreaShape.RIGHT_LEFT_FRONT;
+
+        }
+        if (plant.upgradeState.doubleCrushCount > 1) {
+            finalTarget = plant.upgradeState.doubleCrushCount;
+        }
+         int finalDelay = Math.max(0,delayTicks + plant.upgradeState.cooldownBonus * TICKS_PER_SECOND);
+        return new PlantExplodeAbility(trigger,finalShape,finalTarget,finalDelay,
+                requiresWater,boosted);
     }
 
     @Override
@@ -85,6 +109,8 @@ public class PlantExplodeAbility implements PlantAbilityConfig {
             case RADIUS_3x3:
                 return Math.abs(z.row - plant.row) <= 1
                         && Math.abs(zombieCol - plant.col) <= 1;
+            case RIGHT_LEFT_FRONT:
+                return zombieCol == plant.col &&  (Math.abs(plant.row - z.row) <=1);
             case FULL_BOARD:
                 return true;
             default:

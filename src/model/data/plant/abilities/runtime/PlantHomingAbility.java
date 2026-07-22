@@ -13,6 +13,8 @@ import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
 import model.data.zombie.Zombie;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -51,7 +53,14 @@ public class PlantHomingAbility implements PlantAbilityConfig {
         }
 
         Zombie target = null;
-        if (this.strategy == TargetStrategy.CLOSEST) {
+        if (plant.upgradeState.targetPriorityBonus>0){
+                target = Collections.max(
+                        aliveZombies,
+                        Comparator.comparingInt(this::priority)
+                );
+
+        }
+        else if (this.strategy == TargetStrategy.CLOSEST) {
             target = aliveZombies.stream()
                     .min((z1, z2) -> Float.compare(plant.getX() - z1.position.x, plant.getX() - z2.position.x))
                     .orElse(null);
@@ -74,7 +83,15 @@ public class PlantHomingAbility implements PlantAbilityConfig {
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
         }
     }
-
+    private int priority(Zombie zombie) {
+        return switch (zombie.type) {
+            case GARGANTUAR -> 4;
+            case KING -> 3;
+            case IMP  -> 2;
+            case BASIC -> 1;
+            default -> 0;
+        };
+    }
     @Override
     public void resetCooldown() {
         currentCooldown = 0;

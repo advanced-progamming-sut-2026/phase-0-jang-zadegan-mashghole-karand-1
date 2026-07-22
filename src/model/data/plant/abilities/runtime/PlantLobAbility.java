@@ -26,8 +26,18 @@ public class PlantLobAbility implements PlantAbilityConfig {
     public final int butterDamage;
     public final int aoeRadius;
     private int currentCooldown = 0;
+    private int aoeDamage;
 
     public PlantLobAbility(int damage, float cooldownSeconds, ProjectileType projectileType, ShootPattern shootPattern, float butterChance, int butterDamage, int aoeRadius) {
+        this(damage, cooldownSeconds, projectileType, shootPattern, butterChance, butterDamage, aoeRadius,0);
+    }
+
+    public PlantLobAbility(int damage, float cooldownSeconds,
+                           ProjectileType type, ShootPattern pattern) {
+        this(damage, cooldownSeconds, type, pattern, 0f, 40, 0,0);
+    }
+
+    public PlantLobAbility(int damage, float cooldownSeconds, ProjectileType projectileType, ShootPattern shootPattern, float butterChance, int butterDamage, int aoeRadius, int aoeDamage) {
         this.damage = damage;
         this.cooldownSeconds = cooldownSeconds;
         this.projectileType = projectileType;
@@ -35,17 +45,17 @@ public class PlantLobAbility implements PlantAbilityConfig {
         this.butterChance = butterChance;
         this.butterDamage = butterDamage;
         this.aoeRadius = aoeRadius;
+        this.aoeDamage = aoeDamage;
     }
 
-    public PlantLobAbility(int damage, float cooldownSeconds,
-                           ProjectileType type, ShootPattern pattern) {
-        this(damage, cooldownSeconds, type, pattern, 0f, 40, 0);
-    }
 
     public PlantAbilityConfig createInstance(Plant plant) {
         int finalDamage = damage + plant.damage - plant.type.baseStats.damage;
+        float finalButterChance = butterChance + plant.upgradeState.specialChanceBonus;
+        int finalAoe = aoeRadius + plant.upgradeState.aoeRadiusBonus;
+        int finalAoeDmg = plant.upgradeState.aoeDamageBonus;
         return new PlantLobAbility(finalDamage, plant.actionInterval, projectileType, shootPattern,
-                butterChance, butterDamage, aoeRadius);
+                finalButterChance, butterDamage, finalAoe, finalAoeDmg);
     }
 
     @Override
@@ -83,13 +93,14 @@ public class PlantLobAbility implements PlantAbilityConfig {
                         5,
                         projectileType,
                         ProjectileTarget.ZOMBIE,
-                        new Position(target.position.x , target.position.y),
+                        new Position(target.position.x, target.position.y),
                         0,
                         50f,
                         60f,
                         this.butterChance,
                         this.butterDamage,
-                        this.aoeRadius
+                        this.aoeRadius,
+                        this.aoeDamage
                 );
                 p.setDirection(shootPattern.getDir());
 

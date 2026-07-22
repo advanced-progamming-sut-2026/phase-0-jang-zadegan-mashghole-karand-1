@@ -6,5 +6,6 @@ public enum AreaShape {
     ROW,
     RADIUS_3x3,
     FULL_BOARD,
-    FRONT_OR_BACK
+    FRONT_OR_BACK,
+    RIGHT_LEFT_FRONT
 }

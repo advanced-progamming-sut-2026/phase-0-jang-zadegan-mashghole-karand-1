@@ -6,9 +6,7 @@ import model.core.Position;
 import model.data.plant.Plant;
 import model.data.plant.abilities.config.DefenderFeature;
 import model.data.plant.abilities.config.PlantAbilityConfig;
-import model.data.plant.abilities.effects.HitEffect;
 import model.data.sun.Sun;
-import model.data.sun.SunType;
 import model.data.zombie.Zombie;
 import model.events.SunProducedEvent;
 import model.events.ZombieDiedEvent;
@@ -34,7 +32,10 @@ public class PlantDefenderAbility implements PlantAbilityConfig {
 
     @Override
     public PlantAbilityConfig createInstance(Plant plant) {
-        return new PlantDefenderAbility(features, reflectDamage, explosionDamage, sunPerHit);
+        int finalSunPerHit = sunPerHit + plant.upgradeState.sunDropBonus;
+        int finalReflect = reflectDamage + plant.damage - plant.type.baseStats.damage;
+        int finalExplosion = explosionDamage +plant.damage - plant.type.baseStats.damage;
+        return new PlantDefenderAbility(features, finalReflect, finalExplosion, finalSunPerHit);
     }
 
     @Override

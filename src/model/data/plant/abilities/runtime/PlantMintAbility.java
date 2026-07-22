@@ -1,6 +1,7 @@
 package model.data.plant.abilities.runtime;
 
 import model.core.EventBus;
+import model.core.GameLoop;
 import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantCategory;
@@ -37,10 +38,12 @@ public class PlantMintAbility implements PlantAbilityConfig {
                 continue;
 
             if (target.plantFoodEffect != null) {
+                int finalDuration = durationTicks
+                        + plant.upgradeState.plantFoodDurationBonus * GameLoop.TICKS_PER_SECOND;
                 target.activatePlantFood(
                         state,
                         event,
-                        durationTicks);
+                        finalDuration);
             }
             if (plant.resetFamilyCooldowns) {
                 resetCooldowns(target);

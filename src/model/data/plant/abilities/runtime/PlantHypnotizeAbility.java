@@ -5,6 +5,7 @@ import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
 import model.data.plant.abilities.config.PlantAbilityConfig;
+import model.data.plant.upgrades.PlantUpgradeState;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.events.ZombieSpawnedEvent;
@@ -28,14 +29,24 @@ public class PlantHypnotizeAbility implements PlantAbilityConfig {
                 killer.isAlive = false;
                 Zombie garg = new Zombie(ZombieType.GARGANTUAR, killer.row, killer.col,new Position(killer.row, killer.col),event);
                 garg.isHypnotized = true;
+                applyBuffs(garg,plant);
                 state.zombies.add(garg);
                 event.publish(new ZombieSpawnedEvent(garg));
             } else {
                 killer.isHypnotized = true;
+                applyBuffs(killer,plant);
             }
         }
     }
-
+    private void applyBuffs(Zombie z, Plant plant) {
+        if (plant.upgradeState.zombieHpBuff) {
+            z.hp = (int) (z.hp * 1.5f);
+            z.totalHp = Math.max(z.totalHp, z.hp);
+        }
+        if (plant.upgradeState.zombieDamageBuff) {
+//            z. *= 1.5f;
+        }
+    }
     public void setTransformToGargantuar(boolean transformToGargantuar) {
         this.transformToGargantuar = transformToGargantuar;
     }

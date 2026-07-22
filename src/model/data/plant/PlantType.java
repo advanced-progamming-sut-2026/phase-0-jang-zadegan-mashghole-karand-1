@@ -201,7 +201,7 @@ public enum PlantType {
             new PlantHomingEffect(3, 0, ProjectileType.LASER, TargetStrategy.RANDOM),
             new PlantLevelUpgrades(
                     new PlantLevelUpgrade(2, PlantStatBonus.COOLDOWN, -2),
-                    new PlantLevelUpgrade(3, PlantStatBonus.TARGET_PRIORITY, true),
+                    new PlantLevelUpgrade(3, PlantStatBonus.TARGET_PRIORITY, 1),
                     new PlantLevelUpgrade(4, PlantStatBonus.COST, -25)
             )
     ),
@@ -280,7 +280,7 @@ public enum PlantType {
     GooPeashooter(20, "Goo Peashooter", PlantCategory.SHOOTER, EnumSet.of(PlantTag.POISON),
             new PlantBaseStats(125, 300, 20, 1.5f, 5),
             Arrays.asList(
-                    new PlantShootAbility(20, 1.5f, ProjectileType.PEA, new ShootPattern(Direction.FORWARD, 0, 1))
+                    new PlantShootAbility(20, 1.5f, ProjectileType.POISON, new ShootPattern(Direction.FORWARD, 0, 1))
             ),
             new PlantRapidFireEffect(3, 0.1f,
                     Arrays.asList(
@@ -324,7 +324,7 @@ public enum PlantType {
             new PlantRapidFireEffect(3, 0.1f,
                     Arrays.asList(
                             new PlantShootAbility(20, 0f, ProjectileType.FUME,
-                                    new ShootPattern(Direction.FORWARD, 0, 1))
+                                    new ShootPattern(Direction.FORWARD, 0, 1),-1,3)
                     )),
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.RANGE, 1),
@@ -336,7 +336,7 @@ public enum PlantType {
             new PlantBaseStats(0, 300, 20, 1.5f, 5),
             Arrays.asList(
                     new PlantShootAbility(20, 1.5f, ProjectileType.FUME,
-                            new ShootPattern(Direction.FORWARD, 0, 1))
+                            new ShootPattern(Direction.FORWARD, 0, 1),-1,3)
             ),
             new PlantRapidFireEffect(3, 0.1f,
                     Arrays.asList(
@@ -398,7 +398,7 @@ public enum PlantType {
                     )),
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.SPECIAL_CHANGE, 5),
-                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.MELT_AREA_3x3, true),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.DAMAGE, 10),
                     PlantLevelUpgrade.atLevel(4, PlantStatBonus.HP, 150)
             )
     ),
@@ -783,7 +783,7 @@ public enum PlantType {
                     PlantLevelUpgrade.atLevel(4, PlantStatBonus.COST, -25)
             )),
     Magnet_shroom(53, "Magnet-shroom", PlantCategory.HOMING, EnumSet.of(PlantTag.SHROOM, PlantTag.MAGIC),
-            new PlantBaseStats(50, 1000, 0, 0, 20),
+            new PlantBaseStats(50, 1000, 0, 10, 20),
             Arrays.asList(
                     new PlantMagnetAbility()
             ),
@@ -834,7 +834,7 @@ public enum PlantType {
             new PlantBaseStats(75, 0, 0, 0f, 50),
             Arrays.asList(
                     new PlantExplodeAbility(ExplodeTrigger.INSTANT, AreaShape.FULL_BOARD, -1,
-                            0, false, List.of(new FreezeEffect(100)))
+                            0, false, List.of(new FreezeEffect(100),new DamageEffect(0)))
             ),
             null,
             new PlantLevelUpgrades(

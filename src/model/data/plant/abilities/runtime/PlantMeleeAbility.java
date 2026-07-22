@@ -7,6 +7,8 @@ import model.data.plant.Plant;
 import model.data.plant.PlantCategory;
 import model.data.plant.abilities.config.AreaShape;
 import model.data.plant.abilities.config.PlantAbilityConfig;
+import model.data.plant.abilities.effects.DamageEffect;
+import model.data.plant.abilities.effects.FreezeEffect;
 import model.data.plant.abilities.effects.HitEffect;
 import model.data.zombie.Zombie;
 
@@ -34,7 +36,17 @@ public class PlantMeleeAbility implements PlantAbilityConfig {
 
     @Override
     public PlantAbilityConfig createInstance(Plant plant) {
-        return new PlantMeleeAbility(shape,maxTargets,cooldownSeconds,onHit,digestTicksOnKill);
+        List<HitEffect> boosted = onHit.stream().map(e -> {
+            if (e instanceof DamageEffect f) {
+                return new DamageEffect(f.getAmount()  + plant.damage - plant.type.baseStats.damage);
+            }
+            return e;
+        }).toList();
+        int finalDigest = digestTicksOnKill;
+        if (digestTicksOnKill > 0) {
+            finalDigest = (int) (plant.actionInterval * TICKS_PER_SECOND);
+        }
+        return new PlantMeleeAbility(shape,maxTargets,plant.actionInterval,boosted,finalDigest);
     }
 
     @Override
@@ -86,7 +98,9 @@ public class PlantMeleeAbility implements PlantAbilityConfig {
             case FULL_BOARD:
                 return true;
             case FRONT_OR_BACK:
-                return z.row == plant.row && (zombieCol == plant.col + 1 || zombieCol == plant.col - 1);
+                int dist = Math.abs(zombieCol - plant.col);
+                int maxDist = 1 + plant.upgradeState.rangeBonus;
+                return z.row == plant.row && ( dist >=1 && dist <= maxDist );
             default:
                 return false;
         }

@@ -30,7 +30,7 @@ public class PlantTileActionAbility implements PlantAbilityConfig {
     @Override
     public PlantAbilityConfig createInstance(Plant plant) {
         AreaShape shape = baseShape;
-        if (plant.level >= 3) {
+        if (plant.upgradeState.meltArea3x3) {
             shape = AreaShape.RADIUS_3x3;
         }
         return new PlantTileActionAbility(targetTile,shape, ActionDuration);
@@ -44,7 +44,7 @@ public class PlantTileActionAbility implements PlantAbilityConfig {
             return;
         }
         meltTiles(plant,state);
-        if (plant.level >= 4) {
+        if (plant.upgradeState.explodeOnFinish) {
             damageZombiesOnPlantTile(plant, state, event,  400);
         }
         done = true;
