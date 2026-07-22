@@ -253,6 +253,9 @@ public class CollectionController {
         if (type == null) {
             return failure(ErrorMessages.PLANT_NOT_FOUND.getMessage());
         }
+        if (type.isBowlingExclusive()) {
+            return failure("This plant unlocks by playing Wall-nut Bowling.");
+        }
         if (storage.isPlantUnlocked(type)) {
             return failure(ErrorMessages.PLANT_ALREADY_PURCHASED.getMessage());
         }

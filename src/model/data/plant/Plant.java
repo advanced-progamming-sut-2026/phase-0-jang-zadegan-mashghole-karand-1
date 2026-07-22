@@ -210,6 +210,9 @@ public class Plant {
     }
 
     public boolean canBeEaten() {
+        if (hasTag(PlantTag.BOWLING)) {
+            return false;
+        }
         return activeStun == null || activeStun.canBeEaten();
     }
 

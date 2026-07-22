@@ -7,9 +7,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import model.data.content.chapter.ChapterType;
+import model.data.content.minigame.MiniGameType;
 import model.data.plant.PlantType;
 import model.data.zombie.ZombieType;
-import model.data.content.minigame.MiniGameType;
 import model.service.Hash;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
@@ -35,6 +35,7 @@ public class InMemoryStorageManager implements StorageManager {
         User demoUser = new User(DEMO_USER, Hash.hashPassword(DEMO_PASSWORD), DEMO_EMAIL, DEMO_NICKNAME, Gender.MALE,
                 DEMO_SAFETY);
         demoUser.gameProgress.unlockChapter(ChapterType.ANCIENT_EGYPT);
+        demoUser.gameProgress.unlockMinigame(MiniGameType.VASE_BREAKER);
         demoUser.collection.unlockStarterPlants();
         users.put(DEMO_USER, demoUser);
     }
@@ -158,18 +159,29 @@ public class InMemoryStorageManager implements StorageManager {
     }
 
     @Override
-    public void markLevelCompleted(String levelId) {
-        if (!isLoggedIn() || levelId == null || levelId.isBlank()) {
+    public void markLevelCompleted(ChapterType chapter, int levelNumber) {
+        if (!isLoggedIn() || chapter == null) {
             return;
         }
+        String levelId = CompletedLevelKey.campaign(chapter, levelNumber);
         boolean alreadyCompleted = currentUser.gameProgress.getCompletedLevelIds().contains(levelId);
-        int underline = levelId.lastIndexOf("_");
-        ChapterType chapter = ChapterType.valueOf(levelId.substring(0, underline));
-        int level = Integer.parseInt(levelId.substring(underline));
         currentUser.gameProgress.completeLevel(levelId);
-        currentUser.gameProgress.setLastProgress(chapter, level);
+        currentUser.gameProgress.setLastProgress(chapter, levelNumber);
         if (!alreadyCompleted) {
-            addNews("You unlocked a new level: " + levelId);
+            addNews("You completed level: " + chapter.name() + " " + levelNumber);
+        }
+    }
+
+    @Override
+    public void markMinigameCompleted(MiniGameType miniGame) {
+        if (!isLoggedIn() || miniGame == null) {
+            return;
+        }
+        String levelId = CompletedLevelKey.minigame(miniGame);
+        boolean alreadyCompleted = currentUser.gameProgress.getCompletedLevelIds().contains(levelId);
+        currentUser.gameProgress.completeLevel(levelId);
+        if (!alreadyCompleted) {
+            addNews("You completed minigame: " + miniGame.name().replace('_', ' '));
         }
     }
 
@@ -197,6 +209,22 @@ public class InMemoryStorageManager implements StorageManager {
             currentUser.gameProgress.unlockMinigame(minigame);
             addNews("You unlocked a new minigame: " + minigame.name().replace('_', ' '));
         }
+    }
+
+    @Override
+    public boolean isMinigameUnlocked(MiniGameType minigame) {
+        if (!isLoggedIn() || minigame == null) {
+            return false;
+        }
+        return currentUser.gameProgress.isMinigameUnlocked(minigame);
+    }
+
+    @Override
+    public List<MiniGameType> getUnlockedMinigames() {
+        if (!isLoggedIn()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(currentUser.gameProgress.getUnlockedMinigames());
     }
 
     @Override

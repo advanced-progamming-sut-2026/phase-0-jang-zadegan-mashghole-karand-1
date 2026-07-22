@@ -8,6 +8,7 @@ import java.util.Random;
 import model.board.Tile;
 import model.core.EventBus;
 import model.core.GameState;
+import model.core.SessionEnd;
 import model.data.plant.PlantType;
 import model.data.vase.Vase;
 import model.data.vase.VaseType;
@@ -88,7 +89,7 @@ public class VaseBreakerRules implements LevelRule {
         }
         boolean zombiesAlive = state.zombies.stream().anyMatch(z -> z.isAlive);
         if (!zombiesAlive) {
-            state.levelComplete = true;
+            SessionEnd.win(state, bus);
         }
     }
 
@@ -148,7 +149,12 @@ public class VaseBreakerRules implements LevelRule {
     private List<PlantType> resolvePlantPool(SessionContext context) {
         List<PlantType> selected = context.getConfig().selectedPlants;
         if (selected != null && !selected.isEmpty()) {
-            return selected;
+            List<PlantType> filtered = selected.stream()
+                    .filter(p -> p != null && !p.isBowlingExclusive())
+                    .toList();
+            if (!filtered.isEmpty()) {
+                return filtered;
+            }
         }
         return FALLBACK_PLANT_POOL;
     }

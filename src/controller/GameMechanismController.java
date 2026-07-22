@@ -7,12 +7,15 @@ import model.ModelManager;
 import model.core.GameLoop;
 import model.core.GameState;
 import model.core.ReadOnlyGameState;
+import model.data.brain.Brain;
+import model.data.content.minigame.IZombieShop;
 import model.data.plant.Plant;
 import model.data.plant.PlantStats;
 import model.data.plant.PlantType;
 import model.data.seed.PlantSeedDrop;
 import model.data.vase.Vase;
 import model.data.vase.VaseContentType;
+import model.data.zombie.ZombieType;
 import model.storage.user.User;
 import view.ScreenType;
 
@@ -34,6 +37,10 @@ public class GameMechanismController {
         if (screenCheck != null) {
             return screenCheck;
         }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         if (amount <= 0) {
             return failure("Tick count must be positive.");
         }
@@ -45,6 +52,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        boolean enabling = enable == null ? !gameLoop.isAutoTickRunning() : enable;
+        if (enabling && (gameState.gameOver || gameState.levelComplete)) {
+            return failure("Cannot resume ticks after the session has ended. Use 'menu exit'.");
         }
         if (enable == null) {
             gameLoop.toggleAutoTick();
@@ -61,6 +72,10 @@ public class GameMechanismController {
         if (screenCheck != null) {
             return screenCheck;
         }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
         }
@@ -74,6 +89,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
@@ -93,6 +112,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
@@ -118,6 +141,51 @@ public class GameMechanismController {
         return success("Held seeds: " + seeds + ".");
     }
 
+    public CommandResult placeZombie(int row, int col, ZombieType zombieType) {
+        CommandResult screenCheck = requireGameScreen();
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
+        if (!model.getRuleEngine().canPlaceZombies()) {
+            return failure("Zombie placement is not available in this mode.");
+        }
+        if (zombieType == null) {
+            return failure("Zombie type not found.");
+        }
+        if (!IZombieShop.isPurchasable(zombieType)) {
+            return failure(zombieType.name + " is not available in I, Zombie.");
+        }
+        if (!isValidCell(row, col)) {
+            return failure("Invalid cell (" + row + ", " + col + ").");
+        }
+        int cost = IZombieShop.getCost(zombieType);
+        if (gameState.sunAmount < cost) {
+            return failure("Not enough sun. Need " + cost + ", have " + gameState.sunAmount + ".");
+        }
+        if (model.placeZombie(row, col, zombieType)) {
+            return success("Spawned " + zombieType.name + " at (" + row + ", " + col + ") (-" + cost + " sun).");
+        }
+        return failure("Could not place " + zombieType.name + " at (" + row + ", " + col + ").");
+    }
+
+    public CommandResult showAvailableZombies() {
+        CommandResult screenCheck = requireGameScreen();
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        if (!model.getRuleEngine().canPlaceZombies()) {
+            return failure("Zombie placement is not available in this mode.");
+        }
+        String list = IZombieShop.getCosts().entrySet().stream()
+                .map(e -> e.getKey().name + " (" + e.getValue() + " sun)")
+                .collect(Collectors.joining(", "));
+        return success("Available zombies: " + list + ".");
+    }
+
     public CommandResult showSunAmount() {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
@@ -131,6 +199,10 @@ public class GameMechanismController {
         if (screenCheck != null) {
             return screenCheck;
         }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         model.addSun(count);
         return success("Added " + count + " sun.");
     }
@@ -139,6 +211,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         int cleared = gameState.zombies.size();
         model.releaseNuke();
@@ -149,6 +225,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         if (model.getPlayContext() != null && model.getPlayContext().isConveyorMode()) {
             return failure("Conveyor Belt mode: use plant conveyor -l (row,col) instead.");
@@ -185,6 +265,10 @@ public class GameMechanismController {
         if (screenCheck != null) {
             return screenCheck;
         }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         if (model.getPlayContext() == null || !model.getPlayContext().isConveyorMode()) {
             return failure("Not in Conveyor Belt mode.");
         }
@@ -206,6 +290,10 @@ public class GameMechanismController {
         if (screenCheck != null) {
             return screenCheck;
         }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
         model.removeCooldowns();
         return success("Plant cooldowns removed.");
     }
@@ -214,6 +302,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
@@ -228,6 +320,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
@@ -248,6 +344,10 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
         }
         model.addPlantFood();
         return success("Added plant food.");
@@ -289,6 +389,14 @@ public class GameMechanismController {
         Plant plant = gameState.getPlantAt(row, col);
         if (plant != null) {
             return success("Plant: " + plant.type.name + " HP " + plant.hp + "/" + plant.totalHP + ".");
+        }
+
+        if (gameState.brainsMode && col == 0) {
+            Brain brain = gameState.getBrainAtRow(row);
+            if (brain != null) {
+                return success("Tile (" + row + ", " + col + "): brain "
+                        + (brain.isCollected() ? "collected" : "available") + ".");
+            }
         }
 
         Vase vase = gameState.getVaseAt(row, col);
@@ -337,6 +445,13 @@ public class GameMechanismController {
     private CommandResult requireGameScreen() {
         if (controllerManager.getCurrentScreen() != ScreenType.GAME) {
             return failure("This command is only available during a game.");
+        }
+        return null;
+    }
+
+    private CommandResult requireSessionActive() {
+        if (gameState.gameOver || gameState.levelComplete) {
+            return failure("The session has ended. Use 'menu exit' to return.");
         }
         return null;
     }

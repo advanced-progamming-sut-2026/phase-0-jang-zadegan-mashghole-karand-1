@@ -41,8 +41,8 @@ public enum ZombieType {
         PIANIST("Pianist Zombie", new ZombieBaseStats(840, 4000, 0.12f, 450, 0), null,
                         List.of(new ZombiePianoAbility(), new ZombieKillForwardAbility())),
         NEWSPAPER_ZOMBIE("Newspaper Zombie", new ZombieBaseStats(460, 200, 0.22f, 700, 0),
-                        ZombieArmorConfig.newspaper(), null),
-        BARREL_ROLLER("Barrel Roller Zombie",new ZombieBaseStats(200, 100,0.185f, 300, 500),null,
+                        ZombieArmorConfig.newspaper(), Collections.emptyList()),
+        BARREL_ROLLER("Barrel Roller Zombie", new ZombieBaseStats(200, 100, 0.185f, 300, 500), null,
                         List.of(new ZombieBarrelRollerAbility())),
         RA_ZOMBIE("Ra Zombie", new ZombieBaseStats(190, 100, 0.2f, 100, 700), null,
                         List.of(new ZombieStealSunAbility())),
@@ -68,7 +68,9 @@ public enum ZombieType {
                         List.of(new ZombieStunAbility())),
         KING("King", new ZombieBaseStats(1000, 100, 0f, 750, 2000), null, List.of(new ZombieKingAbility())),
         IMP_DRAGON("Imp Dragon", new ZombieBaseStats(190, 100, 0.185f, 150, 3500), null,
-                        List.of(new ZombieImmunityAbility(ProjectileType.FIRE)));
+                        List.of(new ZombieImmunityAbility(ProjectileType.FIRE))),
+        SUN_ZOMBIE("Sun Zombie", new ZombieBaseStats(190, 50, 0.12f, 0, 0), null,
+                        List.of(new ZombieSunProduceAbility()));
 
         public final String name;
         public final ZombieBaseStats baseStats;

@@ -141,9 +141,28 @@ public class RuleEngine {
         return true;
     }
 
+    public boolean canPlaceZombies() {
+        for (LevelRule rule : activeRules) {
+            if (rule.canPlaceZombies()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean canPlant(PlantType type, int row, int col, GameState state, SessionContext context) {
         for (LevelRule rule : activeRules) {
             if (!rule.canPlant(type, row, col, state, context)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean canPlaceZombie(model.data.zombie.ZombieType type, int row, int col, GameState state,
+            SessionContext context) {
+        for (LevelRule rule : activeRules) {
+            if (!rule.canPlaceZombie(type, row, col, state, context)) {
                 return false;
             }
         }

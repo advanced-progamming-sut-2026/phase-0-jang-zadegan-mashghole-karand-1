@@ -3,21 +3,26 @@ package model.systems;
 import model.board.IceDirection;
 import model.board.Tile;
 import model.board.TileType;
+import model.core.EventBus;
 import model.core.GameState;
+import model.core.SessionEnd;
+import model.data.brain.Brain;
 import model.data.plant.abilities.config.Direction;
 import model.data.projectile.HomingProjectile;
 import model.data.projectile.PiercingProjectile;
 import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
+import model.events.GameOverReason;
 import model.lawnmower.LawnMower;
 
 import java.util.ArrayList;
 
 public class MovementSystem {
 
-    public void update(GameState state) {
+    public void update(GameState state, EventBus eventBus) {
         for (Zombie zombie : state.zombies) {
-            if (zombie.stunned) continue;
+            if (zombie.stunned || !zombie.canMove()) 
+                continue;
             float currentSpeed = zombie.getCurrentSpeed();
             float nextX = zombie.position.x - currentSpeed;
 
@@ -29,6 +34,7 @@ public class MovementSystem {
             }
 
             int col = (int) (zombie.position.x / GameState.CELL_WIDTH);
+            zombie.col = Math.max(0, Math.min(GameState.GRID_COLS - 1, col));
             Tile tile = state.getBoard().getTile(zombie.row, col);
 
             if (tile != null && tile.getType() == TileType.ICE) {
@@ -45,24 +51,38 @@ public class MovementSystem {
                 }
             }
         }
+
         boolean[] rowHandled = new boolean[GameState.GRID_ROWS];
-        for (Zombie z :new ArrayList<>(state.zombies)){
-            if (!z.isAlive || z.isHypnotized) continue;
-            if (z.position.x > 0) continue;
-            if (rowHandled[z.row]) continue;
+        for (Zombie z : new ArrayList<>(state.zombies)) {
+            if (!z.isAlive || z.isHypnotized)
+                continue;
+            if (z.position.x > 0)
+                continue;
+            if (rowHandled[z.row])
+                continue;
             rowHandled[z.row] = true;
+
+            if (state.brainsMode) {
+                Brain brain = state.getBrainAtRow(z.row);
+                if (brain != null && !brain.isCollected()) {
+                    brain.collect();
+                }
+                continue;
+            }
+
             LawnMower lawnMower = state.getBoard().getLawnMowers(z.row);
-            if (lawnMower!= null && lawnMower.isActive()){
+            if (lawnMower != null && lawnMower.isActive()) {
                 lawnMower.destroyZombiesInRow(state);
-            }else {
-                state.gameOver = true;
+            } else {
+                SessionEnd.lose(state, eventBus, GameOverReason.LAWN_BREACHED);
                 return;
             }
         }
+
         for (Projectile projectile : state.projectiles) {
             if (projectile instanceof HomingProjectile homing) {
                 homing.updateMovement();
-            }else {
+            } else {
                 Direction direction = projectile.direction;
                 float dx = direction.vx * projectile.speed;
                 float dy = direction.vy * projectile.speed;
@@ -92,5 +112,6 @@ public class MovementSystem {
                         && pp.maxRange >= 0
                         && pp.traveledDistance >= pp.maxRange * GameState.CELL_WIDTH));
         state.zombies.removeIf(z -> z.isHypnotized && z.position.x > GameState.SCREEN_WIDTH);
+        state.zombies.removeIf(z -> z.position.x < -GameState.CELL_WIDTH);
     }
 }

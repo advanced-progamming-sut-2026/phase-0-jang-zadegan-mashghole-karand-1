@@ -3,7 +3,6 @@ package controller;
 import controller.CommandResult.CommandResult;
 import model.core.Position;
 import model.data.plant.PlantType;
-import model.data.zombie.Zombie;
 import model.greenhouse.Pot;
 import model.storage.StorageManager;
 import model.storage.user.User;
@@ -17,7 +16,8 @@ public class GreenhouseController {
     ControllerManager controllerManager;
     private final StorageManager storage;
     private boolean potsVisible = false;
-    public GreenhouseController(ControllerManager controllerManager, StorageManager storage ) {
+
+    public GreenhouseController(ControllerManager controllerManager, StorageManager storage) {
         this.controllerManager = controllerManager;
         this.storage = storage;
     }
@@ -27,20 +27,20 @@ public class GreenhouseController {
         if (user == null) {
             return failure("You must be logged in.");
         }
-        potsVisible= true;
+        potsVisible = true;
         storage.saveProgress();
         controllerManager.setScreen(ScreenType.GREEN_HOUSE);
         return success("Greenhouse displayed.");
     }
 
-    public CommandResult plantPot( Position position) {
+    public CommandResult plantPot(Position position) {
         PlantType plantType;
         Pot.PlantClass plantClass;
         User user = storage.getCurrentUser();
         if (user == null) {
             return failure("You must be logged in.");
         }
-        if (user.greenhouse == null){
+        if (user.greenhouse == null) {
             return failure("There is no Greenhouse");
         }
         if (ThreadLocalRandom.current().nextBoolean()) {
@@ -53,7 +53,7 @@ public class GreenhouseController {
                 return failure("No unlocked plant with plant food.");
             }
         }
-        boolean ok = user.greenhouse.plantAt(position, plantClass , plantType);
+        boolean ok = user.greenhouse.plantAt(position, plantClass, plantType);
         if (!ok) {
             return failure("Cannot plant here.");
         }
@@ -80,18 +80,18 @@ public class GreenhouseController {
         Pot.PlantClass plantClass = pot.getPlantClass();
         String message;
         if (plantClass == Pot.PlantClass.UNLOCK_PLANT && type != null) {
-              if (user.storedBoosts.contains(type)){
-                  message = "Collected " + type.name + ". Boost already stored.";
-              }else{
-                  user.storedBoosts.add(type);
-                  controllerManager.refreshView();
-                  message = "Collected " + type.name + ". Boost stored.";
-              }
-        }else if (plantClass == Pot.PlantClass.NORMAL_PLANT){
+            if (user.storedBoosts.contains(type)) {
+                message = "Collected " + type.name + ". Boost already stored.";
+            } else {
+                user.storedBoosts.add(type);
+                controllerManager.refreshView();
+                message = "Collected " + type.name + ". Boost stored.";
+            }
+        } else if (plantClass == Pot.PlantClass.NORMAL_PLANT) {
             user.coins += 500;
             controllerManager.refreshView();
             message = "Collected Marigold. +500 coins.";
-        }else {
+        } else {
             return failure("Nothing to collect.");
         }
         pot.clear();
@@ -129,6 +129,7 @@ public class GreenhouseController {
         controllerManager.setScreen(ScreenType.SHOP);
         return success("Entered shop");
     }
+
     public PlantType pickRandomUnlockedPlant() {
         User user = storage.getCurrentUser();
         if (user == null) {
@@ -136,6 +137,7 @@ public class GreenhouseController {
         }
         List<PlantType> unlocked = Arrays.stream(PlantType.values())
                 .filter(p -> user.collection.isPlantUnlocked(p))
+                .filter(p -> !p.isBowlingExclusive())
                 .filter(p -> p.plantFoodEffect != null)
                 .toList();
         if (unlocked.isEmpty()) {
@@ -143,12 +145,15 @@ public class GreenhouseController {
         }
         return unlocked.get(ThreadLocalRandom.current().nextInt(unlocked.size()));
     }
+
     public boolean isPotsVisible() {
         return potsVisible;
     }
+
     public void hidePots() {
         potsVisible = false;
     }
+
     public User getUser() {
         return storage.getCurrentUser();
     }
@@ -156,10 +161,9 @@ public class GreenhouseController {
     private CommandResult success(String message) {
         return new CommandResult(message, true);
     }
+
     private CommandResult failure(String message) {
         return new CommandResult(message, false);
     }
-
-
 
 }

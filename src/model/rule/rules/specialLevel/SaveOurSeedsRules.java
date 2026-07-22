@@ -7,9 +7,10 @@ import java.util.Random;
 
 import model.core.EventBus;
 import model.core.GameState;
+import model.core.SessionEnd;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
-import model.events.GameOverEvent;
+import model.events.GameOverReason;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 
@@ -51,7 +52,7 @@ public class SaveOurSeedsRules implements LevelRule {
     public void onPlantDied(Plant plant, GameState state, EventBus bus) {
         if (protectedPlantIds.contains(plant.instanceId)) {
             protectedPlantIds.remove(Integer.valueOf(plant.instanceId));
-            bus.publish(new GameOverEvent());
+            SessionEnd.lose(state, bus, GameOverReason.PROTECTED_PLANT_DIED);
         }
     }
 }

@@ -6,15 +6,17 @@ import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
-import model.data.plant.PlantType;
-import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.effects.DamageEffect;
 import model.data.plant.abilities.effects.FreezeEffect;
-import model.data.plant.abilities.runtime.PlantDefenderAbility;
 import model.data.plant.stuns.BlockingStun;
+import model.data.plant.stuns.CatStun;
 import model.data.plant.stuns.StunKind;
-import model.data.projectile.*;
+import model.data.projectile.PiercingProjectile;
+import model.data.projectile.Projectile;
+import model.data.projectile.ProjectileTarget;
+import model.data.projectile.ProjectileType;
 import model.data.zombie.Zombie;
+import model.data.zombie.ZombieType;
 import model.events.BarrelCreatedEvent;
 import model.events.PlantDiedEvent;
 
@@ -100,17 +102,7 @@ public class CombatSystem {
                         }
 
                         z.abilities.forEach(a -> a.onProjectileHit(z, p));
-                        if (p instanceof LobbedProjectile lob && lob.aoeRadius > 0) {
-                            int splash = lob.damage / 4 + lob.aoeDamage;
-                            for (Zombie other : state.zombies) {
-                                if (!other.isAlive || other == z) continue;
-                                int otherCol = (int) (other.position.x / GameState.CELL_WIDTH);
-                                if (Math.abs(other.row - lob.row) <= lob.aoeRadius
-                                        && Math.abs(otherCol - lob.col) <= lob.aoeRadius) {
-                                    other.takeDamage(splash);
-                                }
-                            }
-                        }
+
 
 
                         applyProjectileEffects(state, p, z,freezeProjectilesEnabled);
@@ -149,12 +141,6 @@ public class CombatSystem {
                         target.applyStun(new BlockingStun(StunKind.FROZEN));
                     }
                     if (target.hp <= 0) {
-                        for (PlantAbilityConfig ability : target.abilities) {
-                            ability.onDeath(target, null, state, eventBus);
-                            if (ability instanceof PlantDefenderAbility defender) {
-                                defender.onDeath(target, state, eventBus);
-                            }
-                        }
                         eventBus.publish(new PlantDiedEvent(target));
                     }
                 }
@@ -171,7 +157,8 @@ public class CombatSystem {
                                 && !zombie.isHypnotized && Math.abs(zombie.position.x - z.position.x) < ReadOnlyGameState.ZOMBIE_ATTACK_RANGE)
                         .min(Comparator.comparingDouble(zombie -> zombie.position.x - z.position.x)).orElse(null);
                 if (targetZombie == null) continue;
-                targetZombie.takeDamage(z.type.baseStats.eatDPS / 10);
+                targetZombie.takeDamage((int)(z.getDPS() / 10));
+                z.isEating = true;
                 if(!targetZombie.isAlive) {
                     targetZombie.onDeath(state);
                 }
@@ -179,23 +166,18 @@ public class CombatSystem {
             }
             Plant targetPlant = findPlantAt(state, z.row, z.position.x);
             if (targetPlant != null) {
+                if(z.type== ZombieType.WIZARD_ZOMBIE){
+                    targetPlant.applyStun(new CatStun(z)); //wizard don't eat plants
+                    continue;
+                }
                 if (!targetPlant.canBeEaten() || !targetPlant.canBeDamaged()) {
                     continue;
                 }
-                targetPlant.hp -= z.type.baseStats.eatDPS / 10;
-                for (PlantAbilityConfig ability : targetPlant.abilities) {
-                    if (ability instanceof PlantDefenderAbility defender) {
-                        defender.onDamaged(targetPlant, z, state, eventBus);
-                    }
-                }
+                targetPlant.hp -=(int) z.getDPS() / 10;
+                z.isEating = true;
                 if (targetPlant.hp <= 0) {
-                    for (PlantAbilityConfig ability : targetPlant.abilities) {
-                        ability.onDeath(targetPlant, z, state, eventBus);
-                        if (ability instanceof PlantDefenderAbility defender) {
-                            defender.onDeath(targetPlant, state, eventBus);
-                        }
-                    }
                     state.plants.remove(targetPlant);
+                    z.isEating = false;
                     eventBus.publish(new PlantDiedEvent(targetPlant));
                 }
                 break;
@@ -220,7 +202,7 @@ public class CombatSystem {
                 break;
             case ICE, ICE_MELON:
                 if(freezeProjectilesEnabled) {
-                    new FreezeEffect(30 + projectile.effectDurationBonus).apply(zombie, state, eventBus);
+                    new FreezeEffect(30).apply(zombie, state, eventBus);
                 }
                 break;
             case POISON:
@@ -235,7 +217,7 @@ public class CombatSystem {
                 if(!freezeProjectilesEnabled) break;
                 for(Zombie z : state.zombies) {
                     if(z.row == projectile.row){
-                        new FreezeEffect(30 + projectile.effectDurationBonus).apply(z, state, eventBus);
+                        new FreezeEffect(30).apply(z, state, eventBus);
                     }
                 }
                 break;

@@ -11,6 +11,7 @@ import model.board.Tile;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
+import model.core.SessionEnd;
 import model.data.pool.ZombiePool;
 import model.data.wave.LevelConfig;
 import model.data.wave.ZombieSpawn;
@@ -30,6 +31,7 @@ public class WaveManager {
     private int totalWaves = 0;
     private boolean finalWave = false;
     private boolean waveActive = false;
+    private boolean finalWaveComplete = false;
 
     private Set<Integer> currentWaveZombieIds = new HashSet<>();
     private int totalZombiesInWave = 0;
@@ -45,11 +47,12 @@ public class WaveManager {
                 ? ZombiePool.forChapter(config.chapterType)
                 : ZombiePool.fromTypes(config.availableZombies);
         this.waveActive = false;
+        this.finalWaveComplete = false;
         clearWaveTracking();
     }
 
     public void update(GameState state, EventBus eventBus) {
-        if (state.isGameOver())
+        if (state.isGameOver() || state.isLevelComplete())
             return;
         if (levelConfig == null)
             return;
@@ -71,12 +74,17 @@ public class WaveManager {
             if (shouldStartNextWave(state)) {
                 if (state.getCurrentWave() >= totalWaves) {
                     waveActive = false;
+                    finalWaveComplete = true;
                     eventBus.publish(new WaveCompleteEvent(state.getCurrentWave(), true));
                 } else {
                     eventBus.publish(new WaveCompleteEvent(state.getCurrentWave(), false));
                     startNextWave(state, eventBus);
                 }
             }
+        }
+
+        if (finalWaveComplete && !hasAliveZombies(state)) {
+            SessionEnd.win(state, eventBus);
         }
     }
 
@@ -243,5 +251,14 @@ public class WaveManager {
 
     public boolean isWaveActive() {
         return waveActive;
+    }
+
+    private boolean hasAliveZombies(GameState state) {
+        for (Zombie zombie : state.getZombies()) {
+            if (zombie.isAlive) {
+                return true;
+            }
+        }
+        return false;
     }
 }
