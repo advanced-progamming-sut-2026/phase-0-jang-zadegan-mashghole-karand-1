@@ -88,6 +88,10 @@ public enum Commands {
     BREAK_VASE("break\\s+vase\\s+-l\\s*\\(\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)\\s*\\)"),
     SHOW_HELD_SEEDS("show\\s+held\\s+seeds"),
 
+    // i, zombie commands
+    PLACE_ZOMBIE("place\\s+zombie\\s+-t\\s+(?<type>.*?)\\s+-l\\s*\\(\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)\\s*\\)"),
+    SHOW_AVAILABLE_ZOMBIES("show\\s+available\\s+zombies"),
+
     // zombie commands
     ZOMBIES_INFO("zombies\\s+info"),
     CHEAT_SPAWN_ZOMBIE("cheat\\s+spawn-zombie\\s+-t\\s+(?<zombietype>.*?)\\s+-l\\s*(?<x>\\d+)\\s*,\\s*(?<y>\\d+)"),

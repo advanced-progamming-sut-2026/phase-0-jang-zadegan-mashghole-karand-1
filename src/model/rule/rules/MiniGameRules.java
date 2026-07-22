@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import model.data.content.minigame.MiniGameType;
 import model.rule.LevelRule;
+import model.rule.rules.minigame.IZombieRules;
 import model.rule.rules.minigame.VaseBreakerRules;
 import model.rule.rules.minigame.WallnutBowlingRules;
 
@@ -21,7 +22,7 @@ public class MiniGameRules {
                 rules.add(new WallnutBowlingRules());
                 break;
             case I_ZOMBIE:
-                // will implement later
+                rules.add(new IZombieRules());
                 break;
             case BEGHOULED:
                 // will implement later

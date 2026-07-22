@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Collections;
 
 import model.data.Barrel.Barrel;
+import model.data.brain.Brain;
 import model.data.plant.Plant;
 import model.data.projectile.Projectile;
 import model.data.seed.PlantSeedDrop;
@@ -23,6 +24,9 @@ public class GameState implements ReadOnlyGameState {
     public List<Vase> vases = new ArrayList<>();
     public List<PlantSeedDrop> seedDrops = new ArrayList<>();
     public List<Barrel> barrels = new ArrayList<>();
+    public List<Brain> brains = new ArrayList<>();
+    /** When true, reaching the left collects a brain instead of causing game over. */
+    public boolean brainsMode = false;
     private GameBoard board = new GameBoard(GameState.GRID_ROWS, GameState.GRID_COLS, this);
 
     public int sunAmount = INITIAL_SUN_AMOUNT;
@@ -68,6 +72,30 @@ public class GameState implements ReadOnlyGameState {
     @Override
     public List<PlantSeedDrop> getSeedDrops() {
         return Collections.unmodifiableList(seedDrops);
+    }
+
+    @Override
+    public List<Brain> getBrains() {
+        return Collections.unmodifiableList(brains);
+    }
+
+    @Override
+    public boolean isBrainsMode() {
+        return brainsMode;
+    }
+
+    public Brain getBrainAtRow(int row) {
+        return brains.stream().filter(b -> b.row == row).findFirst().orElse(null);
+    }
+
+    public int getCollectedBrainCount() {
+        int count = 0;
+        for (Brain brain : brains) {
+            if (brain.isCollected()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     @Override
@@ -150,6 +178,8 @@ public class GameState implements ReadOnlyGameState {
         seedDrops.clear();
         board.reset();
         barrels.clear();
+        brains.clear();
+        brainsMode = false;
         sunAmount = INITIAL_SUN_AMOUNT;
         plantFoodAmount = 0;
         currentWave = 0;

@@ -11,9 +11,14 @@ import model.data.plant.PlantStats;
 import model.data.plant.PlantType;
 import model.data.seed.PlantSeedDrop;
 import model.data.vase.Vase;
+import model.data.zombie.Zombie;
+import model.data.zombie.ZombieType;
 import model.events.PlantPlacedEvent;
 import model.events.SeedCollectedEvent;
 import model.events.ZombieDroppedLootEvent;
+import model.events.ZombieSpawnedEvent;
+import model.core.Position;
+import model.data.content.minigame.IZombieShop;
 import model.rule.LevelRule;
 import model.rule.RuleEngine;
 import model.rule.SessionConfig;
@@ -243,6 +248,36 @@ public class ModelManager {
         sessionContext.addHeldSeed(seed.plantType);
         state.seedDrops.remove(seed);
         eventBus.publish(new SeedCollectedEvent(seed));
+        return true;
+    }
+
+    public boolean placeZombie(int row, int col, ZombieType type) {
+        if (!ruleEngine.canPlaceZombies()) {
+            return false;
+        }
+        if (type == null || !IZombieShop.isPurchasable(type)) {
+            return false;
+        }
+        if (!ruleEngine.canPlaceZombie(type, row, col, state, sessionContext)) {
+            return false;
+        }
+        int cost = IZombieShop.getCost(type);
+        if (state.sunAmount < cost) {
+            return false;
+        }
+
+        Zombie zombie = new Zombie(
+                type,
+                row,
+                col,
+                new Position(
+                        col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f,
+                        row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),
+                eventBus);
+        state.sunAmount -= cost;
+        state.addZombie(zombie);
+        eventBus.publish(new ZombieSpawnedEvent(zombie));
+        ruleEngine.onZombieSpawned(zombie, sessionContext, state);
         return true;
     }
 

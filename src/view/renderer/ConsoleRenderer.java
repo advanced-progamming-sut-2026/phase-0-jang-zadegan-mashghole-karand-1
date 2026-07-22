@@ -873,6 +873,20 @@ public class ConsoleRenderer implements Renderer {
 
     private String getHUD(ReadOnlyGameState state) {
         String status = state.isGameOver() ? "💀" : state.isLevelComplete() ? "⭐" : "▶️";
+        if (state.isBrainsMode()) {
+            long brains = state.getBrains().stream().filter(b -> b.isCollected()).count();
+            String title = String.format("%s☀️ : %-4d  " +
+                            "%s🧠 : %d/%d  " +
+                            "%s🧟 : %-3d  " +
+                            "%s⏱️ %-4ds  " +
+                            CYAN + "%s" + RESET,
+                    YELLOW, state.getSunAmount(),
+                    PURPLE, brains, ReadOnlyGameState.GRID_ROWS,
+                    RED, state.getZombies().size(),
+                    WHITE, state.getTotalTicks() / GameLoop.TICKS_PER_SECOND,
+                    status);
+            return getHeaderBox(title, CYAN);
+        }
         String title = String.format("%s☀️ : %-4d  " +
                         "%s🌊 : %-3d  " +
                         "%s🧟 : %-3d  " +

@@ -3,6 +3,7 @@ package model.core;
 import java.util.List;
 
 import model.board.GameBoard;
+import model.data.brain.Brain;
 import model.data.plant.Plant;
 import model.data.projectile.Projectile;
 import model.data.seed.PlantSeedDrop;
@@ -37,6 +38,10 @@ public interface ReadOnlyGameState {
     List<Vase> getVases();
 
     List<PlantSeedDrop> getSeedDrops();
+
+    List<Brain> getBrains();
+
+    boolean isBrainsMode();
 
     int getSunAmount();
 
