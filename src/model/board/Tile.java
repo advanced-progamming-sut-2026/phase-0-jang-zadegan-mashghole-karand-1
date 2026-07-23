@@ -130,6 +130,15 @@ public class Tile {
     public boolean isPlantable(PlantType plantType) {
         if (hasPlant())
             return false;
+        if (plantType == PlantType.Hot_Potato) {
+            return type == TileType.ICE
+                    && !hasVase()
+                    && !hasBeachPost()
+                    && !hasGrave();
+        }
+        if (plantType == PlantType.Grave_Buster) {
+            return hasGrave() && !hasVase() && !hasBeachPost();
+        }
         if (type == TileType.WATER) {
             if (plantType == PlantType.Lily_Pad && hasLilyPad()) {
                 return false;

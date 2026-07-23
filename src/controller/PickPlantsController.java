@@ -49,7 +49,7 @@ public class PickPlantsController {
         return showAllPlants();
     }
 
-    public CommandResult addPlant(PlantType plantType) {
+    public CommandResult addPlant(PlantType plantType , PlantType target) {
         if (!isPlantSelectionActive()) {
             return failure("Plant selection is not available right now.");
         }
@@ -61,6 +61,12 @@ public class PickPlantsController {
         }
         if (plantType.isBowlingExclusive()) {
             return failure("Bowling plants are only used in Wall-nut Bowling.");
+        }
+        if (plantType == PlantType.Imitater){
+            if (target == null || target == PlantType.Imitater){
+                return failure("Please choose a valid target plant");
+            }
+            gameNavigation.imitatorTarget = target;
         }
         if (gameNavigation.selectedPlants.contains(plantType)) {
             return failure(ErrorMessages.PLANT_ALREADY_ADDED.getMessage());
@@ -89,6 +95,9 @@ public class PickPlantsController {
         if (!gameNavigation.selectedPlants.remove(plantType)) {
             return failure(ErrorMessages.PLANT_NOT_SELECTED.getMessage());
         }
+        if (plantType == PlantType.Imitater) {
+            gameNavigation.imitatorTarget = null;
+        }
         controllerManager.refreshView();
         return success("Removed " + plantType.name + " from your loadout.");
     }
@@ -114,7 +123,8 @@ public class PickPlantsController {
 
         SessionConfig.Builder sessionBuilder = SessionConfig.builder()
                 .levelConfig(gameNavigation.pendingLevel)
-                .selectedPlants(gameNavigation.selectedPlants);
+                .selectedPlants(gameNavigation.selectedPlants)
+                .imitatorTarget(gameNavigation.imitatorTarget);
 
         if (gameNavigation.pendingMiniGame != null) {
             sessionBuilder.miniGame(gameNavigation.pendingMiniGame);

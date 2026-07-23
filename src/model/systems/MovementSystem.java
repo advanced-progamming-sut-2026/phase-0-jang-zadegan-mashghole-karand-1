@@ -9,6 +9,7 @@ import model.core.SessionEnd;
 import model.data.brain.Brain;
 import model.data.plant.abilities.config.Direction;
 import model.data.projectile.HomingProjectile;
+import model.data.projectile.PiercingProjectile;
 import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
 import model.events.GameOverReason;
@@ -90,6 +91,10 @@ public class MovementSystem {
                     dx *= inv;
                     dy *= inv;
                 }
+                if (projectile instanceof PiercingProjectile pierce && pierce.maxRange >= 0) {
+                    float dist = (float) Math.hypot(dx, dy);
+                    pierce.traveledDistance += dist;
+                }
                 projectile.position.x += dx;
                 projectile.position.y += dy;
             }
@@ -102,7 +107,10 @@ public class MovementSystem {
                 p.position.x < 0 ||
                 p.position.y < 0 ||
                 p.row < 0 ||
-                p.row >= GameState.GRID_ROWS));
+                p.row >= GameState.GRID_ROWS)||
+                (p instanceof PiercingProjectile pp
+                        && pp.maxRange >= 0
+                        && pp.traveledDistance >= pp.maxRange * GameState.CELL_WIDTH));
         state.zombies.removeIf(z -> z.isHypnotized && z.position.x > GameState.SCREEN_WIDTH);
         state.zombies.removeIf(z -> z.position.x < -GameState.CELL_WIDTH);
     }

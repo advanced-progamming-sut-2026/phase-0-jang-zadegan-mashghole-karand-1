@@ -22,21 +22,21 @@ public class PlantMagnetEffect implements PlantEffectConfig {
     public PlantEffectConfig createInstance(Plant plant) {
         return new PlantMagnetEffect();
     }
+    @Override
+    public void onActivate(Plant plant, GameState state, EventBus event) {
+        for (Zombie z : state.zombies) {
+            if (!z.isAlive || z.armor == null || !z.armor.isIntact()) continue;
+            if (!"metallic".equals(z.armor.type.material)) continue;
+            z.armor.currentHealth = 0;
+            z.armor.isIntact = false;
+        }
+        for (PlantAbilityConfig ability : plant.abilities) {
+            ability.resetCooldown();
+        }
+    }
 
-//    @Override
-//    public void trigger(Plant plant, GameState state) {
-//        List<Zombie> allMetalZombies = state.zombies.stream()
-//                .filter(z -> z.isAlive && z.hasMetalArmor)
-//                .toList();
-//
-//        for (Zombie z : allMetalZombies) {
-//            z.hasMetalArmor = false;
-//        }
-//
-//        for (PlantAbilityConfig ability : plant.abilities) {
-//            if (ability instanceof PlantMagnetAbility magnet) {
-//                magnet.resetCooldown();
-//            }
-//        }
-//    }
+    @Override
+    public int getDurationTicks() {
+        return 0;
+    }
 }

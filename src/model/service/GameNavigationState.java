@@ -25,6 +25,7 @@ public class GameNavigationState {
     public List<ChapterType> unlockedChapters = new ArrayList<>();
     public List<PlantType> unlockedPlants = new ArrayList<>();
     public List<MiniGameType> unlockedMinigames = new ArrayList<>();
+    public PlantType imitatorTarget;
 
     public void reset() {
         phase = Phase.NONE;
@@ -34,5 +35,6 @@ public class GameNavigationState {
         pendingSpecialLevel = null;
         pendingMiniGame = null;
         selectedPlants.clear();
+        imitatorTarget = null;
     }
 }

@@ -39,7 +39,6 @@ public class GameState implements ReadOnlyGameState {
     public boolean gameOver = false;
     public boolean levelComplete = false;
     public GameOverReason gameOverReason = null;
-
     public int totalTicks = 0;
 
     @Override

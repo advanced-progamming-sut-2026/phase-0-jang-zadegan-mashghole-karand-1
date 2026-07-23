@@ -1,6 +1,7 @@
 package model.data.plant.abilities.runtime;
 
 import model.core.EventBus;
+import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
@@ -12,6 +13,8 @@ import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
 import model.data.zombie.Zombie;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -33,7 +36,7 @@ public class PlantHomingAbility implements PlantAbilityConfig {
     @Override
     public PlantAbilityConfig createInstance(Plant plant) {
         int finalDamage = damage + plant.damage - plant.type.baseStats.damage;
-        return new PlantHomingAbility(finalDamage, cooldownSeconds, projectileType, strategy);
+        return new PlantHomingAbility(finalDamage, plant.actionInterval, projectileType, strategy);
     }
 
     @Override
@@ -50,15 +53,22 @@ public class PlantHomingAbility implements PlantAbilityConfig {
         }
 
         Zombie target = null;
-        if (this.strategy == TargetStrategy.CLOSEST) {
+        if (plant.upgradeState.targetPriorityBonus>0){
+                target = Collections.max(
+                        aliveZombies,
+                        Comparator.comparingInt(this::priority)
+                );
+
+        }
+        else if (this.strategy == TargetStrategy.CLOSEST) {
             target = aliveZombies.stream()
                     .min((z1, z2) -> Float.compare(plant.getX() - z1.position.x, plant.getX() - z2.position.x))
                     .orElse(null);
         } else if (this.strategy == TargetStrategy.RANDOM) {
             target = aliveZombies.get(new Random().nextInt(aliveZombies.size()));
         }
-        if (target!=null){
-            Position ps = new Position(plant.getX(),plant.getY());
+        if (target != null) {
+            Position ps = new Position(plant.getX(), plant.getY());
             Projectile pj = new HomingProjectile(
                     damage,
                     ps,
@@ -70,11 +80,20 @@ public class PlantHomingAbility implements PlantAbilityConfig {
                     target
             );
             state.projectiles.add(pj);
+            currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
         }
     }
-
+    private int priority(Zombie zombie) {
+        return switch (zombie.type) {
+            case GARGANTUAR -> 4;
+            case KING -> 3;
+            case IMP  -> 2;
+            case BASIC -> 1;
+            default -> 0;
+        };
+    }
     @Override
     public void resetCooldown() {
-        PlantAbilityConfig.super.resetCooldown();
+        currentCooldown = 0;
     }
 }

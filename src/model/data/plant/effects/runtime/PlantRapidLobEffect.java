@@ -1,7 +1,11 @@
 package model.data.plant.effects.runtime;
 
+import model.core.EventBus;
+import model.core.GameLoop;
+import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.plant.abilities.runtime.PlantLobAbility;
+import model.data.plant.abilities.runtime.PlantShootAbility;
 import model.data.plant.effects.config.PlantEffectConfig;
 
 import java.util.ArrayList;
@@ -26,5 +30,17 @@ public class PlantRapidLobEffect implements PlantEffectConfig {
         }
 
         return runtimeEffect;
+    }
+    @Override
+    public int getDurationTicks() {
+        return (int) (duration * GameLoop.TICKS_PER_SECOND);
+    }
+
+    @Override
+    public void onTick(Plant plant, GameState state, EventBus event) {
+        for (PlantLobAbility a : runtimeAbilities) {
+            a.resetCooldown();
+            a.onTick(plant, state, event);
+        }
     }
 }

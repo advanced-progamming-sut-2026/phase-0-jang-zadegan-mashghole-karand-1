@@ -9,6 +9,8 @@ import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantStats;
 import model.data.plant.PlantType;
+import model.data.plant.abilities.config.PlantAbilityConfig;
+import model.data.plant.abilities.runtime.PlantTransformAbility;
 import model.data.seed.PlantSeedDrop;
 import model.data.vase.Vase;
 import model.data.zombie.Zombie;
@@ -50,7 +52,7 @@ public class ModelManager {
     private final SunSystem sunSystem;
     private final SeedDropSystem seedDropSystem;
     private final EffectSystem effectSystem;
-
+    private PlantType imitatorTarget;
     public ModelManager(StorageManager storage, EventBus eventBus) {
         this.state = new GameState();
         this.waveManager = new WaveManager();
@@ -66,7 +68,6 @@ public class ModelManager {
         this.sunSystem = new SunSystem(eventBus);
         this.seedDropSystem = new SeedDropSystem();
         this.effectSystem = new EffectSystem();
-
         registerEventBridges();
     }
 
@@ -152,6 +153,9 @@ public class ModelManager {
         ruleEngine.preTick(sessionContext, state, eventBus);
 
         plantAbilitySystem.update(state, eventBus);
+        for (Plant plant : state.plants) {
+            plant.tickPlantFood(state, eventBus);
+        }
         zombieAbilitySystem.update(state, eventBus);
         if (ruleEngine.shouldDropSkySun()) {
             sunSpawnSystem.update(state);
@@ -175,6 +179,7 @@ public class ModelManager {
         ruleEngine.addRules(SessionRules.resolve(config));
 
         this.sessionContext = new SessionContext(config, ruleEngine, waveManager);
+        this.imitatorTarget = config.imitatorTarget;
 
         int difficulty = GameSetting.DEFAULT_DIFFICULTY;
         User user = storage.getCurrentUser();
@@ -240,6 +245,14 @@ public class ModelManager {
         boolean shouldChargeSun = chargeSun && ruleEngine.usesSunCurrency();
 
         Plant plant = new Plant(plantType, row, col, level, eventBus);
+        if (plantType == PlantType.Imitater){
+            if (imitatorTarget == null || imitatorTarget == PlantType.Imitater)return false;
+            for (PlantAbilityConfig a : plant.abilities){
+                if (a instanceof PlantTransformAbility){
+                    ((PlantTransformAbility) a).setTargetPlant(imitatorTarget);
+                }
+            }
+        }
         if (shouldChargeSun && state.sunAmount < plant.cost)
             return false;
 
@@ -335,6 +348,7 @@ public class ModelManager {
     }
 
     public boolean pluckPlant(int row, int col) {
+        Tile tile = state.getBoard().getTile(row, col);
         Plant plant = state.getPlantAt(row, col);
         if (plant == null) {
             return false;

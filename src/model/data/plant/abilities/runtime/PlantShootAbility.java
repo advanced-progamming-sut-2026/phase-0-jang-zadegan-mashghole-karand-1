@@ -1,5 +1,6 @@
 package model.data.plant.abilities.runtime;
 
+import model.data.plant.PlantType;
 import model.data.projectile.ProjectileType;
 import model.data.plant.abilities.config.Direction;
 import model.data.plant.abilities.config.PlantAbilityConfig;
@@ -24,61 +25,69 @@ public class PlantShootAbility implements PlantAbilityConfig {
     public final float maxRange;
     public final int knockBack;
     private int currentCooldown = 0;
-
-    public PlantShootAbility(int damage, float cooldownSeconds, ProjectileType projectileType , ShootPattern shootPattern) {
-        this.damage = damage;
-        this.cooldownSeconds = cooldownSeconds;
-        this.projectileType = projectileType;
-        this.shootPattern = shootPattern;
-        this.phase = EffectPhase.ALWAYS;
-        this.pierceCount = 0;
-        this.maxRange = -1;
-        this.knockBack = 0;
+    private int lifeSpan = 0;
+    private PlantShootAbility(Builder b) {
+        this.damage = b.damage;
+        this.cooldownSeconds = b.cooldownSeconds;
+        this.projectileType = b.projectileType;
+        this.shootPattern = b.shootPattern;
+        this.pierceCount = b.pierceCount;
+        this.maxRange = b.maxRange;
+        this.knockBack = b.knockBack;
+        this.phase = b.phase;
+        this.lifeSpan = b.lifespan;
     }
-
-    public PlantShootAbility(int damage, ProjectileType projectileType, EffectPhase phase) {
-        this.damage = damage;
-        this.cooldownSeconds = 0;
-        this.projectileType = projectileType ;
-        this.shootPattern = new ShootPattern(Direction.FORWARD , 0 , 1) ;
-        this.phase = phase;
-        this.pierceCount = 0;
-        this.maxRange = -1;
-        this.knockBack = 0;
-    }
-
-    public PlantShootAbility(int damage, float cooldownSeconds, ProjectileType projectileType,
-                             ShootPattern shootPattern, int pierceCount, float maxRange,int knockBack) {
-        this.damage = damage;
-        this.cooldownSeconds = cooldownSeconds;
-        this.projectileType = projectileType;
-        this.shootPattern = shootPattern;
-        this.phase = EffectPhase.ALWAYS;
-        this.pierceCount = pierceCount;
-        this.maxRange = maxRange;
-        this.knockBack = knockBack;
-    }
-    public PlantShootAbility(int damage, float cooldownSeconds, ProjectileType projectileType,
-                             ShootPattern shootPattern, int pierceCount, float maxRange) {
-        this.damage = damage;
-        this.cooldownSeconds = cooldownSeconds;
-        this.projectileType = projectileType;
-        this.shootPattern = shootPattern;
-        this.phase = EffectPhase.ALWAYS;
-        this.pierceCount = pierceCount;
-        this.maxRange = maxRange;
-        this.knockBack = 0;
+    public static Builder builder() { return new Builder(); }
+    public static class Builder {
+        private int damage;
+        private float cooldownSeconds = 1.5f;
+        private ProjectileType projectileType = ProjectileType.PEA;
+        private ShootPattern shootPattern = new ShootPattern(Direction.FORWARD, 0, 1);
+        private int pierceCount = 0;
+        private float maxRange = -1;
+        private int knockBack = 0;
+        private int lifespan = 0;
+        private EffectPhase phase = EffectPhase.ALWAYS;
+        public Builder damage(int v) { damage = v; return this; }
+        public Builder cooldown(float v) { cooldownSeconds = v; return this; }
+        public Builder projectile(ProjectileType v) { projectileType = v; return this; }
+        public Builder pattern(ShootPattern v) { shootPattern = v; return this; }
+        public Builder pierce(int v) { pierceCount = v; return this; }
+        public Builder maxRange(float v) { maxRange = v; return this; }
+        public Builder knockBack(int v) { knockBack = v; return this; }
+        public Builder phase(EffectPhase v) { phase = v; return this; }
+        public Builder lifespan(int v){ lifespan = v; return this;}
+        public PlantShootAbility build() {
+            return new PlantShootAbility(this);
+        }
     }
 
     public PlantShootAbility createInstance(Plant plant) {
         int finalDamage = damage + plant.damage - plant.type.baseStats.damage;
-        int cooldownTicks = (int) (plant.actionInterval * 10);
-
-        return new PlantShootAbility(finalDamage, cooldownTicks, projectileType , shootPattern,pierceCount,maxRange);
-    }
+        int finalPierce = pierceCount + plant.upgradeState.pierceBonus;
+        float finalRange = maxRange + plant.upgradeState.rangeBonus;
+        if (projectileType == ProjectileType.POISON) {
+            finalDamage += plant.upgradeState.poisonDamagePerTickBonus;
+        }
+        int finalSpan = ( lifeSpan + plant.upgradeState.lifeSpanBonus) * 10;
+        return PlantShootAbility.builder()
+                .damage(finalDamage)
+                .cooldown(plant.actionInterval)
+                .projectile(projectileType)
+                .pattern(shootPattern)
+                .pierce(finalPierce)
+                .maxRange(finalRange)
+                .knockBack(knockBack)
+                .phase(phase)
+                .lifespan(finalSpan)
+                .build();    }
 
     @Override
     public void onTick(Plant plant, GameState state, EventBus event) {
+        if (lifeSpan > 0) {
+            lifeSpan--;
+            if (lifeSpan <= 0) plant.hp = 0;
+        }
         if (currentCooldown > 0) {
             currentCooldown--;
             return;
@@ -88,7 +97,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
                 .anyMatch(z -> z.row == targetRow && z.isAlive);
 
         if (hasZombie && targetRow >= 0 && targetRow < 5) {
-            for (int i = 0 ; i < shootPattern.getBulletCount(); i++) {
+            for (int i = 0; i < shootPattern.getBulletCount(); i++) {
                 int xOffset = 40 - (i * 20);
                 Position bulletPosition = new Position(plant.getX() + xOffset, plant.getY());
                 Projectile p;
@@ -117,6 +126,8 @@ public class PlantShootAbility implements PlantAbilityConfig {
                             projectileType,
                             ProjectileTarget.ZOMBIE
                     );
+                    p.effectDurationBonus = plant.upgradeState.effectDurationBonus;
+
                 }
 
                 p.setDirection(shootPattern.getDir());
@@ -126,6 +137,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
         }
     }
+
     public void resetCooldown() {
         currentCooldown = 0;
     }

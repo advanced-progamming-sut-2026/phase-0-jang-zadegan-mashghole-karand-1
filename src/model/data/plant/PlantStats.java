@@ -38,7 +38,12 @@ public final class PlantStats {
                 case HP -> hp += upgrade.getIntValue();
                 case DAMAGE -> damage += upgrade.getIntValue();
                 case COST -> cost = Math.max(0, cost + upgrade.getIntValue());
-                case COOLDOWN -> actionInterval = Math.max(0, actionInterval + upgrade.getIntValue());
+                case COOLDOWN -> {
+                    if (type.baseStats.actionInterval > 0)
+                        actionInterval = Math.max(0, actionInterval + upgrade.getIntValue());
+                    else
+                        recharge = Math.max(0, recharge + upgrade.getIntValue());
+                }
                 default -> {
                 }
             }

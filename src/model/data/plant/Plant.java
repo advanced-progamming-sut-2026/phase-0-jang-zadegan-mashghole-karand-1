@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.core.EventBus;
+import model.core.GameLoop;
 import model.core.GameState;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.plant.stuns.PlantStun;
 import model.data.plant.upgrades.PlantLevelUpgrade;
+import model.data.plant.upgrades.PlantUpgradeState;
 
 public class Plant {
     private static final int DOUBLE_SUN_DROP_CHANCE = 25;
@@ -48,6 +50,8 @@ public class Plant {
     private boolean isFrostbiteFreezeActive = false;
 
     private PlantStun activeStun;
+    public final PlantUpgradeState upgradeState;
+
 
     public Plant(PlantType type, int row, int col, int level, EventBus bus) {
         this.instanceId = nextId++;
@@ -55,55 +59,26 @@ public class Plant {
         this.row = row;
         this.col = col;
         this.level = Math.min(level, 4);
+        this.upgradeState = new PlantUpgradeState(type, this.level);
 
-        this.totalHP = type.baseStats.hp;
-        this.hp = type.baseStats.hp;
-        this.cost = type.baseStats.cost;
-        this.damage = type.baseStats.damage;
-        this.actionInterval = type.baseStats.actionInterval;
-
+        this.totalHP = upgradeState.totalHP;
+        this.hp = upgradeState.hp;
+        this.cost = upgradeState.cost;
+        this.damage = upgradeState.damage;
+        this.actionInterval = upgradeState.actionInterval;
         this.eventBus = bus;
-
-        applyLevelUpgrades();
-
+        this.doubleSunChance = upgradeState.doubleSunChance;
+        this.resetFamilyCooldowns = upgradeState.resetFamilyCooldowns;
         for (PlantAbilityConfig def : type.abilities) {
             PlantAbilityConfig ability = def.createInstance(this);
             if (ability != null) {
                 abilities.add(ability);
-                // ability.onAttach(this);
+//                 ability.onAttach(this);
             }
         }
 
         if (type.plantFoodEffect != null) {
             this.plantFoodEffect = type.plantFoodEffect.createInstance(this);
-        }
-    }
-
-    private void applyLevelUpgrades() {
-        List<PlantLevelUpgrade> upgrades = type.levelUpgrades.getForLevel(level);
-
-        for (PlantLevelUpgrade upgrade : upgrades) {
-            switch (upgrade.stat) {
-                case HP:
-                    this.totalHP += upgrade.getIntValue();
-                    break;
-                case DAMAGE:
-                    this.damage += upgrade.getIntValue();
-                    break;
-                case COST:
-                    this.cost = Math.max(0, this.cost + upgrade.getIntValue());
-                    break;
-                case COOLDOWN:
-                    this.actionInterval = Math.max(0, this.actionInterval + upgrade.getIntValue());
-                    break;
-                case DOUBLE_SUN_CHANCE:
-                    this.doubleSunChance = DOUBLE_SUN_DROP_CHANCE;
-                    break;
-                case RESET_FAMILY_COOLDOWN:
-                    this.resetFamilyCooldowns = true;
-                    break;
-                // ...
-            }
         }
     }
 
@@ -122,6 +97,7 @@ public class Plant {
             GameState state,
             EventBus event,
             int durationTicks) {
+        int fianlDuration = durationTicks + upgradeState.plantFoodDurationBonus * GameLoop.TICKS_PER_SECOND;
         if (plantFoodEffect == null || isPlantFoodActive) {
             return false;
         }
@@ -129,21 +105,21 @@ public class Plant {
             return false;
         }
         plantFoodEffect.onActivate(this, state, event);
-        if (durationTicks > 0) {
+        if (fianlDuration > 0) {
             isPlantFoodActive = true;
-            plantFoodDuration = durationTicks;
+            plantFoodDuration = fianlDuration;
         }
         return true;
     }
 
-    public void tickPlantFood() {
+    public void tickPlantFood(GameState state, EventBus bus) {
         if (isPlantFoodActive) {
             plantFoodDuration--;
-            // plantFoodEffect.onTick(this, state, bus);
+            plantFoodEffect.onTick(this, state, bus);
 
             if (plantFoodDuration <= 0) {
                 isPlantFoodActive = false;
-                // plantFoodEffect.onDeactivate(this);
+                plantFoodEffect.onDeactivate(this, state, bus);
             }
         }
     }
@@ -199,6 +175,7 @@ public class Plant {
     public int getFrostbiteFreezeHP() {
         return frostbiteFreezeHP;
     }
+
     public void applyStun(PlantStun stun) {
         if (activeStun != null) {
             activeStun.onRemove(this);
@@ -208,33 +185,41 @@ public class Plant {
             activeStun.onApply(this);
         }
     }
+
     public void clearStun() {
         if (activeStun != null) {
             activeStun.onRemove(this);
             activeStun = null;
         }
     }
+
     public PlantStun getActiveStun() {
         return activeStun;
     }
+
     public boolean canAttack() {
         return activeStun == null || activeStun.canAttack();
     }
+
     public boolean canUseAbilities() {
         return activeStun == null || activeStun.canUseAbilities();
     }
+
     public boolean canBeDamaged() {
         return activeStun == null || activeStun.canBeDamaged();
     }
+
     public boolean canBeEaten() {
         if (hasTag(PlantTag.BOWLING)) {
             return false;
         }
         return activeStun == null || activeStun.canBeEaten();
     }
+
     public boolean blocksProjectile(model.data.projectile.Projectile projectile) {
         return activeStun != null && activeStun.blocksProjectile(projectile);
     }
+
     public void receiveAllyHit(int damage) {
         if (activeStun != null) {
             activeStun.onHitByAlly(this, damage);
