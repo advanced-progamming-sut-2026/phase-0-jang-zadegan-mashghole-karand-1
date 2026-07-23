@@ -6,11 +6,11 @@ import model.data.content.chapter.ChapterCatalog;
 import model.data.content.chapter.ChapterType;
 import model.data.content.minigame.MiniGameCatalog;
 import model.data.content.minigame.MiniGameType;
-import model.data.content.specialLevel.SpecialLevelCatalog;
 import model.data.content.specialLevel.SpecialLevelType;
 import model.data.plant.PlantType;
 import model.data.wave.LevelConfig;
 import model.rule.SessionConfig;
+import model.rule.SessionRules;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
@@ -95,13 +95,21 @@ public class GameMenuController {
 
         gameNavigation.selectedLevel = levelNumber;
         gameNavigation.pendingLevel = level;
+        gameNavigation.pendingMiniGame = null;
         gameNavigation.selectedPlants.clear();
 
         SpecialLevelType special = level.specialLevelType;
         gameNavigation.pendingSpecialLevel = special;
 
-        if (SpecialLevelCatalog.skipsPlantSelection(special)) {
-            return startConveyorSession(special);
+        SessionConfig.Builder probe = SessionConfig.builder()
+                .levelConfig(level)
+                .selectedPlants(List.of());
+        if (special != null) {
+            probe.specialLevel(special);
+        }
+
+        if (SessionRules.skipsPlantSelection(probe.build())) {
+            return startSessionSkippingPlantSelection(special);
         }
 
         gameNavigation.phase = Phase.PLANT;
@@ -139,34 +147,53 @@ public class GameMenuController {
             return failure("Minigame configuration missing.");
         }
 
-        SessionConfig session = SessionConfig.builder()
+        gameNavigation.pendingMiniGame = type;
+        gameNavigation.pendingLevel = levelConfig;
+        gameNavigation.pendingSpecialLevel = null;
+        gameNavigation.selectedPlants.clear();
+
+        SessionConfig probe = SessionConfig.builder()
                 .miniGame(type)
                 .levelConfig(levelConfig)
                 .selectedPlants(List.of())
                 .build();
 
-        model.startSession(session);
-        storage.recordGamePlayed();
-        gameNavigation.reset();
-        controllerManager.setScreen(ScreenType.GAME);
-        return success(MiniGameCommands.displayName(type) + " started!");
+        if (SessionRules.skipsPlantSelection(probe)) {
+            model.startSession(probe);
+            storage.recordGamePlayed();
+            gameNavigation.reset();
+            controllerManager.setScreen(ScreenType.GAME);
+            return success(MiniGameCommands.displayName(type) + " started!");
+        }
+
+        gameNavigation.phase = Phase.PLANT;
+        controllerManager.refreshView();
+        return success(MiniGameCommands.displayName(type) + " selected. Pick your plants.");
     }
 
-    private CommandResult startConveyorSession(SpecialLevelType special) {
-        List<PlantType> conveyorPlants = storage.getUnlockedPlants().stream()
-                .filter(p -> !p.isBowlingExclusive())
-                .toList();
-        SessionConfig session = SessionConfig.builder()
-                .levelConfig(gameNavigation.pendingLevel)
-                .specialLevel(special)
-                .selectedPlants(conveyorPlants)
-                .build();
+    private CommandResult startSessionSkippingPlantSelection(SpecialLevelType special) {
+        List<PlantType> plants = List.of();
+        if (special == SpecialLevelType.CONVEYOR_BELT) {
+            plants = storage.getUnlockedPlants().stream()
+                    .filter(p -> !p.isBowlingExclusive())
+                    .toList();
+        }
 
-        model.startSession(session);
+        SessionConfig.Builder sessionBuilder = SessionConfig.builder()
+                .levelConfig(gameNavigation.pendingLevel)
+                .selectedPlants(plants);
+        if (special != null) {
+            sessionBuilder.specialLevel(special);
+        }
+
+        model.startSession(sessionBuilder.build());
         storage.recordGamePlayed();
         gameNavigation.reset();
         controllerManager.setScreen(ScreenType.GAME);
-        return success("Conveyor Belt started! Plants will be offered every 12 seconds.");
+        if (special == SpecialLevelType.CONVEYOR_BELT) {
+            return success("Conveyor Belt started! Plants will be offered every 12 seconds.");
+        }
+        return success("Game started!");
     }
 
     public CommandResult CHEAT_add_coin(int amount) {

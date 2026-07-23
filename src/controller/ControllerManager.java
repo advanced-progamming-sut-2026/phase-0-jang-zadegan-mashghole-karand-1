@@ -321,6 +321,15 @@ public class ControllerManager {
                 return new CommandResult("Returned to register menu.", true);
             case LEVEL_SELECTOR:
                 if (gameNavigation.phase == Phase.PLANT) {
+                    if (gameNavigation.pendingMiniGame != null) {
+                        gameNavigation.phase = Phase.MINIGAME;
+                        gameNavigation.pendingMiniGame = null;
+                        gameNavigation.pendingLevel = null;
+                        gameNavigation.pendingSpecialLevel = null;
+                        gameNavigation.selectedPlants.clear();
+                        refreshView();
+                        return new CommandResult("Returned to minigame selection.", true);
+                    }
                     gameNavigation.phase = Phase.LEVEL;
                     gameNavigation.selectedPlants.clear();
                     refreshView();

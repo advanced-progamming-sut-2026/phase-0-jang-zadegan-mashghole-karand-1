@@ -24,13 +24,10 @@ import model.events.ZombieDroppedLootEvent;
 import model.events.ZombieSpawnedEvent;
 import model.core.Position;
 import model.data.content.minigame.IZombieShop;
-import model.rule.LevelRule;
 import model.rule.RuleEngine;
 import model.rule.SessionConfig;
 import model.rule.SessionContext;
-import model.rule.rules.ChapterRules;
-import model.rule.rules.MiniGameRules;
-import model.rule.rules.SpecialLevelRules;
+import model.rule.SessionRules;
 import model.gameSetting.GameSetting;
 import model.storage.StorageManager;
 import model.storage.user.User;
@@ -168,21 +165,7 @@ public class ModelManager {
         state.reset();
         state.sunAmount = config.levelConfig.startingSun;
         ruleEngine.clearRules();
-
-        if (!config.isMinigame()) {
-            List<LevelRule> chapterRules = ChapterRules.forChapter(config.levelConfig.chapterType);
-            ruleEngine.addRules(chapterRules);
-        }
-
-        if (config.isSpecial()) {
-            List<LevelRule> specialRules = SpecialLevelRules.forSpecialLevel(config.specialLevelType);
-            ruleEngine.addRules(specialRules);
-        }
-
-        if (config.isMinigame()) {
-            List<LevelRule> minigameRules = MiniGameRules.forMiniGame(config.miniGameType);
-            ruleEngine.addRules(minigameRules);
-        }
+        ruleEngine.addRules(SessionRules.resolve(config));
 
         this.sessionContext = new SessionContext(config, ruleEngine, waveManager);
 
@@ -249,7 +232,7 @@ public class ModelManager {
         if (shouldChargeSun && state.sunAmount < plant.cost)
             return false;
 
-        state.plants.add(plant);
+        state.addPlant(plant);
         if (shouldChargeSun) {
             state.sunAmount -= plant.cost;
         }
@@ -345,7 +328,7 @@ public class ModelManager {
         if (plant == null) {
             return false;
         }
-        state.plants.remove(plant);
+        state.removePlant(plant);
         return true;
     }
 

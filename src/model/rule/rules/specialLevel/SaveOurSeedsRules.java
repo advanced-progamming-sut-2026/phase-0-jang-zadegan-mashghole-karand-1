@@ -40,7 +40,7 @@ public class SaveOurSeedsRules implements LevelRule {
 
                 if (type != null && state.getBoard().getTile(row, PROTECTED_COL).isPlantable(type)) {
                     Plant plant = new Plant(type, row, PROTECTED_COL, 1, bus);
-                    state.plants.add(plant);
+                    state.addPlant(plant);
                     protectedPlantIds.add(plant.instanceId);
                     placed++;
                 }

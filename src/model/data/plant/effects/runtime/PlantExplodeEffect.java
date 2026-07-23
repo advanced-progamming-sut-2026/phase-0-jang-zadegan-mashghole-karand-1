@@ -103,7 +103,7 @@ public class PlantExplodeEffect implements PlantEffectConfig{
             int col = tile[1];
             Plant clone = new Plant(plant.type, row, col, plant.level, plant.eventBus);
             armPlant(clone);
-            state.plants.add(clone);
+            state.addPlant(clone);
         }
     }
 }

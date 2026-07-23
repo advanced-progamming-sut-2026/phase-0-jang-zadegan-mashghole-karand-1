@@ -57,7 +57,7 @@ public final class ChapterCatalog {
                 normalLevel(chapter, 1),
                 normalLevel(chapter, 2),
                 specialLevel(chapter, 3, SpecialLevelType.LOVE_YOUR_PLANTS),
-                specialLevel(chapter, 4, SpecialLevelType.TIMED_WAR)));
+                specialLevel(chapter, 4, SpecialLevelType.NIGHT_OPS)));
     }
 
     private static ChapterDefinition bigWaveBeach() {
@@ -65,8 +65,8 @@ public final class ChapterCatalog {
         return new ChapterDefinition(chapter, List.of(
                 normalLevel(chapter, 1),
                 normalLevel(chapter, 2),
-                specialLevel(chapter, 3, SpecialLevelType.DEAD_LINE),
-                specialLevel(chapter, 4, SpecialLevelType.LOCKED_PLANTS)));
+                specialLevel(chapter, 3, SpecialLevelType.NIGHT_OPS),
+                specialLevel(chapter, 4, SpecialLevelType.CONVEYOR_BELT)));
     }
 
     private static ChapterDefinition darkAges() {
@@ -74,8 +74,8 @@ public final class ChapterCatalog {
         return new ChapterDefinition(chapter, List.of(
                 normalLevel(chapter, 1),
                 normalLevel(chapter, 2),
-                specialLevel(chapter, 3, SpecialLevelType.NIGHT_OPS),
-                specialLevel(chapter, 4, SpecialLevelType.PLANT_WHAT_YOU_GET)));
+                specialLevel(chapter, 3, SpecialLevelType.SAVE_OUR_SEEDS),
+                specialLevel(chapter, 4, SpecialLevelType.LOVE_YOUR_PLANTS)));
     }
 
     private static LevelConfig normalLevel(ChapterType chapter, int number) {

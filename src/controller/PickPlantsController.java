@@ -108,7 +108,9 @@ public class PickPlantsController {
                 .levelConfig(gameNavigation.pendingLevel)
                 .selectedPlants(gameNavigation.selectedPlants);
 
-        if (gameNavigation.pendingSpecialLevel != null) {
+        if (gameNavigation.pendingMiniGame != null) {
+            sessionBuilder.miniGame(gameNavigation.pendingMiniGame);
+        } else if (gameNavigation.pendingSpecialLevel != null) {
             sessionBuilder.specialLevel(gameNavigation.pendingSpecialLevel);
         }
 

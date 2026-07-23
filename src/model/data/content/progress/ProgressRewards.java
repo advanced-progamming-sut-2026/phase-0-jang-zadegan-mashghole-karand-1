@@ -30,7 +30,7 @@ public final class ProgressRewards {
             case ANCIENT_EGYPT -> List.of(MiniGameType.VASE_BREAKER);
             case FROSTBITE_CAVES -> List.of(MiniGameType.WALLNUT_BOWLING);
             case BIG_WAVE_BEACH -> List.of(MiniGameType.I_ZOMBIE);
-            case DARK_AGES -> List.of(MiniGameType.BEGHOULED, MiniGameType.ZOMBOTANY);
+            case DARK_AGES -> List.of();
         };
     }
 }

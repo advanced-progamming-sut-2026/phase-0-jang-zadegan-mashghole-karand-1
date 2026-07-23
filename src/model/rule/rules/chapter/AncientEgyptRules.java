@@ -31,7 +31,7 @@ public class AncientEgyptRules implements LevelRule {
 
             Tile tile = state.getBoard().getTile(row, col);
             if (tile.canSetGrave()) {
-                tile.setGrave(new Grave(row, col, GraveContent.NONE));
+                state.addGrave(new Grave(row, col, GraveContent.NONE));
                 placed++;
             }
         }
