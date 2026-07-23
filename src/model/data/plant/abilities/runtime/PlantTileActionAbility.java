@@ -2,7 +2,9 @@ package model.data.plant.abilities.runtime;
 
 import model.board.IceDirection;
 import model.core.EventBus;
+import model.core.GameLoop;
 import model.core.GameState;
+import model.data.Grave.Grave;
 import model.data.plant.Plant;
 import model.data.plant.abilities.config.AreaShape;
 import model.data.plant.abilities.config.PlantAbilityConfig;
@@ -20,20 +22,23 @@ public class PlantTileActionAbility implements PlantAbilityConfig {
     private final int ActionDuration;
     private boolean done = false;
     private int tickWait = 0;
-    public PlantTileActionAbility(TileType targetTile, AreaShape baseShape, int baseActionDuration) {
+    private final ActionTarget actionTarget;
+    public PlantTileActionAbility(ActionTarget actionTarget,TileType targetTile, AreaShape baseShape, int baseActionDuration) {
         this.targetTile = targetTile;
         this.baseShape = baseShape;
         this.ActionDuration = baseActionDuration;
+        this.actionTarget = actionTarget;
     }
 
 
     @Override
     public PlantAbilityConfig createInstance(Plant plant) {
         AreaShape shape = baseShape;
-        if (plant.upgradeState.meltArea3x3) {
+        if (plant.upgradeState.meltArea3x3 && actionTarget == ActionTarget.ICE) {
             shape = AreaShape.RADIUS_3x3;
         }
-        return new PlantTileActionAbility(targetTile,shape, ActionDuration);
+        int finalDuration = Math.max(0,ActionDuration + plant.upgradeState.cooldownBonus * GameLoop.TICKS_PER_SECOND);
+        return new PlantTileActionAbility(actionTarget,targetTile,shape, finalDuration);
     }
 
     @Override
@@ -43,7 +48,11 @@ public class PlantTileActionAbility implements PlantAbilityConfig {
             tickWait++;
             return;
         }
-        meltTiles(plant,state);
+        if (actionTarget == ActionTarget.ICE)
+             meltTiles(plant,state);
+        else if (actionTarget == ActionTarget.GRAVE) {
+            eatGrave(plant,state,event);
+        }
         if (plant.upgradeState.explodeOnFinish) {
             damageZombiesOnPlantTile(plant, state, event,  400);
         }
@@ -60,6 +69,14 @@ public class PlantTileActionAbility implements PlantAbilityConfig {
                 tile.setDirection(IceDirection.NONE);
             }
         }
+    }
+    private void eatGrave(Plant plant,GameState state,EventBus bus){
+        Grave grave = state.getGraveAt(plant.row,plant.col);
+        if (grave != null)
+            grave.destroy(state,bus);
+        Tile tile = state.getBoard().getTile(plant.row, plant.col);
+        if (tile!=null)
+            tile.removeGrave();
     }
     private List<int[]> cellsInShape(Plant plant, AreaShape shape) {
         List<int[]> cells = new ArrayList<>();

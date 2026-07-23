@@ -177,8 +177,10 @@ public class InputHandler {
             controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.ADD_PLANT.getMatcher(input)).matches()) {
             String typeStr = matcher.group(1);
+            String targetStr = matcher.group(2);
             PlantType type = PlantType.fromName(typeStr);
-            CommandResult result = controllerManager.getPickPlantsController().addPlant(type);
+            PlantType target = PlantType.fromName(targetStr);
+            CommandResult result = controllerManager.getPickPlantsController().addPlant(type,target);
             controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.REMOVE_PLANT.getMatcher(input)).matches()) {
             String typeStr = matcher.group(1);

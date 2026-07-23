@@ -31,6 +31,7 @@ public class PlantUpgradeState {
     public boolean aoeOnDeath = false;
     public boolean zombieHpBuff = false;
     public boolean zombieDamageBuff = false;
+    public boolean plantFoodOnEnteranc;
 
     public int totalHP;
     public int hp;
@@ -135,14 +136,13 @@ public class PlantUpgradeState {
                     targetPriorityBonus += upgrade.getIntValue();
                     break;
                 case FOOD_ON_ENTRANCE:
+                    plantFoodOnEnteranc = upgrade.getBoolValue();
                     break;
                 case EXPLODE_ON_FINISH:
                     explodeOnFinish = upgrade.getBoolValue();
                     break;
                 case ZOMBIE_DAMAGE_BUFF:
                     zombieDamageBuff =  upgrade.getBoolValue();
-                    break;
-                case BOUNCES_COUNT:
                     break;
                 default:
                     break;

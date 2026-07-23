@@ -2,6 +2,7 @@ package model.data.plant;
 
 import java.util.*;
 
+import model.data.Grave.Grave;
 import model.data.plant.abilities.config.*;
 import model.data.plant.abilities.effects.DamageEffect;
 import model.data.plant.abilities.effects.FreezeEffect;
@@ -847,17 +848,17 @@ public enum PlantType {
                     new PlantLevelUpgrade(4, PlantStatBonus.COST, -25)
             )
     ),
-    //    Imitater(56, "Imitater", PlantCategory.MODIFIER, null,
-//            new PlantBaseStats(0, 0, 0, 0f, 0),
-//            Arrays.asList(
-//                    new PlantTransformAbility()
-//            ),
-//            null,
-//            new PlantLevelUpgrades(
-//                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -2),
-//                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COST, -25),
-//                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.FOOD_ON_ENTRANCE, 50)
-//            )),
+        Imitater(56, "Imitater", PlantCategory.MODIFIER, null,
+            new PlantBaseStats(0, 0, 0, 0f, 0),
+            Arrays.asList(
+                    new PlantTransformAbility()
+            ),
+            null,
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -2),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COST, -25),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.FOOD_ON_ENTRANCE, true)
+            )),
     Ice_shroom(57, "Ice_shroom", PlantCategory.EXPLOSIVE, EnumSet.of(PlantTag.SHROOM, PlantTag.ICE),
             new PlantBaseStats(75, 0, 0, 0f, 50),
             Arrays.asList(
@@ -884,7 +885,7 @@ public enum PlantType {
     Hot_Potato(59, "Hot Potato", PlantCategory.EXPLOSIVE, EnumSet.of(PlantTag.FIRE),
             new PlantBaseStats(0, 0, 0, 0f, 5),
             Arrays.asList(
-                    new PlantTileActionAbility(TileType.ICE, AreaShape.SINGLE_TILE, 0)
+                    new PlantTileActionAbility(ActionTarget.ICE,TileType.ICE, AreaShape.SINGLE_TILE, 0)
             ),
             null,
             new PlantLevelUpgrades(
@@ -892,18 +893,18 @@ public enum PlantType {
                     PlantLevelUpgrade.atLevel(3, PlantStatBonus.MELT_AREA_3x3, true),
                     PlantLevelUpgrade.atLevel(4, PlantStatBonus.EXPLODE_ON_FINISH, true)
             )),
-//    Grave_Buster(60, "Grave Buster", PlantCategory.EXPLOSIVE, null,
-//            new PlantBaseStats(0, 0, 0, 0f, 10),
-//            Arrays.asList(
-//                    new PlantTileActionAbility(TileType.GRAVE, AreaShape.SINGLE_TILE, 5)
-//            ),
-//            null,
-//
-//            new PlantLevelUpgrades(
-//                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -1),
-//                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -2),
-//                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.EXPLODE_ON_FINISH, true)
-//            )),
+    Grave_Buster(60, "Grave Buster", PlantCategory.EXPLOSIVE, null,
+            new PlantBaseStats(0, 0, 0, 0f, 10),
+            Arrays.asList(
+                    new PlantTileActionAbility(ActionTarget.GRAVE, null,AreaShape.SINGLE_TILE, 5)
+            ),
+            null,
+
+            new PlantLevelUpgrades(
+                    PlantLevelUpgrade.atLevel(2, PlantStatBonus.COOLDOWN, -1),
+                    PlantLevelUpgrade.atLevel(3, PlantStatBonus.COOLDOWN, -2),
+                    PlantLevelUpgrade.atLevel(4, PlantStatBonus.EXPLODE_ON_FINISH, true)
+            )),
     Enlighten_mint(61, "Enlighten-mint", PlantCategory.MINT, null,
             new PlantBaseStats(0, 0, 0, 0, 85),
             Arrays.asList(

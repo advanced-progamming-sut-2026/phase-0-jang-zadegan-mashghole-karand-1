@@ -44,7 +44,7 @@ public class PlantHypnotizeAbility implements PlantAbilityConfig {
             z.totalHp = Math.max(z.totalHp, z.hp);
         }
         if (plant.upgradeState.zombieDamageBuff) {
-//            z. *= 1.5f;
+            z.DPS_MULTIPLIER *= 1.5f;
         }
     }
     public void setTransformToGargantuar(boolean transformToGargantuar) {
