@@ -65,7 +65,7 @@ public final class ChapterCatalog {
         return new ChapterDefinition(chapter, List.of(
                 normalLevel(chapter, 1),
                 normalLevel(chapter, 2),
-                specialLevel(chapter, 3, SpecialLevelType.NIGHT_OPS),
+                specialLevel(chapter, 3, SpecialLevelType.DEAD_LINE),
                 specialLevel(chapter, 4, SpecialLevelType.CONVEYOR_BELT)));
     }
 

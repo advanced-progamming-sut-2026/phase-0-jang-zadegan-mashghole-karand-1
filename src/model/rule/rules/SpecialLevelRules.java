@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import model.data.content.specialLevel.SpecialLevelType;
 import model.rule.LevelRule;
 import model.rule.rules.specialLevel.ConveyorBeltRules;
+import model.rule.rules.specialLevel.DeadlineRules;
 import model.rule.rules.specialLevel.LoveYourPlantsRules;
 import model.rule.rules.specialLevel.NightOpsRules;
 import model.rule.rules.specialLevel.SaveOurSeedsRules;
@@ -30,6 +31,7 @@ public class SpecialLevelRules {
                 rules.add(new NightOpsRules());
                 break;
             case DEAD_LINE:
+                rules.add(new DeadlineRules());
                 break;
             case LOVE_YOUR_PLANTS:
                 rules.add(new LoveYourPlantsRules());
