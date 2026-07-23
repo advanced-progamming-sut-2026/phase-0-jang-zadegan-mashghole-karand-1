@@ -19,6 +19,7 @@ import model.events.GlowingZombieDiedEvent;
 import model.events.PlantDiedEvent;
 import model.events.PlantPlacedEvent;
 import model.events.SeedCollectedEvent;
+import model.events.SunCollectedEvent;
 import model.events.WaveCompleteEvent;
 import model.events.WaveStartedEvent;
 import model.events.ZombieDiedEvent;
@@ -26,13 +27,11 @@ import model.events.ZombieDroppedLootEvent;
 import model.events.ZombieSpawnedEvent;
 import model.core.Position;
 import model.data.content.minigame.IZombieShop;
-import model.rule.LevelRule;
 import model.rule.RuleEngine;
 import model.rule.SessionConfig;
 import model.rule.SessionContext;
-import model.rule.rules.ChapterRules;
-import model.rule.rules.MiniGameRules;
-import model.rule.rules.SpecialLevelRules;
+import model.rule.SessionRules;
+import model.gameSetting.GameSetting;
 import model.storage.StorageManager;
 import model.storage.user.User;
 import model.systems.*;
@@ -115,6 +114,12 @@ public class ModelManager {
             }
             ruleEngine.onPlantPlaced(e.plant, state);
         });
+        eventBus.subscribe(SunCollectedEvent.class, e -> {
+            if (e == null || e.sun == null) {
+                return;
+            }
+            ruleEngine.onSunCollected(e.sun, state, eventBus);
+        });
         eventBus.subscribe(ZombieDroppedLootEvent.class, e -> {
             User user = storage.getCurrentUser();
             if (user == null) {
@@ -161,7 +166,7 @@ public class ModelManager {
         effectSystem.update(state);
         combatSystem.update(state, eventBus, ruleEngine.freezeProjectilesEnabled());
         if (ruleEngine.shouldSpawnWaves()) {
-            waveManager.update(state, eventBus);
+            waveManager.update(state, eventBus, ruleEngine.winsOnWaveClear());
         }
 
         ruleEngine.postTick(sessionContext, state, eventBus);
@@ -171,25 +176,17 @@ public class ModelManager {
         state.reset();
         state.sunAmount = config.levelConfig.startingSun;
         ruleEngine.clearRules();
-
-        if (!config.isMinigame()) {
-            List<LevelRule> chapterRules = ChapterRules.forChapter(config.levelConfig.chapterType);
-            ruleEngine.addRules(chapterRules);
-        }
-
-        if (config.isSpecial()) {
-            List<LevelRule> specialRules = SpecialLevelRules.forSpecialLevel(config.specialLevelType);
-            ruleEngine.addRules(specialRules);
-        }
-
-        if (config.isMinigame()) {
-            List<LevelRule> minigameRules = MiniGameRules.forMiniGame(config.miniGameType);
-            ruleEngine.addRules(minigameRules);
-        }
+        ruleEngine.addRules(SessionRules.resolve(config));
 
         this.sessionContext = new SessionContext(config, ruleEngine, waveManager);
         this.imitatorTarget = config.imitatorTarget;
-        waveManager.initialize(config.levelConfig);
+
+        int difficulty = GameSetting.DEFAULT_DIFFICULTY;
+        User user = storage.getCurrentUser();
+        if (user != null && user.preferredSetting != null) {
+            difficulty = user.preferredSetting.getDifficultyLevel();
+        }
+        waveManager.initialize(config.levelConfig, config.miniGameType, difficulty);
 
         ruleEngine.onSessionStart(sessionContext, state, eventBus);
 
@@ -227,6 +224,10 @@ public class ModelManager {
         return ruleEngine.canPlant(type, row, col, state, sessionContext);
     }
 
+    public boolean startDeferredWaves() {
+        return ruleEngine.startDeferredWaves();
+    }
+
     public boolean placePlant(int row, int col, PlantType plantType, int level) {
         return placePlant(row, col, plantType, level, true);
     }
@@ -255,12 +256,7 @@ public class ModelManager {
         if (shouldChargeSun && state.sunAmount < plant.cost)
             return false;
 
-        state.plants.add(plant);
-        if (plantType == PlantType.Lily_Pad) {
-            tile.setLilyPad(plant);
-        } else {
-            tile.setPlant(plant);
-        }
+        state.addPlant(plant);
         if (shouldChargeSun) {
             state.sunAmount -= plant.cost;
         }
@@ -357,12 +353,7 @@ public class ModelManager {
         if (plant == null) {
             return false;
         }
-        state.plants.remove(plant);
-        if (plant.type == PlantType.Lily_Pad){
-            tile.setLilyPad(null);
-        }else {
-            tile.setPlant(null);
-        }
+        state.removePlant(plant);
         return true;
     }
 

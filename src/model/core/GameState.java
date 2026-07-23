@@ -13,6 +13,7 @@ import model.data.seed.PlantSeedDrop;
 import model.data.sun.Sun;
 import model.data.zombie.Zombie;
 import model.board.GameBoard;
+import model.board.Tile;
 import model.data.Grave.Grave;
 import model.data.vase.Vase;
 import model.events.GameOverReason;
@@ -149,15 +150,97 @@ public class GameState implements ReadOnlyGameState {
 
     @Override
     public Plant getPlantAt(int row, int col) {
-        return plants.stream().filter(p -> p.row == row && p.col == col)
-                .filter(p -> p.type != PlantType.Lily_Pad)
-                .findFirst().orElseGet(() ->plants.stream().filter(p -> p.row == row && p.col == col)
-                                .findFirst().orElse(null)
-                        );
+        Tile tile = board.getTile(row, col);
+        if (tile != null) {
+            if (tile.getPlant() != null) {
+                return tile.getPlant();
+            }
+            if (tile.getLilyPad() != null) {
+                return tile.getLilyPad();
+            }
+        }
+        return plants.stream().filter(p -> p.row == row && p.col == col).findFirst().orElse(null);
     }
 
     public Grave getGraveAt(int row, int col) {
+        Tile tile = board.getTile(row, col);
+        if (tile != null && tile.getGrave() != null) {
+            return tile.getGrave();
+        }
         return graves.stream().filter(g -> g.row == row && g.col == col).findFirst().orElse(null);
+    }
+
+    public void addPlant(Plant plant) {
+        if (plant == null) {
+            return;
+        }
+        if (!plants.contains(plant)) {
+            plants.add(plant);
+        }
+        attachPlantToTile(plant);
+    }
+
+    public boolean removePlant(Plant plant) {
+        if (plant == null) {
+            return false;
+        }
+        boolean removed = plants.remove(plant);
+        detachPlantFromTile(plant);
+        return removed;
+    }
+
+    public void removeDeadPlants() {
+        for (int i = plants.size() - 1; i >= 0; i--) {
+            Plant plant = plants.get(i);
+            if (plant.hp <= 0 || !plant.isAlive) {
+                plants.remove(i);
+                detachPlantFromTile(plant);
+            }
+        }
+    }
+
+    public void addGrave(Grave grave) {
+        if (grave == null) {
+            return;
+        }
+        if (!graves.contains(grave)) {
+            graves.add(grave);
+        }
+        Tile tile = board.getTile(grave.row, grave.col);
+        if (tile != null) {
+            tile.setGrave(grave);
+        }
+    }
+
+    public void removeGrave(Grave grave) {
+        if (grave == null) {
+            return;
+        }
+        graves.remove(grave);
+        Tile tile = board.getTile(grave.row, grave.col);
+        if (tile != null && tile.getGrave() == grave) {
+            tile.removeGrave();
+        }
+    }
+
+    private void attachPlantToTile(Plant plant) {
+        Tile tile = board.getTile(plant.row, plant.col);
+        if (tile == null) {
+            return;
+        }
+        if (plant.type == PlantType.Lily_Pad) {
+            tile.setLilyPad(plant);
+        } else {
+            tile.setPlant(plant);
+        }
+    }
+
+    private void detachPlantFromTile(Plant plant) {
+        Tile tile = board.getTile(plant.row, plant.col);
+        if (tile == null) {
+            return;
+        }
+        tile.detachPlant(plant);
     }
 
     @Override

@@ -16,6 +16,7 @@ import model.data.seed.PlantSeedDrop;
 import model.data.vase.Vase;
 import model.data.vase.VaseContentType;
 import model.data.zombie.ZombieType;
+import model.rule.rules.specialLevel.PlantWhatYouGetRules;
 import model.storage.user.User;
 import view.ScreenType;
 
@@ -257,7 +258,32 @@ public class GameMechanismController {
         if (model.placePlant(row, col, plantType, level)) {
             return success("Planted " + plantType.name + " (Lv." + level + ") at (" + row + ", " + col + ").");
         }
+        if (isPlantWhatYouGetPlantingLocked()) {
+            return failure("Planting is locked after zombie waves have started.");
+        }
         return failure("Could not plant " + plantType.name + " at (" + row + ", " + col + ").");
+    }
+
+    public CommandResult startZombieWaves() {
+        CommandResult screenCheck = requireGameScreen();
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
+        if (model.startDeferredWaves()) {
+            return success("Zombie waves started! Planting is now locked.");
+        }
+        return failure("Zombie waves are already running or this level does not use deferred waves.");
+    }
+
+    private boolean isPlantWhatYouGetPlantingLocked() {
+        return model.getRuleEngine().getActiveRules().stream()
+                .filter(PlantWhatYouGetRules.class::isInstance)
+                .map(PlantWhatYouGetRules.class::cast)
+                .anyMatch(PlantWhatYouGetRules::hasWavesStarted);
     }
 
     public CommandResult placeConveyorPlant(int row, int col) {

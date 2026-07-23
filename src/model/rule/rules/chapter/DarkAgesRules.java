@@ -59,7 +59,7 @@ public class DarkAgesRules implements LevelRule {
 
             Tile tile = state.getBoard().getTile(row, col);
             if (tile.canSetGrave()) {
-                tile.setGrave(new Grave(row, col, decideGraveContent()));
+                state.addGrave(new Grave(row, col, decideGraveContent()));
                 placed++;
             }
         }
@@ -83,8 +83,9 @@ public class DarkAgesRules implements LevelRule {
 
             Tile tile = state.getBoard().getTile(row, col);
             if (tile.canSetGrave()) {
-                tile.setGrave(new Grave(row, col, decideGraveContent()));
-                bus.publish(new GraveCreatedEvent(tile.getGrave()));
+                Grave grave = new Grave(row, col, decideGraveContent());
+                state.addGrave(grave);
+                bus.publish(new GraveCreatedEvent(grave));
                 placed++;
             }
         }
