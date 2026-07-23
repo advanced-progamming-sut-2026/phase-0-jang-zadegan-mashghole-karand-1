@@ -79,4 +79,11 @@ public interface LevelRule {
             SessionContext context) {
         return true;
     }
+
+    default boolean winsOnWaveClear() {
+        return true;
+    }
+
+    default void onSunCollected(model.data.sun.Sun sun, GameState state, EventBus bus) {
+    }
 }

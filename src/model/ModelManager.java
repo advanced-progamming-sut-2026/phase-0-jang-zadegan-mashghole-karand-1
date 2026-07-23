@@ -17,6 +17,7 @@ import model.events.GlowingZombieDiedEvent;
 import model.events.PlantDiedEvent;
 import model.events.PlantPlacedEvent;
 import model.events.SeedCollectedEvent;
+import model.events.SunCollectedEvent;
 import model.events.WaveCompleteEvent;
 import model.events.WaveStartedEvent;
 import model.events.ZombieDiedEvent;
@@ -112,6 +113,12 @@ public class ModelManager {
             }
             ruleEngine.onPlantPlaced(e.plant, state);
         });
+        eventBus.subscribe(SunCollectedEvent.class, e -> {
+            if (e == null || e.sun == null) {
+                return;
+            }
+            ruleEngine.onSunCollected(e.sun, state, eventBus);
+        });
         eventBus.subscribe(ZombieDroppedLootEvent.class, e -> {
             User user = storage.getCurrentUser();
             if (user == null) {
@@ -155,7 +162,7 @@ public class ModelManager {
         effectSystem.update(state);
         combatSystem.update(state, eventBus, ruleEngine.freezeProjectilesEnabled());
         if (ruleEngine.shouldSpawnWaves()) {
-            waveManager.update(state, eventBus);
+            waveManager.update(state, eventBus, ruleEngine.winsOnWaveClear());
         }
 
         ruleEngine.postTick(sessionContext, state, eventBus);

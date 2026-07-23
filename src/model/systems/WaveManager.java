@@ -69,6 +69,10 @@ public class WaveManager {
     }
 
     public void update(GameState state, EventBus eventBus) {
+        update(state, eventBus, true);
+    }
+
+    public void update(GameState state, EventBus eventBus, boolean winsOnWaveClear) {
         if (state.isGameOver() || state.isLevelComplete())
             return;
         if (levelConfig == null)
@@ -100,7 +104,7 @@ public class WaveManager {
             }
         }
 
-        if (finalWaveComplete && !hasAliveZombies(state)) {
+        if (winsOnWaveClear && finalWaveComplete && !hasAliveZombies(state)) {
             SessionEnd.win(state, eventBus);
         }
     }

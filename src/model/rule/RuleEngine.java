@@ -87,6 +87,12 @@ public class RuleEngine {
         }
     }
 
+    public void onSunCollected(model.data.sun.Sun sun, GameState state, EventBus bus) {
+        for (LevelRule rule : activeRules) {
+            rule.onSunCollected(sun, state, bus);
+        }
+    }
+
     public boolean shouldDropSkySun() {
         for (LevelRule rule : activeRules) {
             if (!rule.shouldDropSkySun()) {
@@ -163,6 +169,15 @@ public class RuleEngine {
             SessionContext context) {
         for (LevelRule rule : activeRules) {
             if (!rule.canPlaceZombie(type, row, col, state, context)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean winsOnWaveClear() {
+        for (LevelRule rule : activeRules) {
+            if (!rule.winsOnWaveClear()) {
                 return false;
             }
         }

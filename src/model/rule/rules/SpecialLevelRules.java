@@ -10,6 +10,7 @@ import model.rule.rules.specialLevel.DeadlineRules;
 import model.rule.rules.specialLevel.LoveYourPlantsRules;
 import model.rule.rules.specialLevel.NightOpsRules;
 import model.rule.rules.specialLevel.SaveOurSeedsRules;
+import model.rule.rules.specialLevel.TimedWarRules;
 
 public class SpecialLevelRules {
 
@@ -26,6 +27,7 @@ public class SpecialLevelRules {
                 rules.add(new SaveOurSeedsRules());
                 break;
             case TIMED_WAR:
+                rules.add(new TimedWarRules());
                 break;
             case NIGHT_OPS:
                 rules.add(new NightOpsRules());
