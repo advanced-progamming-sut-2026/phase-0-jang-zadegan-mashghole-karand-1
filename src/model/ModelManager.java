@@ -168,7 +168,9 @@ public class ModelManager {
         if (ruleEngine.shouldSpawnWaves()) {
             waveManager.update(state, eventBus, ruleEngine.winsOnWaveClear());
         }
-
+        if (sessionContext != null) {
+            sessionContext.tickSeedCooldowns();
+        }
         ruleEngine.postTick(sessionContext, state, eventBus);
     }
 
@@ -241,7 +243,9 @@ public class ModelManager {
 
         if (!ruleEngine.canPlant(plantType, row, col, state, sessionContext))
             return false;
-
+        if (!sessionContext.isSeedReady(plantType)) {
+            return false;
+        }
         boolean shouldChargeSun = chargeSun && ruleEngine.usesSunCurrency();
 
         Plant plant = new Plant(plantType, row, col, level, eventBus);
@@ -263,7 +267,11 @@ public class ModelManager {
         if (sessionContext != null && sessionContext.hasHeldSeed(plantType)) {
             sessionContext.consumeHeldSeed(plantType);
         }
-
+        if (sessionContext != null && sessionContext.isBoosted(plantType)) {
+            plant.activatePlantFood(state, eventBus);
+        }
+        PlantStats stats = PlantStats.forLevel(plantType, level);
+        sessionContext.startSeedCooldown(plantType, stats.recharge);
         eventBus.publish(new PlantPlacedEvent(plant));
         return true;
     }
@@ -340,7 +348,8 @@ public class ModelManager {
                 new Position(
                         col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f,
                         row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),
-                eventBus);
+                eventBus,
+                state.getGlowingChance());
         state.sunAmount -= cost;
         state.addZombie(zombie);
         eventBus.publish(new ZombieSpawnedEvent(zombie));

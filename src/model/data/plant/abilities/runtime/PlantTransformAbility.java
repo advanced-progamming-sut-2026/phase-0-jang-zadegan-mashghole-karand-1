@@ -34,11 +34,8 @@ public class PlantTransformAbility implements PlantAbilityConfig {
             if (plant.upgradeState.plantFoodOnEnteranc){
                 copiedPlant.activatePlantFood(state,event);
             }
-            state.plants.add(copiedPlant);
-            Tile tile = state.getBoard().getTile(plant.row,plant.col);
-            if (tile != null){
-                tile.setPlant(copiedPlant);
-            }
+            state.removePlant(plant);
+            state.addPlant(copiedPlant);
         }
     }
 

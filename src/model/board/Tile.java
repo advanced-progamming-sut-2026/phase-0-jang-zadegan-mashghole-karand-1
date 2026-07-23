@@ -3,6 +3,7 @@ package model.board;
 import model.core.GameState;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
+import model.data.plant.PlantTag;
 import model.data.plant.PlantType;
 import model.data.vase.Vase;
 
@@ -128,6 +129,9 @@ public class Tile {
     }
 
     public boolean isPlantable(PlantType plantType) {
+        boolean isWatery = plantType.tags != null
+                && plantType.tags.contains(PlantTag.WATER)
+                && plantType != PlantType.Lily_Pad;
         if (hasPlant())
             return false;
         if (plantType == PlantType.Hot_Potato) {
@@ -139,13 +143,22 @@ public class Tile {
         if (plantType == PlantType.Grave_Buster) {
             return hasGrave() && !hasVase() && !hasBeachPost();
         }
+        if (plantType == PlantType.Lily_Pad) {
+            return type == TileType.WATER
+                    && !hasLilyPad()
+                    && !hasPlant()
+                    && !hasGrave() && !hasVase() && !hasBeachPost();
+        }
         if (type == TileType.WATER) {
             if (plantType == PlantType.Lily_Pad && hasLilyPad()) {
                 return false;
             }
-            if (plantType != PlantType.Lily_Pad && !hasLilyPad()) {
+            if (plantType != PlantType.Lily_Pad && !hasLilyPad() && !isWatery) {
                 return false;
             }
+        }
+        if (isWatery && type != TileType.WATER) {
+            return false;
         }
         if (hasGrave())
             return false;

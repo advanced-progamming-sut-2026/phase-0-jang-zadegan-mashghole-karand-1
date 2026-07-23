@@ -6,6 +6,7 @@ import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
+import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.effects.DamageEffect;
 import model.data.plant.abilities.effects.FreezeEffect;
 import model.data.plant.stuns.BlockingStun;
@@ -141,6 +142,11 @@ public class CombatSystem {
                         target.applyStun(new BlockingStun(StunKind.FROZEN));
                     }
                     if (target.hp <= 0) {
+                        target.isAlive = false;
+                        for (PlantAbilityConfig a : target.abilities) {
+                            a.onDeath(target, null, state, eventBus);
+                        }
+                        state.removePlant(target);
                         eventBus.publish(new PlantDiedEvent(target));
                     }
                 }
@@ -176,6 +182,10 @@ public class CombatSystem {
                 targetPlant.hp -=(int) z.getDPS() / 10;
                 z.isEating = true;
                 if (targetPlant.hp <= 0) {
+                    targetPlant.isAlive = false;
+                    for (PlantAbilityConfig a : targetPlant.abilities) {
+                        a.onDeath(targetPlant, z, state, eventBus);  // z = the eating zombie
+                    }
                     state.removePlant(targetPlant);
                     z.isEating = false;
                     eventBus.publish(new PlantDiedEvent(targetPlant));

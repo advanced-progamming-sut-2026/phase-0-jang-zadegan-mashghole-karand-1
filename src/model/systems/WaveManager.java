@@ -147,7 +147,7 @@ public class WaveManager {
         int row = (int) (Math.random() * GameState.GRID_ROWS);
         Zombie zombie = new Zombie(spawn.type, row, GameState.GRID_COLS - 1,
                 new Position(GameState.SCREEN_WIDTH, GameState.CELL_HEIGHT * row + (GameState.CELL_HEIGHT / 2)),
-                eventBus);
+                eventBus,state.getGlowingChance());
         state.addZombie(zombie);
         eventBus.publish(new ZombieSpawnedEvent(zombie));
         currentWaveZombieIds.add(zombie.instanceId);

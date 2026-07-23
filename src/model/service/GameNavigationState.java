@@ -1,7 +1,9 @@
 package model.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import model.data.content.chapter.ChapterType;
 import model.data.content.minigame.MiniGameType;
@@ -26,6 +28,8 @@ public class GameNavigationState {
     public List<PlantType> unlockedPlants = new ArrayList<>();
     public List<MiniGameType> unlockedMinigames = new ArrayList<>();
     public PlantType imitatorTarget;
+    public   Set<PlantType> boostedPlants = new HashSet<>();
+
 
     public void reset() {
         phase = Phase.NONE;
@@ -36,5 +40,6 @@ public class GameNavigationState {
         pendingMiniGame = null;
         selectedPlants.clear();
         imitatorTarget = null;
+        boostedPlants.clear();
     }
 }
