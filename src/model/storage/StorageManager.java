@@ -35,6 +35,10 @@ public interface StorageManager {
 
     void updateUserProfile(User profile);
 
+    /** Apply saved progress/completed onto already-assigned user.quests. */
+    default void loadQuestProgress(User user) {
+    }
+
     void recordGamePlayed();
 
     void markLevelCompleted(ChapterType chapter, int levelNumber);

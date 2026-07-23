@@ -5,6 +5,8 @@ import java.util.*;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
+import model.data.plant.Plant;
+import model.data.plant.PlantType;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.data.zombie.armor.runtime.ZombieArmor;
 import model.events.GlowingZombieDiedEvent;
@@ -23,6 +25,8 @@ public class Zombie {
     public int hp;
     public int totalHp;
     public boolean isAlive = true;
+    public PlantType lastHitBy = null;
+    public boolean killedByLawnMower = false;
     public boolean isEating = false;
     public float DPS_MULTIPLIER = 1;
 
@@ -113,7 +117,7 @@ public class Zombie {
             state.plantFoodAmount++;
             eventBus.publish(new GlowingZombieDiedEvent(this));
         } else {
-            eventBus.publish(new ZombieDiedEvent(this));
+            eventBus.publish(new ZombieDiedEvent(this,lastHitBy));
         }
 
         boolean drop = randomizer.nextInt(10) == 0;

@@ -27,12 +27,16 @@ public class ViewManager {
     public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
             AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
             NewsViewState newsViewState, SettingsViewState settingsViewState, LeaderboardViewState leaderboardViewState,
-            CollectionViewState collectionViewState, ControllerManager controllerManager, boolean hasUnreadNews) {
+            CollectionViewState collectionViewState, QuestViewState questViewState,
+            ControllerManager controllerManager, boolean hasUnreadNews) {
         String screenKey = currentScreen.name();
         if (currentScreen == ScreenType.LEVEL_SELECTOR) {
             screenKey += "-" + gameNavigation.phase.name();
         } else if (currentScreen == ScreenType.MAIN && currentMenu != MenuType.NONE) {
             screenKey += "-" + currentMenu.name();
+            if (currentMenu == MenuType.QUESTS) {
+                screenKey += "-" + questViewState.filter + "-" + questViewState.totalCount();
+            }
         } else if (currentScreen == ScreenType.LEADERBOARD) {
             screenKey += "-" + leaderboardViewState.sortColumn.name()
                     + "-" + leaderboardViewState.sortDirection.name();
@@ -62,7 +66,7 @@ public class ViewManager {
                     renderer.renderMainScreen(hasUnreadNews);
                 } else {
                     renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState,
-                            leaderboardViewState);
+                            leaderboardViewState, questViewState);
                 }
                 break;
             case LEVEL_SELECTOR:
@@ -91,13 +95,14 @@ public class ViewManager {
         }
 
         if (currentMenu != MenuType.NONE && currentScreen != ScreenType.MAIN) {
-            renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState, leaderboardViewState);
+            renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState, leaderboardViewState,
+                    questViewState);
         }
     }
 
     private void renderMenuOverlay(MenuType currentMenu, ProfileViewState profileViewState,
             NewsViewState newsViewState, SettingsViewState settingsViewState,
-            LeaderboardViewState leaderboardViewState) {
+            LeaderboardViewState leaderboardViewState, QuestViewState questViewState) {
         switch (currentMenu) {
             case PAUSE:
                 renderer.renderPauseOverlay();
@@ -112,7 +117,7 @@ public class ViewManager {
                 renderer.renderNewsOverlay(newsViewState);
                 break;
             case QUESTS:
-                renderer.renderQuestsOverlay();
+                renderer.renderQuestsOverlay(questViewState);
                 break;
             case PLANT_SELECTOR:
                 renderer.renderPlantSelectorOverlay();

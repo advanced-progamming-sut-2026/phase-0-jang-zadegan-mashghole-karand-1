@@ -82,7 +82,7 @@ public class PlantLobAbility implements PlantAbilityConfig {
                         target.col,
                         5,
                         projectileType,
-                        ProjectileTarget.ZOMBIE,
+                        ProjectileTarget.ZOMBIE,plant.type,
                         new Position(target.position.x , target.position.y),
                         0,
                         50f,

@@ -110,7 +110,7 @@ public class CombatSystem {
                         if (z.isIced()) z.damageIce(p.damage);
 
                         else if(p.type != ProjectileType.POISON) {
-                            new DamageEffect(p.damage).apply(z, state, eventBus);
+                            new DamageEffect(p.damage).apply(z, state, eventBus, p.sourcePlant);
                         }
                         if(p instanceof PiercingProjectile piercingProjectile) {
                             piercingProjectile.pierceCount--;
@@ -124,6 +124,7 @@ public class CombatSystem {
 
 
                         if (!z.isAlive) {
+                            z.lastHitBy = p.sourcePlant;
                             z.onDeath(state);
                             zombieIter.remove();
                         }
@@ -202,7 +203,7 @@ public class CombatSystem {
                 break;
             case ICE, ICE_MELON:
                 if(freezeProjectilesEnabled) {
-                    new FreezeEffect(30).apply(zombie, state, eventBus);
+                    new FreezeEffect(30).apply(zombie, state, eventBus, projectile.sourcePlant);
                 }
                 break;
             case POISON:
@@ -217,7 +218,7 @@ public class CombatSystem {
                 if(!freezeProjectilesEnabled) break;
                 for(Zombie z : state.zombies) {
                     if(z.row == projectile.row){
-                        new FreezeEffect(30).apply(z, state, eventBus);
+                        new FreezeEffect(30).apply(z, state, eventBus, projectile.sourcePlant);
                     }
                 }
                 break;

@@ -99,7 +99,7 @@ public class PlantDefenderAbility implements PlantAbilityConfig {
         for (Zombie z : targets) {
             z.takeDamage(explosionDamage);
             if (!z.isAlive)
-                event.publish(new ZombieDiedEvent(z));
+                event.publish(new ZombieDiedEvent(z, plant.type));
         }
     }
 

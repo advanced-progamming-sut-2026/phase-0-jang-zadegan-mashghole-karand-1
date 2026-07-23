@@ -14,6 +14,8 @@ import model.data.vase.Vase;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.events.GlowingZombieDiedEvent;
+import model.events.GameOverEvent;
+import model.events.LevelCompleteEvent;
 import model.events.PlantDiedEvent;
 import model.events.PlantPlacedEvent;
 import model.events.SeedCollectedEvent;
@@ -24,6 +26,7 @@ import model.events.ZombieDroppedLootEvent;
 import model.events.ZombieSpawnedEvent;
 import model.core.Position;
 import model.data.content.minigame.IZombieShop;
+import model.quest.QuestTracker;
 import model.rule.LevelRule;
 import model.rule.RuleEngine;
 import model.rule.SessionConfig;
@@ -51,6 +54,7 @@ public class ModelManager {
     private final SunSystem sunSystem;
     private final SeedDropSystem seedDropSystem;
     private final EffectSystem effectSystem;
+    private final QuestTracker questTracker;
 
     public ModelManager(StorageManager storage, EventBus eventBus) {
         this.state = new GameState();
@@ -67,6 +71,7 @@ public class ModelManager {
         this.sunSystem = new SunSystem(eventBus);
         this.seedDropSystem = new SeedDropSystem();
         this.effectSystem = new EffectSystem();
+        this.questTracker = new QuestTracker(storage);
 
         registerEventBridges();
     }
@@ -83,6 +88,7 @@ public class ModelManager {
                 return;
             }
             ruleEngine.onWaveStart(sessionContext, state, eventBus);
+            questTracker.onGameEvent(e, state, sessionContext);
         });
         eventBus.subscribe(WaveCompleteEvent.class, e -> {
             if (sessionContext == null) {
@@ -91,16 +97,17 @@ public class ModelManager {
             ruleEngine.onWaveEnd(sessionContext, state, eventBus);
         });
         eventBus.subscribe(ZombieDiedEvent.class, e -> {
-            if (e == null || e.zombie == null) {
-                return;
-            }
+            if (e == null || e.zombie == null) return;
             ruleEngine.onZombieDied(e.zombie, state, eventBus);
+            questTracker.onGameEvent(e, state, sessionContext);
         });
         eventBus.subscribe(GlowingZombieDiedEvent.class, e -> {
             if (e == null || e.zombie == null) {
                 return;
             }
             ruleEngine.onZombieDied(e.zombie, state, eventBus);
+            questTracker.onGameEvent(
+                    new ZombieDiedEvent(e.zombie, e.zombie.lastHitBy),state, sessionContext);
         });
         eventBus.subscribe(ZombieSpawnedEvent.class, e -> {
             if (e == null || e.zombie == null || sessionContext == null) {
@@ -113,6 +120,12 @@ public class ModelManager {
                 return;
             }
             ruleEngine.onPlantPlaced(e.plant, state);
+        });
+        eventBus.subscribe(LevelCompleteEvent.class, e -> {
+            questTracker.onGameEvent(e, state, sessionContext);
+        });
+        eventBus.subscribe(GameOverEvent.class, e -> {
+            questTracker.onGameEvent(e, state, sessionContext);
         });
         eventBus.subscribe(ZombieDroppedLootEvent.class, e -> {
             User user = storage.getCurrentUser();

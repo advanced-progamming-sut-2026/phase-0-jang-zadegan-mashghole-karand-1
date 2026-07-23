@@ -71,7 +71,7 @@ public class ZombieBarrelRollerAbility implements ZombieAbilityConfig {
         }
         if(hypnoZombie != null) {
             hypnoZombie.isAlive = false;
-            bus.publish(new ZombieDiedEvent(hypnoZombie));
+            bus.publish(new ZombieDiedEvent(hypnoZombie, null));
         }
     }
 

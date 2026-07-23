@@ -4,6 +4,7 @@ import controller.CommandResult.CommandResult;
 import model.ModelManager;
 import model.core.EventBus;
 import model.core.GameLoop;
+import model.quest.QuestAssigner;
 import model.service.*;
 import model.service.GameNavigationState.Phase;
 import model.shop.Shop;
@@ -33,7 +34,7 @@ public class ControllerManager {
     private final SessionLifecycleController sessionLifecycleController;
     private final GreenhouseController greenhouseController;
     private ShopController shopController;
-    private final QuestMenuController questMenuController = new QuestMenuController();
+    private final QuestMenuController questMenuController;
     private final LeaderboardMenuController leaderboardMenuController;
 
     private ScreenType currentScreen = ScreenType.REGISTER;
@@ -45,6 +46,7 @@ public class ControllerManager {
     private SettingsViewState settingsViewState = SettingsViewState.empty();
     private LeaderboardViewState leaderboardViewState = LeaderboardViewState.empty();
     private CollectionViewState collectionViewState = CollectionViewState.empty();
+    private QuestViewState questViewState = QuestViewState.empty();
     private boolean hasUnreadNews = false;
     private Shop shop;
 
@@ -60,6 +62,7 @@ public class ControllerManager {
         this.profileController = new ProfileController(this, storage);
         this.settingController = new SettingController(this, storage);
         this.newsMenuController = new NewsMenuController(this, storage);
+        this.questMenuController = new QuestMenuController(this);
         new AppEventHandler(eventBus, storage).register();
         this.gameMenuController = new GameMenuController(this, model, storage, gameNavigation);
         this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
@@ -83,6 +86,7 @@ public class ControllerManager {
     public void start() {
         storage.loadProgress();
         initShopForCurrentUser();
+        initQuestsForCurrentUser();
         currentScreen = storage.isLoggedIn() ? ScreenType.MAIN : ScreenType.REGISTER;
         refreshView();
     }
@@ -118,6 +122,11 @@ public class ControllerManager {
                 } else {
                     newsViewState = NewsViewState.empty();
                 }
+                if (currentMenu == MenuType.QUESTS) {
+                    questViewState = questMenuController.getViewState();
+                } else {
+                    questViewState = QuestViewState.empty();
+                }
                 if (currentScreen == ScreenType.COLLECTION) {
                     collectionViewState = collectionController.getViewState();
                 } else {
@@ -129,11 +138,12 @@ public class ControllerManager {
                 settingsViewState = SettingsViewState.empty();
                 collectionViewState = CollectionViewState.empty();
                 leaderboardViewState = LeaderboardViewState.empty();
+                questViewState = QuestViewState.empty();
                 hasUnreadNews = false;
             }
             view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation,
-                    profileViewState, newsViewState, settingsViewState, leaderboardViewState, collectionViewState, this,
-                    hasUnreadNews);
+                    profileViewState, newsViewState, settingsViewState, leaderboardViewState, collectionViewState,
+                    questViewState, this, hasUnreadNews);
         }
     }
 
@@ -236,6 +246,10 @@ public class ControllerManager {
             if (name.equals("profile")) {
                 return openMainMenu(MenuType.PROFILE, "profile");
             }
+            if (name.equals("quests") || name.equals("quest") || name.equals("travel log")
+                    || name.equals("travel-log")) {
+                return openMainMenu(MenuType.QUESTS, "quests");
+            }
         }
 
         if (currentScreen == ScreenType.LEVEL_SELECTOR
@@ -283,7 +297,7 @@ public class ControllerManager {
         if (loggedInCheck != null) {
             return loggedInCheck;
         }
-        if (currentMenu != MenuType.NONE) {
+        if (currentMenu != MenuType.NONE && currentMenu != menu) {
             return new CommandResult("Close the current menu first.", false);
         }
         if (menu == MenuType.NEWS) {
@@ -292,6 +306,10 @@ public class ControllerManager {
         currentMenu = menu;
         refreshView();
         return new CommandResult("Opened " + label + " menu.", true);
+    }
+
+    public CommandResult openQuestsMenu() {
+        return openMainMenu(MenuType.QUESTS, "quests");
     }
 
     public void clearCurrentMenu() {
@@ -383,6 +401,13 @@ public class ControllerManager {
         shop = new Shop(user);
         shop.ensureDailyFresh();
         shopController = new ShopController(shop, storage);
+    }
+
+    public void initQuestsForCurrentUser() {
+        User user = storage.getCurrentUser();
+        if (user == null) return;
+        QuestAssigner.ensureAssigned(user);
+        storage.loadQuestProgress(user);
     }
 
     public void sendMessage(String message) {

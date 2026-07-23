@@ -323,6 +323,7 @@ public class InputHandler {
         } else if ((matcher = Commands.TRAVEL_LOG_PAGE.getMatcher(input)).matches()) {
             String pageName = matcher.group(1);
             CommandResult result = controllerManager.getQuestMenuController().enterPage(pageName);
+            controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.SORT_SCORE.getMatcher(input)).matches()) {
             String sortClass = matcher.group("sortclass");
             String sortType = matcher.group("sorttype");

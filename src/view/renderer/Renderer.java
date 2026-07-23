@@ -40,7 +40,7 @@ public interface Renderer {
 
     void renderLeaderboardOverlay(LeaderboardViewState leaderboardViewState);
 
-    void renderQuestsOverlay();
+    void renderQuestsOverlay(QuestViewState questViewState);
 
     void renderPlantSelectorOverlay();
 

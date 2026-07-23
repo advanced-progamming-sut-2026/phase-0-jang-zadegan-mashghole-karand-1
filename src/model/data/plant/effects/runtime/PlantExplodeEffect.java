@@ -37,7 +37,7 @@ public class PlantExplodeEffect implements PlantEffectConfig{
         if (shape != null && !onHit.isEmpty()) {
             List<Zombie> targets = findTargets(state, plant, shape, maxTargets);
             for (Zombie z : targets) {
-                for (HitEffect e : onHit) e.apply(z, state, event);
+                for (HitEffect e : onHit) e.apply(z, state, event, plant.type);
             }
         }
     }
