@@ -183,4 +183,22 @@ public class RuleEngine {
         }
         return true;
     }
+
+    public boolean canSelectPlant(PlantType type, List<PlantType> alreadySelected) {
+        for (LevelRule rule : activeRules) {
+            if (!rule.canSelectPlant(type, alreadySelected)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean startDeferredWaves() {
+        for (LevelRule rule : activeRules) {
+            if (rule.startDeferredWaves()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

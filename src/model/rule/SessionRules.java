@@ -3,6 +3,7 @@ package model.rule;
 import java.util.ArrayList;
 import java.util.List;
 
+import model.data.plant.PlantType;
 import model.rule.rules.ChapterRules;
 import model.rule.rules.MiniGameRules;
 import model.rule.rules.SpecialLevelRules;
@@ -21,7 +22,7 @@ public final class SessionRules {
             rules.addAll(ChapterRules.forChapter(config.levelConfig.chapterType));
         }
         if (config.isSpecial()) {
-            rules.addAll(SpecialLevelRules.forSpecialLevel(config.specialLevelType));
+            rules.addAll(SpecialLevelRules.forSpecialLevel(config.specialLevelType, config.levelConfig));
         }
         if (config.isMinigame()) {
             rules.addAll(MiniGameRules.forMiniGame(config.miniGameType));
@@ -36,5 +37,14 @@ public final class SessionRules {
             }
         }
         return false;
+    }
+
+    public static boolean canSelectPlant(SessionConfig config, PlantType type, List<PlantType> alreadySelected) {
+        for (LevelRule rule : resolve(config)) {
+            if (!rule.canSelectPlant(type, alreadySelected)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

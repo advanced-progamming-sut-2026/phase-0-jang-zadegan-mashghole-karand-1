@@ -240,6 +240,9 @@ public class InputHandler {
         } else if (Commands.RELEASE_NUKE.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(
                     controllerManager.getGameMechanismController().releaseNuke());
+        } else if (Commands.START_ZOMBIE_WAVES.getMatcher(input).matches()) {
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().startZombieWaves());
         } else if ((matcher = Commands.PLANT_PLANT.getMatcher(input)).matches()) {
             PlantType type = PlantType.fromName(matcher.group("type"));
             int row = Integer.parseInt(matcher.group("x"));

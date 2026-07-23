@@ -8,7 +8,6 @@ import java.util.Map;
 import model.data.content.specialLevel.LockedPlantsConfig;
 import model.data.content.specialLevel.SpecialLevelType;
 import model.data.content.specialLevel.TimedWarConfig;
-import model.data.plant.PlantType;
 import model.data.wave.LevelConfig;
 import model.data.zombie.ZombieType;
 
@@ -18,14 +17,6 @@ public final class ChapterCatalog {
 
     private static final List<ZombieType> PLACEHOLDER_ZOMBIES = List.of(
             ZombieType.BASIC, ZombieType.CONE_HEAD);
-
-    private static final List<PlantType> LOCKED_PRESET_LOADOUT = List.of(
-            PlantType.Sunflower,
-            PlantType.PeaShooter,
-            PlantType.Wall_nut,
-            PlantType.Potato_Mine,
-            PlantType.Cherry_Bomb,
-            PlantType.SnowPea);
 
     private static final Map<ChapterType, ChapterDefinition> CHAPTERS = buildChapters();
 
@@ -79,7 +70,7 @@ public final class ChapterCatalog {
                 normalLevel(chapter, 1),
                 normalLevel(chapter, 2),
                 specialLevel(chapter, 3, SpecialLevelType.DEAD_LINE),
-                specialLevel(chapter, 4, SpecialLevelType.PLANT_WHAT_YOU_GET),
+                plantWhatYouGetLevel(chapter, 4),
                 lockedPlantsLevel(chapter, 5, LockedPlantsConfig.onePerFamily())));
     }
 
@@ -88,7 +79,7 @@ public final class ChapterCatalog {
         return new ChapterDefinition(chapter, List.of(
                 normalLevel(chapter, 1),
                 normalLevel(chapter, 2),
-                lockedPlantsLevel(chapter, 3, LockedPlantsConfig.preset(LOCKED_PRESET_LOADOUT)),
+                lockedPlantsLevel(chapter, 3, LockedPlantsConfig.preset()),
                 specialLevel(chapter, 4, SpecialLevelType.CONVEYOR_BELT),
                 specialLevel(chapter, 5, SpecialLevelType.SAVE_OUR_SEEDS)));
     }
@@ -103,6 +94,14 @@ public final class ChapterCatalog {
         return LevelConfig.builder(chapter, number)
                 .zombies(PLACEHOLDER_ZOMBIES)
                 .special(special)
+                .build();
+    }
+
+    private static LevelConfig plantWhatYouGetLevel(ChapterType chapter, int number) {
+        return LevelConfig.builder(chapter, number)
+                .zombies(PLACEHOLDER_ZOMBIES)
+                .special(SpecialLevelType.PLANT_WHAT_YOU_GET)
+                .startingSun(800)
                 .build();
     }
 

@@ -6,6 +6,7 @@ import model.data.content.chapter.ChapterCatalog;
 import model.data.content.chapter.ChapterType;
 import model.data.content.minigame.MiniGameCatalog;
 import model.data.content.minigame.MiniGameType;
+import model.data.content.specialLevel.LockedPlantsMode;
 import model.data.content.specialLevel.SpecialLevelType;
 import model.data.plant.PlantType;
 import model.data.wave.LevelConfig;
@@ -17,7 +18,10 @@ import model.storage.StorageManager;
 import model.storage.user.User;
 import view.ScreenType;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GameMenuController {
 
@@ -114,6 +118,16 @@ public class GameMenuController {
 
         gameNavigation.phase = Phase.PLANT;
         controllerManager.refreshView();
+        if (special == SpecialLevelType.PLANT_WHAT_YOU_GET) {
+            return success("Level " + levelNumber + " selected (plant what you get). "
+                    + "Pick non-sun plants, then plant with 800 sun and run 'start zombie waves'.");
+        }
+        if (special == SpecialLevelType.LOCKED_PLANTS
+                && level.lockedPlantsConfig != null
+                && level.lockedPlantsConfig.mode == LockedPlantsMode.ONE_PER_FAMILY) {
+            return success("Level " + levelNumber + " selected (locked plants). "
+                    + "Pick at most one plant from each family.");
+        }
         if (special != null) {
             return success("Level " + levelNumber + " selected (" + special.name().toLowerCase().replace('_', ' ')
                     + "). Pick your plants.");
@@ -177,6 +191,16 @@ public class GameMenuController {
             plants = storage.getUnlockedPlants().stream()
                     .filter(p -> !p.isBowlingExclusive())
                     .toList();
+        } else if (special == SpecialLevelType.LOCKED_PLANTS
+                && gameNavigation.pendingLevel != null
+                && gameNavigation.pendingLevel.lockedPlantsConfig != null
+                && gameNavigation.pendingLevel.lockedPlantsConfig.mode == LockedPlantsMode.PRESET) {
+            List<PlantType> pool = storage.getUnlockedPlants().stream()
+                    .filter(p -> p != null && !p.isBowlingExclusive())
+                    .collect(Collectors.toCollection(ArrayList::new));
+            Collections.shuffle(pool);
+            int count = Math.min(PickPlantsController.MAX_SELECTED_PLANTS, pool.size());
+            plants = List.copyOf(pool.subList(0, count));
         }
 
         SessionConfig.Builder sessionBuilder = SessionConfig.builder()
@@ -192,6 +216,13 @@ public class GameMenuController {
         controllerManager.setScreen(ScreenType.GAME);
         if (special == SpecialLevelType.CONVEYOR_BELT) {
             return success("Conveyor Belt started! Plants will be offered every 12 seconds.");
+        }
+        if (special == SpecialLevelType.LOCKED_PLANTS) {
+            if (plants.isEmpty()) {
+                return success("Locked Plants started, but you have no unlocked plants yet.");
+            }
+            String names = plants.stream().map(p -> p.name).collect(Collectors.joining(", "));
+            return success("Locked Plants started with a random loadout: " + names + ".");
         }
         return success("Game started!");
     }

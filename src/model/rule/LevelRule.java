@@ -86,4 +86,12 @@ public interface LevelRule {
 
     default void onSunCollected(model.data.sun.Sun sun, GameState state, EventBus bus) {
     }
+
+    default boolean canSelectPlant(PlantType type, java.util.List<PlantType> alreadySelected) {
+        return true;
+    }
+
+    default boolean startDeferredWaves() {
+        return false;
+    }
 }

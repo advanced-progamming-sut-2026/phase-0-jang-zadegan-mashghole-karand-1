@@ -21,6 +21,10 @@ public final class LockedPlantsConfig {
         return new LockedPlantsConfig(LockedPlantsMode.ONE_PER_FAMILY, List.of());
     }
 
+    public static LockedPlantsConfig preset() {
+        return new LockedPlantsConfig(LockedPlantsMode.PRESET, List.of());
+    }
+
     public static LockedPlantsConfig preset(List<PlantType> plants) {
         return new LockedPlantsConfig(LockedPlantsMode.PRESET, plants);
     }

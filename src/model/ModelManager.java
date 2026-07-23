@@ -219,6 +219,10 @@ public class ModelManager {
         return ruleEngine.canPlant(type, row, col, state, sessionContext);
     }
 
+    public boolean startDeferredWaves() {
+        return ruleEngine.startDeferredWaves();
+    }
+
     public boolean placePlant(int row, int col, PlantType plantType, int level) {
         return placePlant(row, col, plantType, level, true);
     }
