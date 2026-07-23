@@ -27,5 +27,4 @@ public enum PlantStatBonus {
     RESET_FAMILY_COOLDOWN,
     EXPLODE_ON_FINISH,
     MELT_AREA_3x3
-
-    }
+}

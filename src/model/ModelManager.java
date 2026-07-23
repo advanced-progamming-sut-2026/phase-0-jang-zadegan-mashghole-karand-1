@@ -31,6 +31,7 @@ import model.rule.SessionContext;
 import model.rule.rules.ChapterRules;
 import model.rule.rules.MiniGameRules;
 import model.rule.rules.SpecialLevelRules;
+import model.gameSetting.GameSetting;
 import model.storage.StorageManager;
 import model.storage.user.User;
 import model.systems.*;
@@ -185,7 +186,12 @@ public class ModelManager {
 
         this.sessionContext = new SessionContext(config, ruleEngine, waveManager);
 
-        waveManager.initialize(config.levelConfig);
+        int difficulty = GameSetting.DEFAULT_DIFFICULTY;
+        User user = storage.getCurrentUser();
+        if (user != null && user.preferredSetting != null) {
+            difficulty = user.preferredSetting.getDifficultyLevel();
+        }
+        waveManager.initialize(config.levelConfig, config.miniGameType, difficulty);
 
         ruleEngine.onSessionStart(sessionContext, state, eventBus);
 
