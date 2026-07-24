@@ -47,6 +47,7 @@ public class ControllerManager {
     private LeaderboardViewState leaderboardViewState = LeaderboardViewState.empty();
     private CollectionViewState collectionViewState = CollectionViewState.empty();
     private QuestViewState questViewState = QuestViewState.empty();
+    private HudViewState hudViewState = HudViewState.empty();
     private boolean hasUnreadNews = false;
     private Shop shop;
 
@@ -122,7 +123,7 @@ public class ControllerManager {
                 } else {
                     newsViewState = NewsViewState.empty();
                 }
-                if (currentMenu == MenuType.QUESTS) {
+                if (currentMenu == MenuType.TRAVEL_LOG) {
                     questViewState = questMenuController.getViewState();
                 } else {
                     questViewState = QuestViewState.empty();
@@ -132,6 +133,12 @@ public class ControllerManager {
                 } else {
                     collectionViewState = CollectionViewState.empty();
                 }
+                if (currentScreen == ScreenType.GAME) {
+                    hudViewState = HudViewState.fromSession(
+                            model.getPlayContext(), model.getState(), storage.getCurrentUser());
+                } else {
+                    hudViewState = HudViewState.empty();
+                }
             } else {
                 profileViewState = ProfileViewState.empty();
                 newsViewState = NewsViewState.empty();
@@ -139,11 +146,12 @@ public class ControllerManager {
                 collectionViewState = CollectionViewState.empty();
                 leaderboardViewState = LeaderboardViewState.empty();
                 questViewState = QuestViewState.empty();
+                hudViewState = HudViewState.empty();
                 hasUnreadNews = false;
             }
             view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation,
                     profileViewState, newsViewState, settingsViewState, leaderboardViewState, collectionViewState,
-                    questViewState, this, hasUnreadNews);
+                    questViewState, hudViewState, this, hasUnreadNews);
         }
     }
 
@@ -246,14 +254,13 @@ public class ControllerManager {
             if (name.equals("profile")) {
                 return openMainMenu(MenuType.PROFILE, "profile");
             }
-            if (name.equals("quests") || name.equals("quest") || name.equals("travel log")
-                    || name.equals("travel-log")) {
-                return openMainMenu(MenuType.QUESTS, "quests");
-            }
         }
 
         if (currentScreen == ScreenType.LEVEL_SELECTOR
                 && gameNavigation.phase == Phase.CHAPTER) {
+            if (name.equals("travel-log") || name.equals("travel log")) {
+                return openTravelLogMenu();
+            }
             if (name.equals("collection")) {
                 CommandResult openCheck = collectionController.requireCanOpenCollection();
                 if (openCheck != null) {
@@ -280,9 +287,12 @@ public class ControllerManager {
                 setScreen(ScreenType.GREEN_HOUSE);
                 return new CommandResult("Opened greenhouse.", true);
             }
-            if (name.equals("minigames") || name.equals("minigame")) {
-                return gameMenuController.enterMinigames();
-            }
+        }
+
+        if (currentScreen == ScreenType.LEVEL_SELECTOR
+                && currentMenu == MenuType.TRAVEL_LOG
+                && (name.equals("minigames") || name.equals("minigame"))) {
+            return gameMenuController.enterMinigames();
         }
 
         return new CommandResult("Cannot enter menu from here.", false);
@@ -304,12 +314,26 @@ public class ControllerManager {
             newsMenuController.onMenuOpened();
         }
         currentMenu = menu;
-        refreshView();
         return new CommandResult("Opened " + label + " menu.", true);
     }
 
-    public CommandResult openQuestsMenu() {
-        return openMainMenu(MenuType.QUESTS, "quests");
+    public CommandResult openTravelLogMenu() {
+        CommandResult screenCheck = requireScreen(ScreenType.LEVEL_SELECTOR);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        if (gameNavigation.phase != Phase.CHAPTER) {
+            return new CommandResult("Open the travel log from the game menu.", false);
+        }
+        CommandResult loggedInCheck = requireLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
+        if (currentMenu != MenuType.NONE && currentMenu != MenuType.TRAVEL_LOG) {
+            return new CommandResult("Close the current menu first.", false);
+        }
+        currentMenu = MenuType.TRAVEL_LOG;
+        return new CommandResult("Opened travel log.", true);
     }
 
     public void clearCurrentMenu() {
@@ -338,6 +362,11 @@ public class ControllerManager {
                 setScreen(ScreenType.REGISTER);
                 return new CommandResult("Returned to register menu.", true);
             case LEVEL_SELECTOR:
+                if (currentMenu != MenuType.NONE) {
+                    currentMenu = MenuType.NONE;
+                    refreshView();
+                    return new CommandResult("Returned to game menu.", true);
+                }
                 if (gameNavigation.phase == Phase.PLANT) {
                     if (gameNavigation.pendingMiniGame != null) {
                         gameNavigation.phase = Phase.MINIGAME;
@@ -395,6 +424,9 @@ public class ControllerManager {
         if (currentScreen == ScreenType.MAIN && currentMenu != MenuType.NONE) {
             return new CommandResult(
                     "Current screen: main (" + currentMenu.name().toLowerCase() + " menu open).", true);
+        }
+        if (currentScreen == ScreenType.LEVEL_SELECTOR && currentMenu == MenuType.TRAVEL_LOG) {
+            return new CommandResult("Current screen: game (travel log open).", true);
         }
         return new CommandResult("Current screen: " + currentScreen.name().toLowerCase(), true);
     }

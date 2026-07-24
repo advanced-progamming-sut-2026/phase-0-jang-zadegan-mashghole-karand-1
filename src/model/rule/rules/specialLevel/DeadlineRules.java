@@ -21,6 +21,10 @@ public class DeadlineRules implements LevelRule {
         this.deadlineColumn = deadlineColumn;
     }
 
+    public int getDeadlineColumn() {
+        return deadlineColumn;
+    }
+
     @Override
     public void postTick(SessionContext context, GameState state, EventBus bus) {
         if (state.gameOver || state.levelComplete) {

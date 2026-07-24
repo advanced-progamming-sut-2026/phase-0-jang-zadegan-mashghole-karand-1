@@ -2,6 +2,7 @@ package model;
 
 import model.board.Tile;
 import model.core.EventBus;
+import model.core.GameLoop;
 import model.core.GameState;
 import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
@@ -57,7 +58,7 @@ public class ModelManager {
     private final EffectSystem effectSystem;
     private final QuestTracker questTracker;
     private PlantType imitatorTarget;
-  
+
     public ModelManager(StorageManager storage, EventBus eventBus) {
         this.state = new GameState();
         this.waveManager = new WaveManager();
@@ -78,7 +79,6 @@ public class ModelManager {
 
         this.EventHub.register();
     }
-
 
     public void tick() {
         if (state.gameOver || state.levelComplete) {
@@ -102,6 +102,9 @@ public class ModelManager {
         combatSystem.update(state, eventBus, ruleEngine.freezeProjectilesEnabled());
         if (ruleEngine.shouldSpawnWaves()) {
             waveManager.update(state, eventBus, ruleEngine.winsOnWaveClear());
+        }
+        if (sessionContext != null) {
+            sessionContext.tickPlantingCooldowns();
         }
 
         ruleEngine.postTick(sessionContext, state, eventBus);
@@ -178,13 +181,19 @@ public class ModelManager {
         if (!ruleEngine.canPlant(plantType, row, col, state, sessionContext))
             return false;
 
+        if (sessionContext != null && sessionContext.isPlantOnCooldown(plantType)
+                && !(sessionContext.hasHeldSeed(plantType))) {
+            return false;
+        }
+
         boolean shouldChargeSun = chargeSun && ruleEngine.usesSunCurrency();
 
         Plant plant = new Plant(plantType, row, col, level, eventBus);
-        if (plantType == PlantType.Imitater){
-            if (imitatorTarget == null || imitatorTarget == PlantType.Imitater)return false;
-            for (PlantAbilityConfig a : plant.abilities){
-                if (a instanceof PlantTransformAbility){
+        if (plantType == PlantType.Imitater) {
+            if (imitatorTarget == null || imitatorTarget == PlantType.Imitater)
+                return false;
+            for (PlantAbilityConfig a : plant.abilities) {
+                if (a instanceof PlantTransformAbility) {
                     ((PlantTransformAbility) a).setTargetPlant(imitatorTarget);
                 }
             }
@@ -196,8 +205,15 @@ public class ModelManager {
         if (shouldChargeSun) {
             state.sunAmount -= plant.cost;
         }
+        boolean usedHeldSeed = false;
         if (sessionContext != null && sessionContext.hasHeldSeed(plantType)) {
             sessionContext.consumeHeldSeed(plantType);
+            usedHeldSeed = true;
+        }
+        if (sessionContext != null && !usedHeldSeed) {
+            int rechargeTicks = (int) (PlantStats.forLevel(plantType, level).recharge
+                    * GameLoop.TICKS_PER_SECOND);
+            sessionContext.startPlantingCooldown(plantType, rechargeTicks);
         }
 
         eventBus.publish(new PlantPlacedEvent(plant));
@@ -315,6 +331,9 @@ public class ModelManager {
     }
 
     public void removeCooldowns() {
+        if (sessionContext != null) {
+            sessionContext.clearPlantingCooldowns();
+        }
         for (Plant plant : state.plants) {
             for (var ability : plant.abilities) {
                 if (ability instanceof model.data.plant.abilities.runtime.PlantShootAbility shootAbility) {

@@ -24,6 +24,8 @@ public interface Renderer {
 
     void renderGameScreen(ReadOnlyGameState state);
 
+    void renderGameScreen(ReadOnlyGameState state, HudViewState hud);
+
     void renderCollectionScreen(CollectionViewState collection);
 
     void renderGreenHouseScreen(GreenhouseController greenhouseController);

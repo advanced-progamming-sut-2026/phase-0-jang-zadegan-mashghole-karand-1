@@ -16,6 +16,7 @@ import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
 import model.storage.user.User;
+import view.MenuType;
 import view.ScreenType;
 
 import java.util.ArrayList;
@@ -64,14 +65,15 @@ public class GameMenuController {
 
     public CommandResult enterMinigames() {
         if (controllerManager.getCurrentScreen() != ScreenType.LEVEL_SELECTOR
-                || gameNavigation.phase != Phase.CHAPTER) {
-            return failure("Open minigames from the game menu.");
+                || controllerManager.getCurrentMenu() != MenuType.TRAVEL_LOG) {
+            return failure("Open minigames from the travel log (menu enter travel-log).");
         }
         CommandResult loggedInCheck = controllerManager.requireLoggedIn();
         if (loggedInCheck != null) {
             return loggedInCheck;
         }
 
+        controllerManager.clearCurrentMenu();
         gameNavigation.pendingMiniGame = null;
         gameNavigation.phase = Phase.MINIGAME;
         controllerManager.refreshView();

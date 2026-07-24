@@ -3,7 +3,6 @@ package controller;
 import controller.CommandResult.CommandResult;
 import model.service.QuestViewState;
 import model.storage.user.User;
-import view.MenuType;
 import view.ScreenType;
 
 public class QuestMenuController {
@@ -19,7 +18,7 @@ public class QuestMenuController {
         if (loggedIn != null) {
             return loggedIn;
         }
-        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.MAIN);
+        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.LEVEL_SELECTOR);
         if (screenCheck != null) {
             return screenCheck;
         }
@@ -28,7 +27,7 @@ public class QuestMenuController {
             page = "all";
         }
         pageFilter = page;
-        return controllerManager.openQuestsMenu();
+        return controllerManager.openTravelLogMenu();
     }
 
     public String getPageFilter() {

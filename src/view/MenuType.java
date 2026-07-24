@@ -6,6 +6,6 @@ public enum MenuType {
     SETTING,
     PROFILE,
     NEWS,
-    QUESTS,
+    TRAVEL_LOG,
     PLANT_SELECTOR
 }

@@ -16,8 +16,8 @@ import model.rule.SessionContext;
 
 public class SaveOurSeedsRules implements LevelRule {
     private static final Random RANDOM = new Random();
-    private static final int PROTECTED_COL = 4;
-    private static final int[] PROTECTED_ROWS = { 0, 2, 4 };
+    public static final int PROTECTED_COL = 4;
+    public static final int[] PROTECTED_ROWS = { 0, 2, 4 };
 
     private static final List<PlantType> SEED_POOL = Arrays.asList(
             PlantType.Sunflower,
@@ -27,6 +27,22 @@ public class SaveOurSeedsRules implements LevelRule {
             PlantType.Repeater);
 
     private List<Integer> protectedPlantIds = new ArrayList<>();
+
+    public List<Integer> getProtectedPlantIds() {
+        return List.copyOf(protectedPlantIds);
+    }
+
+    public int getProtectedCol() {
+        return PROTECTED_COL;
+    }
+
+    public int getProtectedAliveCount() {
+        return protectedPlantIds.size();
+    }
+
+    public int getProtectedTotalSlots() {
+        return PROTECTED_ROWS.length;
+    }
 
     @Override
     public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
