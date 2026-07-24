@@ -8,9 +8,9 @@ import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.runtime.PlantSunProduceAbility;
 import model.data.sun.Sun;
 import model.data.sun.SunType;
-import model.events.RadioactiveExplosionEvent;
-import model.events.SunCollectedEvent;
-import model.events.SunLandedEvent;
+import model.event.events.RadioactiveExplosionEvent;
+import model.event.events.SunCollectedEvent;
+import model.event.events.SunLandedEvent;
 
 public class SunSystem {
     private static final int FALL_DURATION_SEC = 5;

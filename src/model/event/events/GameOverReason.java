@@ -1,4 +1,4 @@
-package model.events;
+package model.event.events;
 
 public enum GameOverReason {
     LAWN_BREACHED("A zombie reached your house!"),

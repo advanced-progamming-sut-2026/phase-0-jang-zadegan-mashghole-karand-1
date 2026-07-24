@@ -5,9 +5,9 @@ import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantCategory;
 import model.data.plant.PlantTag;
 import model.data.plant.PlantType;
-import model.events.LevelCompleteEvent;
-import model.events.PlantDiedEvent;
-import model.events.PlantPlacedEvent;
+import model.event.events.LevelCompleteEvent;
+import model.event.events.PlantDiedEvent;
+import model.event.events.PlantPlacedEvent;
 import model.storage.user.User;
 
 public class WinConstraintQuest extends Quest {

@@ -2,19 +2,13 @@ package model.data.zombie.abilities.runtime;
 
 import model.core.EventBus;
 import model.core.GameState;
-import model.core.Position;
-import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
 import model.data.zombie.Zombie;
-import model.data.zombie.ZombieType;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
-import model.events.BarrelCreatedEvent;
-import model.events.PlantDiedEvent;
-import model.events.ZombieDiedEvent;
-import model.events.ZombieSpawnedEvent;
-
-import java.util.SplittableRandom;
+import model.event.events.BarrelCreatedEvent;
+import model.event.events.PlantDiedEvent;
+import model.event.events.ZombieDiedEvent;
 
 public class ZombieBarrelRollerAbility implements ZombieAbilityConfig {
     private static final int BARREL_OFFSET = 1;

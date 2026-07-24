@@ -10,7 +10,7 @@ import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.plant.stuns.PlantStun;
 import model.data.plant.upgrades.PlantUpgradeState;
-import model.events.PlantDiedEvent;
+import model.event.events.PlantDiedEvent;
 
 public class Plant {
     // private static final int DOUBLE_SUN_DROP_CHANCE = 25;

@@ -8,7 +8,7 @@ import model.data.plant.Plant;
 import model.data.plant.PlantTag;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.sun.Sun;
-import model.events.SunProducedEvent;
+import model.event.events.SunProducedEvent;
 
 public class PlantSunProduceAbility implements PlantAbilityConfig {
     private static final int[] AMOUNTS = {25, 50, 75};

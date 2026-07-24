@@ -8,7 +8,7 @@ import model.core.GameState;
 import model.core.Position;
 import model.data.sun.Sun;
 import model.data.sun.SunType;
-import model.events.SunDroppedEvent;
+import model.event.events.SunDroppedEvent;
 
 public class SunSpawnSystem {
     private float ticksSinceLastSpawn = 0;

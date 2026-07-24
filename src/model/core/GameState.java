@@ -16,7 +16,7 @@ import model.board.GameBoard;
 import model.board.Tile;
 import model.data.Grave.Grave;
 import model.data.vase.Vase;
-import model.events.GameOverReason;
+import model.event.events.GameOverReason;
 
 public class GameState implements ReadOnlyGameState {
     public List<Plant> plants = new ArrayList<>();

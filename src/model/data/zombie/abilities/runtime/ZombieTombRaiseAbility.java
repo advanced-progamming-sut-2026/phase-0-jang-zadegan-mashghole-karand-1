@@ -6,7 +6,7 @@ import model.data.Grave.Grave;
 import model.data.Grave.GraveContent;
 import model.data.zombie.Zombie;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
-import model.events.GraveCreatedEvent;
+import model.event.events.GraveCreatedEvent;
 
 import java.util.Collections;
 import java.util.*;

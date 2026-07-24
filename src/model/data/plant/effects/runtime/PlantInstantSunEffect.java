@@ -6,7 +6,7 @@ import model.core.Position;
 import model.data.plant.Plant;
 import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.sun.Sun;
-import model.events.SunProducedEvent;
+import model.event.events.SunProducedEvent;
 
 public class PlantInstantSunEffect implements PlantEffectConfig {
     public final int amount;

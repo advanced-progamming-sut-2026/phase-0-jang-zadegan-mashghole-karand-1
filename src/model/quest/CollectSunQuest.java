@@ -4,8 +4,8 @@ import model.core.GameState;
 import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantCategory;
 import model.data.plant.PlantType;
-import model.events.PlantPlacedEvent;
-import model.events.SunCollectedEvent;
+import model.event.events.PlantPlacedEvent;
+import model.event.events.SunCollectedEvent;
 import model.storage.user.User;
 
 public class CollectSunQuest extends Quest{

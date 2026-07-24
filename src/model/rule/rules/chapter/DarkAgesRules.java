@@ -11,9 +11,9 @@ import model.data.Grave.Grave;
 import model.data.Grave.GraveContent;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
-import model.events.GraveCreatedEvent;
-import model.events.NecromancySpawnEvent;
-import model.events.ZombieSpawnedEvent;
+import model.event.events.GraveCreatedEvent;
+import model.event.events.NecromancySpawnEvent;
+import model.event.events.ZombieSpawnedEvent;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 

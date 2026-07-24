@@ -1,4 +1,4 @@
-package model.events;
+package model.event.events;
 
 import model.core.Position;
 import model.data.zombie.ZombieLootType;

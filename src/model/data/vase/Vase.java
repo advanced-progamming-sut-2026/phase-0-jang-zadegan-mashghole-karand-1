@@ -8,9 +8,9 @@ import model.data.plant.PlantType;
 import model.data.seed.PlantSeedDrop;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
-import model.events.SeedDroppedEvent;
-import model.events.VaseBrokenEvent;
-import model.events.ZombieSpawnedEvent;
+import model.event.events.SeedDroppedEvent;
+import model.event.events.VaseBrokenEvent;
+import model.event.events.ZombieSpawnedEvent;
 
 public class Vase {
     public final int row;

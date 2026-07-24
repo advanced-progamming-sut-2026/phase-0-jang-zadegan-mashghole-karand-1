@@ -5,8 +5,8 @@ import model.core.GameState;
 import model.core.Position;
 import model.data.sun.Sun;
 import model.data.sun.SunType;
-import model.events.GraveDestroyedEvent;
-import model.events.SunDroppedEvent;
+import model.event.events.GraveDestroyedEvent;
+import model.event.events.SunDroppedEvent;
 
 public class Grave {
     private int hp = 700;

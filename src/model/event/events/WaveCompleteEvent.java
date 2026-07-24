@@ -1,4 +1,4 @@
-package model.events;
+package model.event.events;
 
 public class WaveCompleteEvent {
     public final int waveNumber;

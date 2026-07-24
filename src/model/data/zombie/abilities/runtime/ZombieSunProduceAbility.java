@@ -8,7 +8,7 @@ import model.data.sun.Sun;
 import model.data.sun.SunType;
 import model.data.zombie.Zombie;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
-import model.events.SunDroppedEvent;
+import model.event.events.SunDroppedEvent;
 
 public class ZombieSunProduceAbility implements ZombieAbilityConfig {
     private static final float COOLDOWN_SECONDS = 24f;
