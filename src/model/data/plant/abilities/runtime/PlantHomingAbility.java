@@ -5,6 +5,7 @@ import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
+import model.data.plant.PlantType;
 import model.data.projectile.ProjectileType;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.config.TargetStrategy;
@@ -12,6 +13,7 @@ import model.data.projectile.HomingProjectile;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
 import model.data.zombie.Zombie;
+import model.events.ZombieDiedEvent;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -66,6 +68,11 @@ public class PlantHomingAbility implements PlantAbilityConfig {
                     .orElse(null);
         } else if (this.strategy == TargetStrategy.RANDOM) {
             target = aliveZombies.get(new Random().nextInt(aliveZombies.size()));
+            if (plant.type == PlantType.Caulipower ||plant.type == PlantType.Electric_Blueberry ){
+                target.hp = 0;
+                target.isAlive = false;
+                event.publish(new ZombieDiedEvent(target));
+            }
         }
         if (target != null) {
             Position ps = new Position(plant.getX(), plant.getY());

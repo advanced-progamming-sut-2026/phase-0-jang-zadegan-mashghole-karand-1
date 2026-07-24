@@ -240,9 +240,6 @@ public class GameMechanismController {
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
         }
-        if (gameState.getPlantAt(row, col) != null) {
-            return failure("Cell (" + row + ", " + col + ") already has a plant.");
-        }
         User user = controllerManager.getStorage().getCurrentUser();
         int level = user != null ? user.getPlantLevel(plantType) : PlantStats.DEFAULT_LEVEL;
         PlantStats stats = PlantStats.forLevel(plantType, level);
@@ -320,6 +317,7 @@ public class GameMechanismController {
         if (activeCheck != null) {
             return activeCheck;
         }
+
         model.removeCooldowns();
         return success("Plant cooldowns removed.");
     }

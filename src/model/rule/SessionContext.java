@@ -112,4 +112,7 @@ public class SessionContext {
             else seedCooldowns.put(t, left);
         }
     }
+    public void clearSeedCooldowns() {
+        seedCooldowns.clear();
+    }
 }

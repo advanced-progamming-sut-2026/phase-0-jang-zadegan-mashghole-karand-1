@@ -152,6 +152,9 @@ public class GameState implements ReadOnlyGameState {
     public Plant getPlantAt(int row, int col) {
         Tile tile = board.getTile(row, col);
         if (tile != null) {
+            if (tile.getPumpkin() != null){
+                return tile.getPumpkin();
+            }
             if (tile.getPlant() != null) {
                 return tile.getPlant();
             }
@@ -238,6 +241,8 @@ public class GameState implements ReadOnlyGameState {
         }
         if (plant.type == PlantType.Lily_Pad) {
             tile.setLilyPad(plant);
+        }else if (plant.type == PlantType.Pumpkin) {
+            tile.setPumpkin(plant);
         } else {
             tile.setPlant(plant);
         }

@@ -111,4 +111,10 @@ public class PlantLobAbility implements PlantAbilityConfig {
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
         }
     }
+
+    @Override
+    public void resetCooldown() {
+        currentCooldown = 0;
+
+    }
 }

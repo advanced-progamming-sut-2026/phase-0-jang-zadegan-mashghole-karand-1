@@ -374,7 +374,9 @@ public class ModelManager {
         if (plant == null) {
             return false;
         }
-        plant.activatePlantFood(state, eventBus);
+        if (!plant.activatePlantFood(state, eventBus)) {
+            return false;
+        }
         state.plantFoodAmount--;
         return true;
     }
@@ -397,6 +399,7 @@ public class ModelManager {
                 }
             }
         }
+        sessionContext.clearSeedCooldowns();
     }
 
     public void releaseNuke() {

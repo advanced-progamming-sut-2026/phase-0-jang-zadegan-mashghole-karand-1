@@ -22,7 +22,8 @@ public class PlantMintAbility implements PlantAbilityConfig {
 
     @Override
     public PlantAbilityConfig createInstance(Plant plant) {
-        return new PlantMintAbility(targetCategory, durationTicks);
+        int finalDuration = durationTicks * GameLoop.TICKS_PER_SECOND;
+        return new PlantMintAbility(targetCategory, finalDuration);
     }
 
     @Override

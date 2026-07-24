@@ -27,7 +27,7 @@ public class PlantHypnotizeAbility implements PlantAbilityConfig {
         if (killer != null && killer.isAlive) {
             if (this.transformToGargantuar) {
                 killer.isAlive = false;
-                Zombie garg = new Zombie(ZombieType.GARGANTUAR, killer.row, killer.col,new Position(killer.row, killer.col),event);
+                Zombie garg = new Zombie(ZombieType.GARGANTUAR, killer.row, killer.col,new Position(killer.position.x, killer.position.y),event);
                 garg.isHypnotized = true;
                 applyBuffs(garg,plant);
                 state.zombies.add(garg);

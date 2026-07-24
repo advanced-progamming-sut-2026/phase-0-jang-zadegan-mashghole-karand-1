@@ -17,7 +17,7 @@ public class Tile {
     private boolean hasBeachPost;
     private Plant plant;
     private Plant lilyPad;
-
+    private Plant pumpkin;
     private Grave grave; // null if doesn't have grave
     private Vase vase; // null if doesn't have vase
 
@@ -56,6 +56,18 @@ public class Tile {
         this.lilyPad = lilyPad;
     }
 
+    public boolean hasPumpkin() {
+        return pumpkin !=null;
+    }
+
+    public void setPumpkin(Plant pumpkin) {
+        this.pumpkin = pumpkin;
+    }
+
+    public Plant getPumpkin() {
+        return pumpkin;
+    }
+
     public void detachPlant(Plant target) {
         if (target == null) {
             return;
@@ -65,6 +77,9 @@ public class Tile {
         }
         if (this.lilyPad == target) {
             this.lilyPad = null;
+        }
+        if (this.pumpkin == target) {
+            this.pumpkin = null;
         }
     }
 
@@ -132,8 +147,6 @@ public class Tile {
         boolean isWatery = plantType.tags != null
                 && plantType.tags.contains(PlantTag.WATER)
                 && plantType != PlantType.Lily_Pad;
-        if (hasPlant())
-            return false;
         if (plantType == PlantType.Hot_Potato) {
             return type == TileType.ICE
                     && !hasVase()
@@ -149,6 +162,16 @@ public class Tile {
                     && !hasPlant()
                     && !hasGrave() && !hasVase() && !hasBeachPost();
         }
+        if (plantType == PlantType.Pumpkin) {
+            return !hasPumpkin()
+                    && !hasGrave() && !hasVase() && !hasBeachPost()
+                    && (hasLilyPad() || type != TileType.WATER);
+        }
+        if (hasPumpkin() && !hasPlant() &&plantType != PlantType.Pumpkin) {
+            return !hasGrave() && !hasVase() && !hasBeachPost();
+        }
+        if (hasPlant())
+            return false;
         if (type == TileType.WATER) {
             if (plantType == PlantType.Lily_Pad && hasLilyPad()) {
                 return false;
