@@ -69,7 +69,7 @@ public class ModelManager {
         this.effectSystem = new EffectSystem();
         this.questTracker = new QuestTracker(storage);
         this.scoreTracker = new ScoreTracker();
-        this.EventHub = new GameEventHub(eventBus, ruleEngine, questTracker, scoreTracker, state, storage);
+        this.eventHub = new GameEventHub(eventBus, ruleEngine, questTracker, scoreTracker, state, storage);
 
         this.eventHub.register();
     }
@@ -118,7 +118,7 @@ public class ModelManager {
         if (user != null && user.preferredSetting != null) {
             difficulty = user.preferredSetting.getDifficultyLevel();
         }
-        EventHub.bindSession(sessionContext, difficulty);
+        eventHub.bindSession(sessionContext, difficulty);
         waveManager.initialize(config.levelConfig, config.miniGameType, difficulty);
 
         ruleEngine.onSessionStart(sessionContext, state, eventBus);
