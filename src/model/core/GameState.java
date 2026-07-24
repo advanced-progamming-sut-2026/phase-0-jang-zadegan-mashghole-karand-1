@@ -40,6 +40,9 @@ public class GameState implements ReadOnlyGameState {
     public boolean levelComplete = false;
     public GameOverReason gameOverReason = null;
     public int totalTicks = 0;
+    public int sessionScore = 0;
+    public boolean hasSessionScore = false;
+    public boolean sessionScoreNewRecord = false;
 
     @Override
     public GameBoard getBoard() {
@@ -146,6 +149,33 @@ public class GameState implements ReadOnlyGameState {
     @Override
     public int getTotalTicks() {
         return totalTicks;
+    }
+
+    @Override
+    public int getSessionScore() {
+        return sessionScore;
+    }
+
+    @Override
+    public boolean hasSessionScore() {
+        return hasSessionScore;
+    }
+
+    @Override
+    public boolean isSessionScoreNewRecord() {
+        return sessionScoreNewRecord;
+    }
+
+    public void setSessionScore(int score, boolean newRecord) {
+        this.sessionScore = Math.max(0, score);
+        this.hasSessionScore = true;
+        this.sessionScoreNewRecord = newRecord;
+    }
+
+    public void clearSessionScore() {
+        this.sessionScore = 0;
+        this.hasSessionScore = false;
+        this.sessionScoreNewRecord = false;
     }
 
     @Override
@@ -285,6 +315,6 @@ public class GameState implements ReadOnlyGameState {
         levelComplete = false;
         gameOverReason = null;
         totalTicks = 0;
-
+        clearSessionScore();
     }
 }

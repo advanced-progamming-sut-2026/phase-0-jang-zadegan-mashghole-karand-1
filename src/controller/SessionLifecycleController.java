@@ -78,7 +78,14 @@ public class SessionLifecycleController {
 
         if (won) {
             applyProgressOnWin();
-            controllerManager.sendMessage("Level complete! Use 'menu exit' to return.");
+            String scoreNote = "";
+            if (model.getState().hasSessionScore()) {
+                scoreNote = " Score: " + model.getState().getSessionScore() + ".";
+                if (model.getState().isSessionScoreNewRecord()) {
+                    scoreNote += " New high score!";
+                }
+            }
+            controllerManager.sendMessage("Level complete!" + scoreNote + " Use 'menu exit' to return.");
         } else {
             String detail = reason != null ? reason.message + " " : "";
             controllerManager.sendMessage("Game over! " + detail + "Use 'menu exit' to return.");
@@ -113,6 +120,13 @@ public class SessionLifecycleController {
         }
 
         storage.markLevelCompleted(level.chapterType, level.levelNumber);
+
+        var score = model.getScoreTracker().finalizeScore(context, model.getState());
+        if (score != null) {
+            boolean newRecord = storage.recordLevelHighScore(level.chapterType, level.levelNumber, score.total);
+            model.getScoreTracker().setLastScoreIsRecord(newRecord);
+            model.getState().setSessionScore(score.total, newRecord);
+        }
 
         ChapterType nextChapter = ProgressRewards.nextChapter(level.chapterType, level.levelNumber);
         if (nextChapter != null) {

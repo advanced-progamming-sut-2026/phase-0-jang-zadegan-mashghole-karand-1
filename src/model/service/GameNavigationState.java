@@ -1,13 +1,16 @@
 package model.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import model.data.content.chapter.ChapterType;
 import model.data.content.minigame.MiniGameType;
 import model.data.content.specialLevel.SpecialLevelType;
 import model.data.plant.PlantType;
 import model.data.wave.LevelConfig;
+import model.storage.CompletedLevelKey;
 
 public class GameNavigationState {
 
@@ -25,7 +28,15 @@ public class GameNavigationState {
     public List<ChapterType> unlockedChapters = new ArrayList<>();
     public List<PlantType> unlockedPlants = new ArrayList<>();
     public List<MiniGameType> unlockedMinigames = new ArrayList<>();
+    public Map<String, Integer> levelHighScores = new HashMap<>();
     public PlantType imitatorTarget;
+
+    public int getLevelHighScore(ChapterType chapter, int levelNumber) {
+        if (chapter == null) {
+            return 0;
+        }
+        return levelHighScores.getOrDefault(CompletedLevelKey.campaign(chapter, levelNumber), 0);
+    }
 
     public void reset() {
         phase = Phase.NONE;

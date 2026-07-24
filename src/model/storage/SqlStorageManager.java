@@ -318,6 +318,60 @@ public class SqlStorageManager implements StorageManager {
     }
 
     @Override
+    public boolean recordLevelHighScore(ChapterType chapter, int levelNumber, int score) {
+        if (!isLoggedIn() || chapter == null || score <= 0) {
+            return false;
+        }
+        synchronized (lock) {
+            boolean isLevelRecord = currentUser.gameProgress.recordLevelHighScore(chapter, levelNumber, score);
+            boolean globalRecord = false;
+            if (score > currentUser.highestScore) {
+                currentUser.highestScore = score;
+                globalRecord = true;
+            }
+            if (isLevelRecord) {
+                persistLevelHighScore(CompletedLevelKey.campaign(chapter, levelNumber), score);
+            }
+            if (isLevelRecord || globalRecord) {
+                saveUserProfile(currentUser);
+            }
+            return isLevelRecord;
+        }
+    }
+
+    @Override
+    public int getLevelHighScore(ChapterType chapter, int levelNumber) {
+        if (!isLoggedIn() || chapter == null) {
+            return 0;
+        }
+        return currentUser.gameProgress.getLevelHighScore(chapter, levelNumber);
+    }
+
+    @Override
+    public Map<String, Integer> getLevelHighScores() {
+        if (!isLoggedIn()) {
+            return Map.of();
+        }
+        return currentUser.gameProgress.getLevelHighScores();
+    }
+
+    private void persistLevelHighScore(String levelId, int score) {
+        try (Connection connection = openConnection();
+                PreparedStatement statement = connection.prepareStatement("""
+                        INSERT INTO level_high_scores (username, level_id, score)
+                        VALUES (?, ?, ?)
+                        ON CONFLICT(username, level_id) DO UPDATE SET score = excluded.score
+                        """)) {
+            statement.setString(1, currentUser.username);
+            statement.setString(2, levelId);
+            statement.setInt(3, score);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save level high score", e);
+        }
+    }
+
+    @Override
     public boolean changeUsername(String newUsername) {
         if (!isLoggedIn() || newUsername == null || newUsername.isBlank()) {
             return false;
@@ -621,6 +675,15 @@ public class SqlStorageManager implements StorageManager {
                         )
                         """);
                 statement.execute("""
+                        CREATE TABLE IF NOT EXISTS level_high_scores (
+                            username TEXT NOT NULL,
+                            level_id TEXT NOT NULL,
+                            score INTEGER NOT NULL DEFAULT 0,
+                            PRIMARY KEY (username, level_id),
+                            FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+                        )
+                        """);
+                statement.execute("""
                         CREATE TABLE IF NOT EXISTS app_session (
                             id INTEGER PRIMARY KEY CHECK (id = 1),
                             username TEXT,
@@ -832,6 +895,7 @@ public class SqlStorageManager implements StorageManager {
                 loadUnlockedZombies(connection, user);
                 loadUnlockedMinigames(connection, user);
                 loadCompletedLevels(connection, user);
+                loadLevelHighScores(connection, user);
                 loadNews(connection, user);
                 loadSeedPackets(connection, user);
                 loadGreenhousePots(connection, user);
@@ -899,6 +963,20 @@ public class SqlStorageManager implements StorageManager {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     user.gameProgress.completeLevel(resultSet.getString("level_id"));
+                }
+            }
+        }
+    }
+
+    private void loadLevelHighScores(Connection connection, User user) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT level_id, score FROM level_high_scores WHERE username = ?")) {
+            statement.setString(1, user.username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    user.gameProgress.setLevelHighScore(
+                            resultSet.getString("level_id"),
+                            resultSet.getInt("score"));
                 }
             }
         }
@@ -1077,6 +1155,7 @@ public class SqlStorageManager implements StorageManager {
         saveUnlockedPlants(user);
         saveUnlockedZombies(user);
         saveCompletedLevels(user);
+        saveLevelHighScores(user);
         saveSeedPackets(user);
         saveGreenhousePots(user);
         saveStoredBoosts(user);
@@ -1207,6 +1286,29 @@ public class SqlStorageManager implements StorageManager {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to save completed levels", e);
+        }
+    }
+
+    private void saveLevelHighScores(User user) {
+        try (Connection connection = openConnection()) {
+            try (PreparedStatement deleteStatement = connection.prepareStatement(
+                    "DELETE FROM level_high_scores WHERE username = ?")) {
+                deleteStatement.setString(1, user.username);
+                deleteStatement.executeUpdate();
+            }
+
+            try (PreparedStatement insertStatement = connection.prepareStatement(
+                    "INSERT INTO level_high_scores (username, level_id, score) VALUES (?, ?, ?)")) {
+                for (Map.Entry<String, Integer> entry : user.gameProgress.getLevelHighScores().entrySet()) {
+                    insertStatement.setString(1, user.username);
+                    insertStatement.setString(2, entry.getKey());
+                    insertStatement.setInt(3, entry.getValue());
+                    insertStatement.addBatch();
+                }
+                insertStatement.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save level high scores", e);
         }
     }
 
@@ -1415,6 +1517,7 @@ public class SqlStorageManager implements StorageManager {
         updateChildUsername(connection, "unlocked_plants", oldUsername, newUsername);
         updateChildUsername(connection, "unlocked_zombies", oldUsername, newUsername);
         updateChildUsername(connection, "completed_levels", oldUsername, newUsername);
+        updateChildUsername(connection, "level_high_scores", oldUsername, newUsername);
         updateChildUsername(connection, "unlocked_minigames", oldUsername, newUsername);
         updateChildUsername(connection, "user_news", oldUsername, newUsername);
         updateChildUsername(connection, "user_seed_packets", oldUsername, newUsername);

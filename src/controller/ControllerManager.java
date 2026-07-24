@@ -114,6 +114,7 @@ public class ControllerManager {
                 gameNavigation.unlockedChapters = storage.getUnlockedChapters();
                 gameNavigation.unlockedPlants = storage.getUnlockedPlants();
                 gameNavigation.unlockedMinigames = storage.getUnlockedMinigames();
+                gameNavigation.levelHighScores = new java.util.HashMap<>(storage.getLevelHighScores());
                 profileViewState = ProfileViewState.fromUser(storage.getCurrentUser());
                 settingsViewState = SettingsViewState.fromUser(storage.getCurrentUser());
                 leaderboardViewState = leaderboardMenuController.getViewState();

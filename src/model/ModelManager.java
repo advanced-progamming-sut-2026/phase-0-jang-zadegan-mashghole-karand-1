@@ -15,17 +15,8 @@ import model.data.vase.Vase;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.event.GameEventHub;
-import model.event.events.GlowingZombieDiedEvent;
-import model.event.events.GameOverEvent;
-import model.event.events.LevelCompleteEvent;
-import model.event.events.PlantDiedEvent;
 import model.event.events.PlantPlacedEvent;
 import model.event.events.SeedCollectedEvent;
-import model.event.events.SunCollectedEvent;
-import model.event.events.WaveCompleteEvent;
-import model.event.events.WaveStartedEvent;
-import model.event.events.ZombieDiedEvent;
-import model.event.events.ZombieDroppedLootEvent;
 import model.event.events.ZombieSpawnedEvent;
 import model.core.Position;
 import model.data.content.minigame.IZombieShop;
@@ -34,6 +25,7 @@ import model.rule.RuleEngine;
 import model.rule.SessionConfig;
 import model.rule.SessionContext;
 import model.rule.SessionRules;
+import model.score.ScoreTracker;
 import model.gameSetting.GameSetting;
 import model.storage.StorageManager;
 import model.storage.user.User;
@@ -57,6 +49,7 @@ public class ModelManager {
     private final SeedDropSystem seedDropSystem;
     private final EffectSystem effectSystem;
     private final QuestTracker questTracker;
+    private final ScoreTracker scoreTracker;
     private PlantType imitatorTarget;
 
     public ModelManager(StorageManager storage, EventBus eventBus) {
@@ -75,7 +68,8 @@ public class ModelManager {
         this.seedDropSystem = new SeedDropSystem();
         this.effectSystem = new EffectSystem();
         this.questTracker = new QuestTracker(storage);
-        this.EventHub = new GameEventHub(eventBus, ruleEngine,questTracker,state,storage);
+        this.scoreTracker = new ScoreTracker();
+        this.EventHub = new GameEventHub(eventBus, ruleEngine, questTracker, scoreTracker, state, storage);
 
         this.EventHub.register();
     }
@@ -117,7 +111,6 @@ public class ModelManager {
         ruleEngine.addRules(SessionRules.resolve(config));
         EventHub.unbindSession();
         this.sessionContext = new SessionContext(config, ruleEngine, waveManager);
-        EventHub.bindSession(sessionContext);
         this.imitatorTarget = config.imitatorTarget;
 
         int difficulty = GameSetting.DEFAULT_DIFFICULTY;
@@ -125,6 +118,7 @@ public class ModelManager {
         if (user != null && user.preferredSetting != null) {
             difficulty = user.preferredSetting.getDifficultyLevel();
         }
+        EventHub.bindSession(sessionContext, difficulty);
         waveManager.initialize(config.levelConfig, config.miniGameType, difficulty);
 
         ruleEngine.onSessionStart(sessionContext, state, eventBus);
@@ -153,6 +147,10 @@ public class ModelManager {
 
     public SessionContext getPlayContext() {
         return sessionContext;
+    }
+
+    public ScoreTracker getScoreTracker() {
+        return scoreTracker;
     }
 
     public boolean shouldDropSkySun() {

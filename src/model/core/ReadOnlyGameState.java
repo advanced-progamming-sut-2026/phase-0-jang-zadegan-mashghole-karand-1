@@ -62,6 +62,12 @@ public interface ReadOnlyGameState {
 
     int getTotalTicks();
 
+    int getSessionScore();
+
+    boolean hasSessionScore();
+
+    boolean isSessionScoreNewRecord();
+
     Plant getPlantAt(int row, int col);
 
     Vase getVaseAt(int row, int col);

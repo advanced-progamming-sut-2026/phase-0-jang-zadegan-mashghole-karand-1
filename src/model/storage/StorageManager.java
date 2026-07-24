@@ -46,6 +46,12 @@ public interface StorageManager {
 
     void markMinigameCompleted(model.data.content.minigame.MiniGameType miniGame);
 
+    boolean recordLevelHighScore(ChapterType chapter, int levelNumber, int score);
+
+    int getLevelHighScore(ChapterType chapter, int levelNumber);
+
+    java.util.Map<String, Integer> getLevelHighScores();
+
     boolean changeUsername(String newUsername);
 
     void changeNickname(String nickname);
