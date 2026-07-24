@@ -25,6 +25,7 @@ import model.rule.RuleEngine;
 import model.rule.SessionConfig;
 import model.rule.SessionContext;
 import model.rule.SessionRules;
+import model.score.ScoreTracker;
 import model.gameSetting.GameSetting;
 import model.storage.StorageManager;
 import model.storage.user.User;
@@ -48,6 +49,7 @@ public class ModelManager {
     private final SeedDropSystem seedDropSystem;
     private final EffectSystem effectSystem;
     private final QuestTracker questTracker;
+    private final ScoreTracker scoreTracker;
     private PlantType imitatorTarget;
 
     public ModelManager(StorageManager storage, EventBus eventBus) {
@@ -66,7 +68,8 @@ public class ModelManager {
         this.seedDropSystem = new SeedDropSystem();
         this.effectSystem = new EffectSystem();
         this.questTracker = new QuestTracker(storage);
-        this.eventHub = new GameEventHub(eventBus, ruleEngine, questTracker, state, storage);
+        this.scoreTracker = new ScoreTracker();
+        this.EventHub = new GameEventHub(eventBus, ruleEngine, questTracker, scoreTracker, state, storage);
 
         this.eventHub.register();
     }
@@ -108,7 +111,6 @@ public class ModelManager {
         ruleEngine.addRules(SessionRules.resolve(config));
         eventHub.unbindSession();
         this.sessionContext = new SessionContext(config, ruleEngine, waveManager);
-        eventHub.bindSession(sessionContext);
         this.imitatorTarget = config.imitatorTarget;
 
         int difficulty = GameSetting.DEFAULT_DIFFICULTY;
@@ -116,6 +118,7 @@ public class ModelManager {
         if (user != null && user.preferredSetting != null) {
             difficulty = user.preferredSetting.getDifficultyLevel();
         }
+        EventHub.bindSession(sessionContext, difficulty);
         waveManager.initialize(config.levelConfig, config.miniGameType, difficulty);
 
         ruleEngine.onSessionStart(sessionContext, state, eventBus);
@@ -144,6 +147,10 @@ public class ModelManager {
 
     public SessionContext getPlayContext() {
         return sessionContext;
+    }
+
+    public ScoreTracker getScoreTracker() {
+        return scoreTracker;
     }
 
     public boolean shouldDropSkySun() {

@@ -300,7 +300,7 @@ public class ConsoleRenderer implements Renderer {
         sb.append(getGameHelp(safeHud));
         if (state.isLevelComplete()) {
             sb.append("\n");
-            sb.append(buildLevelCompleteOverlay());
+            sb.append(buildLevelCompleteOverlay(state));
         } else if (state.isGameOver()) {
             sb.append("\n");
             sb.append(buildGameOverOverlay(state));
@@ -386,7 +386,14 @@ public class ConsoleRenderer implements Renderer {
             sb.append("\n");
             sb.append("  " + BOLD + "Levels:" + RESET + "\n");
             for (int i = 1; i <= ChapterCatalog.LEVELS_PER_CHAPTER; i++) {
-                sb.append("    ").append(CYAN).append(i).append(RESET).append("\n");
+                int highScore = gameNavigation.getLevelHighScore(gameNavigation.selectedChapter, i);
+                sb.append("    ").append(CYAN).append(i).append(RESET);
+                if (highScore > 0) {
+                    sb.append(" - high score: ").append(GREEN).append(highScore).append(RESET);
+                } else {
+                    sb.append(" - high score: ").append(GRAY).append("-").append(RESET);
+                }
+                sb.append("\n");
             }
         } else if (gameNavigation.phase == Phase.PLANT) {
             String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Pick Plants" + RESET + "  🧟";
@@ -1113,10 +1120,18 @@ public class ConsoleRenderer implements Renderer {
         return sb.toString();
     }
 
-    private String buildLevelCompleteOverlay() {
+    private String buildLevelCompleteOverlay(ReadOnlyGameState state) {
         StringBuilder sb = new StringBuilder();
         sb.append(getHeaderBox(" 🎉 " + BOLD + "LEVEL COMPLETE!" + RESET, GREEN));
         sb.append("\n");
+        if (state != null && state.hasSessionScore()) {
+            sb.append("  ").append(CYAN).append("Score:").append(RESET).append(" ")
+                    .append(BOLD).append(state.getSessionScore()).append(RESET);
+            if (state.isSessionScoreNewRecord()) {
+                sb.append("  ").append(YELLOW).append("(new high score!)").append(RESET);
+            }
+            sb.append("\n\n");
+        }
         sb.append("  ").append(CYAN).append("1.").append(RESET).append(" Return to level select: ")
                 .append(GREEN).append("menu exit").append(RESET).append("\n");
         return sb.toString();
