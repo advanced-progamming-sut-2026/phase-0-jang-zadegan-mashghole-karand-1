@@ -24,6 +24,10 @@ public class ViewManager {
         renderer.renderError(message);
     }
 
+    public boolean scrollMessages(int olderDelta) {
+        return renderer.scrollMessages(olderDelta);
+    }
+
     public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
             AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
             NewsViewState newsViewState, SettingsViewState settingsViewState, LeaderboardViewState leaderboardViewState,

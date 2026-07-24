@@ -70,6 +70,8 @@ public interface Renderer {
 
     void renderMessages();
 
+    boolean scrollMessages(int olderDelta);
+
     void renderCommandPrompt(String input);
 
     void clearScreen();

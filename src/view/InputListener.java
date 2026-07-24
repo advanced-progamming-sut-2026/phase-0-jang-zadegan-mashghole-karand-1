@@ -75,6 +75,10 @@ public class InputListener implements Runnable {
             if (c == 3) {
                 System.exit(0);
             }
+            if (c == 27) {
+                handleEscapeSequence(in);
+                continue;
+            }
             if (c >= 32) {
                 buffer.append(c);
                 renderer.renderCommandPrompt(buffer.toString());
@@ -82,6 +86,25 @@ public class InputListener implements Runnable {
         }
 
         return buffer.toString();
+    }
+
+    private void handleEscapeSequence(InputStream in) throws IOException {
+        int next = in.read();
+        if (next < 0) {
+            return;
+        }
+        if (next != '[') {
+            return;
+        }
+        int code = in.read();
+        if (code < 0) {
+            return;
+        }
+        if (code == 'A') {
+            inputHandler.handleMessageScroll(1);
+        } else if (code == 'B') {
+            inputHandler.handleMessageScroll(-1);
+        }
     }
 
     private void enableRawMode() {

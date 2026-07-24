@@ -460,6 +460,13 @@ public class ControllerManager {
         view.showError(message);
     }
 
+    public boolean scrollMessages(int olderDelta) {
+        if (view == null) {
+            return false;
+        }
+        return view.scrollMessages(olderDelta);
+    }
+
     public AuthController getAuthController() {
         return authController;
     }

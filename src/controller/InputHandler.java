@@ -24,6 +24,12 @@ public class InputHandler {
         }
     }
 
+    public void handleMessageScroll(int olderDelta) {
+        if (controllerManager.scrollMessages(olderDelta)) {
+            controllerManager.refreshView();
+        }
+    }
+
     private boolean dispatchCommand(String input) {
 
         if (Commands.QUIT.getMatcher(input).matches()) {

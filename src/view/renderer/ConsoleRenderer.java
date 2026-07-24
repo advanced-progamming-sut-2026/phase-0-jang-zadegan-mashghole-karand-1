@@ -67,6 +67,7 @@ public class ConsoleRenderer implements Renderer {
     private static final String BG_NECRO = "\u001B[48;5;54m";
 
     private List<String> messages = new java.util.ArrayList<>();
+    private int messageScrollOffset = 0;
 
     private int currentRenderHeight = MIN_RENDER_HEIGHT;
     private String[] lastRenderLines = new String[MIN_RENDER_HEIGHT];
@@ -1655,17 +1656,28 @@ public class ConsoleRenderer implements Renderer {
     @Override
     public void renderMessage(String message) {
         messages.add(message);
-        if (messages.size() > MAX_MESSAGES) {
-            messages.remove(0);
-        }
+        messageScrollOffset = 0;
     }
 
     @Override
     public void renderError(String error) {
         messages.add(RED + error + RESET);
-        if (messages.size() > MAX_MESSAGES) {
-            messages.remove(0);
+        messageScrollOffset = 0;
+    }
+
+    @Override
+    public boolean scrollMessages(int olderDelta) {
+        if (olderDelta == 0) {
+            return false;
         }
+        List<String> lines = buildMessageLines();
+        int maxOffset = Math.max(0, lines.size() - MAX_MESSAGES);
+        int next = Math.max(0, Math.min(maxOffset, messageScrollOffset + olderDelta));
+        if (next == messageScrollOffset) {
+            return false;
+        }
+        messageScrollOffset = next;
+        return true;
     }
 
     public String getMessages() {
@@ -1673,17 +1685,43 @@ public class ConsoleRenderer implements Renderer {
         int MESSAGE_BOX_WIDTH = SCREEN_WIDTH - 4;
         sb.append("╔" + "═".repeat(SCREEN_WIDTH - 2) + "╗\n");
 
-        int start = Math.max(0, messages.size() - MAX_MESSAGES);
+        List<String> lines = buildMessageLines();
+        int maxOffset = Math.max(0, lines.size() - MAX_MESSAGES);
+        if (messageScrollOffset > maxOffset) {
+            messageScrollOffset = maxOffset;
+        }
+
+        int end = lines.size() - messageScrollOffset;
+        int start = Math.max(0, end - MAX_MESSAGES);
+        int visible = Math.max(0, end - start);
+
+        for (int i = start; i < end; i++) {
+            String line = lines.get(i);
+            int plainLength = stripAnsi(line).length();
+            int padding = Math.max(0, MESSAGE_BOX_WIDTH - plainLength);
+            sb.append("║ ").append(line).append(" ".repeat(padding)).append(" ║\n");
+        }
+
+        for (int i = 0; i < MAX_MESSAGES - visible; i++) {
+            sb.append("║ ").append(" ".repeat(MESSAGE_BOX_WIDTH)).append(" ║\n");
+        }
+
+        sb.append("╚" + "═".repeat(SCREEN_WIDTH - 2) + "╝\n");
+
+        return sb.toString();
+    }
+
+    private List<String> buildMessageLines() {
+        int messageBoxWidth = SCREEN_WIDTH - 4;
         List<String> lines = new ArrayList<>();
 
-        for (int i = start; i < messages.size(); i++) {
-            String msg = messages.get(i);
+        for (String msg : messages) {
             String plainMsg = stripAnsi(msg);
 
-            if (plainMsg.length() > MESSAGE_BOX_WIDTH) {
+            if (plainMsg.length() > messageBoxWidth) {
                 int pos = 0;
                 while (pos < plainMsg.length()) {
-                    int end = Math.min(pos + MESSAGE_BOX_WIDTH, plainMsg.length());
+                    int end = Math.min(pos + messageBoxWidth, plainMsg.length());
                     if (end < plainMsg.length() && plainMsg.charAt(end) != ' ') {
                         int lastSpace = plainMsg.lastIndexOf(' ', end);
                         if (lastSpace > pos) {
@@ -1697,22 +1735,7 @@ public class ConsoleRenderer implements Renderer {
                 lines.add(msg);
             }
         }
-
-        int lineStart = Math.max(0, lines.size() - MAX_MESSAGES);
-        for (int i = lineStart; i < lines.size(); i++) {
-            String line = lines.get(i);
-            int plainLength = stripAnsi(line).length();
-            int padding = Math.max(0, MESSAGE_BOX_WIDTH - plainLength);
-            sb.append("║ ").append(line).append(" ".repeat(padding)).append(" ║\n");
-        }
-
-        for (int i = 0; i < MAX_MESSAGES - (lines.size() - lineStart); i++) {
-            sb.append("║ ").append(" ".repeat(MESSAGE_BOX_WIDTH)).append(" ║\n");
-        }
-
-        sb.append("╚" + "═".repeat(SCREEN_WIDTH - 2) + "╝\n");
-
-        return sb.toString();
+        return lines;
     }
 
     @Override
@@ -1739,6 +1762,7 @@ public class ConsoleRenderer implements Renderer {
     public void initialize() {
         clearScreen();
         messages.clear();
+        messageScrollOffset = 0;
     }
 
     @Override
