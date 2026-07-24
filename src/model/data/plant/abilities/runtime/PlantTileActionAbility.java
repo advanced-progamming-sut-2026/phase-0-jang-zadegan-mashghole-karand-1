@@ -11,7 +11,6 @@ import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.board.Tile;
 import model.board.TileType;
 import model.data.zombie.Zombie;
-import model.events.ZombieDiedEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,9 +98,10 @@ public class PlantTileActionAbility implements PlantAbilityConfig {
                 if (!z.isAlive) continue;
                 int zCol = (int) (z.position.x / GameState.CELL_WIDTH);
                 if (z.row != cell[0] || zCol != cell[1]) continue;
+                z.lastHitBy = plant.type;
                 z.takeDamage(damage);
                 if (!z.isAlive) {
-                    bus.publish(new ZombieDiedEvent(z));
+                    z.kill(state);
                 }
             }
         }

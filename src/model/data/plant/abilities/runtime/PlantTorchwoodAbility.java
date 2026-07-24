@@ -33,7 +33,11 @@ public class PlantTorchwoodAbility implements PlantAbilityConfig {
             if (!z.isAlive) continue;
             int col = (int) (z.position.x /GameState.CELL_WIDTH);
             if (Math.abs(z.row - plant.row) <= 1 && Math.abs(col - plant.col) <= 1 ){
+                z.lastHitBy = plant.type;
                 z.takeDamage(300);
+                if (!z.isAlive) {
+                    z.kill(state);
+                }
             }
         }
     }

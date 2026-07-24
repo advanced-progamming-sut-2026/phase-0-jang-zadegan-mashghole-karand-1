@@ -17,12 +17,9 @@ import model.data.projectile.ProjectileTarget;
 import model.data.projectile.ProjectileType;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
-import model.events.BarrelCreatedEvent;
-import model.events.PlantDiedEvent;
 
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
 
 public class CombatSystem {
     public EventBus eventBus;
@@ -57,11 +54,11 @@ public class CombatSystem {
                     continue;
                 }
 
-                Barrel barrelAhead = state.barrels.stream().filter(barrel -> barrel.row == p.row && barrel.col>= p.col).
-                        min(Comparator.comparingInt(barrel -> barrel.col)).orElse(null);
+                Barrel barrelAhead = state.barrels.stream().filter(barrel -> barrel.row == p.row && barrel.col >= p.col)
+                        .min(Comparator.comparingInt(barrel -> barrel.col)).orElse(null);
 
-                if(barrelAhead != null) {
-                    if(Math.abs(barrelAhead.pos.x -  p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+                if (barrelAhead != null) {
+                    if (Math.abs(barrelAhead.pos.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
                         barrelAhead.takeDamage(p.damage, state, eventBus);
                         projIter.remove();
                         continue;
@@ -94,8 +91,8 @@ public class CombatSystem {
                         if (pass) {
                             continue;
                         }
-                        if(p instanceof PiercingProjectile piercingProjectile) {
-                            if(piercingProjectile.hitZombies.contains(z)){
+                        if (p instanceof PiercingProjectile piercingProjectile) {
+                            if (piercingProjectile.hitZombies.contains(z)) {
                                 continue;
                             }
                             piercingProjectile.hitZombies.add(z);
@@ -103,29 +100,27 @@ public class CombatSystem {
 
                         z.abilities.forEach(a -> a.onProjectileHit(z, p));
 
+                        applyProjectileEffects(state, p, z, freezeProjectilesEnabled);
 
+                        if (z.isIced())
+                            z.damageIce(p.damage);
 
-                        applyProjectileEffects(state, p, z,freezeProjectilesEnabled);
-
-                        if (z.isIced()) z.damageIce(p.damage);
-
-                        else if(p.type != ProjectileType.POISON) {
+                        else if (p.type != ProjectileType.POISON) {
                             new DamageEffect(p.damage).apply(z, state, eventBus, p.sourcePlant);
                         }
-                        if(p instanceof PiercingProjectile piercingProjectile) {
+                        if (p instanceof PiercingProjectile piercingProjectile) {
                             piercingProjectile.pierceCount--;
 
-                            if(piercingProjectile.pierceCount<=0){
+                            if (piercingProjectile.pierceCount <= 0) {
                                 projIter.remove();
                             }
-                        }else {
+                        } else {
                             projIter.remove();
                         }
 
-
                         if (!z.isAlive) {
                             z.lastHitBy = p.sourcePlant;
-                            z.onDeath(state);
+                            z.kill(state);
                             zombieIter.remove();
                         }
                         break;
@@ -142,7 +137,7 @@ public class CombatSystem {
                         target.applyStun(new BlockingStun(StunKind.FROZEN));
                     }
                     if (target.hp <= 0) {
-                        eventBus.publish(new PlantDiedEvent(target));
+                        target.kill(state, eventBus);
                     }
                 }
             }
@@ -151,43 +146,46 @@ public class CombatSystem {
         Iterator<Zombie> zombieIter = state.zombies.iterator();
         while (zombieIter.hasNext()) {
             Zombie z = zombieIter.next();
-            if (z.stunned) continue;
-            if(z.isHypnotized) {
+            if (!z.isAlive) {
+                continue;
+            }
+            if (z.stunned)
+                continue;
+            if (z.isHypnotized) {
                 Zombie targetZombie = state.zombies.stream()
-                        .filter(zombie -> zombie.row == z.row && zombie.position.x>= z.position.x
-                                && !zombie.isHypnotized && Math.abs(zombie.position.x - z.position.x) < ReadOnlyGameState.ZOMBIE_ATTACK_RANGE)
+                        .filter(zombie -> zombie.isAlive && zombie.row == z.row && zombie.position.x >= z.position.x
+                                && !zombie.isHypnotized
+                                && Math.abs(zombie.position.x - z.position.x) < ReadOnlyGameState.ZOMBIE_ATTACK_RANGE)
                         .min(Comparator.comparingDouble(zombie -> zombie.position.x - z.position.x)).orElse(null);
-                if (targetZombie == null) continue;
-                targetZombie.takeDamage((int)(z.getDPS() / 10));
+                if (targetZombie == null)
+                    continue;
+                targetZombie.takeDamage((int) (z.getDPS() / 10));
                 z.isEating = true;
-                if(!targetZombie.isAlive) {
-                    targetZombie.onDeath(state);
+                if (!targetZombie.isAlive) {
+                    targetZombie.kill(state);
                 }
                 continue;
             }
             Plant targetPlant = findPlantAt(state, z.row, z.position.x);
             if (targetPlant != null) {
-                if(z.type== ZombieType.WIZARD_ZOMBIE){
-                    targetPlant.applyStun(new CatStun(z)); //wizard don't eat plants
+                if (z.type == ZombieType.WIZARD_ZOMBIE) {
+                    targetPlant.applyStun(new CatStun(z)); // wizard don't eat plants
                     continue;
                 }
                 if (!targetPlant.canBeEaten() || !targetPlant.canBeDamaged()) {
                     continue;
                 }
-                targetPlant.hp -=(int) z.getDPS() / 10;
+                targetPlant.hp -= (int) z.getDPS() / 10;
                 z.isEating = true;
                 if (targetPlant.hp <= 0) {
-                    state.removePlant(targetPlant);
+                    targetPlant.kill(state, eventBus);
                     z.isEating = false;
-                    eventBus.publish(new PlantDiedEvent(targetPlant));
                 }
                 break;
             }
         }
 
-        // events should be triggered here!
-        state.zombies.removeIf(z -> z.hp <= 0);
-
+        state.removeDeadZombies();
         state.removeDeadPlants();
     }
 
@@ -196,18 +194,24 @@ public class CombatSystem {
         return state.getPlantAt(row, col);
     }
 
-    private void applyProjectileEffects(GameState state, Projectile projectile, Zombie zombie, boolean freezeProjectilesEnabled) {
+    private void applyProjectileEffects(GameState state, Projectile projectile, Zombie zombie,
+            boolean freezeProjectilesEnabled) {
         switch (projectile.type) {
             case FIRE, BLUE_FIRE:
-                if(zombie.isIced()) zombie.removeIce();
+                if (zombie.isIced())
+                    zombie.removeIce();
                 break;
             case ICE, ICE_MELON:
-                if(freezeProjectilesEnabled) {
+                if (freezeProjectilesEnabled) {
                     new FreezeEffect(30).apply(zombie, state, eventBus, projectile.sourcePlant);
                 }
                 break;
             case POISON:
-                if(zombie.isIced()) return;
+                if (zombie.isIced())
+                    return;
+                if (projectile.sourcePlant != null) {
+                    zombie.lastHitBy = projectile.sourcePlant;
+                }
                 zombie.takeDamage(projectile.damage, true);
                 break;
             case BUTTER:
@@ -215,9 +219,10 @@ public class CombatSystem {
                 zombie.stunTicks = 30;
                 break;
             case FREEZE_LINE:
-                if(!freezeProjectilesEnabled) break;
-                for(Zombie z : state.zombies) {
-                    if(z.row == projectile.row){
+                if (!freezeProjectilesEnabled)
+                    break;
+                for (Zombie z : state.zombies) {
+                    if (z.row == projectile.row) {
                         new FreezeEffect(30).apply(z, state, eventBus, projectile.sourcePlant);
                     }
                 }

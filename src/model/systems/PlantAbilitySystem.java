@@ -1,11 +1,11 @@
 package model.systems;
 
+import java.util.ArrayList;
+
 import model.core.EventBus;
 import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.plant.abilities.config.PlantAbilityConfig;
-
-import java.util.ArrayList;
 
 public class PlantAbilitySystem {
 
@@ -22,5 +22,6 @@ public class PlantAbilitySystem {
                 ability.onTick(plant, state, eventBus);
             }
         }
+        state.removeDeadPlants();
     }
 }

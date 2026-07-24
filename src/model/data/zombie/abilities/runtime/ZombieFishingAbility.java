@@ -5,7 +5,6 @@ import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.zombie.Zombie;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
-import model.events.PlantDiedEvent;
 
 import java.util.Comparator;
 
@@ -26,8 +25,7 @@ public class ZombieFishingAbility implements ZombieAbilityConfig {
                         .orElse(null);
                 if(frontPlant != null){
                     if(frontPlant.col+1 == zombie.col || frontPlant.col == zombie.col){
-                        frontPlant.isAlive = false;
-                        bus.publish(new PlantDiedEvent(frontPlant));
+                        frontPlant.kill(state, bus);
                     }else {
                         frontPlant.col++;
                     }

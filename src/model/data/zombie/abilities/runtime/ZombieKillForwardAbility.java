@@ -7,8 +7,6 @@ import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
-import model.events.PlantDiedEvent;
-import model.events.ZombieDiedEvent;
 
 import java.util.Comparator;
 
@@ -23,41 +21,28 @@ public class ZombieKillForwardAbility implements ZombieAbilityConfig {
             }
         }
 
-
         if (enabled) {
             Plant forwardPlant = state.getPlants().stream()
-                    .filter(p -> p.row == zombie.row && p.col <= zombie.col)
+                    .filter(p -> p.isAlive && p.row == zombie.row && p.col <= zombie.col)
                     .max(Comparator.comparingInt(p -> p.col)).orElse(null);
 
             Zombie forwardHypnotizedZombie = state.getZombies().stream()
-                    .filter(z -> z.isHypnotized && z.row == zombie.row && z.col <= zombie.col)
+                    .filter(z -> z.isAlive && z.isHypnotized && z.row == zombie.row && z.col <= zombie.col)
                     .max(Comparator.comparingInt(z -> z.col)).orElse(null);
 
             if (forwardPlant == null && forwardHypnotizedZombie == null) return;
 
             if (forwardPlant != null && forwardPlant.col == zombie.col) {
-                killPlant(bus,forwardPlant, zombie);
+                forwardPlant.kill(state, bus);
+                handleAllStarEffect(zombie);
                 return;
             }
 
             if (forwardHypnotizedZombie != null && forwardHypnotizedZombie.col == zombie.col) {
-                killHypnotizedZombie(bus,forwardHypnotizedZombie, zombie);
-                return;
+                forwardHypnotizedZombie.kill(state);
+                handleAllStarEffect(zombie);
             }
-
         }
-    }
-
-    private void killPlant(EventBus bus ,Plant plant, Zombie zombie) {
-        plant.isAlive = false;
-        bus.publish(new PlantDiedEvent(plant));
-        handleAllStarEffect(zombie);
-    }
-
-    private void killHypnotizedZombie(EventBus bus, Zombie hypZombie, Zombie zombie) {
-        hypZombie.isAlive = false;
-        bus.publish(new ZombieDiedEvent(hypZombie, null));
-        handleAllStarEffect(zombie);
     }
 
     private void handleAllStarEffect(Zombie zombie) {

@@ -10,7 +10,6 @@ import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.zombie.Zombie;
-import model.events.PlantDiedEvent;
 
 public class PlantBowlAbility implements PlantAbilityConfig {
     private static final float SPEED = 8f;
@@ -143,9 +142,10 @@ public class PlantBowlAbility implements PlantAbilityConfig {
             return;
         }
 
+        zombie.lastHitBy = plant.type;
         zombie.takeDamage(HIT_DAMAGE);
         if (!zombie.isAlive) {
-            zombie.onDeath(state);
+            zombie.kill(state);
         }
 
         if (mode == BowlingNutMode.GIANT) {
@@ -203,9 +203,10 @@ public class PlantBowlAbility implements PlantAbilityConfig {
             }
             int zombieCol = (int) (z.position.x / GameState.CELL_WIDTH);
             if (Math.abs(z.row - plantRow) <= 1 && Math.abs(zombieCol - plantCol) <= 1) {
+                z.lastHitBy = plant.type;
                 z.takeDamage(EXPLODE_DAMAGE);
                 if (!z.isAlive) {
-                    z.onDeath(state);
+                    z.kill(state);
                 }
             }
         }
@@ -213,8 +214,6 @@ public class PlantBowlAbility implements PlantAbilityConfig {
     }
 
     private void finish(Plant plant, GameState state, EventBus event) {
-        plant.hp = 0;
-        plant.isAlive = false;
-        event.publish(new PlantDiedEvent(plant));
+        plant.kill(state, event);
     }
 }

@@ -50,7 +50,7 @@ public class PlantMintAbility implements PlantAbilityConfig {
             }
         }
 
-        plant.hp = 0;
+        plant.kill(state, event);
     }
 
     private void resetCooldowns(Plant plant) {

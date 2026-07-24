@@ -84,6 +84,7 @@ public class ModelManager {
             if (e == null || e.plant == null) {
                 return;
             }
+            state.removePlant(e.plant);
             ruleEngine.onPlantDied(e.plant, state, eventBus);
         });
         eventBus.subscribe(WaveStartedEvent.class, e -> {

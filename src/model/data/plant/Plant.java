@@ -9,11 +9,11 @@ import model.core.GameState;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.plant.stuns.PlantStun;
-import model.data.plant.upgrades.PlantLevelUpgrade;
 import model.data.plant.upgrades.PlantUpgradeState;
+import model.events.PlantDiedEvent;
 
 public class Plant {
-    private static final int DOUBLE_SUN_DROP_CHANCE = 25;
+    // private static final int DOUBLE_SUN_DROP_CHANCE = 25;
 
     // Frostbite caves chapter specific
     private static final int FROSTBITE_FREEZE_MAX_LEVEL = 3;
@@ -43,6 +43,7 @@ public class Plant {
 
     private static int nextId = 0;
     public boolean resetFamilyCooldowns = false;
+    private boolean deathHandled = false;
 
     // Frostbite caves chapter specific
     private int frostbiteFreezeLevel = 0;
@@ -51,7 +52,6 @@ public class Plant {
 
     private PlantStun activeStun;
     public final PlantUpgradeState upgradeState;
-
 
     public Plant(PlantType type, int row, int col, int level, EventBus bus) {
         this.instanceId = nextId++;
@@ -73,12 +73,31 @@ public class Plant {
             PlantAbilityConfig ability = def.createInstance(this);
             if (ability != null) {
                 abilities.add(ability);
-//                 ability.onAttach(this);
+                // ability.onAttach(this);
             }
         }
 
         if (type.plantFoodEffect != null) {
             this.plantFoodEffect = type.plantFoodEffect.createInstance(this);
+        }
+    }
+
+    public void kill(GameState state, EventBus bus) {
+        if (deathHandled) {
+            if (state != null) {
+                state.removePlant(this);
+            }
+            return;
+        }
+        deathHandled = true;
+        this.hp = 0;
+        this.isAlive = false;
+        EventBus publishBus = bus != null ? bus : eventBus;
+        if (publishBus != null) {
+            publishBus.publish(new PlantDiedEvent(this));
+        }
+        if (state != null) {
+            state.removePlant(this);
         }
     }
 

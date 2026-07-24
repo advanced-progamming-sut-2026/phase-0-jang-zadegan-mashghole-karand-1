@@ -9,16 +9,12 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Quest list for UI, ordered for engagement:
- * CRITICAL (story / unlocks) → HIGH (epic / gems) → MEDIUM & LOW (daily / repeatable).
- */
 public class QuestViewState {
 
     public enum RewardKind {
-        CURRENCY,    // coins / gems
-        UNLOCKABLE,  // plant unlock Locked → Available
-        INVENTORY    // seed packs and consumables
+        CURRENCY, // coins / gems
+        UNLOCKABLE, // plant unlock Locked → Available
+        INVENTORY // seed packs and consumables
     }
 
     public static final class Entry {
@@ -33,7 +29,7 @@ public class QuestViewState {
         public final String rewardLabel;
 
         public Entry(String name, String description, QuestCategory category, QuestPriority priority,
-                     int progress, int target, boolean completed, RewardKind rewardKind, String rewardLabel) {
+                int progress, int target, boolean completed, RewardKind rewardKind, String rewardLabel) {
             this.name = name;
             this.description = description;
             this.category = category;
@@ -144,9 +140,9 @@ public class QuestViewState {
             case "critical" -> quest.getPriority() == QuestPriority.CRITICAL;
             case "high" -> quest.getPriority() == QuestPriority.HIGH;
             case "medium", "low", "daily" ->
-                    quest.getPriority() == QuestPriority.MEDIUM
-                            || quest.getPriority() == QuestPriority.LOW
-                            || quest.getCategory() == QuestCategory.DAILY;
+                quest.getPriority() == QuestPriority.MEDIUM
+                        || quest.getPriority() == QuestPriority.LOW
+                        || quest.getCategory() == QuestCategory.DAILY;
             case "main" -> quest.getCategory() == QuestCategory.MAIN;
             case "epic", "challenge" -> quest.getCategory() == QuestCategory.EPIC;
             case "completed" -> quest.isCompleted();

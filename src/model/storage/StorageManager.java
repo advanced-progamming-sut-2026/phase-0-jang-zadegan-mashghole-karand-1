@@ -18,7 +18,9 @@ public interface StorageManager {
     void logout();
 
     User getCurrentUser();
+
     List<User> getUsers();
+
     boolean isLoggedIn();
 
     boolean usernameExists(String username);
@@ -35,7 +37,6 @@ public interface StorageManager {
 
     void updateUserProfile(User profile);
 
-    /** Apply saved progress/completed onto already-assigned user.quests. */
     default void loadQuestProgress(User user) {
     }
 

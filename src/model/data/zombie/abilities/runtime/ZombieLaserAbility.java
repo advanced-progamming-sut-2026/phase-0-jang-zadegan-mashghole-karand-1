@@ -5,7 +5,6 @@ import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.zombie.Zombie;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
-import model.events.PlantDiedEvent;
 
 import java.util.List;
 
@@ -22,8 +21,7 @@ public class ZombieLaserAbility implements ZombieAbilityConfig {
            int chargedTime = state.totalTicks - chargeStartTime;
            if(chargedTime >=50){
                for(Plant p : targets) {
-                   p.isAlive = false;
-                   bus.publish(new PlantDiedEvent(p));
+                   p.kill(state, bus);
                }
                enabledCharging = false;
            }

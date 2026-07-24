@@ -1,6 +1,5 @@
 package model.data.plant.abilities.runtime;
 
-import model.board.Tile;
 import model.core.EventBus;
 import model.core.GameLoop;
 import model.core.GameState;
@@ -28,17 +27,15 @@ public class PlantTransformAbility implements PlantAbilityConfig {
             transformTimer--;
         } else {
             done = true;
-            plant.isAlive = false;
-            plant.hp = 0;
-            Plant copiedPlant = new Plant(targetPlant, plant.row, plant.col,plant.level,event);
+            int row = plant.row;
+            int col = plant.col;
+            int level = plant.level;
+            state.removePlant(plant);
+            Plant copiedPlant = new Plant(targetPlant, row, col, level, event);
             if (plant.upgradeState.plantFoodOnEnteranc){
                 copiedPlant.activatePlantFood(state,event);
             }
-            state.plants.add(copiedPlant);
-            Tile tile = state.getBoard().getTile(plant.row,plant.col);
-            if (tile != null){
-                tile.setPlant(copiedPlant);
-            }
+            state.addPlant(copiedPlant);
         }
     }
 

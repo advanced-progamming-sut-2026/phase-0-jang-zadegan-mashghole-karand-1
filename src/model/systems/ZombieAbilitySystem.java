@@ -1,5 +1,7 @@
 package model.systems;
 
+import java.util.ArrayList;
+
 import model.core.EventBus;
 import model.core.GameState;
 import model.data.zombie.Zombie;
@@ -7,7 +9,7 @@ import model.data.zombie.abilities.config.ZombieAbilityConfig;
 
 public class ZombieAbilitySystem {
     public void update(GameState state, EventBus eventBus) {
-        for (Zombie zombie : state.zombies) {
+        for (Zombie zombie : new ArrayList<>(state.zombies)) {
             if (!zombie.isAlive)
                 continue;
             if (zombie.isIced())
@@ -18,5 +20,6 @@ public class ZombieAbilitySystem {
                 ability.onTick(zombie, state, eventBus);
             }
         }
+        state.removeDeadZombies();
     }
 }

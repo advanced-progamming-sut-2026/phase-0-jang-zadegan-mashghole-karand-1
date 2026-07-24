@@ -199,6 +199,10 @@ public class GameState implements ReadOnlyGameState {
         }
     }
 
+    public void removeDeadZombies() {
+        zombies.removeIf(z -> z == null || !z.isAlive || z.hp <= 0);
+    }
+
     public void addGrave(Grave grave) {
         if (grave == null) {
             return;

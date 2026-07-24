@@ -9,7 +9,6 @@ import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.sun.Sun;
 import model.data.zombie.Zombie;
 import model.events.SunProducedEvent;
-import model.events.ZombieDiedEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,7 +47,11 @@ public class PlantDefenderAbility implements PlantAbilityConfig {
     public void onDamaged(Plant plant, Zombie attacker,
                           GameState state, EventBus event) {
         if (features.contains(DefenderFeature.REFLECT_DAMAGE)) {
+            attacker.lastHitBy = plant.type;
             attacker.takeDamage(reflectDamage);
+            if (!attacker.isAlive) {
+                attacker.kill(state);
+            }
         }
         if (features.contains(DefenderFeature.MOVE_ATTACKER)) {
             moveAttacker(attacker);
@@ -98,9 +101,11 @@ public class PlantDefenderAbility implements PlantAbilityConfig {
     public void explode(Plant plant, GameState state, EventBus event, int explosionDamage) {
         List<Zombie> targets = findTarget(state, plant);
         for (Zombie z : targets) {
+            z.lastHitBy = plant.type;
             z.takeDamage(explosionDamage);
-            if (!z.isAlive)
-                event.publish(new ZombieDiedEvent(z, plant.type));
+            if (!z.isAlive) {
+                z.kill(state);
+            }
         }
     }
 

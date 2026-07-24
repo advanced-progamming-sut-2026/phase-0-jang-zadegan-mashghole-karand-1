@@ -44,6 +44,7 @@ public class Zombie {
 
     private int iceHP = 0;
     private boolean isIced = false;
+    private boolean deathHandled = false;
 
     // Ancient Egypt chapter specific
     private SandstormEffect activeSandstorm = null;
@@ -97,7 +98,7 @@ public class Zombie {
     }
 
     public void takeDamage(int damage, boolean poisonous) {
-        if(!poisonous) {
+        if (!poisonous) {
             takeDamage(damage);
             return;
         }
@@ -109,7 +110,18 @@ public class Zombie {
         }
     }
 
-    public void onDeath(GameState state) {
+    public void kill(GameState state) {
+        if (deathHandled) {
+            return;
+        }
+        deathHandled = true;
+        this.hp = 0;
+        this.isAlive = false;
+        this.isEating = false;
+
+        if (state == null) {
+            return;
+        }
         for (ZombieAbilityConfig ability : abilities) {
             ability.onDeath(this, state, eventBus);
         }
@@ -117,7 +129,7 @@ public class Zombie {
             state.plantFoodAmount++;
             eventBus.publish(new GlowingZombieDiedEvent(this));
         } else {
-            eventBus.publish(new ZombieDiedEvent(this,lastHitBy));
+            eventBus.publish(new ZombieDiedEvent(this, lastHitBy));
         }
 
         boolean drop = randomizer.nextInt(10) == 0;
@@ -129,7 +141,6 @@ public class Zombie {
                 eventBus.publish(new ZombieDroppedLootEvent(lootType, 1, position));
             }
         }
-
     }
 
     public float getCurrentSpeed() {
@@ -141,7 +152,7 @@ public class Zombie {
         }
         if (isFrozen)
             s *= 0.5f;
-        if(isHypnotized)
+        if (isHypnotized)
             s *= -1;
         return s;
     }
@@ -191,11 +202,11 @@ public class Zombie {
     }
 
     public boolean canMove() {
-        return !isEating;
+        return isAlive && !isEating;
     }
 
-    public float getDPS(){
-        return type.baseStats.eatDPS*DPS_MULTIPLIER;
+    public float getDPS() {
+        return type.baseStats.eatDPS * DPS_MULTIPLIER;
     }
 
 }

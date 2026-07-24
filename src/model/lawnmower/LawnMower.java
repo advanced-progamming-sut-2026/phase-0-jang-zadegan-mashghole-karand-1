@@ -18,14 +18,13 @@ public class LawnMower {
             return;
         active = false;
         for (Zombie z : gameState.getZombies()) {
-            // handle boss next phase
             if (z.isAlive && z.row == row) {
-                z.isAlive = false;
-                z.onDeath(gameState);
                 z.killedByLawnMower = true;
+                z.lastHitBy = null;
+                z.kill(gameState);
             }
         }
-        gameState.zombies.removeIf(z -> !z.isAlive);
+        gameState.removeDeadZombies();
     }
 
     public boolean isActive() {
