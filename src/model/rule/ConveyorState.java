@@ -91,6 +91,10 @@ public class ConveyorState {
         return queue.size();
     }
 
+    public List<PlantType> getUpcomingQueue() {
+        return List.copyOf(queue);
+    }
+
     public int getTicksUntilNextOffer() {
         return ticksUntilNextOffer;
     }

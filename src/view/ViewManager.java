@@ -27,16 +27,19 @@ public class ViewManager {
     public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
             AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
             NewsViewState newsViewState, SettingsViewState settingsViewState, LeaderboardViewState leaderboardViewState,
-            CollectionViewState collectionViewState, QuestViewState questViewState,
+            CollectionViewState collectionViewState, QuestViewState questViewState, HudViewState hudViewState,
             ControllerManager controllerManager, boolean hasUnreadNews) {
         String screenKey = currentScreen.name();
         if (currentScreen == ScreenType.LEVEL_SELECTOR) {
             screenKey += "-" + gameNavigation.phase.name();
+            if (currentMenu != MenuType.NONE) {
+                screenKey += "-" + currentMenu.name();
+                if (currentMenu == MenuType.TRAVEL_LOG) {
+                    screenKey += "-" + questViewState.filter + "-" + questViewState.totalCount();
+                }
+            }
         } else if (currentScreen == ScreenType.MAIN && currentMenu != MenuType.NONE) {
             screenKey += "-" + currentMenu.name();
-            if (currentMenu == MenuType.QUESTS) {
-                screenKey += "-" + questViewState.filter + "-" + questViewState.totalCount();
-            }
         } else if (currentScreen == ScreenType.LEADERBOARD) {
             screenKey += "-" + leaderboardViewState.sortColumn.name()
                     + "-" + leaderboardViewState.sortDirection.name();
@@ -70,10 +73,14 @@ public class ViewManager {
                 }
                 break;
             case LEVEL_SELECTOR:
-                renderer.renderLevelSelectionScreen(gameNavigation);
+                if (currentMenu == MenuType.TRAVEL_LOG) {
+                    renderer.renderQuestsOverlay(questViewState);
+                } else {
+                    renderer.renderLevelSelectionScreen(gameNavigation);
+                }
                 break;
             case GAME:
-                renderer.renderGameScreen(state);
+                renderer.renderGameScreen(state, hudViewState != null ? hudViewState : HudViewState.empty());
                 break;
             case COLLECTION:
                 renderer.renderCollectionScreen(collectionViewState);
@@ -94,7 +101,8 @@ public class ViewManager {
                 break;
         }
 
-        if (currentMenu != MenuType.NONE && currentScreen != ScreenType.MAIN) {
+        if (currentMenu != MenuType.NONE && currentScreen != ScreenType.MAIN
+                && !(currentScreen == ScreenType.LEVEL_SELECTOR && currentMenu == MenuType.TRAVEL_LOG)) {
             renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState, leaderboardViewState,
                     questViewState);
         }
@@ -116,7 +124,7 @@ public class ViewManager {
             case NEWS:
                 renderer.renderNewsOverlay(newsViewState);
                 break;
-            case QUESTS:
+            case TRAVEL_LOG:
                 renderer.renderQuestsOverlay(questViewState);
                 break;
             case PLANT_SELECTOR:
@@ -132,10 +140,11 @@ public class ViewManager {
     }
 
     public void initialize() {
-        renderer.clearScreen();
+        renderer.initialize();
     }
 
     public void stop() {
         inputListener.stop();
+        renderer.stop();
     }
 }

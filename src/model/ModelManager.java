@@ -4,6 +4,7 @@ import java.util.List;
 
 import model.board.Tile;
 import model.core.EventBus;
+import model.core.GameLoop;
 import model.core.GameState;
 import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
@@ -30,7 +31,6 @@ import model.events.ZombieSpawnedEvent;
 import model.core.Position;
 import model.data.content.minigame.IZombieShop;
 import model.quest.QuestTracker;
-import model.rule.LevelRule;
 import model.rule.RuleEngine;
 import model.rule.SessionConfig;
 import model.rule.SessionContext;
@@ -58,7 +58,7 @@ public class ModelManager {
     private final EffectSystem effectSystem;
     private final QuestTracker questTracker;
     private PlantType imitatorTarget;
-  
+
     public ModelManager(StorageManager storage, EventBus eventBus) {
         this.state = new GameState();
         this.waveManager = new WaveManager();
@@ -101,7 +101,8 @@ public class ModelManager {
             ruleEngine.onWaveEnd(sessionContext, state, eventBus);
         });
         eventBus.subscribe(ZombieDiedEvent.class, e -> {
-            if (e == null || e.zombie == null) return;
+            if (e == null || e.zombie == null)
+                return;
             ruleEngine.onZombieDied(e.zombie, state, eventBus);
             questTracker.onGameEvent(e, state, sessionContext);
         });
@@ -111,7 +112,7 @@ public class ModelManager {
             }
             ruleEngine.onZombieDied(e.zombie, state, eventBus);
             questTracker.onGameEvent(
-                    new ZombieDiedEvent(e.zombie, e.zombie.lastHitBy),state, sessionContext);
+                    new ZombieDiedEvent(e.zombie, e.zombie.lastHitBy), state, sessionContext);
         });
         eventBus.subscribe(ZombieSpawnedEvent.class, e -> {
             if (e == null || e.zombie == null || sessionContext == null) {
@@ -184,6 +185,9 @@ public class ModelManager {
         combatSystem.update(state, eventBus, ruleEngine.freezeProjectilesEnabled());
         if (ruleEngine.shouldSpawnWaves()) {
             waveManager.update(state, eventBus, ruleEngine.winsOnWaveClear());
+        }
+        if (sessionContext != null) {
+            sessionContext.tickPlantingCooldowns();
         }
 
         ruleEngine.postTick(sessionContext, state, eventBus);
@@ -259,13 +263,19 @@ public class ModelManager {
         if (!ruleEngine.canPlant(plantType, row, col, state, sessionContext))
             return false;
 
+        if (sessionContext != null && sessionContext.isPlantOnCooldown(plantType)
+                && !(sessionContext.hasHeldSeed(plantType))) {
+            return false;
+        }
+
         boolean shouldChargeSun = chargeSun && ruleEngine.usesSunCurrency();
 
         Plant plant = new Plant(plantType, row, col, level, eventBus);
-        if (plantType == PlantType.Imitater){
-            if (imitatorTarget == null || imitatorTarget == PlantType.Imitater)return false;
-            for (PlantAbilityConfig a : plant.abilities){
-                if (a instanceof PlantTransformAbility){
+        if (plantType == PlantType.Imitater) {
+            if (imitatorTarget == null || imitatorTarget == PlantType.Imitater)
+                return false;
+            for (PlantAbilityConfig a : plant.abilities) {
+                if (a instanceof PlantTransformAbility) {
                     ((PlantTransformAbility) a).setTargetPlant(imitatorTarget);
                 }
             }
@@ -277,8 +287,15 @@ public class ModelManager {
         if (shouldChargeSun) {
             state.sunAmount -= plant.cost;
         }
+        boolean usedHeldSeed = false;
         if (sessionContext != null && sessionContext.hasHeldSeed(plantType)) {
             sessionContext.consumeHeldSeed(plantType);
+            usedHeldSeed = true;
+        }
+        if (sessionContext != null && !usedHeldSeed) {
+            int rechargeTicks = (int) (PlantStats.forLevel(plantType, level).recharge
+                    * GameLoop.TICKS_PER_SECOND);
+            sessionContext.startPlantingCooldown(plantType, rechargeTicks);
         }
 
         eventBus.publish(new PlantPlacedEvent(plant));
@@ -396,6 +413,9 @@ public class ModelManager {
     }
 
     public void removeCooldowns() {
+        if (sessionContext != null) {
+            sessionContext.clearPlantingCooldowns();
+        }
         for (Plant plant : state.plants) {
             for (var ability : plant.abilities) {
                 if (ability instanceof model.data.plant.abilities.runtime.PlantShootAbility shootAbility) {

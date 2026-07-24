@@ -255,6 +255,14 @@ public class GameMechanismController {
         if (!usesSun && !hasHeldSeed) {
             return failure("You need to collect a " + plantType.name + " seed before planting.");
         }
+        if (model.getPlayContext() != null
+                && model.getPlayContext().isPlantOnCooldown(plantType)
+                && !hasHeldSeed) {
+            int sec = (int) Math.ceil(
+                    model.getPlayContext().getPlantingCooldownTicks(plantType)
+                            / (double) GameLoop.TICKS_PER_SECOND);
+            return failure(plantType.name + " is recharging (" + sec + "s left).");
+        }
         if (model.placePlant(row, col, plantType, level)) {
             return success("Planted " + plantType.name + " (Lv." + level + ") at (" + row + ", " + col + ").");
         }

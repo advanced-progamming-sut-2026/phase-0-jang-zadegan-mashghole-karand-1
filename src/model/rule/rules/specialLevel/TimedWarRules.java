@@ -71,6 +71,18 @@ public class TimedWarRules implements LevelRule {
         }
     }
 
+    public int getProgress() {
+        return progress;
+    }
+
+    public int getTicksRemaining() {
+        return ticksRemaining;
+    }
+
+    public TimedWarConfig getConfig() {
+        return config != null ? config : DEFAULT;
+    }
+
     private TimedWarConfig resolveConfig(SessionContext context) {
         if (context == null || context.getConfig() == null || context.getConfig().levelConfig == null) {
             return DEFAULT;

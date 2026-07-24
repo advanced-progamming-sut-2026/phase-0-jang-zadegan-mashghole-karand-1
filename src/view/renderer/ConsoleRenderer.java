@@ -8,18 +8,26 @@ import controller.GreenhouseController;
 import controller.MiniGameCommands;
 import controller.PickPlantsController;
 import controller.ShopController;
+import model.board.IceDirection;
+import model.board.Tile;
 import model.core.GameLoop;
 import model.core.Position;
 import model.core.ReadOnlyGameState;
+import model.data.Barrel.Barrel;
+import model.data.Grave.Grave;
+import model.data.brain.Brain;
 import model.data.content.chapter.ChapterCatalog;
 import model.data.content.chapter.ChapterType;
 import model.data.content.minigame.MiniGameCatalog;
 import model.data.content.minigame.MiniGameType;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
+import model.data.plant.stuns.PlantStun;
+import model.data.vase.Vase;
 import model.data.zombie.Zombie;
 import model.greenhouse.Greenhouse;
 import model.greenhouse.Pot;
+import model.lawnmower.LawnMower;
 import model.service.*;
 import model.service.GameNavigationState.Phase;
 import model.shop.ShopCurrency;
@@ -32,11 +40,12 @@ public class ConsoleRenderer implements Renderer {
 
     private static final int GRID_ROWS = ReadOnlyGameState.GRID_ROWS;
     private static final int GRID_COLS = ReadOnlyGameState.GRID_COLS;
-    private static final int CELL_WIDTH = 5;
-    private static final int CELL_HEIGHT = 2;
+    private static final int CELL_HEIGHT = 3;
+    private static final int CELL_INNER_WIDTH = 10;
+    private static final int MOWER_INNER_WIDTH = 2;
     private static final int MAX_MESSAGES = 4;
-    private static final int SCREEN_WIDTH = 59;
-    private static final int RENDER_HEIGHT = 40;
+    private static final int SCREEN_WIDTH = 120;
+    private static final int MIN_RENDER_HEIGHT = 40;
     private static final int GH_ROWS = 4;
     private static final int GH_COLS = 5;
     private static final int POT_WIDTH = 13;
@@ -53,14 +62,18 @@ public class ConsoleRenderer implements Renderer {
     private static final String ORANGE = "\u001B[38;5;208m";
     private static final String GRAY = "\u001B[38;5;240m";
     private static final String BOLD = "\u001B[1m";
+    private static final String BG_WATER = "\u001B[48;5;24m";
+    private static final String BG_ICE = "\u001B[48;5;153m";
+    private static final String BG_NECRO = "\u001B[48;5;54m";
 
     private List<String> messages = new java.util.ArrayList<>();
 
-    private String[] lastRenderLines = new String[RENDER_HEIGHT];
+    private int currentRenderHeight = MIN_RENDER_HEIGHT;
+    private String[] lastRenderLines = new String[MIN_RENDER_HEIGHT];
     private String currentScreenKey = "";
     private boolean needsFullClear = true;
+    private boolean scrollRenderMode = false;
     private String promptInput = "";
-    private static final int PROMPT_LINE = RENDER_HEIGHT + 2;
     private static final int PROMPT_PREFIX_COLUMNS = 2;
 
     @Override
@@ -75,54 +88,108 @@ public class ConsoleRenderer implements Renderer {
     private void render(String content) {
         synchronized (ConsoleRenderer.class) {
             List<String> lines = new ArrayList<>();
-
-            for (String line : content.split("\n")) {
+            for (String line : content.split("\n", -1)) {
                 lines.add(line);
             }
+            if (!lines.isEmpty() && lines.get(lines.size() - 1).isEmpty()) {
+                lines.remove(lines.size() - 1);
+            }
 
-            while (lines.size() < RENDER_HEIGHT) {
+            int contentHeight = lines.size();
+            int termRows = detectTerminalRows();
+            int tuiHeight = Math.max(MIN_RENDER_HEIGHT, contentHeight);
+            boolean useScroll = tuiHeight + 2 > termRows;
+
+            int height = useScroll ? Math.max(1, contentHeight) : tuiHeight;
+            while (lines.size() < height) {
                 lines.add("");
             }
-            if (lines.size() > RENDER_HEIGHT) {
-                lines = new ArrayList<>(lines.subList(0, RENDER_HEIGHT));
+
+            if (height != currentRenderHeight || useScroll != scrollRenderMode) {
+                needsFullClear = true;
+                currentRenderHeight = height;
+                lastRenderLines = new String[height];
             }
+            scrollRenderMode = useScroll;
 
             boolean changed = needsFullClear;
             if (!changed) {
-                for (int i = 0; i < RENDER_HEIGHT; i++) {
-                    String line = lines.get(i);
-                    if (!java.util.Objects.equals(line, lastRenderLines[i])) {
+                for (int i = 0; i < currentRenderHeight; i++) {
+                    if (!java.util.Objects.equals(lines.get(i), lastRenderLines[i])) {
                         changed = true;
                         break;
                     }
                 }
             }
-
             if (!changed) {
                 return;
             }
 
-            if (needsFullClear) {
-                System.out.print("\033[2J");
+            if (useScroll) {
+                System.out.print("\033[3J\033[2J\033[H");
+                for (int i = 0; i < currentRenderHeight; i++) {
+                    System.out.println(lines.get(i));
+                    lastRenderLines[i] = lines.get(i);
+                }
+                System.out.println("─".repeat(SCREEN_WIDTH));
                 needsFullClear = false;
+                drawCommandPrompt();
+            } else {
+                if (needsFullClear) {
+                    System.out.print("\033[3J\033[2J\033[H");
+                    needsFullClear = false;
+                }
+                for (int i = 0; i < currentRenderHeight; i++) {
+                    System.out.printf("\033[%d;1H\033[2K%s", i + 1, lines.get(i));
+                    lastRenderLines[i] = lines.get(i);
+                }
+                System.out.printf("\033[%d;1H\033[2K%s", currentRenderHeight + 1, "─".repeat(SCREEN_WIDTH));
+                drawCommandPrompt();
             }
-
-            for (int i = 0; i < RENDER_HEIGHT; i++) {
-                System.out.printf("\033[%d;1H\033[2K%s", i + 1, lines.get(i));
-                lastRenderLines[i] = lines.get(i);
-            }
-            System.out.printf("\033[%d;1H\033[2K%s", RENDER_HEIGHT + 1, "─".repeat(SCREEN_WIDTH));
-
-            drawCommandPrompt();
             System.out.flush();
         }
     }
 
     private void drawCommandPrompt() {
-        System.out.printf("\033[%d;1H\033[2K", PROMPT_LINE);
+        if (scrollRenderMode) {
+            System.out.print("\r\033[2K");
+            System.out.print(CYAN + "> " + RESET + promptInput);
+            return;
+        }
+        int promptLine = currentRenderHeight + 2;
+        System.out.printf("\033[%d;1H\033[2K", promptLine);
         System.out.print(CYAN + "> " + RESET + promptInput);
         int column = PROMPT_PREFIX_COLUMNS + promptInput.length() + 1;
-        System.out.printf("\033[%d;%dH", PROMPT_LINE, column);
+        System.out.printf("\033[%d;%dH", promptLine, column);
+    }
+
+    private int detectTerminalRows() {
+        try {
+            Process process = new ProcessBuilder("sh", "-c", "stty size < /dev/tty").start();
+            boolean finished = process.waitFor(300, java.util.concurrent.TimeUnit.MILLISECONDS);
+            if (finished && process.exitValue() == 0) {
+                String out = new String(process.getInputStream().readAllBytes()).trim();
+                String[] parts = out.split("\\s+");
+                if (parts.length >= 1) {
+                    int rows = Integer.parseInt(parts[0]);
+                    if (rows > 0) {
+                        return rows;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            String env = System.getenv("LINES");
+            if (env != null && !env.isBlank()) {
+                int rows = Integer.parseInt(env.trim());
+                if (rows > 0) {
+                    return rows;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return MIN_RENDER_HEIGHT;
     }
 
     private String getRegisterScreen(List<SafetyQuestion> questions) {
@@ -208,9 +275,8 @@ public class ConsoleRenderer implements Renderer {
         sb.append("  " + CYAN + "2." + RESET + " Settings: " + GREEN + "menu enter settings" + RESET + "\n");
         sb.append("  " + CYAN + "3." + RESET + " News: " + GREEN + "menu enter news" + RESET + unreadIndicator + "\n");
         sb.append("  " + CYAN + "4." + RESET + " Profile: " + GREEN + "menu enter profile" + RESET + "\n");
-        sb.append("  " + CYAN + "5." + RESET + " Quests: " + GREEN + "menu enter quests" + RESET + "\n");
-        sb.append("  " + CYAN + "6." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
-        sb.append("  " + CYAN + "7." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+        sb.append("  " + CYAN + "5." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
+        sb.append("  " + CYAN + "6." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
         sb.append("\n");
         sb.append(getMessages());
 
@@ -222,11 +288,16 @@ public class ConsoleRenderer implements Renderer {
         render(getMainScreen(hasUnreadNews));
     }
 
-    private String getGameScreen(ReadOnlyGameState state) {
+    private String getGameScreen(ReadOnlyGameState state, HudViewState hud) {
+        HudViewState safeHud = hud != null ? hud : HudViewState.empty();
         StringBuilder sb = new StringBuilder();
-        sb.append(getHUD(state));
+        sb.append(getHUD(state, safeHud));
         sb.append("\n");
-        sb.append(getGrid(state));
+        sb.append(getGrid(state, safeHud));
+        sb.append("\n");
+        sb.append(getPlantTray(safeHud));
+        sb.append("\n");
+        sb.append(getGameHelp(safeHud));
         if (state.isLevelComplete()) {
             sb.append("\n");
             sb.append(buildLevelCompleteOverlay());
@@ -241,7 +312,12 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderGameScreen(ReadOnlyGameState state) {
-        render(getGameScreen(state));
+        renderGameScreen(state, HudViewState.empty());
+    }
+
+    @Override
+    public void renderGameScreen(ReadOnlyGameState state, HudViewState hud) {
+        render(getGameScreen(state, hud));
     }
 
     @Override
@@ -258,7 +334,7 @@ public class ConsoleRenderer implements Renderer {
             sb.append("\n");
             sb.append("  " + CYAN + "1." + RESET + " Enter Chapter: " + GREEN
                     + "menu enter chapter -c <chaptername>" + RESET + "\n");
-            sb.append("  " + CYAN + "2." + RESET + " Minigames: " + GREEN + "menu enter minigames" + RESET + "\n");
+            sb.append("  " + CYAN + "2." + RESET + " Travel Log: " + GREEN + "menu enter travel-log" + RESET + "\n");
             sb.append("  " + CYAN + "3." + RESET + " Collection: " + GREEN + "menu enter collection" + RESET + "\n");
             sb.append("  " + CYAN + "4." + RESET + " Greenhouse: " + GREEN + "menu enter greenhouse" + RESET + "\n");
             sb.append("  " + CYAN + "5." + RESET + " Leaderboard: " + GREEN + "menu enter leaderboard" + RESET + "\n");
@@ -515,9 +591,21 @@ public class ConsoleRenderer implements Renderer {
         for (int i = 0; i < text.length();) {
             int cp = text.codePointAt(i);
             i += Character.charCount(cp);
-            width += (cp > 0x1F000 || cp == 0x2705 || cp == 0x26A0) ? 2 : 1;
+            if (cp == 0xFE0F || cp == 0xFE0E || cp == 0x200D) {
+                continue;
+            }
+            width += isWideGlyph(cp) ? 2 : 1;
         }
         return width;
+    }
+
+    private boolean isWideGlyph(int cp) {
+        return (cp >= 0x1F300 && cp <= 0x1FAFF)
+                || (cp >= 0x1F000 && cp <= 0x1F02F)
+                || (cp >= 0x2600 && cp <= 0x27BF)
+                || (cp >= 0x2300 && cp <= 0x23FF)
+                || (cp >= 0x2B00 && cp <= 0x2BFF)
+                || cp == 0x2705 || cp == 0x26A0;
     }
 
     private String potCoord(int row, int col) {
@@ -887,7 +975,7 @@ public class ConsoleRenderer implements Renderer {
 
     private String getQuestsOverlay(QuestViewState quests) {
         StringBuilder sb = new StringBuilder();
-        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Quests / Travel Log" + RESET + "  🧟";
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Travel Log" + RESET + "  🧟";
         sb.append(getHeaderBox(title, GREEN));
         sb.append("\n");
         sb.append("  ").append(BOLD).append("Filter:").append(RESET).append(" ")
@@ -914,44 +1002,85 @@ public class ConsoleRenderer implements Renderer {
         sb.append("  " + CYAN + "4." + RESET + " Daily: " + GREEN + "travel log page daily" + RESET + "\n");
         sb.append("  " + CYAN + "5." + RESET + " Active: " + GREEN + "travel log page active" + RESET + "\n");
         sb.append("  " + CYAN + "6." + RESET + " Completed: " + GREEN + "travel log page completed" + RESET + "\n");
-        sb.append("  " + CYAN + "7." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("  " + CYAN + "7." + RESET + " Minigames: " + GREEN + "menu enter minigames" + RESET + "\n");
+        sb.append("  " + CYAN + "8." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
         sb.append("\n");
         sb.append(getMessages());
         return sb.toString();
     }
 
     private int appendQuestSection(StringBuilder sb, int startIndex, String sectionTitle,
-                                   String color, java.util.List<QuestViewState.Entry> entries) {
+            String color, java.util.List<QuestViewState.Entry> entries) {
         if (entries == null || entries.isEmpty()) {
             return startIndex;
         }
         sb.append("  ").append(color).append(BOLD).append(sectionTitle).append(RESET).append("\n");
+
+        final int gap = 2;
+        final int colWidth = (SCREEN_WIDTH - 2 - gap) / 2;
         int index = startIndex;
-        int shown = 0;
-        for (QuestViewState.Entry entry : entries) {
-            if (shown >= 20) {
-                sb.append("     ... and ").append(entries.size() - shown).append(" more in this section.\n");
-                break;
+
+        for (int i = 0; i < entries.size(); i += 2) {
+            QuestViewState.Entry left = entries.get(i);
+            QuestViewState.Entry right = (i + 1 < entries.size()) ? entries.get(i + 1) : null;
+
+            String[] leftLines = formatQuestCard(index++, left, colWidth);
+            String[] rightLines = right != null
+                    ? formatQuestCard(index++, right, colWidth)
+                    : new String[] { " ".repeat(colWidth), " ".repeat(colWidth) };
+
+            for (int line = 0; line < leftLines.length; line++) {
+                sb.append("  ").append(leftLines[line])
+                        .append(" ".repeat(gap))
+                        .append(rightLines[line])
+                        .append("\n");
             }
-            String status = entry.completed
-                    ? GREEN + "DONE" + RESET
-                    : CYAN + entry.progress + "/" + entry.target + RESET;
-            String rewardKind = switch (entry.rewardKind) {
-                case CURRENCY -> "Currency";
-                case UNLOCKABLE -> "Unlockable";
-                case INVENTORY -> "Inventory";
-            };
-            sb.append("  ").append(CYAN).append(index++).append(".").append(RESET)
-                    .append(" [").append(entry.category).append("] ")
-                    .append(BOLD).append(entry.name).append(RESET)
-                    .append(" (").append(status).append(")\n");
-            sb.append("     ").append(entry.description).append("\n");
-            sb.append("     Reward [").append(rewardKind).append("]: ")
-                    .append(GREEN).append(entry.rewardLabel).append(RESET).append("\n");
-            shown++;
         }
         sb.append("\n");
         return index;
+    }
+
+    private String[] formatQuestCard(int index, QuestViewState.Entry entry, int width) {
+        String status = entry.completed
+                ? GREEN + "DONE" + RESET
+                : CYAN + entry.progress + "/" + entry.target + RESET;
+        String reward = GREEN + compactReward(entry) + RESET;
+
+        String title = CYAN + index + "." + RESET + " "
+                + BOLD + truncate(entry.name, Math.max(6, width - 22)) + RESET
+                + " (" + status + ") " + reward;
+        String description = "   " + truncate(entry.description, width - 3);
+
+        return new String[] {
+                padVisible(title, width),
+                padVisible(description, width)
+        };
+    }
+
+    private String compactReward(QuestViewState.Entry entry) {
+        String label = entry.rewardLabel == null ? "" : entry.rewardLabel;
+        if (label.endsWith(" Gems")) {
+            return label.substring(0, label.length() - " Gems".length()) + "gem";
+        }
+        if (label.endsWith(" Coins")) {
+            return label.substring(0, label.length() - " Coins".length()) + "coin";
+        }
+        if (label.startsWith("Unlock")) {
+            return "plant";
+        }
+        if (label.contains("seed pack")) {
+            int space = label.indexOf(' ');
+            return space > 0 ? label.substring(0, space) + "seeds" : "seeds";
+        }
+        return truncate(label.replace(' ', '_').toLowerCase(), 12);
+    }
+
+    private String padVisible(String text, int width) {
+        int visible = displayWidth(stripAnsi(text));
+        if (visible >= width) {
+            return text;
+        }
+        return text + " ".repeat(width - visible);
     }
 
     @Override
@@ -993,51 +1122,215 @@ public class ConsoleRenderer implements Renderer {
         return sb.toString();
     }
 
-    private String getHUD(ReadOnlyGameState state) {
+    private String getHUD(ReadOnlyGameState state, HudViewState hud) {
         String status = state.isGameOver() ? "💀" : state.isLevelComplete() ? "⭐" : "▶️";
-        if (state.isBrainsMode()) {
-            long brains = state.getBrains().stream().filter(b -> b.isCollected()).count();
-            String title = String.format("%s☀️ : %-4d  " +
-                    "%s🧠 : %d/%d  " +
-                    "%s🧟 : %-3d  " +
-                    "%s⏱️ %-4ds  " +
-                    CYAN + "%s" + RESET,
-                    YELLOW, state.getSunAmount(),
-                    PURPLE, brains, ReadOnlyGameState.GRID_ROWS,
-                    RED, state.getZombies().size(),
-                    WHITE, state.getTotalTicks() / GameLoop.TICKS_PER_SECOND,
-                    status);
-            return getHeaderBox(title, CYAN);
+        int seconds = state.getTotalTicks() / GameLoop.TICKS_PER_SECOND;
+        StringBuilder title = new StringBuilder();
+
+        if (hud.modeLabel != null && !hud.modeLabel.isEmpty()) {
+            title.append(BOLD).append(hud.modeLabel).append(RESET).append("  ");
         }
-        String title = String.format("%s☀️ : %-4d  " +
-                "%s🌊 : %-3d  " +
-                "%s🧟 : %-3d  " +
-                "%s🌿 : %-2d  " +
-                "%s⏱️ %-4ds  " +
-                CYAN + "%s" + RESET +
-                CYAN + " %2s" + RESET,
-                YELLOW, state.getSunAmount(),
-                CYAN, state.getCurrentWave(),
-                RED, state.getZombies().size(),
-                PURPLE, state.getPlantFoodAmount(),
-                WHITE, state.getTotalTicks() / GameLoop.TICKS_PER_SECOND,
-                status, "");
-        return (getHeaderBox(title, CYAN));
+
+        switch (hud.mode) {
+            case BRAINS -> {
+                long brains = state.getBrains().stream().filter(Brain::isCollected).count();
+                title.append(String.format("%s☀️ : %-4d  %s🧠 : %d/%d  %s🧟 : %-3d  %s⏱️ %-4ds  %s%s%s",
+                        YELLOW, state.getSunAmount(),
+                        PURPLE, brains, ReadOnlyGameState.GRID_ROWS,
+                        RED, state.getZombies().size(),
+                        WHITE, seconds,
+                        CYAN, status, RESET));
+            }
+            case VASE_BREAKER -> {
+                title.append(String.format("%s🏺 : %-3d  %s🌱 : %-3d  %s🧟 : %-3d  %s⏱️ %-4ds  %s%s%s",
+                        PURPLE, hud.conveyorRemaining,
+                        GREEN, hud.heldSeedTypes,
+                        RED, state.getZombies().size(),
+                        WHITE, seconds,
+                        CYAN, status, RESET));
+            }
+            case CONVEYOR -> {
+                title.append(String.format("%s⏳ : %-2ds  %s🌊 : %-3d  %s🧟 : %-3d  %s%s%s",
+                        YELLOW, hud.conveyorSecondsUntilNext,
+                        CYAN, state.getCurrentWave(),
+                        RED, state.getZombies().size(),
+                        CYAN, status, RESET));
+            }
+            case TIMED_WAR -> {
+                if (hud.showSun) {
+                    title.append(String.format("%s☀️ : %-4d  ", YELLOW, state.getSunAmount()));
+                }
+                title.append(String.format("%s🎯 %s : %d/%d  %s⏰ : %-3ds  %s🧟 : %-3d  ",
+                        ORANGE, hud.timedWarGoalLabel, hud.timedWarProgress, hud.timedWarGoal,
+                        YELLOW, hud.timedWarSecondsLeft,
+                        RED, state.getZombies().size()));
+                if (hud.showPlantFood) {
+                    title.append(String.format("%s🌿 : %-2d  ", PURPLE, state.getPlantFoodAmount()));
+                }
+                title.append(String.format("%s%s%s", CYAN, status, RESET));
+            }
+            case DEADLINE -> {
+                title.append(String.format("%s☀️ : %-4d  %s⛔ col %-2d  %s🌊 : %-3d  %s🧟 : %-3d  %s🌿 : %-2d  %s⏱️ %-4ds  %s%s%s",
+                        YELLOW, state.getSunAmount(),
+                        RED, hud.deadlineColumn,
+                        CYAN, state.getCurrentWave(),
+                        RED, state.getZombies().size(),
+                        PURPLE, state.getPlantFoodAmount(),
+                        WHITE, seconds,
+                        CYAN, status, RESET));
+            }
+            case SAVE_OUR_SEEDS -> {
+                title.append(String.format("%s☀️ : %-4d  %s🛡️ %d/%d @col%d  %s🌊 : %-3d  %s🧟 : %-3d  %s🌿 : %-2d  %s⏱️ %-4ds  %s%s%s",
+                        YELLOW, state.getSunAmount(),
+                        GREEN, hud.protectedAlive, hud.protectedTotal, hud.protectedCol,
+                        CYAN, state.getCurrentWave(),
+                        RED, state.getZombies().size(),
+                        PURPLE, state.getPlantFoodAmount(),
+                        WHITE, seconds,
+                        CYAN, status, RESET));
+            }
+            default -> {
+                if (hud.showSun) {
+                    title.append(String.format("%s☀️ : %-4d  ", YELLOW, state.getSunAmount()));
+                }
+                if (hud.showWave) {
+                    title.append(String.format("%s🌊 : %-3d  ", CYAN, state.getCurrentWave()));
+                }
+                title.append(String.format("%s🧟 : %-3d  ", RED, state.getZombies().size()));
+                if (hud.showPlantFood) {
+                    title.append(String.format("%s🌿 : %-2d  ", PURPLE, state.getPlantFoodAmount()));
+                }
+                title.append(String.format("%s⏱️ %-4ds  %s%s%s",
+                        WHITE, seconds,
+                        CYAN, status, RESET));
+            }
+        }
+
+        return getHeaderBox(title.toString(), CYAN);
+    }
+
+    private String getPlantTray(HudViewState hud) {
+        StringBuilder sb = new StringBuilder();
+        String trayTitle = switch (hud.mode) {
+            case CONVEYOR -> "Conveyor";
+            case BRAINS -> "Zombies";
+            case VASE_BREAKER -> "Held Seeds";
+            default -> "Plants";
+        };
+        sb.append("  ").append(BOLD).append(trayTitle).append(":").append(RESET).append("\n");
+
+        if (hud.traySlots == null || hud.traySlots.isEmpty()) {
+            sb.append("  ").append(GRAY).append("(none)").append(RESET).append("\n");
+            return sb.toString();
+        }
+
+        if (hud.trayIsConveyorRow) {
+            sb.append("  ");
+            for (int i = 0; i < hud.traySlots.size(); i++) {
+                if (i > 0) {
+                    sb.append(" ");
+                }
+                sb.append(formatTraySlot(hud.traySlots.get(i), 14));
+            }
+            sb.append("\n");
+            return sb.toString();
+        }
+
+        final int cols = 4;
+        final int slotWidth = 26;
+        for (int i = 0; i < hud.traySlots.size(); i += cols) {
+            sb.append("  ");
+            for (int c = 0; c < cols && i + c < hud.traySlots.size(); c++) {
+                if (c > 0) {
+                    sb.append(" ");
+                }
+                sb.append(formatTraySlot(hud.traySlots.get(i + c), slotWidth));
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    private String formatTraySlot(HudViewState.TraySlot slot, int width) {
+        StringBuilder body = new StringBuilder();
+        if (slot.highlighted) {
+            body.append(YELLOW).append("▶").append(RESET);
+        } else {
+            body.append(" ");
+        }
+        String nameColor = slot.ready ? GREEN : GRAY;
+        body.append(nameColor).append(truncate(slot.name, 12)).append(RESET);
+        if (slot.count > 1) {
+            body.append(CYAN).append(" x").append(slot.count).append(RESET);
+        }
+        if (slot.cost > 0) {
+            body.append(" ").append(YELLOW).append(slot.cost).append(RESET);
+        }
+        if (!slot.ready && slot.cooldownSeconds > 0) {
+            body.append(" ").append(RED).append(slot.cooldownSeconds).append("s").append(RESET);
+        } else if (slot.ready && !slot.highlighted) {
+            body.append(" ").append(GREEN).append("ok").append(RESET);
+        }
+        return padVisible(body.toString(), width);
+    }
+
+    private String getGameHelp(HudViewState hud) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("  ").append(BOLD).append("Commands:").append(RESET).append("\n");
+        List<String> lines = hud.helpLines != null ? hud.helpLines : List.of();
+        if (lines.isEmpty()) {
+            sb.append("  ").append(GRAY).append("menu exit").append(RESET).append("\n");
+            return sb.toString();
+        }
+
+        int columns = lines.size() <= 4 ? 2 : 3;
+        int rows = (lines.size() + columns - 1) / columns;
+        int colWidth = Math.max(28, (SCREEN_WIDTH - 4) / columns);
+
+        for (int r = 0; r < rows; r++) {
+            sb.append("  ");
+            for (int c = 0; c < columns; c++) {
+                int idx = c * rows + r;
+                if (idx >= lines.size()) {
+                    continue;
+                }
+                String item = CYAN + "• " + RESET + GREEN + truncate(lines.get(idx), colWidth - 4) + RESET;
+                sb.append(padVisible(item, colWidth));
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 
     @Override
     public void renderHUD(ReadOnlyGameState state) {
     }
 
-    private String getGrid(ReadOnlyGameState state) {
+    private String getGrid(ReadOnlyGameState state, HudViewState hud) {
         StringBuilder sb = new StringBuilder();
-        sb.append("     ");
+        String cellDash = "─".repeat(CELL_INNER_WIDTH);
+        String mowerDash = "─".repeat(MOWER_INNER_WIDTH);
+        int deadlineCol = (hud != null && hud.mode == HudViewState.Mode.DEADLINE) ? hud.deadlineColumn : -1;
+        String redDash = RED + cellDash + RESET;
+        String redTeeTop = RED + "┬" + RESET;
+        String redTeeMid = RED + "┼" + RESET;
+        String redTeeBot = RED + "┴" + RESET;
+        String redBar = RED + "│" + RESET;
+
+        sb.append("      ");
+        sb.append(centerLabel("M", MOWER_INNER_WIDTH));
         for (int col = 0; col < GRID_COLS; col++) {
-            sb.append(String.format("  %d   ", col));
+            sb.append(" ").append(centerLabel(String.valueOf(col), CELL_INNER_WIDTH));
         }
         sb.append("\n");
 
-        sb.append("    ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐\n");
+        sb.append("    ┌").append(mowerDash);
+        for (int col = 0; col < GRID_COLS; col++) {
+            boolean deadline = col == deadlineCol;
+            sb.append(deadline ? redTeeTop : "┬");
+            sb.append(deadline ? redDash : cellDash);
+        }
+        sb.append(deadlineCol == GRID_COLS - 1 ? RED + "┐" + RESET : "┐").append("\n");
 
         for (int row = 0; row < GRID_ROWS; row++) {
             for (int layer = 0; layer < CELL_HEIGHT; layer++) {
@@ -1046,28 +1339,35 @@ public class ConsoleRenderer implements Renderer {
                 } else {
                     sb.append("    │");
                 }
+                sb.append(padVisible(getMowerGutter(state, row, layer), MOWER_INNER_WIDTH));
 
                 for (int col = 0; col < GRID_COLS; col++) {
-                    Plant plant = state.getPlantAt(row, col);
-                    Zombie zombie = findZombieAt(state, row, col);
-                    boolean hasProjectile = hasProjectileInCell(state, row, col);
-                    boolean hasSun = hasSunInCell(state, row, col);
-                    boolean hasSeed = state.getSeedDropAt(row, col) != null;
-                    boolean hasVase = state.getVaseAt(row, col) != null;
-
-                    String cellContent = getCellLayer(plant, zombie, hasProjectile, hasSeed, hasSun, hasVase, layer);
-                    sb.append(String.format(" %s │", cellContent));
+                    boolean deadline = col == deadlineCol;
+                    sb.append(deadline ? redBar : "│");
+                    sb.append(renderCellLayer(state, row, col, layer));
                 }
+                sb.append(deadlineCol == GRID_COLS - 1 ? redBar : "│");
                 sb.append("\n");
             }
 
             if (row < GRID_ROWS - 1) {
-                sb.append("    ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤\n");
+                sb.append("    ├").append(mowerDash);
+                for (int col = 0; col < GRID_COLS; col++) {
+                    boolean deadline = col == deadlineCol;
+                    sb.append(deadline ? redTeeMid : "┼");
+                    sb.append(deadline ? redDash : cellDash);
+                }
+                sb.append(deadlineCol == GRID_COLS - 1 ? RED + "┤" + RESET : "┤").append("\n");
             }
         }
 
-        sb.append("    └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘");
-
+        sb.append("    └").append(mowerDash);
+        for (int col = 0; col < GRID_COLS; col++) {
+            boolean deadline = col == deadlineCol;
+            sb.append(deadline ? redTeeBot : "┴");
+            sb.append(deadline ? redDash : cellDash);
+        }
+        sb.append(deadlineCol == GRID_COLS - 1 ? RED + "┘" + RESET : "┘");
         return sb.toString();
     }
 
@@ -1075,135 +1375,226 @@ public class ConsoleRenderer implements Renderer {
     public void renderGrid(ReadOnlyGameState state) {
     }
 
-    private String getCellLayer(Plant plant, Zombie zombie, boolean hasProjectile, boolean hasSeed,
-            boolean hasSun, boolean hasVase, int layer) {
+    private String centerLabel(String text, int width) {
+        int pad = Math.max(0, width - text.length());
+        int left = pad / 2;
+        return " ".repeat(left) + text + " ".repeat(pad - left);
+    }
+
+    private String getMowerGutter(ReadOnlyGameState state, int row, int layer) {
+        if (layer != 0) {
+            return " ".repeat(MOWER_INNER_WIDTH);
+        }
+        if (state.isBrainsMode()) {
+            Brain brain = state.getBrains().stream().filter(b -> b.row == row).findFirst().orElse(null);
+            if (brain != null && !brain.isCollected()) {
+                return "🧠";
+            }
+            return "··";
+        }
+        LawnMower mower = state.getBoard().getLawnMowers(row);
+        if (mower != null && mower.isActive()) {
+            return "🚜";
+        }
+        return "··";
+    }
+
+    private String renderCellLayer(ReadOnlyGameState state, int row, int col, int layer) {
+        Tile tile = state.getBoard().getTile(row, col);
+        Plant plant = tile != null ? tile.getPlant() : null;
+        Plant lily = tile != null ? tile.getLilyPad() : null;
+        if (plant == null && lily != null) {
+            plant = lily;
+            lily = null;
+        }
+        Zombie zombie = findZombieAt(state, row, col);
+        boolean hasProjectile = hasProjectileInCell(state, row, col);
+        boolean hasSun = hasSunInCell(state, row, col);
+        boolean hasSeed = state.getSeedDropAt(row, col) != null;
+        Vase vase = state.getVaseAt(row, col);
+        Barrel barrel = state.getBarrelAt(row, col);
+        Grave grave = state.getGraveAt(row, col);
+
+        String content = switch (layer) {
+            case 0 -> buildEntityRow(plant, zombie, hasProjectile);
+            case 1 -> buildHealthRow(plant, zombie);
+            default -> buildGroundRow(tile, lily, hasSun, hasSeed, vase, barrel, grave);
+        };
+        content = padVisible(content, CELL_INNER_WIDTH);
+        return applyTerrainBg(tile, content);
+    }
+
+    private String buildEntityRow(Plant plant, Zombie zombie, boolean hasProjectile) {
+        StringBuilder row = new StringBuilder();
         if (plant != null) {
-            return getPlantLayer(plant, layer);
-        } else if (zombie != null) {
-            return getZombieLayer(zombie, layer);
-        } else if (hasProjectile) {
-            return getProjectileLayer(layer);
-        } else if (hasSeed) {
-            return getSeedLayer(layer);
-        } else if (hasSun) {
-            return getSunLayer(layer);
-        } else if (hasVase) {
-            return getVaseLayer(layer);
+            row.append(getPlantSymbol(plant));
+            row.append(getPlantStatusSymbol(plant));
         } else {
-            return getEmptyLayer(layer);
+            row.append("    ");
         }
+        if (hasProjectile) {
+            row.append(GREEN).append("●").append(RESET);
+        } else {
+            row.append(" ");
+        }
+        if (zombie != null) {
+            row.append(getZombieSymbol(zombie));
+            row.append(getZombieStatusSymbol(zombie));
+        }
+        return row.toString();
     }
 
-    private String getPlantLayer(Plant plant, int layer) {
-        int healthPercent = Math.min(100, (plant.hp * 100) / plant.totalHP);
-
-        switch (layer) {
-            case 0:
-                return getPlantSymbol(plant);
-            case 1:
-                return getHealthBar(healthPercent);
-            default:
-                return "   ";
-        }
+    private String buildHealthRow(Plant plant, Zombie zombie) {
+        String left = plant != null
+                ? getCompactHealthBar(Math.min(100, (plant.hp * 100) / Math.max(1, plant.totalHP)))
+                : "   ";
+        String right = zombie != null
+                ? getCompactHealthBar(Math.min(100, (zombie.hp * 100) / Math.max(1, zombie.type.baseStats.hp)))
+                : "   ";
+        return padVisible(left, 4) + "  " + padVisible(right, 4);
     }
 
-    private String getZombieLayer(Zombie zombie, int layer) {
-        int healthPercent = Math.min(100, (zombie.hp * 100) / zombie.type.baseStats.hp);
-
-        switch (layer) {
-            case 0:
-                return getZombieSymbol(zombie);
-            case 1:
-                return getHealthBar(healthPercent);
-            default:
-                return "   ";
+    private String buildGroundRow(Tile tile, Plant lily, boolean hasSun, boolean hasSeed,
+            Vase vase, Barrel barrel, Grave grave) {
+        StringBuilder row = new StringBuilder();
+        if (hasSeed) {
+            row.append(GREEN).append("🌱").append(RESET);
+        } else if (hasSun) {
+            row.append(YELLOW).append("☀️").append(RESET);
+        } else {
+            row.append("  ");
         }
+
+        if (vase != null) {
+            row.append(getVaseSymbol(vase));
+        } else if (barrel != null) {
+            row.append("🛢️");
+        } else if (grave != null) {
+            row.append("🪦");
+        } else if (tile != null && tile.hasBeachPost()) {
+            row.append("⚓");
+        } else if (lily != null) {
+            row.append("🪷");
+        } else {
+            row.append("  ");
+        }
+
+        if (tile != null && tile.isIce()) {
+            IceDirection dir = tile.getDirection();
+            if (dir == IceDirection.UP) {
+                row.append(CYAN).append("↑").append(RESET);
+            } else if (dir == IceDirection.DOWN) {
+                row.append(CYAN).append("↓").append(RESET);
+            } else {
+                row.append(CYAN).append("*").append(RESET);
+            }
+        } else if (tile != null && tile.isWater()) {
+            row.append(BLUE).append("~").append(RESET);
+        } else if (tile != null && tile.isNecromancy()) {
+            row.append(PURPLE).append("‡").append(RESET);
+        } else {
+            row.append(" ");
+        }
+        return row.toString();
     }
 
-    private String getProjectileLayer(int layer) {
-        switch (layer) {
-            case 0:
-                return GREEN + " ● " + RESET;
-            case 1:
-                return "   ";
-            default:
-                return "   ";
+    private String applyTerrainBg(Tile tile, String content) {
+        if (tile == null) {
+            return content;
         }
+        String bg = switch (tile.getType()) {
+            case WATER -> BG_WATER;
+            case ICE -> BG_ICE;
+            case NECROMANCY -> BG_NECRO;
+            default -> "";
+        };
+        if (bg.isEmpty()) {
+            return content;
+        }
+        return bg + content.replace(RESET, RESET + bg) + RESET;
     }
 
-    private String getSunLayer(int layer) {
-        switch (layer) {
-            case 0:
-                return YELLOW + "☀️ " + RESET;
-            case 1:
-                return "   ";
-            default:
-                return "   ";
+    private String getPlantStatusSymbol(Plant plant) {
+        if (plant.isPlantFoodActive) {
+            return "✨";
         }
+        if (plant.isFrostbiteFreezeActive()) {
+            return "🧊";
+        }
+        PlantStun stun = plant.getActiveStun();
+        if (stun != null) {
+            return switch (stun.getKind()) {
+                case CAT -> "🐱";
+                case OCTOPUS -> "🐙";
+                case FROZEN -> "🧊";
+            };
+        }
+        return "  ";
     }
 
-    private String getSeedLayer(int layer) {
-        switch (layer) {
-            case 0:
-                return GREEN + "🌱 " + RESET;
-            case 1:
-                return "   ";
-            default:
-                return "   ";
+    private String getZombieStatusSymbol(Zombie zombie) {
+        if (zombie.isHypnotized) {
+            return "💜";
         }
+        if (zombie.isFrozen || zombie.isIced() || zombie.frozenTicks > 0) {
+            return "🧊";
+        }
+        if (zombie.stunned) {
+            return "💫";
+        }
+        if (zombie.isEating) {
+            return "🍴";
+        }
+        if (zombie.armor != null && zombie.armor.isIntact()) {
+            return "🛡️";
+        }
+        if (zombie.hasSandstorm()) {
+            return "🌪️";
+        }
+        return "  ";
     }
 
-    private String getVaseLayer(int layer) {
-        switch (layer) {
-            case 0:
-                return PURPLE + "🏺 " + RESET;
-            case 1:
-                return "   ";
-            default:
-                return "   ";
-        }
-    }
-
-    private String getEmptyLayer(int layer) {
-        return GRAY + " · " + RESET;
+    private String getVaseSymbol(Vase vase) {
+        return switch (vase.vaseType) {
+            case PLANT -> "🪴";
+            case ZOMBIE -> "💀";
+            case NORMAL -> "🏺";
+        };
     }
 
     private String getPlantSymbol(Plant plant) {
-        switch (plant.type.name) {
-            case "Sunflower":
-                return "🌻 ";
-            case "Peashooter":
-                return "🌱 ";
-            case "Snow Pea":
-                return "❄️ ";
-            case "Wall-nut":
-                return "🧱 ";
-            case "Bowling Wall-nut":
-                return "🎳 ";
-            case "Bowling Explode-o-nut":
-                return "💣 ";
-            case "Giant Bowling Wall-nut":
-                return "⬤ ";
-            case "Repeater":
-                return "🌿 ";
-            case "Cherry Bomb":
-                return "💥 ";
-            default:
-                return "🌿 ";
+        if (plant.type == PlantType.Lily_Pad) {
+            return "🪷";
         }
+        return switch (plant.type.name) {
+            case "Sunflower" -> "🌻";
+            case "Peashooter" -> "🌱";
+            case "Snow Pea" -> "❄️";
+            case "Wall-nut" -> "🧱";
+            case "Bowling Wall-nut" -> "🎳";
+            case "Bowling Explode-o-nut" -> "💣";
+            case "Giant Bowling Wall-nut" -> "⬤ ";
+            case "Repeater" -> "🌿";
+            case "Cherry Bomb" -> "💥";
+            case "Torchwood" -> "🔥";
+            case "Potato-Mine", "Primal_Potato-Mine" -> "🥔";
+            case "Grave Buster" -> "⛏️";
+            default -> "🌿";
+        };
     }
 
     private String getZombieSymbol(Zombie zombie) {
-        return "🧟 ";
+        return "🧟";
     }
 
-    private String getHealthBar(int percent) {
-        if (percent > 66)
+    private String getCompactHealthBar(int percent) {
+        if (percent > 66) {
             return GREEN + "███" + RESET;
-        else if (percent > 33)
+        }
+        if (percent > 33) {
             return YELLOW + "██ " + RESET;
-        else
-            return RED + "█  " + RESET;
+        }
+        return RED + "█  " + RESET;
     }
 
     @Override
@@ -1212,64 +1603,10 @@ public class ConsoleRenderer implements Renderer {
 
     @Override
     public void renderZombieDetails(ReadOnlyGameState state) {
-        // if (state.zombies.isEmpty())
-        // return;
-
-        // System.out.println("┌" + "─".repeat(70) + "┐");
-        // System.out.printf("│ %s🧟 Zombies (%d)%s" + " ".repeat(55) + "│%n",
-        // RED, state.zombies.size(), RESET);
-
-        // int count = 0;
-        // for (Zombie z : state.zombies) {
-        // if (count >= 3) {
-        // System.out.printf("│ ... and %d more%s" + " ".repeat(55) + "│%n",
-        // state.zombies.size() - 3, RESET);
-        // break;
-        // }
-        // int healthPercent = Math.min(100, (z.hp * 100) / z.type.baseStats.hp);
-        // String healthBar = getHealthBar(healthPercent);
-        // System.out.printf("│ %s %-15s HP: %-4d Row: %d X: %-5.1f %s" + " ".repeat(15)
-        // + "│%n",
-        // healthBar,
-        // z.type.name,
-        // z.hp,
-        // z.row,
-        // z.position.x,
-        // RESET);
-        // count++;
-        // }
-        // System.out.println("└" + "─".repeat(70) + "┘");
     }
 
     @Override
     public void renderPlantDetails(ReadOnlyGameState state) {
-        // if (state.plants.isEmpty())
-        // return;
-
-        // System.out.println("┌" + "─".repeat(70) + "┐");
-        // System.out.printf("│ %s🌱 Plants (%d)%s" + " ".repeat(55) + "│%n",
-        // GREEN, state.plants.size(), RESET);
-
-        // int count = 0;
-        // for (Plant p : state.plants) {
-        // if (count >= 3) {
-        // System.out.printf("│ ... and %d more%s" + " ".repeat(55) + "│%n",
-        // state.plants.size() - 3, RESET);
-        // break;
-        // }
-        // int healthPercent = Math.min(100, (p.hp * 100) / p.type.baseStats.hp);
-        // String healthBar = getHealthBar(healthPercent);
-        // System.out.printf("│ %s %-15s HP: %-4d Row: %d Col: %d %s" + " ".repeat(15) +
-        // "│%n",
-        // healthBar,
-        // p.type.name,
-        // p.hp,
-        // p.row,
-        // p.col,
-        // RESET);
-        // count++;
-        // }
-        // System.out.println("└" + "─".repeat(70) + "┘");
     }
 
     @Override
@@ -1379,7 +1716,7 @@ public class ConsoleRenderer implements Renderer {
     @Override
     public void clearScreen() {
         needsFullClear = true;
-        System.out.print("\033[2J\033[H");
+        System.out.print("\033[3J\033[2J\033[H");
         System.out.flush();
     }
 
@@ -1403,16 +1740,20 @@ public class ConsoleRenderer implements Renderer {
     }
 
     private Zombie findZombieAt(ReadOnlyGameState state, int row, int col) {
-        int cellCenterX = col * 80 + 40;
         return state.getZombies().stream()
-                .filter(z -> z.row == row && Math.abs(z.position.x - cellCenterX) < 40)
-                .findFirst()
-                .orElse(null);
+                .filter(z -> z != null && z.isAlive && z.row == row && z.col == col)
+                .min(java.util.Comparator.comparingDouble(z -> z.position.x))
+                .orElseGet(() -> state.getZombies().stream()
+                        .filter(z -> z != null && z.isAlive && z.row == row
+                                && z.position.x >= col * ReadOnlyGameState.CELL_WIDTH
+                                && z.position.x < (col + 1) * ReadOnlyGameState.CELL_WIDTH)
+                        .min(java.util.Comparator.comparingDouble(z -> z.position.x))
+                        .orElse(null));
     }
 
     private boolean hasProjectileInCell(ReadOnlyGameState state, int row, int col) {
-        int cellStartX = col * 80;
-        int cellEndX = (col + 1) * 80;
+        int cellStartX = col * ReadOnlyGameState.CELL_WIDTH;
+        int cellEndX = (col + 1) * ReadOnlyGameState.CELL_WIDTH;
         return state.getProjectiles().stream()
                 .anyMatch(p -> p.row == row &&
                         p.position.x >= cellStartX &&
@@ -1420,8 +1761,8 @@ public class ConsoleRenderer implements Renderer {
     }
 
     private boolean hasSunInCell(ReadOnlyGameState state, int row, int col) {
-        int cellStartX = col * 80;
-        int cellEndX = (col + 1) * 80;
+        int cellStartX = col * ReadOnlyGameState.CELL_WIDTH;
+        int cellEndX = (col + 1) * ReadOnlyGameState.CELL_WIDTH;
         return state.getSunDrops().stream()
                 .anyMatch(s -> s.row == row &&
                         s.position.x >= cellStartX &&

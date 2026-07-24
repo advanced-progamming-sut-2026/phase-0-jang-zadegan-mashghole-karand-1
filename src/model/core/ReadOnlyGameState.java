@@ -3,6 +3,8 @@ package model.core;
 import java.util.List;
 
 import model.board.GameBoard;
+import model.data.Barrel.Barrel;
+import model.data.Grave.Grave;
 import model.data.brain.Brain;
 import model.data.plant.Plant;
 import model.data.projectile.Projectile;
@@ -65,4 +67,8 @@ public interface ReadOnlyGameState {
     Vase getVaseAt(int row, int col);
 
     PlantSeedDrop getSeedDropAt(int row, int col);
+
+    Barrel getBarrelAt(int row, int col);
+
+    Grave getGraveAt(int row, int col);
 }
