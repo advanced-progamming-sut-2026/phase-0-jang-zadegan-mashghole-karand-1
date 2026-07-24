@@ -77,7 +77,7 @@ public class PlantHomingAbility implements PlantAbilityConfig {
                     10,
                     projectileType,
                     ProjectileTarget.ZOMBIE,
-                    target
+                    target,plant.type
             );
             state.projectiles.add(pj);
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);

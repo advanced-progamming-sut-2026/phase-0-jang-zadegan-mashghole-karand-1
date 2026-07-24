@@ -1,6 +1,7 @@
 package model.data.projectile;
 
 import model.core.Position;
+import model.data.plant.PlantType;
 
 public class LobbedProjectile extends Projectile{
     public Position startPosition;
@@ -14,10 +15,10 @@ public class LobbedProjectile extends Projectile{
     public int aoeDamage = 0;
 
     public LobbedProjectile(int damage, Position position, int row, int col, float speed, ProjectileType type,
-                            ProjectileTarget target, Position targetPosition, float flightProgress,
-                            float flightDuration, float arcHeight, float butterChance, int butterDamage, int aoeRadius,int aoeDamage
+                            ProjectileTarget target, PlantType sourcePlant, Position targetPosition, float flightProgress,
+                            float flightDuration, float arcHeight, float butterChance, int butterDamage, int aoeRadius, int aoeDamage
                             ) {
-        super(damage, position, row, col, speed, type, target);
+        super(damage, position, row, col, speed, type, target, sourcePlant);
         this.startPosition = new Position(position.x,position.y);
         this.targetPosition = targetPosition;
         this.flightProgress = flightProgress;

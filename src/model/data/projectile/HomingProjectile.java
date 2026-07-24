@@ -1,13 +1,14 @@
 package model.data.projectile;
 
 import model.core.Position;
+import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
 
 public class HomingProjectile extends Projectile{
     Zombie targetZombie;
     public HomingProjectile(int damage, Position position, int row, int col, float speed, ProjectileType type,
-                            ProjectileTarget target, Zombie targetZombie ) {
-        super(damage, position, row, col, speed, type, target);
+                            ProjectileTarget target, Zombie targetZombie, PlantType sourcePlant) {
+        super(damage, position, row, col, speed, type, target, sourcePlant);
         this.targetZombie = targetZombie;
     }
     public void updateMovement(){

@@ -64,7 +64,7 @@ public class PlantMeleeAbility implements PlantAbilityConfig {
         if (targets.isEmpty()) return;
 
         for (Zombie z : targets) {
-            for (HitEffect e : onHit) e.apply(z, state, event);
+            for (HitEffect e : onHit) e.apply(z, state, event,plant.type);
         }
         if (digestTicksOnKill > 0) {
             digestTicksRemaining = digestTicksOnKill;
@@ -109,7 +109,7 @@ public class PlantMeleeAbility implements PlantAbilityConfig {
         List<Zombie> targets = findMeleeTargets(state,plant,shape,maxTargets);
         for (Zombie z : targets){
             for (HitEffect effect : onHit){
-                effect.apply(z,state,event);
+                effect.apply(z,state,event, plant.type);
             }
         }
     }

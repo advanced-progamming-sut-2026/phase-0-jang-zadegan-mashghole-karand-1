@@ -22,6 +22,7 @@ public class LawnMower {
             if (z.isAlive && z.row == row) {
                 z.isAlive = false;
                 z.onDeath(gameState);
+                z.killedByLawnMower = true;
             }
         }
         gameState.zombies.removeIf(z -> !z.isAlive);

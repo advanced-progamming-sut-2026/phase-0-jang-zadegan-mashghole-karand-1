@@ -111,6 +111,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
                             10,
                             projectileType,
                             ProjectileTarget.ZOMBIE,
+                            plant.type,
                             this.pierceCount,
                             this.maxRange
                     );
@@ -124,7 +125,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
                             plant.col,
                             10,
                             projectileType,
-                            ProjectileTarget.ZOMBIE
+                            ProjectileTarget.ZOMBIE,plant.type
                     );
                     p.effectDurationBonus = plant.upgradeState.effectDurationBonus;
 

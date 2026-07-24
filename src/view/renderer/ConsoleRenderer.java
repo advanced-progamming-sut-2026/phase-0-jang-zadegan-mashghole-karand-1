@@ -208,8 +208,9 @@ public class ConsoleRenderer implements Renderer {
         sb.append("  " + CYAN + "2." + RESET + " Settings: " + GREEN + "menu enter settings" + RESET + "\n");
         sb.append("  " + CYAN + "3." + RESET + " News: " + GREEN + "menu enter news" + RESET + unreadIndicator + "\n");
         sb.append("  " + CYAN + "4." + RESET + " Profile: " + GREEN + "menu enter profile" + RESET + "\n");
-        sb.append("  " + CYAN + "5." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
-        sb.append("  " + CYAN + "6." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
+        sb.append("  " + CYAN + "5." + RESET + " Quests: " + GREEN + "menu enter quests" + RESET + "\n");
+        sb.append("  " + CYAN + "6." + RESET + " Logout: " + GREEN + "menu logout" + RESET + "\n");
+        sb.append("  " + CYAN + "7." + RESET + " Quit: " + GREEN + "quit" + RESET + "\n");
         sb.append("\n");
         sb.append(getMessages());
 
@@ -880,7 +881,77 @@ public class ConsoleRenderer implements Renderer {
     }
 
     @Override
-    public void renderQuestsOverlay() {
+    public void renderQuestsOverlay(QuestViewState quests) {
+        render(getQuestsOverlay(quests));
+    }
+
+    private String getQuestsOverlay(QuestViewState quests) {
+        StringBuilder sb = new StringBuilder();
+        String title = "🌱  " + BOLD + "PLANTS VS ZOMBIES 2 | Quests / Travel Log" + RESET + "  🧟";
+        sb.append(getHeaderBox(title, GREEN));
+        sb.append("\n");
+        sb.append("  ").append(BOLD).append("Filter:").append(RESET).append(" ")
+                .append(quests == null ? "all" : quests.filter).append("\n");
+        sb.append("  ").append(CYAN).append("Order:").append(RESET)
+                .append(" Critical → High (Epic/Gems) → Medium/Low (Daily)\n\n");
+
+        if (quests == null || quests.isEmpty()) {
+            sb.append("  No quests to show.\n");
+        } else {
+            int index = 1;
+            index = appendQuestSection(sb, index, "CRITICAL — story / unlock progress",
+                    RED, quests.critical);
+            index = appendQuestSection(sb, index, "HIGH — Epic challenges (Gem rewards)",
+                    YELLOW, quests.high);
+            appendQuestSection(sb, index, "MEDIUM / LOW — daily & repeatable",
+                    CYAN, quests.mediumAndLow);
+        }
+
+        sb.append("\n");
+        sb.append("  " + CYAN + "1." + RESET + " All: " + GREEN + "travel log page all" + RESET + "\n");
+        sb.append("  " + CYAN + "2." + RESET + " Critical: " + GREEN + "travel log page critical" + RESET + "\n");
+        sb.append("  " + CYAN + "3." + RESET + " High: " + GREEN + "travel log page high" + RESET + "\n");
+        sb.append("  " + CYAN + "4." + RESET + " Daily: " + GREEN + "travel log page daily" + RESET + "\n");
+        sb.append("  " + CYAN + "5." + RESET + " Active: " + GREEN + "travel log page active" + RESET + "\n");
+        sb.append("  " + CYAN + "6." + RESET + " Completed: " + GREEN + "travel log page completed" + RESET + "\n");
+        sb.append("  " + CYAN + "7." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("\n");
+        sb.append(getMessages());
+        return sb.toString();
+    }
+
+    private int appendQuestSection(StringBuilder sb, int startIndex, String sectionTitle,
+                                   String color, java.util.List<QuestViewState.Entry> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return startIndex;
+        }
+        sb.append("  ").append(color).append(BOLD).append(sectionTitle).append(RESET).append("\n");
+        int index = startIndex;
+        int shown = 0;
+        for (QuestViewState.Entry entry : entries) {
+            if (shown >= 20) {
+                sb.append("     ... and ").append(entries.size() - shown).append(" more in this section.\n");
+                break;
+            }
+            String status = entry.completed
+                    ? GREEN + "DONE" + RESET
+                    : CYAN + entry.progress + "/" + entry.target + RESET;
+            String rewardKind = switch (entry.rewardKind) {
+                case CURRENCY -> "Currency";
+                case UNLOCKABLE -> "Unlockable";
+                case INVENTORY -> "Inventory";
+            };
+            sb.append("  ").append(CYAN).append(index++).append(".").append(RESET)
+                    .append(" [").append(entry.category).append("] ")
+                    .append(BOLD).append(entry.name).append(RESET)
+                    .append(" (").append(status).append(")\n");
+            sb.append("     ").append(entry.description).append("\n");
+            sb.append("     Reward [").append(rewardKind).append("]: ")
+                    .append(GREEN).append(entry.rewardLabel).append(RESET).append("\n");
+            shown++;
+        }
+        sb.append("\n");
+        return index;
     }
 
     @Override

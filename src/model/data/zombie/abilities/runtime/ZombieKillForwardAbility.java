@@ -56,7 +56,7 @@ public class ZombieKillForwardAbility implements ZombieAbilityConfig {
 
     private void killHypnotizedZombie(EventBus bus, Zombie hypZombie, Zombie zombie) {
         hypZombie.isAlive = false;
-        bus.publish(new ZombieDiedEvent(hypZombie));
+        bus.publish(new ZombieDiedEvent(hypZombie, null));
         handleAllStarEffect(zombie);
     }
 

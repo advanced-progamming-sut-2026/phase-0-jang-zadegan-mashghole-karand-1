@@ -24,6 +24,8 @@ import model.data.zombie.ZombieType;
 import model.greenhouse.Greenhouse;
 import model.greenhouse.Pot;
 import model.news.NewsItem;
+import model.quest.Quest;
+import model.quest.QuestAssigner;
 import model.service.Hash;
 import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
@@ -735,6 +737,16 @@ public class SqlStorageManager implements StorageManager {
                             FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
                         )
                         """);
+                statement.execute("""
+                        CREATE TABLE IF NOT EXISTS user_quests (
+                            username TEXT NOT NULL,
+                            quest_id TEXT NOT NULL,
+                            progress INTEGER NOT NULL DEFAULT 0,
+                            completed INTEGER NOT NULL DEFAULT 0,
+                            PRIMARY KEY (username, quest_id),
+                            FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+                        )
+                        """);
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to initialize database", e);
             }
@@ -825,6 +837,8 @@ public class SqlStorageManager implements StorageManager {
                 loadGreenhousePots(connection, user);
                 loadStoredBoosts(connection, user);
                 loadPlantLevels(connection, user);
+                QuestAssigner.ensureAssigned(user);
+                loadQuests(connection, user);
                 return user;
             }
         } catch (SQLException e) {
@@ -1067,6 +1081,7 @@ public class SqlStorageManager implements StorageManager {
         saveGreenhousePots(user);
         saveStoredBoosts(user);
         savePlantLevels(user);
+        saveQuests(user);
     }
 
     private void saveUserProfile(User user) {
@@ -1331,6 +1346,69 @@ public class SqlStorageManager implements StorageManager {
         }
     }
 
+    @Override
+    public void loadQuestProgress(User user) {
+        if (user == null) {
+            return;
+        }
+        synchronized (lock) {
+            try (Connection connection = openConnection()) {
+                QuestAssigner.ensureAssigned(user);
+                loadQuests(connection, user);
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to load quest progress", e);
+            }
+        }
+    }
+
+    private void saveQuests(User user) {
+        if(user == null || user.quests == null) return;
+        try (Connection connection = openConnection()){
+            try (PreparedStatement delete = connection.prepareStatement(
+                    "DELETE FROM user_quests WHERE username = ?")){
+                delete.setString(1, user.username);
+                delete.executeUpdate();
+            }
+            try (PreparedStatement insert = connection.prepareStatement(
+                    "INSERT INTO user_quests (username, quest_id, progress, completed) VALUES (?, ?, ?, ?)")){
+                for(Quest quest : user.quests) {
+                    insert.setString(1,user.username);
+                    insert.setString(2,quest.getId());
+                    insert.setInt(3, quest.getProgress());
+                    insert.setInt(4, quest.isCompleted() ? 1:0);
+                    insert.addBatch();
+                }
+                insert.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save quests", e);
+        }
+    }
+
+    private void loadQuests(Connection connection,User user) {
+        try(PreparedStatement statement = connection.prepareStatement(
+                "SELECT quest_id, progress, completed FROM user_quests WHERE username = ?")){
+            statement.setString(1, user.username);
+            try(ResultSet rs = statement.executeQuery()){
+                Map<String, int[]> saved = new HashMap<>();
+                while (rs.next()) {
+                    saved.put(rs.getString("quest_id"),
+                            new int[]{rs.getInt("progress"), rs.getInt("completed")});
+                }
+                for(Quest quest : user.quests) {
+                    int[] row = saved.get(quest.getId());
+                    if(row != null){
+                        quest.setProgress(row[0]);
+                        quest.setCompleted(row[1] == 1);
+                    }
+                }
+            }
+        }
+        catch (SQLException e){
+            throw new RuntimeException("Failed to load quests", e);
+        }
+    }
+
     private void updateUsernameReferences(Connection connection, String oldUsername, String newUsername)
             throws SQLException {
         updateChildUsername(connection, "unlocked_chapters", oldUsername, newUsername);
@@ -1343,6 +1421,7 @@ public class SqlStorageManager implements StorageManager {
         updateChildUsername(connection, "user_plant_levels", oldUsername, newUsername);
         updateChildUsername(connection, "user_greenhouse_pots", oldUsername, newUsername);
         updateChildUsername(connection, "user_stored_boosts", oldUsername, newUsername);
+        updateChildUsername(connection, "user_quests", oldUsername, newUsername);
 
         try (PreparedStatement statement = connection.prepareStatement(
                 "UPDATE app_session SET username = ? WHERE username = ?")) {

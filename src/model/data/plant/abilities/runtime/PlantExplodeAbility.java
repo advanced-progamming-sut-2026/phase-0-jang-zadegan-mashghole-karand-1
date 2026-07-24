@@ -79,7 +79,7 @@ public class PlantExplodeAbility implements PlantAbilityConfig {
         List<Zombie> targets = findTarget(state , plant);
         for (Zombie z : targets) {
             for (HitEffect effect : onHit) {
-                effect.apply(z, state, event);
+                effect.apply(z, state, event, plant.type);
             }
         }
 

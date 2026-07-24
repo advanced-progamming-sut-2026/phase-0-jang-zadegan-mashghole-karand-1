@@ -1,9 +1,7 @@
 package model.data.projectile;
 
 import model.core.Position;
-import model.data.plant.Plant;
-import model.data.projectile.ProjectileType;
-import model.data.plant.abilities.effects.HitEffect;
+import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,9 +13,9 @@ public class PiercingProjectile extends Projectile {
     public final Set<Zombie> hitZombies = new HashSet<>();
 
     public PiercingProjectile(int damage, Position position, int row, int col, float speed,
-                              ProjectileType type, ProjectileTarget target,
+                              ProjectileType type, ProjectileTarget target, PlantType sourcePlant,
                               int pierceCount, float maxRange ) {
-        super(damage, position, row, col, speed, type, target);
+        super(damage, position, row, col, speed, type, target,sourcePlant );
         this.pierceCount = pierceCount;
         this.maxRange = maxRange;
     }

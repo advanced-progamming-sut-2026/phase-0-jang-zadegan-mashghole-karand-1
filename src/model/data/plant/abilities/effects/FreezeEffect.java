@@ -2,6 +2,8 @@ package model.data.plant.abilities.effects;
 
 import model.core.EventBus;
 import model.core.GameState;
+import model.data.plant.Plant;
+import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
 
 public class FreezeEffect implements HitEffect {
@@ -12,7 +14,7 @@ public class FreezeEffect implements HitEffect {
     }
 
     @Override
-    public void apply(Zombie zombie, GameState state, EventBus event) {
+    public void apply(Zombie zombie, GameState state, EventBus event, PlantType sourceType) {
         if(!zombie.canBeFrozen) return;
         zombie.isFrozen = true;
         zombie.frozenTicks = Math.max(zombie.frozenTicks, ticks);

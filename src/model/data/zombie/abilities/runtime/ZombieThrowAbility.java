@@ -45,7 +45,7 @@ public class ZombieThrowAbility implements ZombieAbilityConfig {
                 Projectile projectile = new Projectile(damage,
                         new Position(zombie.position.x, zombie.position.y),
                         zombie.row, zombie.col, speed, projectileType,
-                        ProjectileTarget.PLANT);
+                        ProjectileTarget.PLANT,null );
                 projectile.setDirection(Direction.BACK);
                 state.projectiles.add(projectile);
             }
@@ -59,7 +59,7 @@ public class ZombieThrowAbility implements ZombieAbilityConfig {
                         target.row,target.col,
                         speed,
                         ProjectileType.OCTOPUS,
-                        ProjectileTarget.PLANT,
+                        ProjectileTarget.PLANT,null,
                         new Position(target.getX(), target.getY()),
                         0f,50f,60f,0f,0,0,0);
                         p.direction = Direction.BACK;
