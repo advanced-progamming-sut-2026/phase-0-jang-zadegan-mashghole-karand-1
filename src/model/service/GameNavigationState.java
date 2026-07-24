@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import model.data.content.chapter.ChapterType;
 import model.data.content.minigame.MiniGameType;
@@ -30,6 +31,8 @@ public class GameNavigationState {
     public List<MiniGameType> unlockedMinigames = new ArrayList<>();
     public Map<String, Integer> levelHighScores = new HashMap<>();
     public PlantType imitatorTarget;
+    public   Set<PlantType> boostedPlants = new HashSet<>();
+
 
     public int getLevelHighScore(ChapterType chapter, int levelNumber) {
         if (chapter == null) {
@@ -47,5 +50,6 @@ public class GameNavigationState {
         pendingMiniGame = null;
         selectedPlants.clear();
         imitatorTarget = null;
+        boostedPlants.clear();
     }
 }

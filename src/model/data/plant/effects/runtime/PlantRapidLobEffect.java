@@ -16,6 +16,7 @@ public class PlantRapidLobEffect implements PlantEffectConfig {
     public final float fireRatePerSec;
     public final List<PlantLobAbility> configAbilities;
     public final List<PlantLobAbility> runtimeAbilities = new ArrayList<>();
+    private int fireCooldown = 0;
     public PlantRapidLobEffect(int duration, float fireRatePerSec, List<PlantLobAbility> configAbilities) {
         this.duration = duration;
         this.fireRatePerSec = fireRatePerSec;
@@ -38,9 +39,15 @@ public class PlantRapidLobEffect implements PlantEffectConfig {
 
     @Override
     public void onTick(Plant plant, GameState state, EventBus event) {
+        if (fireCooldown > 0) {
+            fireCooldown--;
+            return;
+        }
         for (PlantLobAbility a : runtimeAbilities) {
             a.resetCooldown();
             a.onTick(plant, state, event);
         }
+        fireCooldown = Math.max(0, (int) (GameLoop.TICKS_PER_SECOND / fireRatePerSec) - 1);
+
     }
 }

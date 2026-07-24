@@ -3,6 +3,7 @@ package model.board;
 import model.core.GameState;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
+import model.data.plant.PlantTag;
 import model.data.plant.PlantType;
 import model.data.vase.Vase;
 
@@ -16,7 +17,7 @@ public class Tile {
     private boolean hasBeachPost;
     private Plant plant;
     private Plant lilyPad;
-
+    private Plant pumpkin;
     private Grave grave; // null if doesn't have grave
     private Vase vase; // null if doesn't have vase
 
@@ -55,6 +56,18 @@ public class Tile {
         this.lilyPad = lilyPad;
     }
 
+    public boolean hasPumpkin() {
+        return pumpkin !=null;
+    }
+
+    public void setPumpkin(Plant pumpkin) {
+        this.pumpkin = pumpkin;
+    }
+
+    public Plant getPumpkin() {
+        return pumpkin;
+    }
+
     public void detachPlant(Plant target) {
         if (target == null) {
             return;
@@ -64,6 +77,9 @@ public class Tile {
         }
         if (this.lilyPad == target) {
             this.lilyPad = null;
+        }
+        if (this.pumpkin == target) {
+            this.pumpkin = null;
         }
     }
 
@@ -128,8 +144,9 @@ public class Tile {
     }
 
     public boolean isPlantable(PlantType plantType) {
-        if (hasPlant())
-            return false;
+        boolean isWatery = plantType.tags != null
+                && plantType.tags.contains(PlantTag.WATER)
+                && plantType != PlantType.Lily_Pad;
         if (plantType == PlantType.Hot_Potato) {
             return type == TileType.ICE
                     && !hasVase()
@@ -139,13 +156,32 @@ public class Tile {
         if (plantType == PlantType.Grave_Buster) {
             return hasGrave() && !hasVase() && !hasBeachPost();
         }
+        if (plantType == PlantType.Lily_Pad) {
+            return type == TileType.WATER
+                    && !hasLilyPad()
+                    && !hasPlant()
+                    && !hasGrave() && !hasVase() && !hasBeachPost();
+        }
+        if (plantType == PlantType.Pumpkin) {
+            return !hasPumpkin()
+                    && !hasGrave() && !hasVase() && !hasBeachPost()
+                    && (hasLilyPad() || type != TileType.WATER);
+        }
+        if (hasPumpkin() && !hasPlant() &&plantType != PlantType.Pumpkin) {
+            return !hasGrave() && !hasVase() && !hasBeachPost();
+        }
+        if (hasPlant())
+            return false;
         if (type == TileType.WATER) {
             if (plantType == PlantType.Lily_Pad && hasLilyPad()) {
                 return false;
             }
-            if (plantType != PlantType.Lily_Pad && !hasLilyPad()) {
+            if (plantType != PlantType.Lily_Pad && !hasLilyPad() && !isWatery) {
                 return false;
             }
+        }
+        if (isWatery && type != TileType.WATER) {
+            return false;
         }
         if (hasGrave())
             return false;

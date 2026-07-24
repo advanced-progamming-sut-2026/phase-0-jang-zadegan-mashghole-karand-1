@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class PlantDefenderAbility implements PlantAbilityConfig {
     private final EnumSet<DefenderFeature> features;
-    private final int reflectDamage;
+    private int reflectDamage;
     private final int explosionDamage;
     private final int sunPerHit;
 
@@ -33,7 +33,7 @@ public class PlantDefenderAbility implements PlantAbilityConfig {
     public PlantAbilityConfig createInstance(Plant plant) {
         int finalSunPerHit = sunPerHit + plant.upgradeState.sunDropBonus;
         int finalReflect = reflectDamage + plant.damage - plant.type.baseStats.damage;
-        int finalExplosion = explosionDamage +plant.damage - plant.type.baseStats.damage;
+        int finalExplosion = explosionDamage + plant.damage - plant.type.baseStats.damage;
         return new PlantDefenderAbility(features, finalReflect, finalExplosion, finalSunPerHit);
     }
 
@@ -61,14 +61,18 @@ public class PlantDefenderAbility implements PlantAbilityConfig {
         }
     }
 
-    public void onDeath(Plant plant, GameState state, EventBus event) {
+    @Override
+    public void onDeath(Plant plant, Zombie attacker, GameState state, EventBus event) {
         if (features.contains(DefenderFeature.EXPLODE_ON_DEATH)) {
             explode(plant, state, event, explosionDamage);
         }
+
     }
+
     public boolean blocksJump() {
         return features.contains(DefenderFeature.BLOCK_JUMP);
     }
+
     public void produceSun(Plant plant, GameState state, int sunPerHit, EventBus event) {
         Sun sun = new Sun(
                 plant.row,
@@ -118,7 +122,9 @@ public class PlantDefenderAbility implements PlantAbilityConfig {
         return targets;
 
     }
-
+    public void  addReflectDamage(int damage){
+        this.reflectDamage += damage;
+    }
     public static class Builder {
         private final EnumSet<DefenderFeature> features =
                 EnumSet.noneOf(DefenderFeature.class);
@@ -145,15 +151,18 @@ public class PlantDefenderAbility implements PlantAbilityConfig {
             sunPerHit = amount;
             return this;
         }
+
         public Builder attractZombies() {
             features.add(DefenderFeature.ATTRACT_ZOMBIES);
             return this;
         }
-        public Builder moveZombie(){
+
+        public Builder moveZombie() {
             features.add(DefenderFeature.MOVE_ATTACKER);
             return this;
         }
-        public Builder blockJump(){
+
+        public Builder blockJump() {
             features.add(DefenderFeature.BLOCK_JUMP);
             return this;
         }

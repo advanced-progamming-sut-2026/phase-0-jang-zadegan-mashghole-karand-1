@@ -15,8 +15,8 @@ import model.data.vase.Vase;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.event.GameEventHub;
-import model.event.events.PlantPlacedEvent;
 import model.event.events.SeedCollectedEvent;
+import model.event.events.PlantPlacedEvent;
 import model.event.events.ZombieSpawnedEvent;
 import model.core.Position;
 import model.data.content.minigame.IZombieShop;
@@ -38,7 +38,7 @@ public class ModelManager {
     private final WaveManager waveManager;
     private final RuleEngine ruleEngine;
     private SessionContext sessionContext;
-    private final GameEventHub EventHub;
+    private final GameEventHub eventHub;
 
     private final MovementSystem movementSystem;
     private final CombatSystem combatSystem;
@@ -71,7 +71,7 @@ public class ModelManager {
         this.scoreTracker = new ScoreTracker();
         this.EventHub = new GameEventHub(eventBus, ruleEngine, questTracker, scoreTracker, state, storage);
 
-        this.EventHub.register();
+        this.eventHub.register();
     }
 
     public void tick() {
@@ -109,7 +109,7 @@ public class ModelManager {
         state.sunAmount = config.levelConfig.startingSun;
         ruleEngine.clearRules();
         ruleEngine.addRules(SessionRules.resolve(config));
-        EventHub.unbindSession();
+        eventHub.unbindSession();
         this.sessionContext = new SessionContext(config, ruleEngine, waveManager);
         this.imitatorTarget = config.imitatorTarget;
 
@@ -180,10 +180,9 @@ public class ModelManager {
             return false;
 
         if (sessionContext != null && sessionContext.isPlantOnCooldown(plantType)
-                && !(sessionContext.hasHeldSeed(plantType))) {
+                && !sessionContext.hasHeldSeed(plantType)) {
             return false;
         }
-
         boolean shouldChargeSun = chargeSun && ruleEngine.usesSunCurrency();
 
         Plant plant = new Plant(plantType, row, col, level, eventBus);
@@ -213,7 +212,9 @@ public class ModelManager {
                     * GameLoop.TICKS_PER_SECOND);
             sessionContext.startPlantingCooldown(plantType, rechargeTicks);
         }
-
+        if (sessionContext != null && sessionContext.isBoosted(plantType)) {
+            plant.activatePlantFood(state, eventBus);
+        }
         eventBus.publish(new PlantPlacedEvent(plant));
         return true;
     }
@@ -290,7 +291,8 @@ public class ModelManager {
                 new Position(
                         col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f,
                         row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),
-                eventBus);
+                eventBus,
+                state.getGlowingChance());
         state.sunAmount -= cost;
         state.addZombie(zombie);
         eventBus.publish(new ZombieSpawnedEvent(zombie));
@@ -315,7 +317,9 @@ public class ModelManager {
         if (plant == null) {
             return false;
         }
-        plant.activatePlantFood(state, eventBus);
+        if (!plant.activatePlantFood(state, eventBus)) {
+            return false;
+        }
         state.plantFoodAmount--;
         return true;
     }
@@ -349,6 +353,6 @@ public class ModelManager {
 
     public void endSession() {
         sessionContext = null;
-        EventHub.unbindSession();
+        eventHub.unbindSession();
     }
 }

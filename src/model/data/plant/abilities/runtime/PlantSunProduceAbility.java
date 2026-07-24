@@ -6,6 +6,7 @@ import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
 import model.data.plant.PlantTag;
+import model.data.plant.PlantType;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.sun.Sun;
 import model.event.events.SunProducedEvent;
@@ -69,6 +70,9 @@ public class PlantSunProduceAbility implements PlantAbilityConfig {
         Sun sun = new Sun(plant.row, new Position(plant.getX(), plant.getY()), baseAmount, plant);
         state.sunDrops.add(sun);
         waitingForCollection = true;
+        if (plant.type == PlantType.GoldBloom){
+            plant.isAlive = false;
+        }
         bus.publish(new SunProducedEvent(plant, sun));
     }
 

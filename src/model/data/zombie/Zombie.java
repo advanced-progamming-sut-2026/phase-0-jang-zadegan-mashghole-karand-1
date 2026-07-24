@@ -55,7 +55,10 @@ public class Zombie {
     private static int nextId = 0;
     public final boolean canBeFrozen;
 
-    public Zombie(ZombieType type, int row, int col, Position position, EventBus bus) {
+    public Zombie(ZombieType type, int row, int col, Position position, EventBus eventBus) {
+        this(type,row,col,position,eventBus,0.05f);
+    }
+    public Zombie(ZombieType type, int row, int col, Position position, EventBus bus , float glowChance) {
         this.instanceId = nextId++;
         this.type = type;
         this.row = row;
@@ -78,7 +81,7 @@ public class Zombie {
             this.armor = new ZombieArmor(type.armorConfig);
         }
 
-        isGlowing = randomizer.nextInt(20) == 0;
+        isGlowing = randomizer.nextFloat() < glowChance  ;
 
         canBeFrozen = !(type == ZombieType.DODO_RIDER_ZOMBIE || type == ZombieType.HUNTER
                 || type == ZombieType.TROGLOBITE);

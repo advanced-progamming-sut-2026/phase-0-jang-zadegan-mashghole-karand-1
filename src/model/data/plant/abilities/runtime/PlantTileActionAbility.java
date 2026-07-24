@@ -36,7 +36,7 @@ public class PlantTileActionAbility implements PlantAbilityConfig {
         if (plant.upgradeState.meltArea3x3 && actionTarget == ActionTarget.ICE) {
             shape = AreaShape.RADIUS_3x3;
         }
-        int finalDuration = Math.max(0,ActionDuration + plant.upgradeState.cooldownBonus * GameLoop.TICKS_PER_SECOND);
+        int finalDuration = Math.max(0,(ActionDuration + plant.upgradeState.cooldownBonus) * GameLoop.TICKS_PER_SECOND);
         return new PlantTileActionAbility(actionTarget,targetTile,shape, finalDuration);
     }
 
@@ -57,6 +57,7 @@ public class PlantTileActionAbility implements PlantAbilityConfig {
         }
         done = true;
         plant.hp = 0;
+        plant.isAlive = false;
 
     }
     private void meltTiles(Plant plant, GameState state ){

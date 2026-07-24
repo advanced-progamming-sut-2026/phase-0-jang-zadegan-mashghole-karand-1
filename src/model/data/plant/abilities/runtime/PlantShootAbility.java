@@ -86,7 +86,10 @@ public class PlantShootAbility implements PlantAbilityConfig {
     public void onTick(Plant plant, GameState state, EventBus event) {
         if (lifeSpan > 0) {
             lifeSpan--;
-            if (lifeSpan <= 0) plant.hp = 0;
+            if (lifeSpan <= 0) {
+                plant.hp = 0;
+                plant.isAlive = false;
+            }
         }
         if (currentCooldown > 0) {
             currentCooldown--;
