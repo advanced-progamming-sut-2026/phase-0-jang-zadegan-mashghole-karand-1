@@ -8,7 +8,7 @@ import model.data.content.specialLevel.TimedWarMode;
 import model.data.sun.Sun;
 import model.data.wave.LevelConfig;
 import model.data.zombie.Zombie;
-import model.events.GameOverReason;
+import model.event.events.GameOverReason;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 

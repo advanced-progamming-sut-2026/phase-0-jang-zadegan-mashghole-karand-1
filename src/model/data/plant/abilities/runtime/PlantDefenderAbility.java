@@ -8,7 +8,7 @@ import model.data.plant.abilities.config.DefenderFeature;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.sun.Sun;
 import model.data.zombie.Zombie;
-import model.events.SunProducedEvent;
+import model.event.events.SunProducedEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;

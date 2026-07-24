@@ -3,7 +3,7 @@ package model.rule.rules.specialLevel;
 import model.core.EventBus;
 import model.core.GameState;
 import model.data.plant.PlantType;
-import model.events.PlantOfferedEvent;
+import model.event.events.PlantOfferedEvent;
 import model.rule.ConveyorState;
 import model.rule.LevelRule;
 import model.rule.SessionContext;

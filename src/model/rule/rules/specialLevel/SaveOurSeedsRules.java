@@ -10,7 +10,7 @@ import model.core.GameState;
 import model.core.SessionEnd;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
-import model.events.GameOverReason;
+import model.event.events.GameOverReason;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 

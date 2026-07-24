@@ -1,4 +1,4 @@
-package model.events;
+package model.event.events;
 
 public class NecromancySpawnEvent {
     public final int row;

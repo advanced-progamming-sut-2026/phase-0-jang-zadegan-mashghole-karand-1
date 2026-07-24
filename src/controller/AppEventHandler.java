@@ -3,8 +3,8 @@ package controller;
 import model.core.EventBus;
 import model.data.content.minigame.MiniGameType;
 import model.data.plant.PlantType;
-import model.events.MinigameStartedEvent;
-import model.events.ZombieSpawnedEvent;
+import model.event.events.MinigameStartedEvent;
+import model.event.events.ZombieSpawnedEvent;
 import model.storage.StorageManager;
 
 public class AppEventHandler {

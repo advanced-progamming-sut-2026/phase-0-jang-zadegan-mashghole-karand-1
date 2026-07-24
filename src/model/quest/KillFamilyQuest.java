@@ -4,10 +4,9 @@ import model.core.GameState;
 import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantCategory;
 import model.data.plant.PlantType;
-import model.events.GameOverEvent;
-import model.events.LevelCompleteEvent;
-import model.events.WaveStartedEvent;
-import model.events.ZombieDiedEvent;
+import model.event.events.GameOverEvent;
+import model.event.events.LevelCompleteEvent;
+import model.event.events.ZombieDiedEvent;
 import model.storage.user.User;
 
 import java.util.HashMap;

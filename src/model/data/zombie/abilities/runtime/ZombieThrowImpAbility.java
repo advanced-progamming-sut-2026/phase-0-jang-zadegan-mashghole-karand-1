@@ -7,7 +7,7 @@ import model.core.ReadOnlyGameState;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
-import model.events.ZombieSpawnedEvent;
+import model.event.events.ZombieSpawnedEvent;
 
 public class ZombieThrowImpAbility implements ZombieAbilityConfig {
 
