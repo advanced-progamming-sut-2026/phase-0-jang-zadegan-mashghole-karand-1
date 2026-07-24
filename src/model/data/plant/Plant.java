@@ -10,6 +10,7 @@ import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.plant.stuns.PlantStun;
 import model.data.plant.upgrades.PlantUpgradeState;
+import model.data.zombie.Zombie;
 import model.event.events.PlantDiedEvent;
 
 public class Plant {
@@ -83,6 +84,10 @@ public class Plant {
     }
 
     public void kill(GameState state, EventBus bus) {
+        kill(state, bus, null);
+    }
+
+    public void kill(GameState state, EventBus bus, Zombie killer) {
         if (deathHandled) {
             if (state != null) {
                 state.removePlant(this);
@@ -93,6 +98,9 @@ public class Plant {
         this.hp = 0;
         this.isAlive = false;
         EventBus publishBus = bus != null ? bus : eventBus;
+        for (PlantAbilityConfig ability : abilities) {
+            ability.onDeath(this, killer, state, publishBus);
+        }
         if (publishBus != null) {
             publishBus.publish(new PlantDiedEvent(this));
         }

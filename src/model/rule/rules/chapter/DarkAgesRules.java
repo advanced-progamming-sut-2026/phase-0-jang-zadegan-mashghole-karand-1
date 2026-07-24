@@ -99,7 +99,7 @@ public class DarkAgesRules implements LevelRule {
                     bus.publish(new NecromancySpawnEvent(row, col));
                     ZombieType type = RANDOM.nextInt(2)==0? ZombieType.BASIC : ZombieType.CONE_HEAD;
                     Zombie zombie = new Zombie(type, row, col, new Position((col + 0.5f) * GameState.CELL_WIDTH,
-                            (row + 0.5f) * GameState.CELL_HEIGHT), bus);
+                            (row + 0.5f) * GameState.CELL_HEIGHT), bus,state.getGlowingChance());
                     state.addZombie(zombie);
                     bus.publish(new ZombieSpawnedEvent(zombie));
                 }

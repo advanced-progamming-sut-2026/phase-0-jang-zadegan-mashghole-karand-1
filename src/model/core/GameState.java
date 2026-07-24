@@ -152,6 +152,9 @@ public class GameState implements ReadOnlyGameState {
     public Plant getPlantAt(int row, int col) {
         Tile tile = board.getTile(row, col);
         if (tile != null) {
+            if (tile.getPumpkin() != null){
+                return tile.getPumpkin();
+            }
             if (tile.getPlant() != null) {
                 return tile.getPlant();
             }
@@ -192,7 +195,7 @@ public class GameState implements ReadOnlyGameState {
     public void removeDeadPlants() {
         for (int i = plants.size() - 1; i >= 0; i--) {
             Plant plant = plants.get(i);
-            if (plant.hp <= 0 || !plant.isAlive) {
+            if (!plant.isAlive) {
                 plants.remove(i);
                 detachPlantFromTile(plant);
             }
@@ -215,7 +218,15 @@ public class GameState implements ReadOnlyGameState {
             tile.setGrave(grave);
         }
     }
-
+    public float getGlowingChance() {
+        float chance = 0.05f;
+        for (Plant p : plants) {
+            if (p.type == PlantType.MegaGatlingPea) {
+                chance = Math.max(chance, 0.05f + p.upgradeState.specialChanceBonus);
+            }
+        }
+        return chance;
+    }
     public void removeGrave(Grave grave) {
         if (grave == null) {
             return;
@@ -234,6 +245,8 @@ public class GameState implements ReadOnlyGameState {
         }
         if (plant.type == PlantType.Lily_Pad) {
             tile.setLilyPad(plant);
+        }else if (plant.type == PlantType.Pumpkin) {
+            tile.setPumpkin(plant);
         } else {
             tile.setPlant(plant);
         }

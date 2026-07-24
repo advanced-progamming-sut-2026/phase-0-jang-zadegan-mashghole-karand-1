@@ -6,8 +6,10 @@ import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
+import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.effects.DamageEffect;
 import model.data.plant.abilities.effects.FreezeEffect;
+import model.data.plant.abilities.runtime.PlantDefenderAbility;
 import model.data.plant.stuns.BlockingStun;
 import model.data.plant.stuns.CatStun;
 import model.data.plant.stuns.StunKind;
@@ -176,9 +178,14 @@ public class CombatSystem {
                     continue;
                 }
                 targetPlant.hp -= (int) z.getDPS() / 10;
+                for (PlantAbilityConfig a : targetPlant.abilities) {
+                    if (a instanceof PlantDefenderAbility def) {
+                        def.onDamaged(targetPlant, z, state, eventBus);
+                    }
+                }
                 z.isEating = true;
                 if (targetPlant.hp <= 0) {
-                    targetPlant.kill(state, eventBus);
+                    targetPlant.kill(state, eventBus, z);
                     z.isEating = false;
                 }
                 break;

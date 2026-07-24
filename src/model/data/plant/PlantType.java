@@ -841,7 +841,7 @@ public enum PlantType {
             Arrays.asList(
                     new PlantHomingAbility(15, 1.5f, ProjectileType.SPIKE, TargetStrategy.CLOSEST)
             ),
-            new PlantHomingEffect(1, 0, ProjectileType.SPIKE, TargetStrategy.CLOSEST),
+            new PlantHomingEffect(1, 15, ProjectileType.SPIKE, TargetStrategy.CLOSEST),
             new PlantLevelUpgrades(
                     new PlantLevelUpgrade(2, PlantStatBonus.DAMAGE, 10),
                     new PlantLevelUpgrade(3, PlantStatBonus.HP, 200),
@@ -873,9 +873,7 @@ public enum PlantType {
             )),
     Lily_Pad(58, "Lily Pad", PlantCategory.MODIFIER, EnumSet.of(PlantTag.WATER, PlantTag.STACK),
             new PlantBaseStats(25, 300, 0, 0f, 5),
-            Arrays.asList(
-                    new PlantSupportAbility()
-            ),
+            List.of(),
             new PlantSpawnCopiesEffect(),
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.COST, -25),

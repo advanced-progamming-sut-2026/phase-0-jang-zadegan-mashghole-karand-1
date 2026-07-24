@@ -3,10 +3,7 @@ package model.rule;
 import model.data.plant.PlantType;
 import model.systems.WaveManager;
 
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SessionContext {
     private final SessionConfig config;
@@ -14,12 +11,20 @@ public class SessionContext {
     private ConveyorState conveyorState = null;
     private final WaveManager waveManager;
     private final Map<PlantType, Integer> heldSeeds = new EnumMap<>(PlantType.class);
+    private final Set<PlantType> boostedPlants = EnumSet.noneOf(PlantType.class);
     private final Map<PlantType, Integer> plantingCooldownTicks = new EnumMap<>(PlantType.class);
 
     public SessionContext(SessionConfig config, RuleEngine ruleEngine, WaveManager waveManager) {
         this.config = config;
         this.ruleEngine = ruleEngine;
         this.waveManager = waveManager;
+        if (config.boostedPlants != null) {
+            boostedPlants.addAll(config.boostedPlants);
+        }
+    }
+
+    public boolean isBoosted(PlantType type) {
+        return type != null && boostedPlants.contains(type);
     }
 
     public SessionConfig getConfig() {

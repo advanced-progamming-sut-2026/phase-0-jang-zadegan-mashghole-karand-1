@@ -1,6 +1,7 @@
 package controller;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import controller.CommandResult.CommandResult;
@@ -12,6 +13,7 @@ import model.rule.SessionRules;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
+import model.storage.user.User;
 import view.ScreenType;
 import view.messages.ErrorMessages;
 
@@ -103,7 +105,21 @@ public class PickPlantsController {
     }
 
     public CommandResult boostPlant(PlantType plantType) {
-        return failure("Plant boost is not available yet.");
+        User user = storage.getCurrentUser();
+        if (user == null)
+            return failure("you should login first");
+        if (plantType == null)
+            return failure("you should choose plant.");
+        if (!gameNavigation.selectedPlants.contains(plantType)) return failure("you should select a plant");
+
+        if (gameNavigation.boostedPlants.contains(plantType))
+            return failure(ErrorMessages.PLANT_ALREADY_BOOSTED.getMessage());
+        if (user.gems < 2)
+            return failure(ErrorMessages.NOT_ENOUGH_GEMS.getMessage());
+        user.gems -= 2;
+        gameNavigation.boostedPlants.add(plantType);
+        storage.saveProgress();
+        return success(plantType.name +"boosted!");
     }
 
     public CommandResult startGame() {
@@ -124,7 +140,8 @@ public class PickPlantsController {
         SessionConfig.Builder sessionBuilder = SessionConfig.builder()
                 .levelConfig(gameNavigation.pendingLevel)
                 .selectedPlants(gameNavigation.selectedPlants)
-                .imitatorTarget(gameNavigation.imitatorTarget);
+                .imitatorTarget(gameNavigation.imitatorTarget)
+                .boostedPlant(gameNavigation.boostedPlants);
 
         if (gameNavigation.pendingMiniGame != null) {
             sessionBuilder.miniGame(gameNavigation.pendingMiniGame);

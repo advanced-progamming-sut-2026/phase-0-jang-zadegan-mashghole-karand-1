@@ -2,6 +2,7 @@ package model.rule;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import model.data.plant.PlantType;
 import model.data.wave.LevelConfig;
@@ -16,6 +17,7 @@ public class SessionConfig {
     public final LevelConfig levelConfig;
     public final SessionType sessionType;
     public final PlantType imitatorTarget;
+    public final Set<PlantType> boostedPlants;
     public enum SessionType {
         NORMAL,
         SPECIAL,
@@ -30,6 +32,7 @@ public class SessionConfig {
         this.levelConfig = builder.levelConfig;
         this.sessionType = builder.sessionType;
         this.imitatorTarget = builder.imitatorTarget;
+        this.boostedPlants = builder.boostedPlants;
     }
 
     public static Builder builder() {
@@ -56,6 +59,7 @@ public class SessionConfig {
         private LevelConfig levelConfig;
         private SessionType sessionType = SessionType.NORMAL;
         private PlantType imitatorTarget;
+        private  Set<PlantType> boostedPlants;
         public Builder specialLevel(SpecialLevelType type) {
             this.isSpecialLevel = true;
             this.specialLevelType = type;
@@ -82,7 +86,10 @@ public class SessionConfig {
             this.imitatorTarget = type;
             return this;
         }
-
+        public Builder boostedPlant(Set<PlantType> boostedPlants){
+            this.boostedPlants = boostedPlants;
+            return this;
+        }
         public SessionConfig build() {
             return new SessionConfig(this);
         }
