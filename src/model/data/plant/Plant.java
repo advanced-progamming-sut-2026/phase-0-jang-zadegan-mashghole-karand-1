@@ -144,11 +144,11 @@ public class Plant {
     }
 
     public float getX() {
-        return row * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2;
+        return col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2;
     }
 
     public float getY() {
-        return col * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2;
+        return row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2;
     }
 
     public boolean hasTag(PlantTag tag) {
