@@ -35,24 +35,36 @@ public class Tile {
         return plant != null;
     }
 
+    public Plant getPlant() {
+        return plant;
+    }
+
     public boolean hasLilyPad() {
         return lilyPad != null;
+    }
+
+    public Plant getLilyPad() {
+        return lilyPad;
     }
 
     public void setPlant(Plant plant) {
         this.plant = plant;
     }
 
-    private void removePlant() {
-        this.plant = null;
-    }
-
     public void setLilyPad(Plant lilyPad) {
         this.lilyPad = lilyPad;
     }
 
-    private void removeLilyPad() {
-        this.lilyPad = null;
+    public void detachPlant(Plant target) {
+        if (target == null) {
+            return;
+        }
+        if (this.plant == target) {
+            this.plant = null;
+        }
+        if (this.lilyPad == target) {
+            this.lilyPad = null;
+        }
     }
 
     public boolean hasGrave() {
@@ -118,6 +130,15 @@ public class Tile {
     public boolean isPlantable(PlantType plantType) {
         if (hasPlant())
             return false;
+        if (plantType == PlantType.Hot_Potato) {
+            return type == TileType.ICE
+                    && !hasVase()
+                    && !hasBeachPost()
+                    && !hasGrave();
+        }
+        if (plantType == PlantType.Grave_Buster) {
+            return hasGrave() && !hasVase() && !hasBeachPost();
+        }
         if (type == TileType.WATER) {
             if (plantType == PlantType.Lily_Pad && hasLilyPad()) {
                 return false;
@@ -162,8 +183,7 @@ public class Tile {
     public void setType(TileType type) {
         this.type = type;
         if (type == TileType.WATER && !hasLilyPad() && hasPlant()) {
-            removePlant();
-            state.plants.remove(plant);
+            state.removePlant(this.plant);
         }
     }
 

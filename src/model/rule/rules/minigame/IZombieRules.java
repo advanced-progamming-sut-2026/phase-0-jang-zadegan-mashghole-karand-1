@@ -124,7 +124,7 @@ public class IZombieRules implements LevelRule {
                 }
                 PlantType type = pool.get(RANDOM.nextInt(pool.size()));
                 Plant plant = new Plant(type, row, col, 1, bus);
-                state.plants.add(plant);
+                state.addPlant(plant);
             }
         }
     }

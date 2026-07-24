@@ -16,4 +16,8 @@ public class DamageEffect  implements HitEffect{
     public void apply(Zombie zombie, GameState state, EventBus event, PlantType sourceType) {
         zombie.takeDamage(amount);
     }
+
+    public int getAmount() {
+        return amount;
+    }
 }

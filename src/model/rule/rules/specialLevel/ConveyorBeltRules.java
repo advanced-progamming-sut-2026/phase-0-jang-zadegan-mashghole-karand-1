@@ -13,6 +13,11 @@ import java.util.List;
 public class ConveyorBeltRules implements LevelRule {
 
     @Override
+    public boolean skipsPlantSelection() {
+        return true;
+    }
+
+    @Override
     public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
         List<PlantType> pool = context.getConfig().selectedPlants;
         context.initializeConveyor(pool);

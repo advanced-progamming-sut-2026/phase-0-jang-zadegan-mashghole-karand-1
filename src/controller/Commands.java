@@ -62,7 +62,7 @@ public enum Commands {
     SELECT_LEVEL("select\\s+level\\s+-n\\s+(?<levelnumber>\\d+)$"),
     SHOW_ALL_PLANTS_SELECT("show\\s+all\\s+plants"),
     SHOW_AVAILABLE_PLANTS("show\\s+available\\s+plants"),
-    ADD_PLANT("add\\s+plant\\s+-t\\s+(?<type>.*)$"),
+    ADD_PLANT("add\\s+plant\\s+-t\\s+(?<type>.*?)(?:\\s+-as\\s+(?<target>.*))?$"),
     REMOVE_PLANT("remove\\s+plant\\s+-t\\s+(?<type>.*)$"),
     BOOST_PLANT("boost\\s+plant\\s+-t\\s+(?<type>.*)$"),
     START_GAME("start\\s+game"),

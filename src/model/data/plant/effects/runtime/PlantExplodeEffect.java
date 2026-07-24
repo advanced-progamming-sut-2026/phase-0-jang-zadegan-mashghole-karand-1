@@ -5,6 +5,8 @@ import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.plant.abilities.config.AreaShape;
 import model.data.plant.abilities.config.PlantAbilityConfig;
+import model.data.plant.abilities.effects.DamageEffect;
+import model.data.plant.abilities.effects.FreezeEffect;
 import model.data.plant.abilities.effects.HitEffect;
 import model.data.plant.abilities.runtime.PlantExplodeAbility;
 import model.data.plant.effects.config.PlantEffectConfig;
@@ -44,7 +46,19 @@ public class PlantExplodeEffect implements PlantEffectConfig{
 
     @Override
     public PlantEffectConfig createInstance(Plant plant) {
-        return new PlantExplodeEffect(shape,maxTargets,onHit,forceArm,spawnClones);
+        List<HitEffect> boosted = onHit.stream().map(e -> {
+            if (e instanceof FreezeEffect f) {
+                return new FreezeEffect(f.getTicks() + plant.upgradeState.effectDurationBonus);
+            }
+            if (e instanceof DamageEffect d) {
+                return new DamageEffect(d.getAmount() + plant.damage - plant.type.baseStats.damage);
+            }
+            return e;
+        }).toList();
+        int targets = maxTargets;
+        if (plant.upgradeState.doubleCrushCount > 1)
+            targets = plant.upgradeState.doubleCrushCount;
+        return new PlantExplodeEffect(shape,targets,boosted,forceArm,spawnClones);
     }
 
     private void armPlant(Plant plant) {
@@ -103,7 +117,7 @@ public class PlantExplodeEffect implements PlantEffectConfig{
             int col = tile[1];
             Plant clone = new Plant(plant.type, row, col, plant.level, plant.eventBus);
             armPlant(clone);
-            state.plants.add(clone);
+            state.addPlant(clone);
         }
     }
 }

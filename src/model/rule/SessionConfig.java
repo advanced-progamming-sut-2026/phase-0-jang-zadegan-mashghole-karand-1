@@ -15,7 +15,7 @@ public class SessionConfig {
     public final List<PlantType> selectedPlants;
     public final LevelConfig levelConfig;
     public final SessionType sessionType;
-
+    public final PlantType imitatorTarget;
     public enum SessionType {
         NORMAL,
         SPECIAL,
@@ -29,6 +29,7 @@ public class SessionConfig {
         this.selectedPlants = builder.selectedPlants;
         this.levelConfig = builder.levelConfig;
         this.sessionType = builder.sessionType;
+        this.imitatorTarget = builder.imitatorTarget;
     }
 
     public static Builder builder() {
@@ -54,7 +55,7 @@ public class SessionConfig {
         private List<PlantType> selectedPlants = new ArrayList<>();
         private LevelConfig levelConfig;
         private SessionType sessionType = SessionType.NORMAL;
-
+        private PlantType imitatorTarget;
         public Builder specialLevel(SpecialLevelType type) {
             this.isSpecialLevel = true;
             this.specialLevelType = type;
@@ -75,6 +76,10 @@ public class SessionConfig {
 
         public Builder levelConfig(LevelConfig config) {
             this.levelConfig = config;
+            return this;
+        }
+        public Builder imitatorTarget(PlantType type){
+            this.imitatorTarget = type;
             return this;
         }
 

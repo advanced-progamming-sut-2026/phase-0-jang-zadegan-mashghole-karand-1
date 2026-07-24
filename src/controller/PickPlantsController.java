@@ -1,11 +1,14 @@
 package controller;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import controller.CommandResult.CommandResult;
 import model.ModelManager;
+import model.data.content.specialLevel.SpecialLevelType;
 import model.data.plant.PlantType;
 import model.rule.SessionConfig;
+import model.rule.SessionRules;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
@@ -14,7 +17,7 @@ import view.messages.ErrorMessages;
 
 public class PickPlantsController {
 
-    public static final int MAX_SELECTED_PLANTS = 6;
+    public static final int MAX_SELECTED_PLANTS = 8;
 
     private final ControllerManager controllerManager;
     private final ModelManager model;
@@ -46,7 +49,7 @@ public class PickPlantsController {
         return showAllPlants();
     }
 
-    public CommandResult addPlant(PlantType plantType) {
+    public CommandResult addPlant(PlantType plantType , PlantType target) {
         if (!isPlantSelectionActive()) {
             return failure("Plant selection is not available right now.");
         }
@@ -59,11 +62,22 @@ public class PickPlantsController {
         if (plantType.isBowlingExclusive()) {
             return failure("Bowling plants are only used in Wall-nut Bowling.");
         }
+        if (plantType == PlantType.Imitater){
+            if (target == null || target == PlantType.Imitater){
+                return failure("Please choose a valid target plant");
+            }
+            gameNavigation.imitatorTarget = target;
+        }
         if (gameNavigation.selectedPlants.contains(plantType)) {
             return failure(ErrorMessages.PLANT_ALREADY_ADDED.getMessage());
         }
         if (gameNavigation.selectedPlants.size() >= MAX_SELECTED_PLANTS) {
             return failure("You can only select up to " + MAX_SELECTED_PLANTS + " plants.");
+        }
+
+        SessionConfig probe = buildProbeConfig();
+        if (!SessionRules.canSelectPlant(probe, plantType, gameNavigation.selectedPlants)) {
+            return failure(selectionRejectedMessage(plantType));
         }
 
         gameNavigation.selectedPlants.add(plantType);
@@ -80,6 +94,9 @@ public class PickPlantsController {
         }
         if (!gameNavigation.selectedPlants.remove(plantType)) {
             return failure(ErrorMessages.PLANT_NOT_SELECTED.getMessage());
+        }
+        if (plantType == PlantType.Imitater) {
+            gameNavigation.imitatorTarget = null;
         }
         controllerManager.refreshView();
         return success("Removed " + plantType.name + " from your loadout.");
@@ -106,9 +123,12 @@ public class PickPlantsController {
 
         SessionConfig.Builder sessionBuilder = SessionConfig.builder()
                 .levelConfig(gameNavigation.pendingLevel)
-                .selectedPlants(gameNavigation.selectedPlants);
+                .selectedPlants(gameNavigation.selectedPlants)
+                .imitatorTarget(gameNavigation.imitatorTarget);
 
-        if (gameNavigation.pendingSpecialLevel != null) {
+        if (gameNavigation.pendingMiniGame != null) {
+            sessionBuilder.miniGame(gameNavigation.pendingMiniGame);
+        } else if (gameNavigation.pendingSpecialLevel != null) {
             sessionBuilder.specialLevel(gameNavigation.pendingSpecialLevel);
         }
 
@@ -117,6 +137,29 @@ public class PickPlantsController {
         gameNavigation.reset();
         controllerManager.setScreen(ScreenType.GAME);
         return success("Game started! Good luck.");
+    }
+
+    private SessionConfig buildProbeConfig() {
+        SessionConfig.Builder builder = SessionConfig.builder()
+                .levelConfig(gameNavigation.pendingLevel)
+                .selectedPlants(List.copyOf(gameNavigation.selectedPlants));
+        if (gameNavigation.pendingMiniGame != null) {
+            builder.miniGame(gameNavigation.pendingMiniGame);
+        } else if (gameNavigation.pendingSpecialLevel != null) {
+            builder.specialLevel(gameNavigation.pendingSpecialLevel);
+        }
+        return builder.build();
+    }
+
+    private String selectionRejectedMessage(PlantType plantType) {
+        if (gameNavigation.pendingSpecialLevel == SpecialLevelType.LOCKED_PLANTS) {
+            return "You can only choose one plant from the " + plantType.category.name().toLowerCase()
+                    .replace('_', ' ') + " family.";
+        }
+        if (gameNavigation.pendingSpecialLevel == SpecialLevelType.PLANT_WHAT_YOU_GET) {
+            return "Sun-producing plants are not allowed in Plant What You Get.";
+        }
+        return "That plant can't be selected for this level.";
     }
 
     private boolean isPlantSelectionActive() {

@@ -9,6 +9,8 @@ import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantStats;
 import model.data.plant.PlantType;
+import model.data.plant.abilities.config.PlantAbilityConfig;
+import model.data.plant.abilities.runtime.PlantTransformAbility;
 import model.data.seed.PlantSeedDrop;
 import model.data.vase.Vase;
 import model.data.zombie.Zombie;
@@ -19,6 +21,7 @@ import model.events.LevelCompleteEvent;
 import model.events.PlantDiedEvent;
 import model.events.PlantPlacedEvent;
 import model.events.SeedCollectedEvent;
+import model.events.SunCollectedEvent;
 import model.events.WaveCompleteEvent;
 import model.events.WaveStartedEvent;
 import model.events.ZombieDiedEvent;
@@ -31,9 +34,8 @@ import model.rule.LevelRule;
 import model.rule.RuleEngine;
 import model.rule.SessionConfig;
 import model.rule.SessionContext;
-import model.rule.rules.ChapterRules;
-import model.rule.rules.MiniGameRules;
-import model.rule.rules.SpecialLevelRules;
+import model.rule.SessionRules;
+import model.gameSetting.GameSetting;
 import model.storage.StorageManager;
 import model.storage.user.User;
 import model.systems.*;
@@ -55,7 +57,8 @@ public class ModelManager {
     private final SeedDropSystem seedDropSystem;
     private final EffectSystem effectSystem;
     private final QuestTracker questTracker;
-
+    private PlantType imitatorTarget;
+  
     public ModelManager(StorageManager storage, EventBus eventBus) {
         this.state = new GameState();
         this.waveManager = new WaveManager();
@@ -127,6 +130,12 @@ public class ModelManager {
         eventBus.subscribe(GameOverEvent.class, e -> {
             questTracker.onGameEvent(e, state, sessionContext);
         });
+        eventBus.subscribe(SunCollectedEvent.class, e -> {
+            if (e == null || e.sun == null) {
+                return;
+            }
+            ruleEngine.onSunCollected(e.sun, state, eventBus);
+        });
         eventBus.subscribe(ZombieDroppedLootEvent.class, e -> {
             User user = storage.getCurrentUser();
             if (user == null) {
@@ -160,6 +169,9 @@ public class ModelManager {
         ruleEngine.preTick(sessionContext, state, eventBus);
 
         plantAbilitySystem.update(state, eventBus);
+        for (Plant plant : state.plants) {
+            plant.tickPlantFood(state, eventBus);
+        }
         zombieAbilitySystem.update(state, eventBus);
         if (ruleEngine.shouldDropSkySun()) {
             sunSpawnSystem.update(state);
@@ -170,7 +182,7 @@ public class ModelManager {
         effectSystem.update(state);
         combatSystem.update(state, eventBus, ruleEngine.freezeProjectilesEnabled());
         if (ruleEngine.shouldSpawnWaves()) {
-            waveManager.update(state, eventBus);
+            waveManager.update(state, eventBus, ruleEngine.winsOnWaveClear());
         }
 
         ruleEngine.postTick(sessionContext, state, eventBus);
@@ -180,25 +192,17 @@ public class ModelManager {
         state.reset();
         state.sunAmount = config.levelConfig.startingSun;
         ruleEngine.clearRules();
-
-        if (!config.isMinigame()) {
-            List<LevelRule> chapterRules = ChapterRules.forChapter(config.levelConfig.chapterType);
-            ruleEngine.addRules(chapterRules);
-        }
-
-        if (config.isSpecial()) {
-            List<LevelRule> specialRules = SpecialLevelRules.forSpecialLevel(config.specialLevelType);
-            ruleEngine.addRules(specialRules);
-        }
-
-        if (config.isMinigame()) {
-            List<LevelRule> minigameRules = MiniGameRules.forMiniGame(config.miniGameType);
-            ruleEngine.addRules(minigameRules);
-        }
+        ruleEngine.addRules(SessionRules.resolve(config));
 
         this.sessionContext = new SessionContext(config, ruleEngine, waveManager);
+        this.imitatorTarget = config.imitatorTarget;
 
-        waveManager.initialize(config.levelConfig);
+        int difficulty = GameSetting.DEFAULT_DIFFICULTY;
+        User user = storage.getCurrentUser();
+        if (user != null && user.preferredSetting != null) {
+            difficulty = user.preferredSetting.getDifficultyLevel();
+        }
+        waveManager.initialize(config.levelConfig, config.miniGameType, difficulty);
 
         ruleEngine.onSessionStart(sessionContext, state, eventBus);
 
@@ -236,6 +240,10 @@ public class ModelManager {
         return ruleEngine.canPlant(type, row, col, state, sessionContext);
     }
 
+    public boolean startDeferredWaves() {
+        return ruleEngine.startDeferredWaves();
+    }
+
     public boolean placePlant(int row, int col, PlantType plantType, int level) {
         return placePlant(row, col, plantType, level, true);
     }
@@ -253,10 +261,18 @@ public class ModelManager {
         boolean shouldChargeSun = chargeSun && ruleEngine.usesSunCurrency();
 
         Plant plant = new Plant(plantType, row, col, level, eventBus);
+        if (plantType == PlantType.Imitater){
+            if (imitatorTarget == null || imitatorTarget == PlantType.Imitater)return false;
+            for (PlantAbilityConfig a : plant.abilities){
+                if (a instanceof PlantTransformAbility){
+                    ((PlantTransformAbility) a).setTargetPlant(imitatorTarget);
+                }
+            }
+        }
         if (shouldChargeSun && state.sunAmount < plant.cost)
             return false;
 
-        state.plants.add(plant);
+        state.addPlant(plant);
         if (shouldChargeSun) {
             state.sunAmount -= plant.cost;
         }
@@ -348,11 +364,12 @@ public class ModelManager {
     }
 
     public boolean pluckPlant(int row, int col) {
+        Tile tile = state.getBoard().getTile(row, col);
         Plant plant = state.getPlantAt(row, col);
         if (plant == null) {
             return false;
         }
-        state.plants.remove(plant);
+        state.removePlant(plant);
         return true;
     }
 

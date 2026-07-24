@@ -61,7 +61,7 @@ public class ZombieThrowAbility implements ZombieAbilityConfig {
                         ProjectileType.OCTOPUS,
                         ProjectileTarget.PLANT,null,
                         new Position(target.getX(), target.getY()),
-                        0f,50f,60f,0f,0,0);
+                        0f,50f,60f,0f,0,0,0);
                         p.direction = Direction.BACK;
                         state.projectiles.add(p);
             }

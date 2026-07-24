@@ -32,7 +32,7 @@ public class Grave {
 
     public void destroy(GameState state, EventBus eventBus) {
         destroyed = true;
-        state.graves.remove(this);
+        state.removeGrave(this);
         eventBus.publish(new GraveDestroyedEvent(this));
         switch (graveContent) {
             case SUN_50:

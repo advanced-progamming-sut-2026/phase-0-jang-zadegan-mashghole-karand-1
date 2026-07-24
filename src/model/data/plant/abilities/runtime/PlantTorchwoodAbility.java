@@ -6,6 +6,7 @@ import model.data.plant.Plant;
 import model.data.projectile.ProjectileType;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.projectile.Projectile;
+import model.data.zombie.Zombie;
 
 public class PlantTorchwoodAbility implements PlantAbilityConfig {
 
@@ -21,6 +22,18 @@ public class PlantTorchwoodAbility implements PlantAbilityConfig {
 
                 p.type = ProjectileType.FIRE;
                 p.damage *= 2;
+            }
+        }
+    }
+
+    @Override
+    public void onDeath(Plant plant, Zombie killer, GameState state, EventBus event) {
+        if (!plant.upgradeState.aoeOnDeath)return;
+        for (Zombie z : state.zombies){
+            if (!z.isAlive) continue;
+            int col = (int) (z.position.x /GameState.CELL_WIDTH);
+            if (Math.abs(z.row - plant.row) <= 1 && Math.abs(col - plant.col) <= 1 ){
+                z.takeDamage(300);
             }
         }
     }

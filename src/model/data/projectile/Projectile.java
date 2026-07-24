@@ -15,6 +15,7 @@ public class Projectile {
     public ProjectileTarget target;
     public PlantType sourcePlant;
     public int knockBack = 0;
+    public int effectDurationBonus = 0;
     public Projectile(int damage, Position position ,int row, int col, float speed, ProjectileType type,
             ProjectileTarget target,  PlantType sourcePlant) {
         this.damage = damage;

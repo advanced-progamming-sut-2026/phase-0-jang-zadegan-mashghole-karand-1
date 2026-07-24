@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import model.core.Position;
 import model.gameSetting.GameSetting;
 import model.data.content.chapter.ChapterType;
+import model.data.content.minigame.MiniGameCatalog;
 import model.data.content.minigame.MiniGameType;
 import model.data.plant.PlantType;
 import model.data.zombie.ZombieType;
@@ -427,7 +428,7 @@ public class SqlStorageManager implements StorageManager {
 
     @Override
     public void unlockMinigame(MiniGameType minigame) {
-        if (!isLoggedIn() || minigame == null) {
+        if (!isLoggedIn() || minigame == null || !MiniGameCatalog.isPlayable(minigame)) {
             return;
         }
 
@@ -451,7 +452,7 @@ public class SqlStorageManager implements StorageManager {
 
     @Override
     public boolean isMinigameUnlocked(MiniGameType minigame) {
-        if (!isLoggedIn() || minigame == null) {
+        if (!isLoggedIn() || minigame == null || !MiniGameCatalog.isPlayable(minigame)) {
             return false;
         }
         return currentUser.gameProgress.isMinigameUnlocked(minigame);
@@ -462,7 +463,9 @@ public class SqlStorageManager implements StorageManager {
         if (!isLoggedIn()) {
             return new ArrayList<>();
         }
-        return new ArrayList<>(currentUser.gameProgress.getUnlockedMinigames());
+        return currentUser.gameProgress.getUnlockedMinigames().stream()
+                .filter(MiniGameCatalog::isPlayable)
+                .toList();
     }
 
     @Override

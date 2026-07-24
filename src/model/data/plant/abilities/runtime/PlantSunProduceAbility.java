@@ -41,7 +41,8 @@ public class PlantSunProduceAbility implements PlantAbilityConfig {
     public PlantSunProduceAbility createInstance(Plant plant) {
         boolean ramp = plant.type.tags != null
                 && plant.type.tags.contains(PlantTag.WRAMP_UP);
-        return new PlantSunProduceAbility(amount, plant.actionInterval, plant.doubleSunChance , ramp );
+        int finalAmount = amount + plant.upgradeState.sunDropBonus;
+        return new PlantSunProduceAbility(finalAmount, plant.actionInterval, plant.doubleSunChance , ramp );
     }
 
     @Override

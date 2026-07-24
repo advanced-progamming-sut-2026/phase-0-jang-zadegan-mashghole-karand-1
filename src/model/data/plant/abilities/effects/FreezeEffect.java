@@ -19,4 +19,8 @@ public class FreezeEffect implements HitEffect {
         zombie.isFrozen = true;
         zombie.frozenTicks = Math.max(zombie.frozenTicks, ticks);
     }
+
+    public int getTicks() {
+        return ticks;
+    }
 }

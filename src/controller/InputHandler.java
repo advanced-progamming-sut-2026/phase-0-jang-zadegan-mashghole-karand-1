@@ -177,8 +177,10 @@ public class InputHandler {
             controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.ADD_PLANT.getMatcher(input)).matches()) {
             String typeStr = matcher.group(1);
+            String targetStr = matcher.group(2);
             PlantType type = PlantType.fromName(typeStr);
-            CommandResult result = controllerManager.getPickPlantsController().addPlant(type);
+            PlantType target = PlantType.fromName(targetStr);
+            CommandResult result = controllerManager.getPickPlantsController().addPlant(type,target);
             controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.REMOVE_PLANT.getMatcher(input)).matches()) {
             String typeStr = matcher.group(1);
@@ -240,6 +242,9 @@ public class InputHandler {
         } else if (Commands.RELEASE_NUKE.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(
                     controllerManager.getGameMechanismController().releaseNuke());
+        } else if (Commands.START_ZOMBIE_WAVES.getMatcher(input).matches()) {
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().startZombieWaves());
         } else if ((matcher = Commands.PLANT_PLANT.getMatcher(input)).matches()) {
             PlantType type = PlantType.fromName(matcher.group("type"));
             int row = Integer.parseInt(matcher.group("x"));

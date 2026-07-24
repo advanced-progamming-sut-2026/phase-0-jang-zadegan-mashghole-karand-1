@@ -1,5 +1,8 @@
 package model.data.plant.effects.runtime;
 
+import model.core.EventBus;
+import model.core.GameLoop;
+import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.plant.abilities.runtime.PlantShootAbility;
 import model.data.plant.effects.config.PlantEffectConfig;
@@ -28,5 +31,17 @@ public class PlantRapidFireEffect implements PlantEffectConfig {
             }
         }
         return instance;
+    }
+    @Override
+    public int getDurationTicks() {
+        return (int) (duration * GameLoop.TICKS_PER_SECOND);
+    }
+
+    @Override
+    public void onTick(Plant plant, GameState state, EventBus event) {
+        for (PlantShootAbility a : runtimeAbilities) {
+            a.resetCooldown();
+            a.onTick(plant, state, event);
+        }
     }
 }

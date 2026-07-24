@@ -177,7 +177,7 @@ public class CombatSystem {
                 targetPlant.hp -=(int) z.getDPS() / 10;
                 z.isEating = true;
                 if (targetPlant.hp <= 0) {
-                    state.plants.remove(targetPlant);
+                    state.removePlant(targetPlant);
                     z.isEating = false;
                     eventBus.publish(new PlantDiedEvent(targetPlant));
                 }
@@ -188,7 +188,7 @@ public class CombatSystem {
         // events should be triggered here!
         state.zombies.removeIf(z -> z.hp <= 0);
 
-        state.plants.removeIf(p -> p.hp <= 0);
+        state.removeDeadPlants();
     }
 
     private Plant findPlantAt(GameState state, int row, float x) {

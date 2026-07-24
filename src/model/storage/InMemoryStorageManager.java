@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import model.data.content.chapter.ChapterType;
+import model.data.content.minigame.MiniGameCatalog;
 import model.data.content.minigame.MiniGameType;
 import model.data.plant.PlantType;
 import model.data.zombie.ZombieType;
@@ -202,7 +203,7 @@ public class InMemoryStorageManager implements StorageManager {
 
     @Override
     public void unlockMinigame(MiniGameType minigame) {
-        if (!isLoggedIn() || minigame == null) {
+        if (!isLoggedIn() || minigame == null || !MiniGameCatalog.isPlayable(minigame)) {
             return;
         }
         if (!currentUser.gameProgress.isMinigameUnlocked(minigame)) {
@@ -213,7 +214,7 @@ public class InMemoryStorageManager implements StorageManager {
 
     @Override
     public boolean isMinigameUnlocked(MiniGameType minigame) {
-        if (!isLoggedIn() || minigame == null) {
+        if (!isLoggedIn() || minigame == null || !MiniGameCatalog.isPlayable(minigame)) {
             return false;
         }
         return currentUser.gameProgress.isMinigameUnlocked(minigame);
@@ -224,7 +225,9 @@ public class InMemoryStorageManager implements StorageManager {
         if (!isLoggedIn()) {
             return new ArrayList<>();
         }
-        return new ArrayList<>(currentUser.gameProgress.getUnlockedMinigames());
+        return currentUser.gameProgress.getUnlockedMinigames().stream()
+                .filter(MiniGameCatalog::isPlayable)
+                .toList();
     }
 
     @Override

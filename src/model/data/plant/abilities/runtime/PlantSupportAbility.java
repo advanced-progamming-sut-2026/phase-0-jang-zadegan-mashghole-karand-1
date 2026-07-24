@@ -8,7 +8,7 @@ import model.data.plant.abilities.config.PlantAbilityConfig;
 public class PlantSupportAbility implements PlantAbilityConfig {
     @Override
     public PlantAbilityConfig createInstance(Plant plant) {
-        return null;
+        return new PlantSupportAbility();
     }
 
     @Override

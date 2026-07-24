@@ -4,13 +4,11 @@ import model.core.EventBus;
 import model.core.GameState;
 import model.data.Grave.Grave;
 import model.data.Grave.GraveContent;
-import model.data.plant.Plant;
 import model.data.zombie.Zombie;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.events.GraveCreatedEvent;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.*;
 
 public class ZombieTombRaiseAbility implements ZombieAbilityConfig {
@@ -32,7 +30,7 @@ public class ZombieTombRaiseAbility implements ZombieAbilityConfig {
         List<int[]> empty = new ArrayList<>();
         for (int r = 0; r < GameState.GRID_ROWS; r++) {
             for (int c = 0; c < GameState.GRID_COLS; c++) {
-                if (state.getPlantAt(r, c) == null && state.getGraveAt(r, c) == null) {
+                if (state.getBoard().getTile(r, c).canSetGrave()) {
                     empty.add(new int[]{r, c});
                 }
             }
@@ -44,7 +42,7 @@ public class ZombieTombRaiseAbility implements ZombieAbilityConfig {
             int r = empty.get(i)[0];
             int c = empty.get(i)[1];
             Grave grave = new Grave(r, c, GraveContent.NONE);
-            state.graves.add(grave);
+            state.addGrave(grave);
             bus.publish(new GraveCreatedEvent(grave));
         }
         onCooldown = true;

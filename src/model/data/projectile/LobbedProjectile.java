@@ -12,10 +12,11 @@ public class LobbedProjectile extends Projectile{
     public float butterChance = 0f;
     public int butterDamage = 0;
     public int aoeRadius = 0;
+    public int aoeDamage = 0;
 
     public LobbedProjectile(int damage, Position position, int row, int col, float speed, ProjectileType type,
                             ProjectileTarget target, PlantType sourcePlant, Position targetPosition, float flightProgress,
-                            float flightDuration, float arcHeight, float butterChance, int butterDamage, int aoeRadius
+                            float flightDuration, float arcHeight, float butterChance, int butterDamage, int aoeRadius, int aoeDamage
                             ) {
         super(damage, position, row, col, speed, type, target, sourcePlant);
         this.startPosition = new Position(position.x,position.y);
@@ -26,6 +27,7 @@ public class LobbedProjectile extends Projectile{
         this.butterChance = butterChance;
         this.butterDamage = butterDamage;
         this.aoeRadius = aoeRadius;
+        this.aoeDamage = aoeDamage;
     }
 
     public Position getTargetPosition() {
