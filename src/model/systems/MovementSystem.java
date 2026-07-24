@@ -12,7 +12,7 @@ import model.data.projectile.HomingProjectile;
 import model.data.projectile.PiercingProjectile;
 import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
-import model.events.GameOverReason;
+import model.event.events.GameOverReason;
 import model.lawnmower.LawnMower;
 
 import java.util.ArrayList;

@@ -20,9 +20,9 @@ import model.data.wave.ZombieSpawn;
 import model.data.wave.ZombieWave;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
-import model.events.WaveCompleteEvent;
-import model.events.WaveStartedEvent;
-import model.events.ZombieSpawnedEvent;
+import model.event.events.WaveCompleteEvent;
+import model.event.events.WaveStartedEvent;
+import model.event.events.ZombieSpawnedEvent;
 import model.gameSetting.GameSetting;
 
 public class WaveManager {

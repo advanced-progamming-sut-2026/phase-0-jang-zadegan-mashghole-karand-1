@@ -8,9 +8,9 @@ import model.data.content.chapter.ChapterType;
 import model.data.content.minigame.MiniGameType;
 import model.data.content.progress.ProgressRewards;
 import model.data.wave.LevelConfig;
-import model.events.GameOverEvent;
-import model.events.GameOverReason;
-import model.events.LevelCompleteEvent;
+import model.event.events.GameOverEvent;
+import model.event.events.GameOverReason;
+import model.event.events.LevelCompleteEvent;
 import model.rule.SessionConfig;
 import model.rule.SessionContext;
 import model.service.GameNavigationState;
@@ -55,6 +55,7 @@ public class SessionLifecycleController {
 
         gameLoop.stopAutoTick();
         restoreNavigationFromSession();
+        model.endSession();
         controllerManager.setScreen(ScreenType.LEVEL_SELECTOR);
         return new CommandResult("Returned to level selection.", true);
     }

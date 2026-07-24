@@ -1,7 +1,5 @@
 package model;
 
-import java.util.List;
-
 import model.board.Tile;
 import model.core.EventBus;
 import model.core.GameState;
@@ -15,22 +13,22 @@ import model.data.seed.PlantSeedDrop;
 import model.data.vase.Vase;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
-import model.events.GlowingZombieDiedEvent;
-import model.events.GameOverEvent;
-import model.events.LevelCompleteEvent;
-import model.events.PlantDiedEvent;
-import model.events.PlantPlacedEvent;
-import model.events.SeedCollectedEvent;
-import model.events.SunCollectedEvent;
-import model.events.WaveCompleteEvent;
-import model.events.WaveStartedEvent;
-import model.events.ZombieDiedEvent;
-import model.events.ZombieDroppedLootEvent;
-import model.events.ZombieSpawnedEvent;
+import model.event.GameEventHub;
+import model.event.events.GlowingZombieDiedEvent;
+import model.event.events.GameOverEvent;
+import model.event.events.LevelCompleteEvent;
+import model.event.events.PlantDiedEvent;
+import model.event.events.PlantPlacedEvent;
+import model.event.events.SeedCollectedEvent;
+import model.event.events.SunCollectedEvent;
+import model.event.events.WaveCompleteEvent;
+import model.event.events.WaveStartedEvent;
+import model.event.events.ZombieDiedEvent;
+import model.event.events.ZombieDroppedLootEvent;
+import model.event.events.ZombieSpawnedEvent;
 import model.core.Position;
 import model.data.content.minigame.IZombieShop;
 import model.quest.QuestTracker;
-import model.rule.LevelRule;
 import model.rule.RuleEngine;
 import model.rule.SessionConfig;
 import model.rule.SessionContext;
@@ -47,6 +45,7 @@ public class ModelManager {
     private final WaveManager waveManager;
     private final RuleEngine ruleEngine;
     private SessionContext sessionContext;
+    private final GameEventHub EventHub;
 
     private final MovementSystem movementSystem;
     private final CombatSystem combatSystem;
@@ -75,92 +74,11 @@ public class ModelManager {
         this.seedDropSystem = new SeedDropSystem();
         this.effectSystem = new EffectSystem();
         this.questTracker = new QuestTracker(storage);
+        this.EventHub = new GameEventHub(eventBus, ruleEngine,questTracker,state,storage);
 
-        registerEventBridges();
+        this.EventHub.register();
     }
 
-    private void registerEventBridges() {
-        eventBus.subscribe(PlantDiedEvent.class, e -> {
-            if (e == null || e.plant == null) {
-                return;
-            }
-            state.removePlant(e.plant);
-            ruleEngine.onPlantDied(e.plant, state, eventBus);
-        });
-        eventBus.subscribe(WaveStartedEvent.class, e -> {
-            if (sessionContext == null) {
-                return;
-            }
-            ruleEngine.onWaveStart(sessionContext, state, eventBus);
-            questTracker.onGameEvent(e, state, sessionContext);
-        });
-        eventBus.subscribe(WaveCompleteEvent.class, e -> {
-            if (sessionContext == null) {
-                return;
-            }
-            ruleEngine.onWaveEnd(sessionContext, state, eventBus);
-        });
-        eventBus.subscribe(ZombieDiedEvent.class, e -> {
-            if (e == null || e.zombie == null) return;
-            ruleEngine.onZombieDied(e.zombie, state, eventBus);
-            questTracker.onGameEvent(e, state, sessionContext);
-        });
-        eventBus.subscribe(GlowingZombieDiedEvent.class, e -> {
-            if (e == null || e.zombie == null) {
-                return;
-            }
-            ruleEngine.onZombieDied(e.zombie, state, eventBus);
-            questTracker.onGameEvent(
-                    new ZombieDiedEvent(e.zombie, e.zombie.lastHitBy),state, sessionContext);
-        });
-        eventBus.subscribe(ZombieSpawnedEvent.class, e -> {
-            if (e == null || e.zombie == null || sessionContext == null) {
-                return;
-            }
-            ruleEngine.onZombieSpawned(e.zombie, sessionContext, state);
-        });
-        eventBus.subscribe(PlantPlacedEvent.class, e -> {
-            if (e == null || e.plant == null) {
-                return;
-            }
-            ruleEngine.onPlantPlaced(e.plant, state);
-        });
-        eventBus.subscribe(LevelCompleteEvent.class, e -> {
-            questTracker.onGameEvent(e, state, sessionContext);
-        });
-        eventBus.subscribe(GameOverEvent.class, e -> {
-            questTracker.onGameEvent(e, state, sessionContext);
-        });
-        eventBus.subscribe(SunCollectedEvent.class, e -> {
-            if (e == null || e.sun == null) {
-                return;
-            }
-            ruleEngine.onSunCollected(e.sun, state, eventBus);
-        });
-        eventBus.subscribe(ZombieDroppedLootEvent.class, e -> {
-            User user = storage.getCurrentUser();
-            if (user == null) {
-                return;
-            }
-            switch (e.type) {
-                case COIN -> {
-                    user.coins += e.amount;
-                    storage.updateUserProfile(user);
-                }
-                case DIAMOND -> {
-                    user.gems += e.amount;
-                    storage.updateUserProfile(user);
-                }
-                case POT -> {
-                    if (user.greenhouse == null) {
-                        return;
-                    }
-                    user.greenhouse.unlockSlot();
-                    storage.updateUserProfile(user);
-                }
-            }
-        });
-    }
 
     public void tick() {
         if (state.gameOver || state.levelComplete) {
@@ -194,8 +112,9 @@ public class ModelManager {
         state.sunAmount = config.levelConfig.startingSun;
         ruleEngine.clearRules();
         ruleEngine.addRules(SessionRules.resolve(config));
-
+        EventHub.unbindSession();
         this.sessionContext = new SessionContext(config, ruleEngine, waveManager);
+        EventHub.bindSession(sessionContext);
         this.imitatorTarget = config.imitatorTarget;
 
         int difficulty = GameSetting.DEFAULT_DIFFICULTY;
@@ -409,5 +328,10 @@ public class ModelManager {
 
     public void releaseNuke() {
         state.zombies.clear();
+    }
+
+    public void endSession() {
+        sessionContext = null;
+        EventHub.unbindSession();
     }
 }

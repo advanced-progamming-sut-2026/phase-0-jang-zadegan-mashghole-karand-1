@@ -5,13 +5,12 @@ import java.util.*;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
-import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.data.zombie.armor.runtime.ZombieArmor;
-import model.events.GlowingZombieDiedEvent;
-import model.events.ZombieDiedEvent;
-import model.events.ZombieDroppedLootEvent;
+import model.event.events.GlowingZombieDiedEvent;
+import model.event.events.ZombieDiedEvent;
+import model.event.events.ZombieDroppedLootEvent;
 
 public class Zombie {
     private static final int ICE_HP = 600;

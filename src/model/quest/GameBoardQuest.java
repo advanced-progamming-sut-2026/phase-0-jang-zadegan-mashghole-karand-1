@@ -5,7 +5,7 @@ import model.core.ReadOnlyGameState;
 import model.data.content.chapter.ChapterType;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
-import model.events.LevelCompleteEvent;
+import model.event.events.LevelCompleteEvent;
 import model.storage.user.User;
 
 public class GameBoardQuest extends Quest {

@@ -5,10 +5,9 @@ import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
 import model.data.plant.abilities.config.PlantAbilityConfig;
-import model.data.plant.upgrades.PlantUpgradeState;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
-import model.events.ZombieSpawnedEvent;
+import model.event.events.ZombieSpawnedEvent;
 
 public class PlantHypnotizeAbility implements PlantAbilityConfig {
     private boolean transformToGargantuar = false;

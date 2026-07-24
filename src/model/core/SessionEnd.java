@@ -1,8 +1,8 @@
 package model.core;
 
-import model.events.GameOverEvent;
-import model.events.GameOverReason;
-import model.events.LevelCompleteEvent;
+import model.event.events.GameOverEvent;
+import model.event.events.GameOverReason;
+import model.event.events.LevelCompleteEvent;
 
 public final class SessionEnd {
     private SessionEnd() {

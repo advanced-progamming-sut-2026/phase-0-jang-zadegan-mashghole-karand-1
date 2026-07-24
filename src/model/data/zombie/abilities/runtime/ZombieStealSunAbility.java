@@ -8,7 +8,7 @@ import model.data.sun.SunType;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
-import model.events.SunDroppedEvent;
+import model.event.events.SunDroppedEvent;
 
 import java.util.ArrayList;
 import java.util.List;

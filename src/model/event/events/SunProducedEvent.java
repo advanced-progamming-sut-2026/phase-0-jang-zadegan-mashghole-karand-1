@@ -1,4 +1,4 @@
-package model.events;
+package model.event.events;
 
 import model.data.plant.Plant;
 import model.data.sun.Sun;

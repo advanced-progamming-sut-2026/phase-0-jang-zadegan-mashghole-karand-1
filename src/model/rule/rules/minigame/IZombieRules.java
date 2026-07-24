@@ -14,8 +14,8 @@ import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
-import model.events.GameOverReason;
-import model.events.ZombieSpawnedEvent;
+import model.event.events.GameOverReason;
+import model.event.events.ZombieSpawnedEvent;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 

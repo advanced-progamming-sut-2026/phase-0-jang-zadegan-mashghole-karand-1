@@ -6,8 +6,8 @@ import model.core.Position;
 import model.core.ReadOnlyGameState;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
-import model.events.BarrelDestroyedEvent;
-import model.events.ZombieSpawnedEvent;
+import model.event.events.BarrelDestroyedEvent;
+import model.event.events.ZombieSpawnedEvent;
 
 public class Barrel {
     private static final int MAX_HP = 500;

@@ -3,7 +3,7 @@ package model.quest;
 import model.core.GameState;
 import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
-import model.events.ZombieDiedEvent;
+import model.event.events.ZombieDiedEvent;
 import model.storage.user.User;
 
 public class KillZombieInChapter extends Quest {
