@@ -89,7 +89,9 @@ public class SqlStorageManager implements StorageManager {
                 User registered = new User(username, Hash.hashPassword(password), email, nickname, gender,
                         safetyQuestion);
                 registered.collection.unlockStarterPlants();
+                registered.gameProgress.unlockChapter(ChapterType.ANCIENT_EGYPT);
                 saveUnlockedPlants(registered);
+                saveUnlockedChapters(registered);
                 return true;
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to register user", e);

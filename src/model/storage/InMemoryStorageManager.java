@@ -55,6 +55,7 @@ public class InMemoryStorageManager implements StorageManager {
         String hashedPassword = Hash.hashPassword(password);
         User profile = new User(username, hashedPassword, email, nickname, gender, safetyQuestion);
         profile.collection.unlockStarterPlants();
+        profile.gameProgress.unlockChapter(ChapterType.ANCIENT_EGYPT);
         users.put(username, profile);
         return true;
     }
