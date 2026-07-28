@@ -1156,6 +1156,7 @@ public class SqlStorageManager implements StorageManager {
         saveUnlockedChapters(user);
         saveUnlockedPlants(user);
         saveUnlockedZombies(user);
+        saveUnlockedMinigames(user);
         saveCompletedLevels(user);
         saveLevelHighScores(user);
         saveSeedPackets(user);
@@ -1222,6 +1223,28 @@ public class SqlStorageManager implements StorageManager {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to save unlocked chapters", e);
+        }
+    }
+
+    private void saveUnlockedMinigames(User user) {
+        try (Connection connection = openConnection()) {
+            try (PreparedStatement deleteStatement = connection.prepareStatement(
+                    "DELETE FROM unlocked_minigames WHERE username = ?")) {
+                deleteStatement.setString(1, user.username);
+                deleteStatement.executeUpdate();
+            }
+
+            try (PreparedStatement insertStatement = connection.prepareStatement(
+                    "INSERT INTO unlocked_minigames (username, minigame) VALUES (?, ?)")) {
+                for (MiniGameType minigame : user.gameProgress.getUnlockedMinigames()) {
+                    insertStatement.setString(1, user.username);
+                    insertStatement.setString(2, minigame.name());
+                    insertStatement.addBatch();
+                }
+                insertStatement.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save unlocked minigames", e);
         }
     }
 
@@ -1466,20 +1489,21 @@ public class SqlStorageManager implements StorageManager {
     }
 
     private void saveQuests(User user) {
-        if(user == null || user.quests == null) return;
-        try (Connection connection = openConnection()){
+        if (user == null || user.quests == null)
+            return;
+        try (Connection connection = openConnection()) {
             try (PreparedStatement delete = connection.prepareStatement(
-                    "DELETE FROM user_quests WHERE username = ?")){
+                    "DELETE FROM user_quests WHERE username = ?")) {
                 delete.setString(1, user.username);
                 delete.executeUpdate();
             }
             try (PreparedStatement insert = connection.prepareStatement(
-                    "INSERT INTO user_quests (username, quest_id, progress, completed) VALUES (?, ?, ?, ?)")){
-                for(Quest quest : user.quests) {
-                    insert.setString(1,user.username);
-                    insert.setString(2,quest.getId());
+                    "INSERT INTO user_quests (username, quest_id, progress, completed) VALUES (?, ?, ?, ?)")) {
+                for (Quest quest : user.quests) {
+                    insert.setString(1, user.username);
+                    insert.setString(2, quest.getId());
                     insert.setInt(3, quest.getProgress());
-                    insert.setInt(4, quest.isCompleted() ? 1:0);
+                    insert.setInt(4, quest.isCompleted() ? 1 : 0);
                     insert.addBatch();
                 }
                 insert.executeBatch();
@@ -1489,26 +1513,25 @@ public class SqlStorageManager implements StorageManager {
         }
     }
 
-    private void loadQuests(Connection connection,User user) {
-        try(PreparedStatement statement = connection.prepareStatement(
-                "SELECT quest_id, progress, completed FROM user_quests WHERE username = ?")){
+    private void loadQuests(Connection connection, User user) {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT quest_id, progress, completed FROM user_quests WHERE username = ?")) {
             statement.setString(1, user.username);
-            try(ResultSet rs = statement.executeQuery()){
+            try (ResultSet rs = statement.executeQuery()) {
                 Map<String, int[]> saved = new HashMap<>();
                 while (rs.next()) {
                     saved.put(rs.getString("quest_id"),
-                            new int[]{rs.getInt("progress"), rs.getInt("completed")});
+                            new int[] { rs.getInt("progress"), rs.getInt("completed") });
                 }
-                for(Quest quest : user.quests) {
+                for (Quest quest : user.quests) {
                     int[] row = saved.get(quest.getId());
-                    if(row != null){
+                    if (row != null) {
                         quest.setProgress(row[0]);
                         quest.setCompleted(row[1] == 1);
                     }
                 }
             }
-        }
-        catch (SQLException e){
+        } catch (SQLException e) {
             throw new RuntimeException("Failed to load quests", e);
         }
     }
