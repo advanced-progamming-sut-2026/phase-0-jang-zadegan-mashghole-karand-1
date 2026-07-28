@@ -348,7 +348,13 @@ public class ModelManager {
     }
 
     public void releaseNuke() {
-        state.zombies.clear();
+        java.util.List<Zombie> targets = new java.util.ArrayList<>(state.zombies);
+        for (Zombie zombie : targets) {
+            if (zombie != null && zombie.isAlive) {
+                zombie.kill(state);
+            }
+        }
+        state.removeDeadZombies();
     }
 
     public void endSession() {
