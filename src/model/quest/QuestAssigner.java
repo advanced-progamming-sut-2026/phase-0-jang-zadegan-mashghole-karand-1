@@ -12,6 +12,14 @@ public class QuestAssigner {
             return;
         }
 
+        addKillQuests(user);
+        addSunQuests(user);
+        addKillCountAndFamilyQuests(user);
+        addWinConstraintQuests(user);
+        addBoardQuests(user);
+    }
+
+    private static void addKillQuests(User user) {
         user.quests.add(new KillWithPlantQuest(
                 "Only Cactus",
                 QuestPriority.HIGH, QuestCategory.DAILY,
@@ -40,6 +48,9 @@ public class QuestAssigner {
                 QuestPriority.HIGH, QuestCategory.MAIN, "kill 50 zombies Dark_Ages Chapter",
                 50, ChapterType.DARK_AGES,
                 RewardType.SEED_PACK, 10, PlantType.Magnet_shroom));
+    }
+
+    private static void addSunQuests(User user) {
         user.quests.add(new CollectSunQuest("Daily sunCatcher", QuestPriority.MEDIUM, QuestCategory.DAILY,
                 "collect 3000 sun in a day", 3000, RewardType.COIN,
                 30, null, true));
@@ -52,6 +63,9 @@ public class QuestAssigner {
         user.quests.add(new CollectSunQuest("Cloudy day", QuestPriority.HIGH, QuestCategory.DAILY,
                 "finish a level with only 3 sun producer plants", 3,
                 RewardType.DIAMOND, 10, null, false));
+    }
+
+    private static void addKillCountAndFamilyQuests(User user) {
         user.quests.add(new KillCountQuest("Speed of action", QuestPriority.MEDIUM, QuestCategory.MAIN,
                 KillCountQuest.SpecificQuest.SPEED_KILLING,
                 "kill 10 zombies in less than 30 seconds passed in first wave",
@@ -81,6 +95,9 @@ public class QuestAssigner {
         user.quests.add(new KillFamilyQuest("Professional Destroyer", QuestPriority.HIGH, QuestCategory.EPIC,
                 "kill 3 zombies using explosive plants", 3, RewardType.COIN,
                 100, null, PlantCategory.EXPLOSIVE));
+    }
+
+    private static void addWinConstraintQuests(User user) {
         for (int maxLoss = 0; maxLoss <= 5; maxLoss++) {
             user.quests.add(new WinConstraintQuest(
                     "Economic Herbivore",
@@ -116,6 +133,9 @@ public class QuestAssigner {
                     1, RewardType.DIAMOND, 100, null,
                     0, 0, WinConstraintQuest.Constraint.FORBIDDEN_FAMILY, family));
         }
+    }
+
+    private static void addBoardQuests(User user) {
         user.quests.add(new GameBoardQuest("Symmetry", QuestPriority.HIGH, QuestCategory.DAILY,
                 "finish the level with a symmetric garden", 1, RewardType.COIN, 500,
                 null, 0, 0, GameBoardQuest.BoardState.SYMMETRIC));

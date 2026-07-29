@@ -48,8 +48,6 @@ public class SaveOurSeedsRules implements LevelRule {
     public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
         protectedPlantIds.clear();
 
-        int placed = 0;
-
         for (int row : PROTECTED_ROWS) {
             if (state.getPlantAt(row, PROTECTED_COL) == null) {
                 PlantType type = SEED_POOL.get(RANDOM.nextInt(SEED_POOL.size()));
@@ -58,7 +56,6 @@ public class SaveOurSeedsRules implements LevelRule {
                     Plant plant = new Plant(type, row, PROTECTED_COL, 1, bus);
                     state.addPlant(plant);
                     protectedPlantIds.add(plant.instanceId);
-                    placed++;
                 }
             }
         }

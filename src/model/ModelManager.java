@@ -300,7 +300,6 @@ public class ModelManager {
     }
 
     public boolean pluckPlant(int row, int col) {
-        Tile tile = state.getBoard().getTile(row, col);
         Plant plant = state.getPlantAt(row, col);
         if (plant == null) {
             return false;

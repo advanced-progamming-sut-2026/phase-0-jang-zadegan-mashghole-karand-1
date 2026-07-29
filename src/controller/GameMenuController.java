@@ -120,6 +120,10 @@ public class GameMenuController {
 
         gameNavigation.phase = Phase.PLANT;
         controllerManager.refreshView();
+        return levelSelectedMessage(levelNumber, level, special);
+    }
+
+    private CommandResult levelSelectedMessage(int levelNumber, LevelConfig level, SpecialLevelType special) {
         if (special == SpecialLevelType.PLANT_WHAT_YOU_GET) {
             return success("Level " + levelNumber + " selected (plant what you get). "
                     + "Pick non-sun plants, then plant with 800 sun and run 'start zombie waves'.");

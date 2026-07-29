@@ -14,7 +14,6 @@ public class Grave {
     public final int col;
     public final Position pos;
     public GraveContent graveContent;
-    private boolean destroyed = false;
 
     public Grave(int row, int col, GraveContent graveContent) {
         this.row = row;
@@ -31,7 +30,6 @@ public class Grave {
     }
 
     public void destroy(GameState state, EventBus eventBus) {
-        destroyed = true;
         state.removeGrave(this);
         eventBus.publish(new GraveDestroyedEvent(this));
         switch (graveContent) {

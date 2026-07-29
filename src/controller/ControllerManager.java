@@ -8,7 +8,6 @@ import model.quest.QuestAssigner;
 import model.service.*;
 import model.service.GameNavigationState.Phase;
 import model.shop.Shop;
-import model.shop.ShopItems;
 import model.storage.StorageManager;
 import model.storage.user.User;
 import view.MenuType;
@@ -18,7 +17,6 @@ import view.ViewManager;
 public class ControllerManager {
     private ModelManager model;
     private ViewManager view;
-    private EventBus eventBus;
     private GameLoop gameLoop;
     private final StorageManager storage;
 
@@ -54,7 +52,6 @@ public class ControllerManager {
     public ControllerManager(ModelManager model,
             EventBus eventBus, GameLoop gameLoop, StorageManager storage) {
         this.model = model;
-        this.eventBus = eventBus;
         this.gameLoop = gameLoop;
         this.storage = storage;
         this.greenhouseController = new GreenhouseController(this, storage);
@@ -447,7 +444,8 @@ public class ControllerManager {
 
     public void initQuestsForCurrentUser() {
         User user = storage.getCurrentUser();
-        if (user == null) return;
+        if (user == null)
+            return;
         QuestAssigner.ensureAssigned(user);
         storage.loadQuestProgress(user);
     }

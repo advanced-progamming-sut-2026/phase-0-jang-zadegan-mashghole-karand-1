@@ -9,7 +9,6 @@ import model.shop.ShopItems;
 import model.storage.StorageManager;
 import model.storage.user.User;
 
-
 public class ShopController {
     public enum ShopDisplayMode {
         MENU,
@@ -144,8 +143,6 @@ public class ShopController {
             default -> {
                 return failure("Unknown shop item.");
             }
-
-
         }
     }
 
