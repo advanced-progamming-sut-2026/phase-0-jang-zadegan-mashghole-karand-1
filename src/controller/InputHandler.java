@@ -278,6 +278,12 @@ public class InputHandler {
         } else if (Commands.CHEAT_ADD_PLANT_FOOD.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(
                     controllerManager.getGameMechanismController().addPlantFood());
+        } else if ((matcher = Commands.CHEAT_SPAWN_ZOMBIE.getMatcher(input)).matches()) {
+            ZombieType zombieType = ZombieType.fromName(matcher.group("zombietype"));
+            int row = Integer.parseInt(matcher.group("x"));
+            int col = Integer.parseInt(matcher.group("y"));
+            controllerManager.handleCommandResult(
+                    controllerManager.getGameMechanismController().cheatSpawnZombie(row, col, zombieType));
         } else if (Commands.SHOW_MAP.getMatcher(input).matches()) {
             controllerManager.handleCommandResult(
                     controllerManager.getGameMechanismController().showMap());
