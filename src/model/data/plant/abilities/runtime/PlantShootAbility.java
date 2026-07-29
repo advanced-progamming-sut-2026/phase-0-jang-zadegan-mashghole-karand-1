@@ -96,13 +96,34 @@ public class PlantShootAbility implements PlantAbilityConfig {
             return;
         }
         int targetRow = plant.row + shootPattern.getRow();
-        boolean hasZombie = state.zombies.stream()
-                .anyMatch(z -> z.row == targetRow && z.isAlive);
-
+        boolean hasZombie;
+        if (plant.isPlantFoodActive) {
+            hasZombie = state.zombies.stream().anyMatch(z -> z.isAlive);
+        }
+        else if (plant.type == PlantType.Starfruit) {
+            hasZombie = state.zombies.stream().anyMatch(z ->
+                    z.isAlive && (
+                            canHitZombie(plant, z, Direction.BACK) ||
+                                    canHitZombie(plant, z, Direction.UP) ||
+                                    canHitZombie(plant, z, Direction.DOWN) ||
+                                    canHitZombie(plant, z, Direction.UP_RIGHT) ||
+                                    canHitZombie(plant, z, Direction.DOWN_RIGHT)
+                    ));
+        } else if (plant.type == PlantType.Rotobaga) {
+            hasZombie = state.zombies.stream()
+                    .anyMatch(z -> z.isAlive && canHitZombie(plant, z, shootPattern.getDir()));
+        } else if (plant.type == PlantType.Threepeater) {
+            hasZombie = state.zombies.stream()
+                    .anyMatch(z -> z.isAlive && Math.abs(z.row - plant.row) <= 1);
+        } else {
+            hasZombie = state.zombies.stream()
+                    .anyMatch(z -> z.isAlive && z.row == targetRow);
+        }
         if (hasZombie && targetRow >= 0 && targetRow < 5) {
             for (int i = 0; i < shootPattern.getBulletCount(); i++) {
                 int xOffset = 40 - (i * 20);
-                Position bulletPosition = new Position(plant.getX() + xOffset, plant.getY());
+                float targetY = targetRow * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2;
+                Position bulletPosition = new Position(plant.getX() + xOffset, targetY);
                 Projectile p;
 
                 if (this.pierceCount != 0 || this.maxRange != -1) {
@@ -141,7 +162,53 @@ public class PlantShootAbility implements PlantAbilityConfig {
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
         }
     }
+    private boolean canHitZombie(Plant plant, model.data.zombie.Zombie z, Direction dir) {
+        if (z == null || !z.isAlive) return false;
 
+        float px = plant.getX();
+        float py = plant.getY();
+        float zx = z.position.x;
+        float zy = z.row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f;
+
+        float dx = zx - px;
+        float dy = zy - py;
+        if (Math.abs(dx) < 1f && Math.abs(dy) < 1f) return false;
+
+        switch (dir) {
+            case FORWARD:
+                return z.row == plant.row && dx > 0;
+
+            case BACK:
+                return z.row == plant.row && dx < 0;
+
+            case UP:
+                return z.row < plant.row && Math.abs(dx) <= GameState.CELL_WIDTH / 2f;
+
+            case DOWN:
+                return z.row > plant.row && Math.abs(dx) <= GameState.CELL_WIDTH / 2f;
+
+            case UP_RIGHT:
+                return dx > 0 && dy < 0 && isNearDiagonal(dx, dy);
+
+            case UP_LEFT:
+                return dx < 0 && dy < 0 && isNearDiagonal(dx, dy);
+
+            case DOWN_RIGHT:
+                return dx > 0 && dy > 0 && isNearDiagonal(dx, dy);
+
+            case DOWN_LEFT:
+                return dx < 0 && dy > 0 && isNearDiagonal(dx, dy);
+
+            default:
+                return false;
+        }
+    }
+    private boolean isNearDiagonal(float dx, float dy) {
+        float adx = Math.abs(dx);
+        float ady = Math.abs(dy);
+        float ratio = adx / Math.max(ady, 1f);
+        return ratio > 0.5f && ratio < 2.0f;
+    }
     public void resetCooldown() {
         currentCooldown = 0;
     }
