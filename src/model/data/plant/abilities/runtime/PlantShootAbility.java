@@ -1,19 +1,19 @@
 package model.data.plant.abilities.runtime;
 
 import model.data.plant.PlantType;
-import model.data.projectile.ProjectileType;
+import model.data.projectile.*;
 import model.data.plant.abilities.config.Direction;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.config.ShootPattern;
 import model.data.plant.effects.config.EffectPhase;
-import model.data.projectile.PiercingProjectile;
-import model.data.projectile.Projectile;
 import model.core.EventBus;
 import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
-import model.data.projectile.ProjectileTarget;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlantShootAbility implements PlantAbilityConfig {
     public final int damage;
@@ -26,6 +26,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
     public final int knockBack;
     private int currentCooldown = 0;
     private int lifeSpan = 0;
+    private int chargeTicks = 0;
 
     private PlantShootAbility(Builder b) {
         this.damage = b.damage;
@@ -111,10 +112,11 @@ public class PlantShootAbility implements PlantAbilityConfig {
         if (projectileType == ProjectileType.POISON) {
             finalDamage += plant.upgradeState.poisonDamagePerTickBonus;
         }
+        float finalCooldown = plant.type == PlantType.BowlingBulb ? cooldownSeconds : plant.actionInterval;
         int finalSpan = (lifeSpan + plant.upgradeState.lifeSpanBonus) * 10;
         return PlantShootAbility.builder()
                 .damage(finalDamage)
-                .cooldown(plant.actionInterval)
+                .cooldown(finalCooldown)
                 .projectile(projectileType)
                 .pattern(shootPattern)
                 .pierce(finalPierce)
@@ -132,6 +134,13 @@ public class PlantShootAbility implements PlantAbilityConfig {
             if (lifeSpan <= 0) {
                 plant.hp = 0;
                 plant.isAlive = false;
+            }
+        }
+        if (plant.type == PlantType.BowlingBulb) {
+            boolean zombieInLane = state.zombies.stream()
+                    .anyMatch(z -> z.isAlive && z.row == plant.row);
+            if (zombieInLane) {
+                chargeTicks++;
             }
         }
         if (currentCooldown > 0) {
@@ -161,8 +170,17 @@ public class PlantShootAbility implements PlantAbilityConfig {
             hasZombie = state.zombies.stream()
                     .anyMatch(z -> z.isAlive && z.row == targetRow);
         }
+        if (plant.type == PlantType.BowlingBulb && hasZombie) {
+            chargeTicks++;
+        }
+
         if (hasZombie && targetRow >= 0 && targetRow < 5) {
-            spawnBullets(plant, state, targetRow);
+            if (plant.type == PlantType.BowlingBulb) {
+                spawnBowlingBulb(plant, state, targetRow);
+                chargeTicks = 0;
+            } else {
+                spawnBullets(plant, state, targetRow);
+            }
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
         }
     }
@@ -228,6 +246,12 @@ public class PlantShootAbility implements PlantAbilityConfig {
     }
 
     private Projectile createProjectile(Plant plant, Position bulletPosition, int targetRow) {
+        if (isBouncingType()){
+            Projectile p = new BouncingProjectile(damage,bulletPosition,targetRow, plant.col,10,
+                    projectileType,ProjectileTarget.ZOMBIE,plant.type,
+                    maxBouncesForType());
+            return p;
+        }
         if (this.pierceCount != 0 || this.maxRange != -1) {
             Projectile p = new PiercingProjectile(
                     damage, bulletPosition, targetRow, plant.col, 10,
@@ -242,7 +266,51 @@ public class PlantShootAbility implements PlantAbilityConfig {
         p.effectDurationBonus = plant.upgradeState.effectDurationBonus;
         return p;
     }
+    private void spawnBowlingBulb(Plant plant, GameState state, int targetRow) {
+        int shotDamage;
+        ProjectileType shotType;
+        int maxBounces;
 
+        int five = 5 * GameLoop.TICKS_PER_SECOND;
+        int ten  = 10 * GameLoop.TICKS_PER_SECOND;
+
+        if (chargeTicks >= ten) {
+            shotDamage = 120 + plant.damage - plant.type.baseStats.damage;
+            shotType = ProjectileType.BOUNCING_BLUE;
+            maxBounces = 3;
+        } else if (chargeTicks >= five) {
+            shotDamage = 80 + plant.damage - plant.type.baseStats.damage;
+            shotType = ProjectileType.BOUNCING_ORANGE;
+            maxBounces = 2;
+        } else {
+            shotDamage = 40 + plant.damage - plant.type.baseStats.damage;
+            shotType = ProjectileType.BOUNCING_AQUA;
+            maxBounces = 1;
+        }
+
+        float targetY = targetRow * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2;
+        Position pos = new Position(plant.getX() + 40, targetY);
+        Projectile p = new BouncingProjectile(
+                shotDamage, pos, targetRow, plant.col, 10,
+                shotType, ProjectileTarget.ZOMBIE, plant.type, maxBounces);
+        p.setDirection(shootPattern.getDir());
+        state.projectiles.add(p);
+    }
+    private boolean isBouncingType() {
+        return projectileType == ProjectileType.BOUNCING_AQUA
+                || projectileType == ProjectileType.BOUNCING_ORANGE
+                || projectileType == ProjectileType.BOUNCING_BLUE
+                || projectileType == ProjectileType.SUPER_BULB;
+    }
+
+    private int maxBouncesForType() {
+        return switch (projectileType) {
+            case BOUNCING_AQUA -> 1;
+            case BOUNCING_ORANGE -> 2;
+            case BOUNCING_BLUE, SUPER_BULB -> 3;
+            default -> 0;
+        };
+    }
     public void resetCooldown() {
         currentCooldown = 0;
     }
