@@ -36,115 +36,153 @@ public class CombatSystem {
             Projectile p = projIter.next();
 
             if (p.target == ProjectileTarget.ZOMBIE) {
-                Grave graveAhead = state.graves.stream().filter(g -> g.row == p.row && g.col > p.col)
-                        .min(Comparator.comparingInt(g -> g.col)).orElse(null);
-                if (graveAhead != null) {
-                    if (Math.abs(graveAhead.pos.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
-                        graveAhead.takeDamage(p.damage, state, eventBus);
-                        projIter.remove();
-                        continue;
-                    }
-                }
-                Plant blocker = state.plants.stream()
-                        .filter(plant -> plant.blocksProjectile(p) && plant.row == p.row && plant.col > p.col)
-                        .min(Comparator.comparingInt(plant -> plant.col))
-                        .orElse(null);
-                if (blocker != null
-                        && Math.abs(blocker.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
-                    blocker.receiveAllyHit(p.damage);
-                    projIter.remove();
+                if (handleZombieTargetedProjectile(state, eventBus, freezeProjectilesEnabled, projIter, p)) {
                     continue;
-                }
-
-                Barrel barrelAhead = state.barrels.stream().filter(barrel -> barrel.row == p.row && barrel.col >= p.col)
-                        .min(Comparator.comparingInt(barrel -> barrel.col)).orElse(null);
-
-                if (barrelAhead != null) {
-                    if (Math.abs(barrelAhead.pos.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
-                        barrelAhead.takeDamage(p.damage, state, eventBus);
-                        projIter.remove();
-                        continue;
-                    }
-                }
-                Plant frostbiteFrozenPlantAhead = state.plants.stream()
-                        .filter(plant -> plant.isFrostbiteFreezeActive() && plant.row == p.row && plant.col > p.col)
-                        .min(Comparator.comparingInt(plant -> plant.col)).orElse(null);
-                if (frostbiteFrozenPlantAhead != null) {
-                    if (p.type == ProjectileType.FIRE || p.type == ProjectileType.BLUE_FIRE) {
-                        frostbiteFrozenPlantAhead.removeFrostbiteFreeze();
-                    } else {
-                        frostbiteFrozenPlantAhead.damageFrostbiteFreeze(p.damage);
-                    }
-                    projIter.remove();
-                    continue;
-                }
-                Iterator<Zombie> zombieIter = state.zombies.iterator();
-                while (zombieIter.hasNext()) {
-                    Zombie z = zombieIter.next();
-
-                    if (z.row == p.row && Math.abs(z.position.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
-                        boolean blocked = z.abilities.stream().anyMatch(a -> a.blocksProjectiles(z, p));
-                        if (blocked) {
-                            projIter.remove();
-                            break;
-                        }
-
-                        boolean pass = z.abilities.stream().anyMatch(a -> a.passProjectiles(z, p));
-                        if (pass) {
-                            continue;
-                        }
-                        if (p instanceof PiercingProjectile piercingProjectile) {
-                            if (piercingProjectile.hitZombies.contains(z)) {
-                                continue;
-                            }
-                            piercingProjectile.hitZombies.add(z);
-                        }
-
-                        z.abilities.forEach(a -> a.onProjectileHit(z, p));
-
-                        applyProjectileEffects(state, p, z, freezeProjectilesEnabled);
-
-                        if (z.isIced())
-                            z.damageIce(p.damage);
-
-                        else if (p.type != ProjectileType.POISON) {
-                            new DamageEffect(p.damage).apply(z, state, eventBus, p.sourcePlant);
-                        }
-                        if (p instanceof PiercingProjectile piercingProjectile) {
-                            piercingProjectile.pierceCount--;
-
-                            if (piercingProjectile.pierceCount <= 0) {
-                                projIter.remove();
-                            }
-                        } else {
-                            projIter.remove();
-                        }
-
-                        if (!z.isAlive) {
-                            z.lastHitBy = p.sourcePlant;
-                            z.kill(state);
-                            zombieIter.remove();
-                        }
-                        break;
-                    }
                 }
             } else if (p.target == ProjectileTarget.PLANT) {
-                Plant target = findPlantAt(state, p.row, p.position.x);
-                if (target != null && Math.abs(target.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
-                    target.hp -= p.damage;
-                    projIter.remove();
-                    if (p.type == ProjectileType.OCTOPUS) {
-                        target.applyStun(new BlockingStun(StunKind.OCTOPUS));
-                    } else if (p.type == ProjectileType.ICE) {
-                        target.applyStun(new BlockingStun(StunKind.FROZEN));
-                    }
-                    if (target.hp <= 0) {
-                        target.kill(state, eventBus);
-                    }
-                }
+                handlePlantTargetedProjectile(state, eventBus, projIter, p);
             }
         }
 
+        updateZombieAttacks(state, eventBus);
+
+        state.removeDeadZombies();
+        state.removeDeadPlants();
+    }
+
+    private boolean handleZombieTargetedProjectile(GameState state, EventBus eventBus,
+            boolean freezeProjectilesEnabled, Iterator<Projectile> projIter, Projectile p) {
+        if (handleZombieProjectileObstacles(state, eventBus, projIter, p)) {
+            return true;
+        }
+        handleZombieProjectileZombieCollision(state, eventBus, freezeProjectilesEnabled, projIter, p);
+        return false;
+    }
+
+    private boolean handleZombieProjectileObstacles(GameState state, EventBus eventBus,
+            Iterator<Projectile> projIter, Projectile p) {
+        Grave graveAhead = state.graves.stream().filter(g -> g.row == p.row && g.col > p.col)
+                .min(Comparator.comparingInt(g -> g.col)).orElse(null);
+        if (graveAhead != null) {
+            if (Math.abs(graveAhead.pos.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+                graveAhead.takeDamage(p.damage, state, eventBus);
+                projIter.remove();
+                return true;
+            }
+        }
+        Plant blocker = state.plants.stream()
+                .filter(plant -> plant.blocksProjectile(p) && plant.row == p.row && plant.col > p.col)
+                .min(Comparator.comparingInt(plant -> plant.col))
+                .orElse(null);
+        if (blocker != null
+                && Math.abs(blocker.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+            blocker.receiveAllyHit(p.damage);
+            projIter.remove();
+            return true;
+        }
+
+        Barrel barrelAhead = state.barrels.stream().filter(barrel -> barrel.row == p.row && barrel.col >= p.col)
+                .min(Comparator.comparingInt(barrel -> barrel.col)).orElse(null);
+
+        if (barrelAhead != null) {
+            if (Math.abs(barrelAhead.pos.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+                barrelAhead.takeDamage(p.damage, state, eventBus);
+                projIter.remove();
+                return true;
+            }
+        }
+        Plant frostbiteFrozenPlantAhead = state.plants.stream()
+                .filter(plant -> plant.isFrostbiteFreezeActive() && plant.row == p.row && plant.col > p.col)
+                .min(Comparator.comparingInt(plant -> plant.col)).orElse(null);
+        if (frostbiteFrozenPlantAhead != null) {
+            if (p.type == ProjectileType.FIRE || p.type == ProjectileType.BLUE_FIRE) {
+                frostbiteFrozenPlantAhead.removeFrostbiteFreeze();
+            } else {
+                frostbiteFrozenPlantAhead.damageFrostbiteFreeze(p.damage);
+            }
+            projIter.remove();
+            return true;
+        }
+        return false;
+    }
+
+    private void handleZombieProjectileZombieCollision(GameState state, EventBus eventBus,
+            boolean freezeProjectilesEnabled, Iterator<Projectile> projIter, Projectile p) {
+        Iterator<Zombie> zombieIter = state.zombies.iterator();
+        while (zombieIter.hasNext()) {
+            Zombie z = zombieIter.next();
+
+            if (z.row == p.row && Math.abs(z.position.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+                boolean blocked = z.abilities.stream().anyMatch(a -> a.blocksProjectiles(z, p));
+                if (blocked) {
+                    projIter.remove();
+                    break;
+                }
+
+                boolean pass = z.abilities.stream().anyMatch(a -> a.passProjectiles(z, p));
+                if (pass) {
+                    continue;
+                }
+                if (p instanceof PiercingProjectile piercingProjectile) {
+                    if (piercingProjectile.hitZombies.contains(z)) {
+                        continue;
+                    }
+                    piercingProjectile.hitZombies.add(z);
+                }
+
+                applyZombieProjectileHit(state, eventBus, freezeProjectilesEnabled, projIter, p, zombieIter, z);
+                break;
+            }
+        }
+    }
+
+    private void applyZombieProjectileHit(GameState state, EventBus eventBus, boolean freezeProjectilesEnabled,
+            Iterator<Projectile> projIter, Projectile p, Iterator<Zombie> zombieIter, Zombie z) {
+        z.abilities.forEach(a -> a.onProjectileHit(z, p));
+
+        applyProjectileEffects(state, p, z, freezeProjectilesEnabled);
+
+        if (z.isIced())
+            z.damageIce(p.damage);
+
+        else if (p.type != ProjectileType.POISON) {
+            new DamageEffect(p.damage).apply(z, state, eventBus, p.sourcePlant);
+        }
+        if (p instanceof PiercingProjectile piercingProjectile) {
+            piercingProjectile.pierceCount--;
+
+            if (piercingProjectile.pierceCount <= 0) {
+                projIter.remove();
+            }
+        } else {
+            projIter.remove();
+        }
+
+        if (!z.isAlive) {
+            z.lastHitBy = p.sourcePlant;
+            z.kill(state);
+            zombieIter.remove();
+        }
+    }
+
+    private void handlePlantTargetedProjectile(GameState state, EventBus eventBus,
+            Iterator<Projectile> projIter, Projectile p) {
+        Plant target = findPlantAt(state, p.row, p.position.x);
+        if (target != null && Math.abs(target.getX() - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+            target.hp -= p.damage;
+            projIter.remove();
+            if (p.type == ProjectileType.OCTOPUS) {
+                target.applyStun(new BlockingStun(StunKind.OCTOPUS));
+            } else if (p.type == ProjectileType.ICE) {
+                target.applyStun(new BlockingStun(StunKind.FROZEN));
+            }
+            if (target.hp <= 0) {
+                target.kill(state, eventBus);
+            }
+        }
+    }
+
+    private void updateZombieAttacks(GameState state, EventBus eventBus) {
         Iterator<Zombie> zombieIter = state.zombies.iterator();
         while (zombieIter.hasNext()) {
             Zombie z = zombieIter.next();
@@ -191,9 +229,6 @@ public class CombatSystem {
                 break;
             }
         }
-
-        state.removeDeadZombies();
-        state.removeDeadPlants();
     }
 
     private Plant findPlantAt(GameState state, int row, float x) {

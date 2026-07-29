@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.*;
 
 public class ZombieTombRaiseAbility implements ZombieAbilityConfig {
-    private final int COOLDOWN_TICKS = 50;
+    private static final int COOLDOWN_TICKS = 50;
     private int cooldownTicks= 0;
     private boolean onCooldown = false;
     private final Random rand = new Random();

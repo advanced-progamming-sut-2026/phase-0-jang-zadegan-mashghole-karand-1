@@ -16,14 +16,29 @@ public class KillWithPlantQuest extends Quest {
     private final Map<PlantType, Integer> plants= new HashMap<>();
     private final Map<PlantType, Boolean> plantCompleted = new HashMap<>();
 
-    protected KillWithPlantQuest(String name, QuestPriority priority, QuestCategory category,String description, int target,RewardType rewardType, int rewardAmount, PlantType rewardPlant, PlantType plantType) {
+    protected KillWithPlantQuest(String name,
+            QuestPriority priority,
+            QuestCategory category,
+            String description,
+            int target,
+            RewardType rewardType,
+            int rewardAmount,
+            PlantType rewardPlant,
+            PlantType plantType) {
         super(name, priority, category,description, target,rewardType, rewardAmount, rewardPlant);
         this.plantType = plantType;
     }
-    protected KillWithPlantQuest(String name, QuestPriority priority, QuestCategory category,String description, int target,RewardType rewardType, int rewardAmount, PlantType rewardPlant){
+    protected KillWithPlantQuest(String name,
+            QuestPriority priority,
+            QuestCategory category,
+            String description,
+            int target,
+            RewardType rewardType,
+            int rewardAmount,
+            PlantType rewardPlant){
         super(name, priority, category,description, target,rewardType, rewardAmount, rewardPlant);
         for (PlantType type : PlantType.values()) {
-            Set<PlantCategory> ATTACKER_CATEGORIES = Set.of(
+            Set<PlantCategory> attackerCategories = Set.of(
                     PlantCategory.SHOOTER,
                     PlantCategory.LOBBER,
                     PlantCategory.EXPLOSIVE,
@@ -31,7 +46,7 @@ public class KillWithPlantQuest extends Quest {
                     PlantCategory.STRIKE_THROUGH,
                     PlantCategory.HOMING
             );
-            if (ATTACKER_CATEGORIES.contains(type.category)) {
+            if (attackerCategories.contains(type.category)) {
                 plants.put(type, 0);
                 plantCompleted.put(type, false);
             }

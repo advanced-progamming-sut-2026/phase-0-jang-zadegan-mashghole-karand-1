@@ -30,7 +30,12 @@ public interface Renderer {
 
     void renderGreenHouseScreen(GreenhouseController greenhouseController);
 
-    void renderShopScreen(int coins, int gems, PlantType dailyPlant, int dailyPrice, boolean dailyPurchased, ShopController.ShopDisplayMode mode);
+    void renderShopScreen(int coins,
+            int gems,
+            PlantType dailyPlant,
+            int dailyPrice,
+            boolean dailyPurchased,
+            ShopController.ShopDisplayMode mode);
 
     void renderPauseOverlay();
 

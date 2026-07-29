@@ -11,15 +11,15 @@ import model.event.events.PlantPlacedEvent;
 import model.storage.user.User;
 
 public class WinConstraintQuest extends Quest {
-    private final int MAX_PLANT_LOSS;
+    private final int maxPlantLoss;
     private int plantLost = 0;
     private int sunProducer = 0;
-    private final int SUN_PRODUCER_REQUIRED;
+    private final int sunProducerRequired;
     private boolean failed = false;
     private final Constraint quest;
     private final PlantCategory forbiddenCategory;
 
-    public enum Constraint{
+    public enum Constraint {
         MAX_PLANT_LOSS,
         SUN_AT_END,
         NIGHT_OR_MORNING,
@@ -28,71 +28,99 @@ public class WinConstraintQuest extends Quest {
         CLOUDY_DAY
     }
 
-    protected WinConstraintQuest(String name, QuestPriority priority, QuestCategory category, String description, int target, RewardType rewardType, int rewardAmount, PlantType rewardPlant, int maxPlantLoss, int sunProducerRequired, Constraint quest, PlantCategory forbiddenCategory) {
+    protected WinConstraintQuest(String name,
+            QuestPriority priority,
+            QuestCategory category,
+            String description,
+            int target,
+            RewardType rewardType,
+            int rewardAmount,
+            PlantType rewardPlant,
+            int maxPlantLoss,
+            int sunProducerRequired,
+            Constraint quest,
+            PlantCategory forbiddenCategory) {
         super(name, priority, category, description, target, rewardType, rewardAmount, rewardPlant);
-        MAX_PLANT_LOSS = maxPlantLoss;
-        SUN_PRODUCER_REQUIRED = sunProducerRequired;
+        this.maxPlantLoss = maxPlantLoss;
+        this.sunProducerRequired = sunProducerRequired;
         this.quest = quest;
         this.forbiddenCategory = forbiddenCategory;
     }
 
     @Override
     public void onEvent(Object event, User user, GameState state, ChapterType chapter) {
-        if(completed) return;
-        if(event instanceof PlantDiedEvent && quest == Constraint.MAX_PLANT_LOSS){
+        if (completed)
+            return;
+        if (event instanceof PlantDiedEvent) {
+            handlePlantDiedEvent();
+        }
+        if (event instanceof PlantPlacedEvent e) {
+            handlePlantPlacedEvent(e);
+        }
+        if (event instanceof LevelCompleteEvent) {
+            handleLevelCompleteEvent(user, state);
+        }
+    }
+
+    private void handlePlantDiedEvent() {
+        if (quest == Constraint.MAX_PLANT_LOSS) {
             plantLost++;
-            if(plantLost > MAX_PLANT_LOSS) failed = true;
-        }
-        if(event instanceof PlantPlacedEvent e){
-            if(e.plant.type.category == forbiddenCategory && quest == Constraint.FORBIDDEN_FAMILY){
+            if (plantLost > maxPlantLoss)
                 failed = true;
-            }
-            if(e.plant.type.category == PlantCategory.SUN_PRODUCER && quest == Constraint.CLOUDY_DAY){
-                sunProducer++;
-            }
         }
-        if(event instanceof LevelCompleteEvent e){
-            if(quest == Constraint.SUN_AT_END && state.sunAmount == 0){
-                completed = true;
-                reward(user);
-            }
+    }
 
-            if(quest == Constraint.MAX_PLANT_LOSS && !failed){
-                completed = true;
-                reward(user);
+    private void handlePlantPlacedEvent(PlantPlacedEvent e) {
+        if (e.plant.type.category == forbiddenCategory && quest == Constraint.FORBIDDEN_FAMILY) {
+            failed = true;
+        }
+        if (e.plant.type.category == PlantCategory.SUN_PRODUCER && quest == Constraint.CLOUDY_DAY) {
+            sunProducer++;
+        }
+    }
 
-            }
-            if(quest == Constraint.FORBIDDEN_FAMILY && !failed){
-                completed = true;
-                reward(user);
-            }
-            if(quest == Constraint.WIN_HARD){
-                if(user.preferredSetting.getDifficultyLevel()==5){
-                    progress++;
-                    if(progress >= target) {
-                        completed = true;
-                        reward(user);
-                    }
-                }else {
-                    progress = 0;
-                }
-            }
+    private void handleLevelCompleteEvent(User user, GameState state) {
+        if (quest == Constraint.SUN_AT_END && state.sunAmount == 0) {
+            completed = true;
+            reward(user);
+        }
 
-            if(quest == Constraint.NIGHT_OR_MORNING ){
-                completed = state.plants.stream().allMatch(p ->
-                        p.type.tags != null && p.type.tags.contains(PlantTag.NIGHT));
-                if(completed) reward(user);
-            }
+        if (quest == Constraint.MAX_PLANT_LOSS && !failed) {
+            completed = true;
+            reward(user);
 
-            if(quest == Constraint.CLOUDY_DAY){
-                if(sunProducer == SUN_PRODUCER_REQUIRED){
+        }
+        if (quest == Constraint.FORBIDDEN_FAMILY && !failed) {
+            completed = true;
+            reward(user);
+        }
+        if (quest == Constraint.WIN_HARD) {
+            if (user.preferredSetting.getDifficultyLevel() == 5) {
+                progress++;
+                if (progress >= target) {
                     completed = true;
                     reward(user);
                 }
+            } else {
+                progress = 0;
             }
-            plantLost = 0;
-            sunProducer = 0;
-            failed = false;
         }
+
+        if (quest == Constraint.NIGHT_OR_MORNING) {
+            completed = state.plants.stream()
+                    .allMatch(p -> p.type.tags != null && p.type.tags.contains(PlantTag.NIGHT));
+            if (completed)
+                reward(user);
+        }
+
+        if (quest == Constraint.CLOUDY_DAY) {
+            if (sunProducer == sunProducerRequired) {
+                completed = true;
+                reward(user);
+            }
+        }
+        plantLost = 0;
+        sunProducer = 0;
+        failed = false;
     }
 }

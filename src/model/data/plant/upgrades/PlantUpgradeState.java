@@ -57,97 +57,7 @@ public class PlantUpgradeState {
         List<PlantLevelUpgrade> upgrades = type.levelUpgrades.getForLevel(level);
 
         for (PlantLevelUpgrade upgrade : upgrades) {
-            switch (upgrade.stat) {
-                case HP:
-                    totalHP += upgrade.getIntValue();
-                    hp += upgrade.getIntValue();
-                    break;
-                case DAMAGE:
-                    damage += upgrade.getIntValue();
-                    break;
-                case COST:
-                    cost = Math.max(0, cost + upgrade.getIntValue());
-                    break;
-                case COOLDOWN:
-                    if (type.baseStats.actionInterval> 0) {
-                        actionInterval = Math.max(0, actionInterval + upgrade.getIntValue());
-                    }
-                    else {
-                        recharge = Math.max(0, recharge + upgrade.getIntValue());
-                    }
-                    cooldownBonus += upgrade.getIntValue();
-                    break;
-                case DOUBLE_SUN_CHANCE:
-                    doubleSunChance = DOUBLE_SUN_DROP_CHANCE;
-                    break;
-                case RESET_FAMILY_COOLDOWN:
-                    resetFamilyCooldowns = true;
-                    break;
-                case RANGE:
-                    rangeBonus += upgrade.getIntValue();
-                    break;
-                case REGEN:
-                    actionInterval = Math.max(0, actionInterval + upgrade.getIntValue());
-                    break;
-                case RADIUS:
-                    aoeRadiusBonus += upgrade.getIntValue();
-                    break;
-                case SUN_DROP:
-                    sunDropBonus += upgrade.getIntValue();
-                    break;
-                case LIFE_SPAN:
-                    lifeSpanBonus += upgrade.getIntValue();
-                    break;
-                case ATTACK_SPEED:
-                    attackSpeedPercent += upgrade.getIntValue();
-                    break;
-                case AOE_DAMAGE:
-                    aoeDamageBonus += upgrade.getIntValue();
-                    break;
-                case AOE_ON_DEATH:
-                    aoeOnDeath = upgrade.getBoolValue();
-                    break;
-                case DOUBLE_CRUSH:
-                    doubleCrushCount = upgrade.getIntValue();
-                    break;
-                case PIERCE_COUNT:
-                    pierceBonus += upgrade.getIntValue();
-                    break;
-                case MELT_AREA_3x3:
-                    meltArea3x3 = upgrade.getBoolValue();
-                    break;
-                case SPECIAL_CHANGE:
-                    specialChanceBonus += upgrade.getIntValue()/100f;
-                    break;
-                case ZOMBIE_HP_BUFF:
-                    zombieHpBuff = upgrade.getBoolValue();
-                    break;
-                case DAMAGE_PER_TICK:
-                    poisonDamagePerTickBonus += upgrade.getIntValue();
-                    break;
-                case EFFECT_DURATION:
-                    if (type.category == PlantCategory.MINT) {
-                        plantFoodDurationBonus += upgrade.getIntValue();
-                    } else {
-                        effectDurationBonus += upgrade.getIntValue();
-                    }
-                    break;
-                case TARGET_PRIORITY:
-                    targetPriorityBonus += upgrade.getIntValue();
-                    break;
-                case FOOD_ON_ENTRANCE:
-                    plantFoodOnEnteranc = upgrade.getBoolValue();
-                    break;
-                case EXPLODE_ON_FINISH:
-                    explodeOnFinish = upgrade.getBoolValue();
-                    break;
-                case ZOMBIE_DAMAGE_BUFF:
-                    zombieDamageBuff =  upgrade.getBoolValue();
-                    break;
-                default:
-                    break;
-
-            }
+            applyUpgrade(upgrade);
         }
         if (attackSpeedPercent > 0) {
             actionInterval = Math.max(0.1f, actionInterval * (100 - attackSpeedPercent) / 100f);
@@ -155,6 +65,118 @@ public class PlantUpgradeState {
         if (lifeSpanBonus > 0 && totalHP == 0) {
             totalHP = lifeSpanBonus;
             hp = lifeSpanBonus;
+        }
+    }
+
+    private void applyUpgrade(PlantLevelUpgrade upgrade) {
+        switch (upgrade.stat) {
+            case HP:
+                totalHP += upgrade.getIntValue();
+                hp += upgrade.getIntValue();
+                break;
+            case DAMAGE:
+                damage += upgrade.getIntValue();
+                break;
+            case COST:
+                cost = Math.max(0, cost + upgrade.getIntValue());
+                break;
+            case COOLDOWN:
+                if (type.baseStats.actionInterval> 0) {
+                    actionInterval = Math.max(0, actionInterval + upgrade.getIntValue());
+                }
+                else {
+                    recharge = Math.max(0, recharge + upgrade.getIntValue());
+                }
+                cooldownBonus += upgrade.getIntValue();
+                break;
+            case DOUBLE_SUN_CHANCE:
+                doubleSunChance = DOUBLE_SUN_DROP_CHANCE;
+                break;
+            case RESET_FAMILY_COOLDOWN:
+                resetFamilyCooldowns = true;
+                break;
+            case RANGE:
+                rangeBonus += upgrade.getIntValue();
+                break;
+            case REGEN:
+                actionInterval = Math.max(0, actionInterval + upgrade.getIntValue());
+                break;
+            case RADIUS:
+                aoeRadiusBonus += upgrade.getIntValue();
+                break;
+            case SUN_DROP:
+                sunDropBonus += upgrade.getIntValue();
+                break;
+            default:
+                applyRemainingUpgrade(upgrade);
+                break;
+
+        }
+    }
+
+    private void applyRemainingUpgrade(PlantLevelUpgrade upgrade) {
+        switch (upgrade.stat) {
+            case LIFE_SPAN:
+                lifeSpanBonus += upgrade.getIntValue();
+                break;
+            case ATTACK_SPEED:
+                attackSpeedPercent += upgrade.getIntValue();
+                break;
+            case AOE_DAMAGE:
+                aoeDamageBonus += upgrade.getIntValue();
+                break;
+            case DOUBLE_CRUSH:
+                doubleCrushCount = upgrade.getIntValue();
+                break;
+            case PIERCE_COUNT:
+                pierceBonus += upgrade.getIntValue();
+                break;
+            case SPECIAL_CHANGE:
+                specialChanceBonus += upgrade.getIntValue()/100f;
+                break;
+            case DAMAGE_PER_TICK:
+                poisonDamagePerTickBonus += upgrade.getIntValue();
+                break;
+            case TARGET_PRIORITY:
+                targetPriorityBonus += upgrade.getIntValue();
+                break;
+            default:
+                applyFlagUpgrade(upgrade);
+                break;
+
+        }
+    }
+
+    private void applyFlagUpgrade(PlantLevelUpgrade upgrade) {
+        switch (upgrade.stat) {
+            case AOE_ON_DEATH:
+                aoeOnDeath = upgrade.getBoolValue();
+                break;
+            case MELT_AREA_3x3:
+                meltArea3x3 = upgrade.getBoolValue();
+                break;
+            case ZOMBIE_HP_BUFF:
+                zombieHpBuff = upgrade.getBoolValue();
+                break;
+            case EFFECT_DURATION:
+                if (type.category == PlantCategory.MINT) {
+                    plantFoodDurationBonus += upgrade.getIntValue();
+                } else {
+                    effectDurationBonus += upgrade.getIntValue();
+                }
+                break;
+            case FOOD_ON_ENTRANCE:
+                plantFoodOnEnteranc = upgrade.getBoolValue();
+                break;
+            case EXPLODE_ON_FINISH:
+                explodeOnFinish = upgrade.getBoolValue();
+                break;
+            case ZOMBIE_DAMAGE_BUFF:
+                zombieDamageBuff =  upgrade.getBoolValue();
+                break;
+            default:
+                break;
+
         }
     }
 

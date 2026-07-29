@@ -28,16 +28,29 @@ public class PlantLobAbility implements PlantAbilityConfig {
     private int currentCooldown = 0;
     private int aoeDamage;
 
-    public PlantLobAbility(int damage, float cooldownSeconds, ProjectileType projectileType, ShootPattern shootPattern, float butterChance, int butterDamage, int aoeRadius) {
-        this(damage, cooldownSeconds, projectileType, shootPattern, butterChance, butterDamage, aoeRadius,0);
+    public PlantLobAbility(int damage,
+            float cooldownSeconds,
+            ProjectileType projectileType,
+            ShootPattern shootPattern,
+            float butterChance,
+            int butterDamage,
+            int aoeRadius) {
+        this(damage, cooldownSeconds, projectileType, shootPattern, butterChance, butterDamage, aoeRadius, 0);
     }
 
     public PlantLobAbility(int damage, float cooldownSeconds,
-                           ProjectileType type, ShootPattern pattern) {
-        this(damage, cooldownSeconds, type, pattern, 0f, 40, 0,0);
+            ProjectileType type, ShootPattern pattern) {
+        this(damage, cooldownSeconds, type, pattern, 0f, 40, 0, 0);
     }
 
-    public PlantLobAbility(int damage, float cooldownSeconds, ProjectileType projectileType, ShootPattern shootPattern, float butterChance, int butterDamage, int aoeRadius, int aoeDamage) {
+    public PlantLobAbility(int damage,
+            float cooldownSeconds,
+            ProjectileType projectileType,
+            ShootPattern shootPattern,
+            float butterChance,
+            int butterDamage,
+            int aoeRadius,
+            int aoeDamage) {
         this.damage = damage;
         this.cooldownSeconds = cooldownSeconds;
         this.projectileType = projectileType;
@@ -47,7 +60,6 @@ public class PlantLobAbility implements PlantAbilityConfig {
         this.aoeRadius = aoeRadius;
         this.aoeDamage = aoeDamage;
     }
-
 
     public PlantAbilityConfig createInstance(Plant plant) {
         int finalDamage = damage + plant.damage - plant.type.baseStats.damage;
@@ -64,57 +76,55 @@ public class PlantLobAbility implements PlantAbilityConfig {
             currentCooldown--;
             return;
         }
+        List<Zombie> targets = findTargets(plant, state);
+        if (!targets.isEmpty()) {
+            spawnLobProjectiles(plant, state, targets);
+            currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
+        }
+    }
 
-        List<Zombie> targets;
+    private List<Zombie> findTargets(Plant plant, GameState state) {
         if (shootPattern.isRandom()) {
-            targets = state.zombies.stream()
+            List<Zombie> targets = state.zombies.stream()
                     .filter(z -> z.isAlive)
                     .collect(Collectors.toList());
             Collections.shuffle(targets);
-        } else {
-            int targetRow = plant.row + shootPattern.getRow();
-            targets = state.zombies.stream()
-                    .filter(z -> z.row == targetRow && z.isAlive)
-                    .collect(Collectors.toList());
+            return targets;
         }
-        if (!targets.isEmpty()) {
-            int count = Math.min(shootPattern.getBulletCount(), targets.size());
+        int targetRow = plant.row + shootPattern.getRow();
+        return state.zombies.stream()
+                .filter(z -> z.row == targetRow && z.isAlive)
+                .collect(Collectors.toList());
+    }
 
-            for (int i = 0; i < count; i++) {
-                Zombie target = targets.get(i);
-
-                int xOffset = 40 - (i * 20);
-
-                Projectile p = new LobbedProjectile(
-                        damage,
-                        new Position(plant.getX() + xOffset, plant.getY()),
-                        target.row,
-                        target.col,
-                        5,
-                        projectileType,
-                        ProjectileTarget.ZOMBIE,plant.type,
-                        new Position(target.position.x , target.position.y),
-                        0,
-                        50f,
-                        60f,
-                        this.butterChance,
-                        this.butterDamage,
-                        this.aoeRadius,
-                        this.aoeDamage
-                );
-                p.setDirection(shootPattern.getDir());
-
-
-                state.projectiles.add(p);
-            }
-
-            currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
+    private void spawnLobProjectiles(Plant plant, GameState state, List<Zombie> targets) {
+        int count = Math.min(shootPattern.getBulletCount(), targets.size());
+        for (int i = 0; i < count; i++) {
+            Zombie target = targets.get(i);
+            int xOffset = 40 - (i * 20);
+            Projectile p = new LobbedProjectile(
+                    damage,
+                    new Position(plant.getX() + xOffset, plant.getY()),
+                    target.row,
+                    target.col,
+                    5,
+                    projectileType,
+                    ProjectileTarget.ZOMBIE, plant.type,
+                    new Position(target.position.x, target.position.y),
+                    0,
+                    50f,
+                    60f,
+                    this.butterChance,
+                    this.butterDamage,
+                    this.aoeRadius,
+                    this.aoeDamage);
+            p.setDirection(shootPattern.getDir());
+            state.projectiles.add(p);
         }
     }
 
     @Override
     public void resetCooldown() {
         currentCooldown = 0;
-
     }
 }

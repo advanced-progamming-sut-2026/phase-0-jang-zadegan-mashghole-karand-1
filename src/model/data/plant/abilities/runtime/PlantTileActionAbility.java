@@ -18,14 +18,17 @@ import java.util.List;
 public class PlantTileActionAbility implements PlantAbilityConfig {
     private final TileType targetTile ;
     private final AreaShape baseShape;
-    private final int ActionDuration;
+    private final int actionDuration;
     private boolean done = false;
     private int tickWait = 0;
     private final ActionTarget actionTarget;
-    public PlantTileActionAbility(ActionTarget actionTarget,TileType targetTile, AreaShape baseShape, int baseActionDuration) {
+    public PlantTileActionAbility(ActionTarget actionTarget,
+            TileType targetTile,
+            AreaShape baseShape,
+            int baseActionDuration) {
         this.targetTile = targetTile;
         this.baseShape = baseShape;
-        this.ActionDuration = baseActionDuration;
+        this.actionDuration = baseActionDuration;
         this.actionTarget = actionTarget;
     }
 
@@ -36,14 +39,14 @@ public class PlantTileActionAbility implements PlantAbilityConfig {
         if (plant.upgradeState.meltArea3x3 && actionTarget == ActionTarget.ICE) {
             shape = AreaShape.RADIUS_3x3;
         }
-        int finalDuration = Math.max(0,(ActionDuration + plant.upgradeState.cooldownBonus) * GameLoop.TICKS_PER_SECOND);
+        int finalDuration = Math.max(0,(actionDuration + plant.upgradeState.cooldownBonus) * GameLoop.TICKS_PER_SECOND);
         return new PlantTileActionAbility(actionTarget,targetTile,shape, finalDuration);
     }
 
     @Override
     public void onTick(Plant plant, GameState state, EventBus event) {
         if (done) return;
-        if (tickWait < ActionDuration) {
+        if (tickWait < actionDuration) {
             tickWait++;
             return;
         }

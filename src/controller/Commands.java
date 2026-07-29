@@ -11,7 +11,9 @@ public enum Commands {
 
     // register
     REGISTER_USER(
-            "register\\s+-u\\s+(?<username>.*?)\\s+-p\\s+(?<password>.*)\\s+(?<passwordconfirm>.*?)\\s+-n\\s+(?<nickname>.*?)\\s+-e\\s+(?<email>.*?)\\s+-g\\s+(?<gender>.*)$"),
+            "register\\s+-u\\s+(?<username>.*?)\\s+-p\\s+(?<password>.*)\\s+"
+                    + "(?<passwordconfirm>.*?)\\s+-n\\s+(?<nickname>.*?)\\s+"
+                    + "-e\\s+(?<email>.*?)\\s+-g\\s+(?<gender>.*)$"),
     PICK_QUESTION(
             "pick\\s+question\\s+-q\\s+(?<questionnumber>\\d+)\\s+-a\\s+(?<answer>.*?)\\s+-c\\s+(?<answerconfirm>.*)$"),
 

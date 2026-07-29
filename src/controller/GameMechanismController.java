@@ -385,6 +385,24 @@ public class GameMechanismController {
         return success("Added plant food.");
     }
 
+    public CommandResult cheatSpawnZombie(int row, int col, ZombieType zombieType) {
+        CommandResult screenCheck = requireGameScreen();
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
+        if (zombieType == null) {
+            return failure("Zombie type not found.");
+        }
+        if (model.cheatSpawnZombie(row, col, zombieType)) {
+            return success("Cheat spawned " + zombieType.name + " at (" + row + ", " + col + ").");
+        }
+        return failure("Could not spawn zombie.");
+    }
+
     public CommandResult showMap() {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {

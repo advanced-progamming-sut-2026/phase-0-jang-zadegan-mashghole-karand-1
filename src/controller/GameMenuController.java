@@ -120,6 +120,10 @@ public class GameMenuController {
 
         gameNavigation.phase = Phase.PLANT;
         controllerManager.refreshView();
+        return levelSelectedMessage(levelNumber, level, special);
+    }
+
+    private CommandResult levelSelectedMessage(int levelNumber, LevelConfig level, SpecialLevelType special) {
         if (special == SpecialLevelType.PLANT_WHAT_YOU_GET) {
             return success("Level " + levelNumber + " selected (plant what you get). "
                     + "Pick non-sun plants, then plant with 800 sun and run 'start zombie waves'.");
@@ -229,7 +233,7 @@ public class GameMenuController {
         return success("Game started!");
     }
 
-    public CommandResult CHEAT_add_coin(int amount) {
+    public CommandResult cheatAddCoin(int amount) {
         CommandResult screenCheck = requireMainMenu(null);
         if (screenCheck != null) {
             return screenCheck;
@@ -243,7 +247,7 @@ public class GameMenuController {
         return success("Added " + amount + " coins. Total: " + user.coins);
     }
 
-    public CommandResult CHEAT_add_gem(int amount) {
+    public CommandResult cheatAddGem(int amount) {
         CommandResult screenCheck = requireMainMenu(null);
         if (screenCheck != null) {
             return screenCheck;

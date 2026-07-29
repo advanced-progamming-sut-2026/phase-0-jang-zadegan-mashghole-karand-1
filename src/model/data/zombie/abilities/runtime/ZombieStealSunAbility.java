@@ -17,7 +17,7 @@ public class ZombieStealSunAbility implements ZombieAbilityConfig {
     private boolean enabled =false;
     private int startTicks;
     private int sunStollen;
-    private List<Sun> StollenSuns= new ArrayList<>();
+    private List<Sun> stolenSuns = new ArrayList<>();
 
     public void onTick(Zombie zombie, GameState state, EventBus bus) {
         if(zombie.type == ZombieType.TURQUOISE_ZOMBIE){
@@ -44,7 +44,7 @@ public class ZombieStealSunAbility implements ZombieAbilityConfig {
             }
         }
         if(zombie.type == ZombieType.RA_ZOMBIE){
-            StollenSuns.addAll(state.sunDrops);
+            stolenSuns.addAll(state.sunDrops);
             state.sunDrops.clear();
         }
     }
@@ -57,7 +57,7 @@ public class ZombieStealSunAbility implements ZombieAbilityConfig {
             bus.publish(new SunDroppedEvent(sun));
         }
         if(zombie.type == ZombieType.RA_ZOMBIE){
-            for(Sun sun : StollenSuns){
+            for(Sun sun : stolenSuns){
                 state.sunDrops.add(sun);
                 bus.publish(new SunDroppedEvent(sun));
             }

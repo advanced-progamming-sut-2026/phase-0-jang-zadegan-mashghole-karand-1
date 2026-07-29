@@ -13,7 +13,7 @@ import java.util.Random;
 
 public class ZombieStunAbility implements ZombieAbilityConfig {
     Random rand = new Random();
-    private final int COOLDOWN = 50;
+    private static final int COOLDOWN = 50;
     private int cooldown = COOLDOWN;
 
     @Override

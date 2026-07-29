@@ -22,7 +22,10 @@ public class PlantDefenderAbility implements PlantAbilityConfig {
     private final int explosionDamage;
     private final int sunPerHit;
 
-    public PlantDefenderAbility(EnumSet<DefenderFeature> features, int reflectDamage, int explosionDamage, int sunPerHit) {
+    public PlantDefenderAbility(EnumSet<DefenderFeature> features,
+            int reflectDamage,
+            int explosionDamage,
+            int sunPerHit) {
         this.features = features;
         this.reflectDamage = reflectDamage;
         this.explosionDamage = explosionDamage;
@@ -190,7 +193,8 @@ public class PlantDefenderAbility implements PlantAbilityConfig {
     private List<Zombie> findNearTarget(GameState state, Plant plant) {
         List<Zombie> targets = state.zombies.stream()
                 .filter(z -> z.isAlive)
-                .filter(z -> (z.row == plant.row + 1 || z.row == plant.row - 1) && (int) (z.position.x / GameState.CELL_WIDTH) == plant.col)
+                .filter(z -> (z.row == plant.row
+                        + 1 || z.row == plant.row - 1) && (int) (z.position.x / GameState.CELL_WIDTH) == plant.col)
                 .collect(Collectors.toList());
         return targets;
     }

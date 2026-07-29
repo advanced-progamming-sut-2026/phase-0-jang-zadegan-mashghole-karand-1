@@ -25,7 +25,11 @@ public class PlantExplodeEffect implements PlantEffectConfig{
     private final boolean forceArm;
     private final int spawnClones;
 
-    public PlantExplodeEffect(AreaShape shape, int maxTargets, List<HitEffect> onHit, boolean forceArm, int spawnClones) {
+    public PlantExplodeEffect(AreaShape shape,
+            int maxTargets,
+            List<HitEffect> onHit,
+            boolean forceArm,
+            int spawnClones) {
         this.shape = shape;
         this.maxTargets = maxTargets;
         this.onHit = onHit;

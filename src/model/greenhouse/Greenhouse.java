@@ -3,7 +3,6 @@ package model.greenhouse;
 import model.core.Position;
 import model.data.plant.PlantType;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +10,6 @@ public class Greenhouse {
 
     private final static int GREENHOUSE_ROW = 4;
     private final static int GREENHOUSE_COL = 5;
-    private LocalDateTime lastHarvest;
     private List<Pot> production;
 
     public Greenhouse() {

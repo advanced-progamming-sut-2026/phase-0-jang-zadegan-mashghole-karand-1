@@ -56,8 +56,10 @@ public class ZombieBarrelRollerAbility implements ZombieAbilityConfig {
     }
 
     private void crushAtBarrel(GameState state, EventBus bus) {
-        Plant plant = state.plants.stream().filter(p -> p.row == barrel.row && p.col == barrel.col).findAny().orElse(null);
-        Zombie hypnoZombie = state.zombies.stream().filter(z -> z.row == barrel.row && z.col == barrel.col && z.isHypnotized).findAny().orElse(null);
+        Plant plant = state.plants.stream().filter(p -> p.row == barrel.row && p.col ==
+                barrel.col).findAny().orElse(null);
+        Zombie hypnoZombie = state.zombies.stream().filter(z -> z.row == barrel.row && z.col == barrel.col &&
+                z.isHypnotized).findAny().orElse(null);
 
         if(plant != null) {
             plant.isAlive = false;

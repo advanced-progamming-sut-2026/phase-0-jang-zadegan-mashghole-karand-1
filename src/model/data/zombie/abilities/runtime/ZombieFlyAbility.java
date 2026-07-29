@@ -21,10 +21,12 @@ public class ZombieFlyAbility implements ZombieAbilityConfig {
                 .max(Comparator.comparingInt(p -> p.col)).orElse(null);
         Tile tileForward = state.getBoard().getTile(zombie.row, zombie.col-1);
         if(tileForward == null && plantForward == null) return;
-        if( plantForward != null && zombie.position.x - plantForward.getX() <= GameState.ZOMBIE_ATTACK_RANGE && isJumpable(plantForward)){
+        if( plantForward != null && zombie.position.x - plantForward.getX() <= GameState.ZOMBIE_ATTACK_RANGE && 
+                isJumpable(plantForward)){
             jump(zombie, 2);
         }
-        if(tileForward != null && tileForward.getType()== TileType.ICE && tileForward.getDirection()!= IceDirection.NONE){
+        if(tileForward != null && tileForward.getType()== TileType.ICE && 
+                tileForward.getDirection()!= IceDirection.NONE){
             jump(zombie, 2);
         }
     }

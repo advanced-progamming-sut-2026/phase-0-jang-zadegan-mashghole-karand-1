@@ -59,7 +59,11 @@ public class GreenhouseController {
         }
         storage.saveProgress();
         controllerManager.refreshView();
-        return success("Planted " + plantClass + " " + plantType + " at (" + position.x + ", " + position.y + ").");
+        String plantedName = plantClass == Pot.PlantClass.NORMAL_PLANT
+                ? "Marigold"
+                : plantType.name;
+        return success("Planted " + plantedName + " at ("
+                + Math.round(position.x) + ", " + Math.round(position.y) + ").");
     }
 
     public CommandResult collect(Position position) {

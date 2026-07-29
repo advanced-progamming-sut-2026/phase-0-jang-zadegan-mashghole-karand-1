@@ -13,8 +13,6 @@ import java.util.List;
 
 public class PlantMagnetEffect implements PlantEffectConfig {
 
-    private int cooldown = 0;
-
     public PlantMagnetEffect() {
     }
 

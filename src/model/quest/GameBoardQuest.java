@@ -11,9 +11,9 @@ import model.storage.user.User;
 public class GameBoardQuest extends Quest {
     private final int row;
     private final int col;
-    private final boardState boardState;
+    private final BoardState boardState;
 
-    public enum boardState {
+    public enum BoardState {
         SYMMETRIC,
         ASYMMETRIC,
         ROW,
@@ -22,7 +22,17 @@ public class GameBoardQuest extends Quest {
     }
 
 
-    protected GameBoardQuest(String name, QuestPriority priority, QuestCategory category, String description, int target, RewardType rewardType, int rewardAmount, PlantType rewardPlant, int row, int col, boardState boardState) {
+    protected GameBoardQuest(String name,
+            QuestPriority priority,
+            QuestCategory category,
+            String description,
+            int target,
+            RewardType rewardType,
+            int rewardAmount,
+            PlantType rewardPlant,
+            int row,
+            int col,
+            BoardState boardState) {
         super(name, priority, category, description, target, rewardType, rewardAmount, rewardPlant);
         this.row = row;
         this.col = col;
@@ -32,31 +42,31 @@ public class GameBoardQuest extends Quest {
     @Override
     public void onEvent(Object event, User user, GameState state, ChapterType chapter) {
         if(event instanceof LevelCompleteEvent){
-            if(boardState == boardState.SYMMETRIC){
+            if(boardState == BoardState.SYMMETRIC){
                 completed =  isSymmetric(state);
                 if(completed){
                     reward(user);
                 }
             }
-            if(boardState == boardState.ASYMMETRIC){
+            if(boardState == BoardState.ASYMMETRIC){
                 completed =  isAsymmetric(state);
                 if(completed){
                     reward(user);
                 }
             }
-            if(boardState == boardState.ROW){
+            if(boardState == BoardState.ROW){
                 completed = state.plants.stream().allMatch(plant -> plant.row != row);
                 if(completed){
                     reward(user);
                 }
             }
-            if(boardState == boardState.COL){
+            if(boardState == BoardState.COL){
                 completed = state.plants.stream().allMatch(plant -> plant.col != col);
                 if(completed){
                     reward(user);
                 }
             }
-            if(boardState == boardState.ROW_COL){
+            if(boardState == BoardState.ROW_COL){
                 completed = state.plants.stream().allMatch(plant -> plant.row != row && plant.col != col);
                 if(completed){
                     reward(user);

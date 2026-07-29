@@ -20,6 +20,15 @@ import java.util.ArrayList;
 public class MovementSystem {
 
     public void update(GameState state, EventBus eventBus) {
+        moveZombies(state);
+        if (handleRowBreaches(state, eventBus)) {
+            return;
+        }
+        moveProjectiles(state);
+        cleanupProjectilesAndZombies(state);
+    }
+
+    private void moveZombies(GameState state) {
         for (Zombie zombie : state.zombies) {
             if (!zombie.isAlive || zombie.stunned || !zombie.canMove())
                 continue;
@@ -35,23 +44,29 @@ public class MovementSystem {
 
             int col = (int) (zombie.position.x / GameState.CELL_WIDTH);
             zombie.col = Math.max(0, Math.min(GameState.GRID_COLS - 1, col));
-            Tile tile = state.getBoard().getTile(zombie.row, col);
+            applyIceTile(state, zombie, col);
+        }
+    }
 
-            if (tile != null && tile.getType() == TileType.ICE) {
-                IceDirection direction = tile.getDirection();
-                int newRow = zombie.row;
-                if (direction == IceDirection.UP && zombie.row > 0) {
-                    newRow = zombie.row - 1;
-                } else if (direction == IceDirection.DOWN && zombie.row < GameState.GRID_ROWS - 1) {
-                    newRow = zombie.row + 1;
-                }
-                if (newRow != zombie.row) {
-                    zombie.row = newRow;
-                    zombie.position.y = GameState.CELL_HEIGHT * newRow + (GameState.CELL_HEIGHT / 2);
-                }
+    private void applyIceTile(GameState state, Zombie zombie, int col) {
+        Tile tile = state.getBoard().getTile(zombie.row, col);
+
+        if (tile != null && tile.getType() == TileType.ICE) {
+            IceDirection direction = tile.getDirection();
+            int newRow = zombie.row;
+            if (direction == IceDirection.UP && zombie.row > 0) {
+                newRow = zombie.row - 1;
+            } else if (direction == IceDirection.DOWN && zombie.row < GameState.GRID_ROWS - 1) {
+                newRow = zombie.row + 1;
+            }
+            if (newRow != zombie.row) {
+                zombie.row = newRow;
+                zombie.position.y = GameState.CELL_HEIGHT * newRow + (GameState.CELL_HEIGHT / 2);
             }
         }
+    }
 
+    private boolean handleRowBreaches(GameState state, EventBus eventBus) {
         boolean[] rowHandled = new boolean[GameState.GRID_ROWS];
         for (Zombie z : new ArrayList<>(state.zombies)) {
             if (!z.isAlive || z.isHypnotized)
@@ -75,10 +90,13 @@ public class MovementSystem {
                 lawnMower.destroyZombiesInRow(state);
             } else {
                 SessionEnd.lose(state, eventBus, GameOverReason.LAWN_BREACHED);
-                return;
+                return true;
             }
         }
+        return false;
+    }
 
+    private void moveProjectiles(GameState state) {
         for (Projectile projectile : state.projectiles) {
             if (projectile instanceof HomingProjectile homing) {
                 homing.updateMovement();
@@ -101,7 +119,9 @@ public class MovementSystem {
             projectile.row = (int) (projectile.position.y / GameState.CELL_HEIGHT);
             projectile.col = (int) (projectile.position.x / GameState.CELL_WIDTH);
         }
+    }
 
+    private void cleanupProjectilesAndZombies(GameState state) {
         state.projectiles.removeIf(p -> (p.position.x > GameState.SCREEN_WIDTH ||
                 p.position.y > GameState.SCREEN_HEIGHT ||
                 p.position.x < 0 ||

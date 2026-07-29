@@ -10,6 +10,12 @@ public class EffectSystem {
     private static final int NEARBY_FIRE_FROSTBITE_FREEZE_DAMAGE_PER_TICK = 6;
 
     public void update(GameState state) {
+        updateZombieStatuses(state);
+        clearDeadWizardStuns(state);
+        applyFrostbiteFireDamage(state);
+    }
+
+    private void updateZombieStatuses(GameState state) {
         for (Zombie zombie : state.zombies) {
             if (zombie.isFrozen) {
                 zombie.frozenTicks--;
@@ -24,42 +30,47 @@ public class EffectSystem {
                 }
             }
         }
+    }
+
+    private void clearDeadWizardStuns(GameState state) {
         for (Plant plant : state.plants) {
             if (plant.getActiveStun() instanceof CatStun cat
                     && cat.isWizardDead(state.zombies)) {
                 plant.clearStun();
             }
         }
+    }
+
+    private void applyFrostbiteFireDamage(GameState state) {
         for (Plant plant : state.plants) {
             if (!plant.isFrostbiteFreezeActive())
                 continue;
 
-            boolean hasNearbyFirePlant = false;
-            for (int dr = -1; dr <= 1; dr++) {
-                for (int dc = -1; dc <= 1; dc++) {
-                    if (dr == 0 && dc == 0)
-                        continue;
-                    int checkRow = plant.row + dr;
-                    int checkCol = plant.col + dc;
-                    if (checkRow < 0 || checkRow >= GameState.GRID_ROWS)
-                        continue;
-                    if (checkCol < 0 || checkCol >= GameState.GRID_COLS)
-                        continue;
-
-                    Plant neighbor = state.getPlantAt(checkRow, checkCol);
-                    if (neighbor != null && neighbor.hasTag(PlantTag.FIRE)) {
-                        hasNearbyFirePlant = true;
-                        break;
-                    }
-                }
-                if (hasNearbyFirePlant)
-                    break;
-            }
-
-            if (hasNearbyFirePlant) {
+            if (hasNearbyFirePlant(state, plant)) {
                 plant.damageFrostbiteFreeze(NEARBY_FIRE_FROSTBITE_FREEZE_DAMAGE_PER_TICK);
             }
         }
+    }
+
+    private boolean hasNearbyFirePlant(GameState state, Plant plant) {
+        for (int dr = -1; dr <= 1; dr++) {
+            for (int dc = -1; dc <= 1; dc++) {
+                if (dr == 0 && dc == 0)
+                    continue;
+                int checkRow = plant.row + dr;
+                int checkCol = plant.col + dc;
+                if (checkRow < 0 || checkRow >= GameState.GRID_ROWS)
+                    continue;
+                if (checkCol < 0 || checkCol >= GameState.GRID_COLS)
+                    continue;
+
+                Plant neighbor = state.getPlantAt(checkRow, checkCol);
+                if (neighbor != null && neighbor.hasTag(PlantTag.FIRE)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

@@ -27,9 +27,10 @@ public class ZombieJesterAbility implements ZombieAbilityConfig {
             isSpinning = true;
             zombie.speed *= 1.3f;
         }
-        int DEFENCE_RADIUS = 35;
+        int defenceRadius = 35;
         for(Projectile projectile : projectilesInRow){
-            if((zombie.position.x - projectile.position.x)<=DEFENCE_RADIUS && zombie.position.x-projectile.position.x>=0){
+            if((zombie.position.x - projectile.position.x)<=defenceRadius && 
+                    zombie.position.x-projectile.position.x>=0){
                 projectile.speed *= -1;
                 projectile.direction = Direction.BACK;
             }

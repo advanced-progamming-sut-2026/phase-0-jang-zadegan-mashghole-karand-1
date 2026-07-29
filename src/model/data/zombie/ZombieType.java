@@ -21,7 +21,7 @@ public enum ZombieType {
                         ZombieArmorConfig.brick(),
                         Collections.emptyList()),
         KNIGHT("Knight", new ZombieBaseStats(190, 100, 0.185f, 550, 4500),
-                        ZombieArmorConfig.knight_armor(),
+                        ZombieArmorConfig.knightArmor(),
                         Collections.emptyList()),
         GARGANTUAR("Gargantuar", new ZombieBaseStats(3600, 1500, 0.24f, 1500, 3000), null,
                         List.of(new ZombieThrowImpAbility(), new ZombieKillForwardAbility())),

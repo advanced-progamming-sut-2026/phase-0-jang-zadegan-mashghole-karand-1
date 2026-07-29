@@ -299,8 +299,25 @@ public class ModelManager {
         return true;
     }
 
+    public boolean cheatSpawnZombie(int row, int col, ZombieType type) {
+        if (type == null) {
+            return false;
+        }
+        Zombie zombie = new Zombie(
+                type,
+                row,
+                col,
+                new Position(
+                        col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f,
+                        row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),
+                eventBus,
+                state.getGlowingChance());
+        state.addZombie(zombie);
+        eventBus.publish(new ZombieSpawnedEvent(zombie));
+        return true;
+    }
+
     public boolean pluckPlant(int row, int col) {
-        Tile tile = state.getBoard().getTile(row, col);
         Plant plant = state.getPlantAt(row, col);
         if (plant == null) {
             return false;
@@ -348,7 +365,13 @@ public class ModelManager {
     }
 
     public void releaseNuke() {
-        state.zombies.clear();
+        java.util.List<Zombie> targets = new java.util.ArrayList<>(state.zombies);
+        for (Zombie zombie : targets) {
+            if (zombie != null && zombie.isAlive) {
+                zombie.kill(state);
+            }
+        }
+        state.removeDeadZombies();
     }
 
     public void endSession() {

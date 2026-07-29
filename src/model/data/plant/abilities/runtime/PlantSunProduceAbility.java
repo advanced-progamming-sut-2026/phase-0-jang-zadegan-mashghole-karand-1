@@ -21,7 +21,6 @@ public class PlantSunProduceAbility implements PlantAbilityConfig {
     private int stage = 0;
     private int growTicksRemaining;
     private final int amount;
-    private final float cooldownSeconds;
     private final int cooldownTicks;
     private int currentCooldown = 0;
     private boolean waitingForCollection = false;
@@ -32,7 +31,6 @@ public class PlantSunProduceAbility implements PlantAbilityConfig {
     }
     public PlantSunProduceAbility(int amount, float cooldownSeconds, int doubleSunChance, boolean rampUp) {
         this.amount = amount;
-        this.cooldownSeconds = cooldownSeconds;
         this.cooldownTicks = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
         this.doubleSunDropChance = doubleSunChance;
         this.rampUp = rampUp;

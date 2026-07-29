@@ -10,7 +10,15 @@ import model.storage.user.User;
 
 public class CollectSunQuest extends Quest{
     private final boolean shouldCollectSun;
-    protected CollectSunQuest(String name, QuestPriority priority, QuestCategory category,String description, int target, RewardType rewardType, int rewardAmount, PlantType rewardPlant, boolean shouldCollectSun) {
+    protected CollectSunQuest(String name,
+            QuestPriority priority,
+            QuestCategory category,
+            String description,
+            int target,
+            RewardType rewardType,
+            int rewardAmount,
+            PlantType rewardPlant,
+            boolean shouldCollectSun) {
         super(name, priority, category,description, target, rewardType, rewardAmount, rewardPlant);
         this.shouldCollectSun = shouldCollectSun;
     }

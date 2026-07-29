@@ -31,320 +31,386 @@ public class InputHandler {
     }
 
     private boolean dispatchCommand(String input) {
+        return dispatchNavigation(input)
+                || dispatchAuth(input)
+                || dispatchMenuExtras(input)
+                || dispatchProfileAndCollection(input)
+                || dispatchPlantSelection(input)
+                || dispatchGameTickAndCollect(input)
+                || dispatchGamePlacement(input)
+                || dispatchGameCheatsAndStatus(input)
+                || dispatchGreenhouseAndShop(input)
+                || dispatchTravelAndLeaderboard(input);
+    }
 
+    private boolean dispatchNavigation(String input) {
         if (Commands.QUIT.getMatcher(input).matches()) {
             controllerManager.quit();
-        } else if ((matcher = Commands.ENTER_CHAPTER.getMatcher(input)).matches()) {
-            String chapterName = matcher.group(1);
-            CommandResult result = controllerManager.getGameMenuController().enterChapter(chapterName);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.SELECT_MINIGAME.getMatcher(input)).matches()) {
-            String minigameName = matcher.group("minigamename");
-            CommandResult result = controllerManager.getGameMenuController().selectMinigame(minigameName);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.SELECT_LEVEL.getMatcher(input)).matches()) {
-            int levelNumber = Integer.parseInt(matcher.group(1));
-            CommandResult result = controllerManager.getGameMenuController().selectLevel(levelNumber);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.CHANGE_MENU.getMatcher(input)).matches()) {
-            String menuName = matcher.group(1);
-            controllerManager.handleCommandResult(controllerManager.enterMenu(menuName));
-        } else if (Commands.SHOW_MENU.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(controllerManager.showCurrentMenu());
-        } else if (Commands.EXIT_MENU.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(controllerManager.exitMenu());
-        } else if ((matcher = Commands.REGISTER_USER.getMatcher(input)).matches()) {
-            String username = matcher.group(1);
-            String password = matcher.group(2);
-            String password_confirm = matcher.group(3);
-            String nickname = matcher.group(4);
-            String email = matcher.group(5);
-            String genderString = matcher.group(6);
-            CommandResult result = controllerManager.getAuthController().register(username, password, password_confirm,
-                    nickname, email, genderString);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.PICK_QUESTION.getMatcher(input)).matches()) {
-            int QuestionNum = Integer.parseInt(matcher.group(1));
-            String answer = matcher.group(2);
-            String answer_confirm = matcher.group(3);
-            CommandResult result = controllerManager.getAuthController().pickQuestion(QuestionNum, answer,
-                    answer_confirm);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.LOGIN_STAY_LOGGED_IN.getMatcher(input)).matches()) {
-            String username = matcher.group(1);
-            String password = matcher.group(2);
-            CommandResult result = controllerManager.getAuthController().login(username, password, true);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.LOGIN.getMatcher(input)).matches()) {
-            String username = matcher.group(1);
-            String password = matcher.group(2);
-            CommandResult result = controllerManager.getAuthController().login(username, password, false);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.FORGET_PASS.getMatcher(input)).matches()) {
-            String username = matcher.group(1);
-            String email = matcher.group(2);
-            CommandResult result = controllerManager.getAuthController().forgotPassword(username, email);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.ANSWER.getMatcher(input)).matches()) {
-            String answer = matcher.group(1);
-            CommandResult result = controllerManager.getAuthController().answer(answer);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.RESET_PASSWORD.getMatcher(input)).matches()) {
-            String password = matcher.group(1);
-            String passwordConfirm = matcher.group(2);
-            CommandResult result = controllerManager.getAuthController().resetPassword(password, passwordConfirm);
-            controllerManager.handleCommandResult(result);
-        } else if (Commands.LOGOUT.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(controllerManager.getMainMenuController().logout());
-        } else if ((matcher = Commands.ADD_COIN.getMatcher(input)).matches()) {
-            int amount = Integer.parseInt(matcher.group(1));
-            controllerManager.handleCommandResult(controllerManager.getGameMenuController().CHEAT_add_coin(amount));
-        } else if ((matcher = Commands.ADD_DIAMOND.getMatcher(input)).matches()) {
-            int amount = Integer.parseInt(matcher.group(1));
-            controllerManager.handleCommandResult(controllerManager.getGameMenuController().CHEAT_add_gem(amount));
-        } else if ((matcher = Commands.CHANGE_DIFFICULTY.getMatcher(input)).matches()) {
+            return true;
+        }
+        if ((matcher = Commands.ENTER_CHAPTER.getMatcher(input)).matches()) {
+            handle(controllerManager.getGameMenuController().enterChapter(matcher.group(1)));
+            return true;
+        }
+        if ((matcher = Commands.SELECT_MINIGAME.getMatcher(input)).matches()) {
+            handle(controllerManager.getGameMenuController().selectMinigame(matcher.group("minigamename")));
+            return true;
+        }
+        if ((matcher = Commands.SELECT_LEVEL.getMatcher(input)).matches()) {
+            handle(controllerManager.getGameMenuController().selectLevel(Integer.parseInt(matcher.group(1))));
+            return true;
+        }
+        if ((matcher = Commands.CHANGE_MENU.getMatcher(input)).matches()) {
+            handle(controllerManager.enterMenu(matcher.group(1)));
+            return true;
+        }
+        if (Commands.SHOW_MENU.getMatcher(input).matches()) {
+            handle(controllerManager.showCurrentMenu());
+            return true;
+        }
+        if (Commands.EXIT_MENU.getMatcher(input).matches()) {
+            handle(controllerManager.exitMenu());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean dispatchAuth(String input) {
+        if ((matcher = Commands.REGISTER_USER.getMatcher(input)).matches()) {
+            handle(controllerManager.getAuthController().register(
+                    matcher.group(1), matcher.group(2), matcher.group(3),
+                    matcher.group(4), matcher.group(5), matcher.group(6)));
+            return true;
+        }
+        if ((matcher = Commands.PICK_QUESTION.getMatcher(input)).matches()) {
+            handle(controllerManager.getAuthController().pickQuestion(
+                    Integer.parseInt(matcher.group(1)), matcher.group(2), matcher.group(3)));
+            return true;
+        }
+        if ((matcher = Commands.LOGIN_STAY_LOGGED_IN.getMatcher(input)).matches()) {
+            handle(controllerManager.getAuthController().login(matcher.group(1), matcher.group(2), true));
+            return true;
+        }
+        if ((matcher = Commands.LOGIN.getMatcher(input)).matches()) {
+            handle(controllerManager.getAuthController().login(matcher.group(1), matcher.group(2), false));
+            return true;
+        }
+        if ((matcher = Commands.FORGET_PASS.getMatcher(input)).matches()) {
+            handle(controllerManager.getAuthController().forgotPassword(matcher.group(1), matcher.group(2)));
+            return true;
+        }
+        if ((matcher = Commands.ANSWER.getMatcher(input)).matches()) {
+            handle(controllerManager.getAuthController().answer(matcher.group(1)));
+            return true;
+        }
+        if ((matcher = Commands.RESET_PASSWORD.getMatcher(input)).matches()) {
+            handle(controllerManager.getAuthController().resetPassword(matcher.group(1), matcher.group(2)));
+            return true;
+        }
+        if (Commands.LOGOUT.getMatcher(input).matches()) {
+            handle(controllerManager.getMainMenuController().logout());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean dispatchMenuExtras(String input) {
+        if ((matcher = Commands.ADD_COIN.getMatcher(input)).matches()) {
+            handle(controllerManager.getGameMenuController().cheatAddCoin(Integer.parseInt(matcher.group(1))));
+            return true;
+        }
+        if ((matcher = Commands.ADD_DIAMOND.getMatcher(input)).matches()) {
+            handle(controllerManager.getGameMenuController().cheatAddGem(Integer.parseInt(matcher.group(1))));
+            return true;
+        }
+        if ((matcher = Commands.CHANGE_DIFFICULTY.getMatcher(input)).matches()) {
             try {
                 int level = Integer.parseInt(matcher.group("difficultylevel").trim());
-                controllerManager.handleCommandResult(
-                        controllerManager.getSettingController().changeDifficulty(level));
+                handle(controllerManager.getSettingController().changeDifficulty(level));
             } catch (NumberFormatException e) {
                 controllerManager.showError("Difficulty level must be a number.");
             }
-        } else if (Commands.UNREAD_NEWS.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getNewsMenuController().showUnreadNews());
-        } else if (Commands.ALL_NEWS.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getNewsMenuController().showAllNews());
-        } else if ((matcher = Commands.DEBUG_ADD_NEWS.getMatcher(input)).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getNewsMenuController().addDebugNews(matcher.group("message")));
-        } else if ((matcher = Commands.CHANGE_USERNAME.getMatcher(input)).matches()) {
-            String username = matcher.group("username");
-            controllerManager.handleCommandResult(
-                    controllerManager.getProfileController().changeUsername(username));
-        } else if ((matcher = Commands.CHANGE_PASSWORD.getMatcher(input)).matches()) {
-            String newPassword = matcher.group("newpassword");
-            String oldPassword = matcher.group("oldpassword");
-            controllerManager.handleCommandResult(
-                    controllerManager.getProfileController().changePassword(oldPassword, newPassword));
-        } else if ((matcher = Commands.CHANGE_NICKNAME.getMatcher(input)).matches()) {
-            String nickname = matcher.group("nickname");
-            controllerManager.handleCommandResult(
-                    controllerManager.getProfileController().changeNickname(nickname));
-        } else if ((matcher = Commands.CHANGE_EMAIL.getMatcher(input)).matches()) {
-            String email = matcher.group("email");
-            controllerManager.handleCommandResult(
-                    controllerManager.getProfileController().changeEmail(email));
-        } else if (Commands.SHOW_PROFILE_INFO.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getProfileController().refreshInfo());
-        } else if (Commands.SHOW_PLANTS.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getCollectionController().showPlants());
-        } else if (Commands.SHOW_ALL_PLANTS.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getCollectionController().showAllPlants());
-        } else if (Commands.SHOW_ZOMBIES.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getCollectionController().showZombies());
-        } else if (Commands.SHOW_ALL_ZOMBIES.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getCollectionController().showAllZombies());
-        } else if ((matcher = Commands.SHOW_PLANT.getMatcher(input)).matches()) {
-            String plantName = matcher.group("plantname");
-            controllerManager.handleCommandResult(
-                    controllerManager.getCollectionController().showPlant(plantName));
-        } else if ((matcher = Commands.SHOW_ZOMBIE.getMatcher(input)).matches()) {
-            String zombieName = matcher.group("zombiename");
-            controllerManager.handleCommandResult(
-                    controllerManager.getCollectionController().showZombie(zombieName));
-        } else if ((matcher = Commands.DEBUG_SHOW_PLANT.getMatcher(input)).matches()) {
-            String plantName = matcher.group("plantname");
-            controllerManager.handleCommandResult(
-                    controllerManager.getCollectionController().showPlantDebug(plantName));
-        } else if ((matcher = Commands.DEBUG_SHOW_ZOMBIE.getMatcher(input)).matches()) {
-            String zombieName = matcher.group("zombiename");
-            controllerManager.handleCommandResult(
-                    controllerManager.getCollectionController().showZombieDebug(zombieName));
-        } else if ((matcher = Commands.UPGRADE_PLANT.getMatcher(input)).matches()) {
-            String plantName = matcher.group("plantname");
-            controllerManager.handleCommandResult(
-                    controllerManager.getCollectionController().upgradePlant(plantName));
-        } else if ((matcher = Commands.PURCHASE_PLANT.getMatcher(input)).matches()) {
-            String plantName = matcher.group("plantname");
-            controllerManager.handleCommandResult(
-                    controllerManager.getCollectionController().purchasePlant(plantName));
-        } else if (Commands.SHOW_ALL_PLANTS_SELECT.getMatcher(input).matches()) {
-            CommandResult result = controllerManager.getPickPlantsController().showAllPlants();
-            controllerManager.handleCommandResult(result);
-        } else if (Commands.SHOW_AVAILABLE_PLANTS.getMatcher(input).matches()) {
-            CommandResult result = controllerManager.getPickPlantsController().showAvailablePlants();
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.ADD_PLANT.getMatcher(input)).matches()) {
-            String typeStr = matcher.group(1);
-            String targetStr = matcher.group(2);
-            PlantType type = PlantType.fromName(typeStr);
-            PlantType target = PlantType.fromName(targetStr);
-            CommandResult result = controllerManager.getPickPlantsController().addPlant(type,target);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.REMOVE_PLANT.getMatcher(input)).matches()) {
-            String typeStr = matcher.group(1);
-            PlantType type = PlantType.fromName(typeStr);
-            CommandResult result = controllerManager.getPickPlantsController().removePlant(type);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.BOOST_PLANT.getMatcher(input)).matches()) {
-            String typeStr = matcher.group(1);
-            PlantType type = PlantType.fromName(typeStr);
-            CommandResult result = controllerManager.getPickPlantsController().boostPlant(type);
-            controllerManager.handleCommandResult(result);
-        } else if (Commands.START_GAME.getMatcher(input).matches()) {
-            CommandResult result = controllerManager.getPickPlantsController().startGame();
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.ADVANCE_TIME.getMatcher(input)).matches()) {
-            int count = Integer.parseInt(matcher.group("count"));
-            boolean realTime = input.contains("-real");
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().advanceTicks(count, realTime));
-        } else if ((matcher = Commands.DEBUG_AUTO_TICK.getMatcher(input)).matches()) {
-            String state = matcher.group("state");
-            Boolean enable = state == null ? null : state.equals("on");
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().setAutoTick(enable));
-        } else if ((matcher = Commands.COLLECT_SUN.getMatcher(input)).matches()) {
-            int row = Integer.parseInt(matcher.group("x"));
-            int col = Integer.parseInt(matcher.group("y"));
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().collectSun(row, col));
-        } else if ((matcher = Commands.COLLECT_SEED.getMatcher(input)).matches()) {
-            int row = Integer.parseInt(matcher.group("x"));
-            int col = Integer.parseInt(matcher.group("y"));
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().collectSeed(row, col));
-        } else if ((matcher = Commands.BREAK_VASE.getMatcher(input)).matches()) {
-            int row = Integer.parseInt(matcher.group("x"));
-            int col = Integer.parseInt(matcher.group("y"));
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().breakVase(row, col));
-        } else if (Commands.SHOW_HELD_SEEDS.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().showHeldSeeds());
-        } else if ((matcher = Commands.PLACE_ZOMBIE.getMatcher(input)).matches()) {
-            ZombieType zombieType = ZombieType.fromName(matcher.group("type"));
-            int row = Integer.parseInt(matcher.group("x"));
-            int col = Integer.parseInt(matcher.group("y"));
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().placeZombie(row, col, zombieType));
-        } else if (Commands.SHOW_AVAILABLE_ZOMBIES.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().showAvailableZombies());
-        } else if (Commands.SHOW_SUN_AMOUNT.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().showSunAmount());
-        } else if ((matcher = Commands.CHEAT_ADD_SUNS.getMatcher(input)).matches()) {
-            int amount = Integer.parseInt(matcher.group("count"));
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().addSun(amount));
-        } else if (Commands.RELEASE_NUKE.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().releaseNuke());
-        } else if (Commands.START_ZOMBIE_WAVES.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().startZombieWaves());
-        } else if ((matcher = Commands.PLANT_PLANT.getMatcher(input)).matches()) {
-            PlantType type = PlantType.fromName(matcher.group("type"));
-            int row = Integer.parseInt(matcher.group("x"));
-            int col = Integer.parseInt(matcher.group("y"));
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().plantPlant(row, col, type));
-        } else if ((matcher = Commands.PLANT_CONVEYOR.getMatcher(input)).matches()) {
-            int row = Integer.parseInt(matcher.group("x"));
-            int col = Integer.parseInt(matcher.group("y"));
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().placeConveyorPlant(row, col));
-        } else if (Commands.CHEAT_REMOVE_COOLDOWN.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().removeCooldown());
-        } else if ((matcher = Commands.PLUCK_PLANT.getMatcher(input)).matches()) {
-            int row = Integer.parseInt(matcher.group("x"));
-            int col = Integer.parseInt(matcher.group("y"));
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().pluckPlant(row, col));
-        } else if ((matcher = Commands.FEED_PLANT.getMatcher(input)).matches()) {
-            int row = Integer.parseInt(matcher.group("x"));
-            int col = Integer.parseInt(matcher.group("y"));
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().feedPlant(row, col));
-        } else if (Commands.CHEAT_ADD_PLANT_FOOD.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().addPlantFood());
-        } else if (Commands.SHOW_MAP.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().showMap());
-        } else if (Commands.SHOW_PLANTS_STATUS.getMatcher(input).matches()) {
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().showPlantsStatus());
-        } else if ((matcher = Commands.SHOW_TILE_STATUS.getMatcher(input)).matches()) {
-            int row = Integer.parseInt(matcher.group("x"));
-            int col = Integer.parseInt(matcher.group("y"));
-            controllerManager.handleCommandResult(
-                    controllerManager.getGameMechanismController().showTileStatus(row, col));
-        } else if (Commands.SHOW_GREENHOUSE.getMatcher(input).matches()) {
-             CommandResult result = controllerManager.getGreenhouseController().showGreenhouse();
-             controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.PLANT_POT.getMatcher(input)).matches()) {
-            int x = Integer.parseInt(matcher.group(1));
-            int y = Integer.parseInt(matcher.group(2));
-            Position pos = new Position(x, y);
-             CommandResult result = controllerManager.getGreenhouseController().plantPot(pos);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.COLLECT_POT.getMatcher(input)).matches()) {
-            int x = Integer.parseInt(matcher.group(1));
-            int y = Integer.parseInt(matcher.group(2));
-            Position pos = new Position(x, y);
-            CommandResult result =  controllerManager.getGreenhouseController().collect(pos);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.GROW_POT.getMatcher(input)).matches()) {
-            int x = Integer.parseInt(matcher.group(1));
-            int y = Integer.parseInt(matcher.group(2));
-            Position pos = new Position(x, y);
-             CommandResult result = controllerManager.getGreenhouseController().grow(pos);
-            controllerManager.handleCommandResult(result);
-        } else if (Commands.ENTER_SHOP.getMatcher(input).matches()) {
-            CommandResult result = controllerManager.getGreenhouseController().enterShop();
-            controllerManager.handleCommandResult(result);
-        } else if (Commands.SHOP_LIST.getMatcher(input).matches()) {
-            CommandResult list = controllerManager.getShopController().List();
-            controllerManager.handleCommandResult(list);
-        } else if (Commands.SHOP_DAILY.getMatcher(input).matches()) {
-            CommandResult dailyList = controllerManager.getShopController().daily();
-            controllerManager.handleCommandResult(dailyList);
-        } else if ((matcher = Commands.SHOP_BUY.getMatcher(input)).matches()) {
-            String itemId = matcher.group(1);
-            int quantity = Integer.parseInt(matcher.group(2));
-            CommandResult result = controllerManager.getShopController().buy(itemId, quantity);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.SHOP_BUY_WITH_TYPE.getMatcher(input)).matches()) {
-            String itemId = matcher.group(1);
-            int quantity = Integer.parseInt(matcher.group(2));
-            String plantTypeStr = matcher.group(3);
-            PlantType plantType = PlantType.fromName(plantTypeStr);
-            CommandResult result = controllerManager.getShopController().buy(itemId, quantity, plantType);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.TRAVEL_LOG_PAGE.getMatcher(input)).matches()) {
-            String pageName = matcher.group(1);
-            CommandResult result = controllerManager.getQuestMenuController().enterPage(pageName);
-            controllerManager.handleCommandResult(result);
-        } else if ((matcher = Commands.SORT_SCORE.getMatcher(input)).matches()) {
-            String sortClass = matcher.group("sortclass");
-            String sortType = matcher.group("sorttype");
-            controllerManager.handleCommandResult(
-                    controllerManager.getLeaderboardMenuController().sort(sortClass, sortType));
-        } else {
-            return false;
+            return true;
         }
-
-        return true;
+        if (Commands.UNREAD_NEWS.getMatcher(input).matches()) {
+            handle(controllerManager.getNewsMenuController().showUnreadNews());
+            return true;
+        }
+        if (Commands.ALL_NEWS.getMatcher(input).matches()) {
+            handle(controllerManager.getNewsMenuController().showAllNews());
+            return true;
+        }
+        if ((matcher = Commands.DEBUG_ADD_NEWS.getMatcher(input)).matches()) {
+            handle(controllerManager.getNewsMenuController().addDebugNews(matcher.group("message")));
+            return true;
+        }
+        return false;
     }
 
+    private boolean dispatchProfileAndCollection(String input) {
+        if ((matcher = Commands.CHANGE_USERNAME.getMatcher(input)).matches()) {
+            handle(controllerManager.getProfileController().changeUsername(matcher.group("username")));
+            return true;
+        }
+        if ((matcher = Commands.CHANGE_PASSWORD.getMatcher(input)).matches()) {
+            handle(controllerManager.getProfileController()
+                    .changePassword(matcher.group("oldpassword"), matcher.group("newpassword")));
+            return true;
+        }
+        if ((matcher = Commands.CHANGE_NICKNAME.getMatcher(input)).matches()) {
+            handle(controllerManager.getProfileController().changeNickname(matcher.group("nickname")));
+            return true;
+        }
+        if ((matcher = Commands.CHANGE_EMAIL.getMatcher(input)).matches()) {
+            handle(controllerManager.getProfileController().changeEmail(matcher.group("email")));
+            return true;
+        }
+        if (Commands.SHOW_PROFILE_INFO.getMatcher(input).matches()) {
+            handle(controllerManager.getProfileController().refreshInfo());
+            return true;
+        }
+        return dispatchCollection(input);
+    }
+
+    private boolean dispatchCollection(String input) {
+        if (Commands.SHOW_PLANTS.getMatcher(input).matches()) {
+            handle(controllerManager.getCollectionController().showPlants());
+            return true;
+        }
+        if (Commands.SHOW_ALL_PLANTS.getMatcher(input).matches()) {
+            handle(controllerManager.getCollectionController().showAllPlants());
+            return true;
+        }
+        if (Commands.SHOW_ZOMBIES.getMatcher(input).matches()) {
+            handle(controllerManager.getCollectionController().showZombies());
+            return true;
+        }
+        if (Commands.SHOW_ALL_ZOMBIES.getMatcher(input).matches()) {
+            handle(controllerManager.getCollectionController().showAllZombies());
+            return true;
+        }
+        if ((matcher = Commands.SHOW_PLANT.getMatcher(input)).matches()) {
+            handle(controllerManager.getCollectionController().showPlant(matcher.group("plantname")));
+            return true;
+        }
+        if ((matcher = Commands.SHOW_ZOMBIE.getMatcher(input)).matches()) {
+            handle(controllerManager.getCollectionController().showZombie(matcher.group("zombiename")));
+            return true;
+        }
+        if ((matcher = Commands.DEBUG_SHOW_PLANT.getMatcher(input)).matches()) {
+            handle(controllerManager.getCollectionController().showPlantDebug(matcher.group("plantname")));
+            return true;
+        }
+        if ((matcher = Commands.DEBUG_SHOW_ZOMBIE.getMatcher(input)).matches()) {
+            handle(controllerManager.getCollectionController().showZombieDebug(matcher.group("zombiename")));
+            return true;
+        }
+        if ((matcher = Commands.UPGRADE_PLANT.getMatcher(input)).matches()) {
+            handle(controllerManager.getCollectionController().upgradePlant(matcher.group("plantname")));
+            return true;
+        }
+        if ((matcher = Commands.PURCHASE_PLANT.getMatcher(input)).matches()) {
+            handle(controllerManager.getCollectionController().purchasePlant(matcher.group("plantname")));
+            return true;
+        }
+        return false;
+    }
+
+    private boolean dispatchPlantSelection(String input) {
+        if (Commands.SHOW_ALL_PLANTS_SELECT.getMatcher(input).matches()) {
+            handle(controllerManager.getPickPlantsController().showAllPlants());
+            return true;
+        }
+        if (Commands.SHOW_AVAILABLE_PLANTS.getMatcher(input).matches()) {
+            handle(controllerManager.getPickPlantsController().showAvailablePlants());
+            return true;
+        }
+        if ((matcher = Commands.ADD_PLANT.getMatcher(input)).matches()) {
+            handle(controllerManager.getPickPlantsController()
+                    .addPlant(PlantType.fromName(matcher.group(1)), PlantType.fromName(matcher.group(2))));
+            return true;
+        }
+        if ((matcher = Commands.REMOVE_PLANT.getMatcher(input)).matches()) {
+            handle(controllerManager.getPickPlantsController().removePlant(PlantType.fromName(matcher.group(1))));
+            return true;
+        }
+        if ((matcher = Commands.BOOST_PLANT.getMatcher(input)).matches()) {
+            handle(controllerManager.getPickPlantsController().boostPlant(PlantType.fromName(matcher.group(1))));
+            return true;
+        }
+        if (Commands.START_GAME.getMatcher(input).matches()) {
+            handle(controllerManager.getPickPlantsController().startGame());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean dispatchGameTickAndCollect(String input) {
+        GameMechanismController game = controllerManager.getGameMechanismController();
+        if ((matcher = Commands.ADVANCE_TIME.getMatcher(input)).matches()) {
+            handle(game.advanceTicks(Integer.parseInt(matcher.group("count")), input.contains("-real")));
+            return true;
+        }
+        if ((matcher = Commands.DEBUG_AUTO_TICK.getMatcher(input)).matches()) {
+            String state = matcher.group("state");
+            handle(game.setAutoTick(state == null ? null : state.equals("on")));
+            return true;
+        }
+        if ((matcher = Commands.COLLECT_SUN.getMatcher(input)).matches()) {
+            handle(game.collectSun(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y"))));
+            return true;
+        }
+        if ((matcher = Commands.COLLECT_SEED.getMatcher(input)).matches()) {
+            handle(game.collectSeed(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y"))));
+            return true;
+        }
+        if ((matcher = Commands.BREAK_VASE.getMatcher(input)).matches()) {
+            handle(game.breakVase(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y"))));
+            return true;
+        }
+        if (Commands.SHOW_HELD_SEEDS.getMatcher(input).matches()) {
+            handle(game.showHeldSeeds());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean dispatchGamePlacement(String input) {
+        GameMechanismController game = controllerManager.getGameMechanismController();
+        if ((matcher = Commands.PLACE_ZOMBIE.getMatcher(input)).matches()) {
+            handle(game.placeZombie(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y")),
+                    ZombieType.fromName(matcher.group("type"))));
+            return true;
+        }
+        if (Commands.SHOW_AVAILABLE_ZOMBIES.getMatcher(input).matches()) {
+            handle(game.showAvailableZombies());
+            return true;
+        }
+        if (Commands.SHOW_SUN_AMOUNT.getMatcher(input).matches()) {
+            handle(game.showSunAmount());
+            return true;
+        }
+        if ((matcher = Commands.CHEAT_ADD_SUNS.getMatcher(input)).matches()) {
+            handle(game.addSun(Integer.parseInt(matcher.group("count"))));
+            return true;
+        }
+        if (Commands.RELEASE_NUKE.getMatcher(input).matches()) {
+            handle(game.releaseNuke());
+            return true;
+        }
+        if (Commands.START_ZOMBIE_WAVES.getMatcher(input).matches()) {
+            handle(game.startZombieWaves());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean dispatchGameCheatsAndStatus(String input) {
+        GameMechanismController game = controllerManager.getGameMechanismController();
+        if ((matcher = Commands.PLANT_PLANT.getMatcher(input)).matches()) {
+            handle(game.plantPlant(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y")),
+                    PlantType.fromName(matcher.group("type"))));
+            return true;
+        }
+        if ((matcher = Commands.PLANT_CONVEYOR.getMatcher(input)).matches()) {
+            handle(game.placeConveyorPlant(
+                    Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y"))));
+            return true;
+        }
+        if (Commands.CHEAT_REMOVE_COOLDOWN.getMatcher(input).matches()) {
+            handle(game.removeCooldown());
+            return true;
+        }
+        if ((matcher = Commands.PLUCK_PLANT.getMatcher(input)).matches()) {
+            handle(game.pluckPlant(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y"))));
+            return true;
+        }
+        if ((matcher = Commands.FEED_PLANT.getMatcher(input)).matches()) {
+            handle(game.feedPlant(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y"))));
+            return true;
+        }
+        if (Commands.CHEAT_ADD_PLANT_FOOD.getMatcher(input).matches()) {
+            handle(game.addPlantFood());
+            return true;
+        }
+        if ((matcher = Commands.CHEAT_SPAWN_ZOMBIE.getMatcher(input)).matches()) {
+            handle(game.cheatSpawnZombie(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y")),
+                    ZombieType.fromName(matcher.group("zombietype"))));
+            return true;
+        }
+        if (Commands.SHOW_MAP.getMatcher(input).matches()) {
+            handle(game.showMap());
+            return true;
+        }
+        if (Commands.SHOW_PLANTS_STATUS.getMatcher(input).matches()) {
+            handle(game.showPlantsStatus());
+            return true;
+        }
+        if ((matcher = Commands.SHOW_TILE_STATUS.getMatcher(input)).matches()) {
+            handle(game.showTileStatus(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y"))));
+            return true;
+        }
+        return false;
+    }
+
+    private boolean dispatchGreenhouseAndShop(String input) {
+        if (Commands.SHOW_GREENHOUSE.getMatcher(input).matches()) {
+            handle(controllerManager.getGreenhouseController().showGreenhouse());
+            return true;
+        }
+        if ((matcher = Commands.PLANT_POT.getMatcher(input)).matches()) {
+            handle(controllerManager.getGreenhouseController()
+                    .plantPot(new Position(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)))));
+            return true;
+        }
+        if ((matcher = Commands.COLLECT_POT.getMatcher(input)).matches()) {
+            handle(controllerManager.getGreenhouseController()
+                    .collect(new Position(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)))));
+            return true;
+        }
+        if ((matcher = Commands.GROW_POT.getMatcher(input)).matches()) {
+            handle(controllerManager.getGreenhouseController()
+                    .grow(new Position(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)))));
+            return true;
+        }
+        if (Commands.ENTER_SHOP.getMatcher(input).matches()) {
+            handle(controllerManager.getGreenhouseController().enterShop());
+            return true;
+        }
+        if (Commands.SHOP_LIST.getMatcher(input).matches()) {
+            handle(controllerManager.getShopController().list());
+            return true;
+        }
+        if (Commands.SHOP_DAILY.getMatcher(input).matches()) {
+            handle(controllerManager.getShopController().daily());
+            return true;
+        }
+        if ((matcher = Commands.SHOP_BUY.getMatcher(input)).matches()) {
+            handle(controllerManager.getShopController().buy(matcher.group(1), Integer.parseInt(matcher.group(2))));
+            return true;
+        }
+        if ((matcher = Commands.SHOP_BUY_WITH_TYPE.getMatcher(input)).matches()) {
+            handle(controllerManager.getShopController().buy(
+                    matcher.group(1), Integer.parseInt(matcher.group(2)), PlantType.fromName(matcher.group(3))));
+            return true;
+        }
+        return false;
+    }
+
+    private boolean dispatchTravelAndLeaderboard(String input) {
+        if ((matcher = Commands.TRAVEL_LOG_PAGE.getMatcher(input)).matches()) {
+            handle(controllerManager.getQuestMenuController().enterPage(matcher.group(1)));
+            return true;
+        }
+        if ((matcher = Commands.SORT_SCORE.getMatcher(input)).matches()) {
+            handle(controllerManager.getLeaderboardMenuController()
+                    .sort(matcher.group("sortclass"), matcher.group("sorttype")));
+            return true;
+        }
+        return false;
+    }
+
+    private void handle(CommandResult result) {
+        controllerManager.handleCommandResult(result);
+    }
 }
