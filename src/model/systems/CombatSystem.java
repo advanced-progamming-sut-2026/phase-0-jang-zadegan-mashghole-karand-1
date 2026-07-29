@@ -61,7 +61,7 @@ public class CombatSystem {
 
     private boolean handleZombieProjectileObstacles(GameState state, EventBus eventBus,
             Iterator<Projectile> projIter, Projectile p) {
-        Grave graveAhead = state.graves.stream().filter(g -> g.row == p.row && g.col > p.col)
+        Grave graveAhead = state.graves.stream().filter(g -> g.row == p.row && g.col >= p.col)
                 .min(Comparator.comparingInt(g -> g.col)).orElse(null);
         if (graveAhead != null) {
             if (Math.abs(graveAhead.pos.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
