@@ -998,7 +998,8 @@ public class SqlStorageManager implements StorageManager {
 
     private void loadNews(Connection connection, User user) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT news_id, message, is_read, created_at FROM user_news WHERE username = ? ORDER BY created_at DESC")) {
+                "SELECT news_id, message, is_read, created_at FROM user_news "
+                        + "WHERE username = ? ORDER BY created_at DESC")) {
             statement.setString(1, user.username);
             try (ResultSet resultSet = statement.executeQuery()) {
                 List<NewsItem> items = new ArrayList<>();
@@ -1110,7 +1111,8 @@ public class SqlStorageManager implements StorageManager {
     private void insertNewsItem(String username, NewsItem item) {
         try (Connection connection = openConnection();
                 PreparedStatement statement = connection.prepareStatement(
-                        "INSERT INTO user_news (username, news_id, message, is_read, created_at) VALUES (?, ?, ?, ?, ?)")) {
+                        "INSERT INTO user_news (username, news_id, message, is_read, created_at) "
+                                + "VALUES (?, ?, ?, ?, ?)")) {
             statement.setString(1, username);
             statement.setString(2, item.getId());
             statement.setString(3, item.getMessage());

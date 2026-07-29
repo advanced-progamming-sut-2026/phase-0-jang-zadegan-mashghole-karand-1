@@ -126,8 +126,10 @@ public enum PlantType {
                             .pattern(new ShootPattern(Direction.FORWARD, 0, 1)).build()
             ),
             new PlantRapidFireEffect(3, 0.1f, Arrays.asList(
-                    PlantShootAbility.builder().damage(20).cooldown(0f).projectile(ProjectileType.ICE).phase(EffectPhase.ALWAYS).build(),
-                    PlantShootAbility.builder().damage(0).cooldown(0f).projectile(ProjectileType.FREEZE_LINE).phase(EffectPhase.START).build()
+                    PlantShootAbility.builder().damage(20).cooldown(0f)
+                            .projectile(ProjectileType.ICE).phase(EffectPhase.ALWAYS).build(),
+                    PlantShootAbility.builder().damage(0).cooldown(0f)
+                            .projectile(ProjectileType.FREEZE_LINE).phase(EffectPhase.START).build()
             )),
             new PlantLevelUpgrades(
                     PlantLevelUpgrade.atLevel(2, PlantStatBonus.DAMAGE, 10),

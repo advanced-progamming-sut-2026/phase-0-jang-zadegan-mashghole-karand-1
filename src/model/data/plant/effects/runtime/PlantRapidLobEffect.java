@@ -25,7 +25,9 @@ public class PlantRapidLobEffect implements PlantEffectConfig {
 
     @Override
     public PlantEffectConfig createInstance(Plant plant) {
-        PlantRapidLobEffect runtimeEffect = new PlantRapidLobEffect(this.duration, this.fireRatePerSec, this.configAbilities);
+        PlantRapidLobEffect runtimeEffect = new PlantRapidLobEffect(this.duration,
+                this.fireRatePerSec,
+                this.configAbilities);
         for (PlantLobAbility configAbility : this.configAbilities) {
             runtimeEffect.runtimeAbilities.add((PlantLobAbility) configAbility.createInstance(plant));
         }

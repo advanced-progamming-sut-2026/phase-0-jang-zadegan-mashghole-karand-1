@@ -28,7 +28,13 @@ public class PlantLobAbility implements PlantAbilityConfig {
     private int currentCooldown = 0;
     private int aoeDamage;
 
-    public PlantLobAbility(int damage, float cooldownSeconds, ProjectileType projectileType, ShootPattern shootPattern, float butterChance, int butterDamage, int aoeRadius) {
+    public PlantLobAbility(int damage,
+            float cooldownSeconds,
+            ProjectileType projectileType,
+            ShootPattern shootPattern,
+            float butterChance,
+            int butterDamage,
+            int aoeRadius) {
         this(damage, cooldownSeconds, projectileType, shootPattern, butterChance, butterDamage, aoeRadius,0);
     }
 
@@ -37,7 +43,14 @@ public class PlantLobAbility implements PlantAbilityConfig {
         this(damage, cooldownSeconds, type, pattern, 0f, 40, 0,0);
     }
 
-    public PlantLobAbility(int damage, float cooldownSeconds, ProjectileType projectileType, ShootPattern shootPattern, float butterChance, int butterDamage, int aoeRadius, int aoeDamage) {
+    public PlantLobAbility(int damage,
+            float cooldownSeconds,
+            ProjectileType projectileType,
+            ShootPattern shootPattern,
+            float butterChance,
+            int butterDamage,
+            int aoeRadius,
+            int aoeDamage) {
         this.damage = damage;
         this.cooldownSeconds = cooldownSeconds;
         this.projectileType = projectileType;

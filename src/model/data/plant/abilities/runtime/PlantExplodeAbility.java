@@ -27,7 +27,8 @@ public class PlantExplodeAbility implements PlantAbilityConfig {
     private boolean hasExploded = false;
 
 
-    public PlantExplodeAbility(ExplodeTrigger trigger, AreaShape shape, int maxTargets, int delayTicks, boolean requiresWater,
+    public PlantExplodeAbility(ExplodeTrigger trigger, AreaShape shape, int maxTargets, int delayTicks, boolean
+            requiresWater,
                                List<HitEffect> onHit ) {
         this.trigger = trigger;
         this.shape = shape;

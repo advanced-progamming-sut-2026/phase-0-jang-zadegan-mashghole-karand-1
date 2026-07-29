@@ -26,7 +26,7 @@ public class ShopController {
         this.storageManager = storageManager;
     }
 
-    public CommandResult List() {
+    public CommandResult list() {
         if (storageManager.getCurrentUser() == null) {
             return failure("You must be logged in.");
         }

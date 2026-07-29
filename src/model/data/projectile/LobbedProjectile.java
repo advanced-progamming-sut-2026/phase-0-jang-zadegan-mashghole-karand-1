@@ -15,8 +15,10 @@ public class LobbedProjectile extends Projectile{
     public int aoeDamage = 0;
 
     public LobbedProjectile(int damage, Position position, int row, int col, float speed, ProjectileType type,
-                            ProjectileTarget target, PlantType sourcePlant, Position targetPosition, float flightProgress,
-                            float flightDuration, float arcHeight, float butterChance, int butterDamage, int aoeRadius, int aoeDamage
+                            ProjectileTarget target, PlantType sourcePlant, Position targetPosition, float
+                                    flightProgress,
+                            float flightDuration, float arcHeight, float butterChance, int butterDamage, int aoeRadius,
+                                    int aoeDamage
                             ) {
         super(damage, position, row, col, speed, type, target, sourcePlant);
         this.startPosition = new Position(position.x,position.y);

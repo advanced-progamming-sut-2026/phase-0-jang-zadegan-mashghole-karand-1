@@ -12,16 +12,24 @@ public class KillCountQuest extends Quest {
     private int ticksPassed = 0;
     private final int maxTicks = 300;
     private boolean failed = false;
-    private final specificQuest quest;
+    private final SpecificQuest quest;
 
-    public enum specificQuest {
+    public enum SpecificQuest {
         SPEED_KILLING,
         LAWNMOWER_KILLING,
         NO_LAWNMOWER_KILLING,
     }
 
 
-    protected KillCountQuest(String name, QuestPriority priority, QuestCategory category, specificQuest quest ,String description, int target, RewardType rewardType, int rewardAmount, PlantType rewardPlant) {
+    protected KillCountQuest(String name,
+            QuestPriority priority,
+            QuestCategory category,
+            SpecificQuest quest,
+            String description,
+            int target,
+            RewardType rewardType,
+            int rewardAmount,
+            PlantType rewardPlant) {
         super(name, priority, category, description, target, rewardType, rewardAmount, rewardPlant);
         this.quest = quest;
     }
@@ -29,7 +37,7 @@ public class KillCountQuest extends Quest {
     @Override
     public void onEvent(Object event, User user, GameState state, ChapterType chapter) {
         if(completed) return;
-        if(event instanceof WaveStartedEvent e && quest == specificQuest.SPEED_KILLING){
+        if(event instanceof WaveStartedEvent e && quest == SpecificQuest.SPEED_KILLING){
             if(e.waveNumber ==1 ){
                 started = true;
                 ticksPassed = 0;
@@ -45,7 +53,7 @@ public class KillCountQuest extends Quest {
                     reward(user);
                 }
             }
-            if (quest == specificQuest.LAWNMOWER_KILLING) {
+            if (quest == SpecificQuest.LAWNMOWER_KILLING) {
                 if (e.zombie.killedByLawnMower) {
                     progress++;
                     if (progress >= target) {
@@ -55,7 +63,7 @@ public class KillCountQuest extends Quest {
                 }
             }
 
-            if (quest == specificQuest.NO_LAWNMOWER_KILLING) {
+            if (quest == SpecificQuest.NO_LAWNMOWER_KILLING) {
                 if(!state.getBoard().getLawnMowers(e.zombie.row).isActive() &&
                 e.zombie.col == 0) {
                     progress++;
@@ -69,7 +77,7 @@ public class KillCountQuest extends Quest {
     }
 
     public void onTick(){
-        if(started && !failed && quest == specificQuest.SPEED_KILLING){
+        if(started && !failed && quest == SpecificQuest.SPEED_KILLING){
             ticksPassed++;
             if(ticksPassed >= maxTicks && !completed){
                 failed = true;

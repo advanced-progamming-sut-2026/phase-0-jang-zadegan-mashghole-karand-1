@@ -53,27 +53,27 @@ public class QuestAssigner {
                 "finish a level with only 3 sun producer plants", 3,
                 RewardType.DIAMOND, 10, null, false));
         user.quests.add(new KillCountQuest("Speed of action", QuestPriority.MEDIUM, QuestCategory.MAIN,
-                KillCountQuest.specificQuest.SPEED_KILLING,
+                KillCountQuest.SpecificQuest.SPEED_KILLING,
                 "kill 10 zombies in less than 30 seconds passed in first wave",
                 10, RewardType.COIN, 500, null));
         user.quests.add(new KillCountQuest("Almost Winner", QuestPriority.MEDIUM, QuestCategory.DAILY,
-                KillCountQuest.specificQuest.NO_LAWNMOWER_KILLING,
+                KillCountQuest.SpecificQuest.NO_LAWNMOWER_KILLING,
                 "kill 10 zombies in first column of a row with no lawnmower",
                 10, RewardType.COIN, 300, null));
         user.quests.add(new KillCountQuest("Mow time", QuestPriority.MEDIUM, QuestCategory.EPIC,
-                KillCountQuest.specificQuest.LAWNMOWER_KILLING, "kill 10 zombies with lawnmower",
+                KillCountQuest.SpecificQuest.LAWNMOWER_KILLING, "kill 10 zombies with lawnmower",
                 10, RewardType.DIAMOND, 10, null));
         user.quests.add(new KillCountQuest("Mow time", QuestPriority.MEDIUM, QuestCategory.EPIC,
-                KillCountQuest.specificQuest.LAWNMOWER_KILLING, "kill 20 zombies with lawnmower",
+                KillCountQuest.SpecificQuest.LAWNMOWER_KILLING, "kill 20 zombies with lawnmower",
                 20, RewardType.DIAMOND, 20, null));
         user.quests.add(new KillCountQuest("Mow time", QuestPriority.MEDIUM, QuestCategory.EPIC,
-                KillCountQuest.specificQuest.LAWNMOWER_KILLING, "kill 30 zombies with lawnmower",
+                KillCountQuest.SpecificQuest.LAWNMOWER_KILLING, "kill 30 zombies with lawnmower",
                 30, RewardType.DIAMOND, 30, null));
         user.quests.add(new KillCountQuest("Mow time", QuestPriority.MEDIUM, QuestCategory.EPIC,
-                KillCountQuest.specificQuest.LAWNMOWER_KILLING, "kill 40 zombies with lawnmower",
+                KillCountQuest.SpecificQuest.LAWNMOWER_KILLING, "kill 40 zombies with lawnmower",
                 40, RewardType.DIAMOND, 40, null));
         user.quests.add(new KillCountQuest("Mow time", QuestPriority.MEDIUM, QuestCategory.EPIC,
-                KillCountQuest.specificQuest.LAWNMOWER_KILLING, "kill 50 zombies with lawnmower",
+                KillCountQuest.SpecificQuest.LAWNMOWER_KILLING, "kill 50 zombies with lawnmower",
                 50, RewardType.DIAMOND, 50, null));
         user.quests.add(new KillFamilyQuest("Family Killer", QuestPriority.MEDIUM, QuestCategory.MAIN,
                 "for each attacker family, win a level using only that family to kill",
@@ -118,17 +118,17 @@ public class QuestAssigner {
         }
         user.quests.add(new GameBoardQuest("Symmetry", QuestPriority.HIGH, QuestCategory.DAILY,
                 "finish the level with a symmetric garden", 1, RewardType.COIN, 500,
-                null, 0, 0, GameBoardQuest.boardState.SYMMETRIC));
+                null, 0, 0, GameBoardQuest.BoardState.SYMMETRIC));
         user.quests.add(new GameBoardQuest("No OCD!", QuestPriority.MEDIUM, QuestCategory.DAILY,
                 "finish the level with no garden symmetry (except middle row)", 1, RewardType.COIN, 800,
-                null, 0, 0, GameBoardQuest.boardState.ASYMMETRIC));
+                null, 0, 0, GameBoardQuest.BoardState.ASYMMETRIC));
         for (int col = 0; col < GameState.GRID_COLS; col++) {
             user.quests.add(new GameBoardQuest(
                     "One Less Column",
                     QuestPriority.HIGH, QuestCategory.DAILY,
                     "win a level with no plants in column " + col,
                     1, RewardType.DIAMOND, 10, null,
-                    0, col, GameBoardQuest.boardState.COL));
+                    0, col, GameBoardQuest.BoardState.COL));
         }
         for (int row = 0; row < GameState.GRID_ROWS; row++) {
             user.quests.add(new GameBoardQuest(
@@ -136,7 +136,7 @@ public class QuestAssigner {
                     QuestPriority.HIGH, QuestCategory.DAILY,
                     "win a level with no plants in row " + row,
                     1, RewardType.DIAMOND, 20, null,
-                    row, 0, GameBoardQuest.boardState.ROW));
+                    row, 0, GameBoardQuest.BoardState.ROW));
         }
         int crossCount = Math.min(GameState.GRID_ROWS, GameState.GRID_COLS);
         for (int n = 0; n < crossCount; n++) {
@@ -145,7 +145,7 @@ public class QuestAssigner {
                     QuestPriority.HIGH, QuestCategory.DAILY,
                     "win a level with no plants in row " + n + " and column " + n,
                     1, RewardType.DIAMOND, 25, null,
-                    n, n, GameBoardQuest.boardState.ROW_COL));
+                    n, n, GameBoardQuest.BoardState.ROW_COL));
         }
     }
 }

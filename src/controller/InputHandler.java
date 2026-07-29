@@ -56,19 +56,19 @@ public class InputHandler {
         } else if ((matcher = Commands.REGISTER_USER.getMatcher(input)).matches()) {
             String username = matcher.group(1);
             String password = matcher.group(2);
-            String password_confirm = matcher.group(3);
+            String passwordConfirm = matcher.group(3);
             String nickname = matcher.group(4);
             String email = matcher.group(5);
             String genderString = matcher.group(6);
-            CommandResult result = controllerManager.getAuthController().register(username, password, password_confirm,
+            CommandResult result = controllerManager.getAuthController().register(username, password, passwordConfirm,
                     nickname, email, genderString);
             controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.PICK_QUESTION.getMatcher(input)).matches()) {
-            int QuestionNum = Integer.parseInt(matcher.group(1));
+            int questionNum = Integer.parseInt(matcher.group(1));
             String answer = matcher.group(2);
-            String answer_confirm = matcher.group(3);
-            CommandResult result = controllerManager.getAuthController().pickQuestion(QuestionNum, answer,
-                    answer_confirm);
+            String answerConfirm = matcher.group(3);
+            CommandResult result = controllerManager.getAuthController().pickQuestion(questionNum, answer,
+                    answerConfirm);
             controllerManager.handleCommandResult(result);
         } else if ((matcher = Commands.LOGIN_STAY_LOGGED_IN.getMatcher(input)).matches()) {
             String username = matcher.group(1);
@@ -98,10 +98,10 @@ public class InputHandler {
             controllerManager.handleCommandResult(controllerManager.getMainMenuController().logout());
         } else if ((matcher = Commands.ADD_COIN.getMatcher(input)).matches()) {
             int amount = Integer.parseInt(matcher.group(1));
-            controllerManager.handleCommandResult(controllerManager.getGameMenuController().CHEAT_add_coin(amount));
+            controllerManager.handleCommandResult(controllerManager.getGameMenuController().cheatAddCoin(amount));
         } else if ((matcher = Commands.ADD_DIAMOND.getMatcher(input)).matches()) {
             int amount = Integer.parseInt(matcher.group(1));
-            controllerManager.handleCommandResult(controllerManager.getGameMenuController().CHEAT_add_gem(amount));
+            controllerManager.handleCommandResult(controllerManager.getGameMenuController().cheatAddGem(amount));
         } else if ((matcher = Commands.CHANGE_DIFFICULTY.getMatcher(input)).matches()) {
             try {
                 int level = Integer.parseInt(matcher.group("difficultylevel").trim());
@@ -314,7 +314,7 @@ public class InputHandler {
             CommandResult result = controllerManager.getGreenhouseController().enterShop();
             controllerManager.handleCommandResult(result);
         } else if (Commands.SHOP_LIST.getMatcher(input).matches()) {
-            CommandResult list = controllerManager.getShopController().List();
+            CommandResult list = controllerManager.getShopController().list();
             controllerManager.handleCommandResult(list);
         } else if (Commands.SHOP_DAILY.getMatcher(input).matches()) {
             CommandResult dailyList = controllerManager.getShopController().daily();

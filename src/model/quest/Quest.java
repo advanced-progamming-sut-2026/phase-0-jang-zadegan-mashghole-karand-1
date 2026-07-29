@@ -24,7 +24,14 @@ public abstract class Quest{
     protected final int rewardAmount;
     protected final PlantType rewardPlant;
 
-    protected Quest(String name, QuestPriority priority,QuestCategory category ,String description, int target ,RewardType rewardType, int rewardAmount, PlantType rewardPlant) {
+    protected Quest(String name,
+            QuestPriority priority,
+            QuestCategory category,
+            String description,
+            int target,
+            RewardType rewardType,
+            int rewardAmount,
+            PlantType rewardPlant) {
         this.name = name;
         this.priority = priority;
         this.description = description;

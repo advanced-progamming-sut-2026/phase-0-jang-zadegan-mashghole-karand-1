@@ -25,7 +25,9 @@ public class PlantRapidFireEffect implements PlantEffectConfig {
     }
 
     public PlantRapidFireEffect createInstance(Plant plant) {
-        PlantRapidFireEffect instance = new PlantRapidFireEffect(this.duration, this.fireRatePerSec, this.configAbilities);
+        PlantRapidFireEffect instance = new PlantRapidFireEffect(this.duration,
+                this.fireRatePerSec,
+                this.configAbilities);
         for (PlantShootAbility config : this.configAbilities) {
             PlantShootAbility runtimeAbility = (PlantShootAbility) config.createInstance(plant);
             if (runtimeAbility != null) {

@@ -30,7 +30,8 @@ public class KillFamilyQuest extends Quest {
     private final Set<PlantCategory> familiesUsedThisLevel = new HashSet<>();
 
    protected KillFamilyQuest(String name, QuestPriority priority, QuestCategory category, String description,
-                             int target,RewardType rewardType, int rewardAmount, PlantType rewardPlant, PlantCategory requiredCategory) {
+                             int target,RewardType rewardType, int rewardAmount, PlantType rewardPlant, PlantCategory
+                                     requiredCategory) {
        super(name, priority, category, description, target, rewardType, rewardAmount, rewardPlant);
        this.requiredCategory = requiredCategory;
        this.allFamiliesMode = false;

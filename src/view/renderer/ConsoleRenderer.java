@@ -1186,7 +1186,9 @@ public class ConsoleRenderer implements Renderer {
                 title.append(String.format("%s%s%s", CYAN, status, RESET));
             }
             case DEADLINE -> {
-                title.append(String.format("%s☀️ : %-4d  %s⛔ col %-2d  %s🌊 : %-3d  %s🧟 : %-3d  %s🌿 : %-2d  %s⏱️ %-4ds  %s%s%s",
+                title.append(String.format(
+                        "%s☀️ : %-4d  %s⛔ col %-2d  %s🌊 : %-3d  %s🧟 : %-3d  "
+                                + "%s🌿 : %-2d  %s⏱️ %-4ds  %s%s%s",
                         YELLOW, state.getSunAmount(),
                         RED, hud.deadlineColumn,
                         CYAN, state.getCurrentWave(),
@@ -1196,7 +1198,9 @@ public class ConsoleRenderer implements Renderer {
                         CYAN, status, RESET));
             }
             case SAVE_OUR_SEEDS -> {
-                title.append(String.format("%s☀️ : %-4d  %s🛡️ %d/%d @col%d  %s🌊 : %-3d  %s🧟 : %-3d  %s🌿 : %-2d  %s⏱️ %-4ds  %s%s%s",
+                title.append(String.format(
+                        "%s☀️ : %-4d  %s🛡️ %d/%d @col%d  %s🌊 : %-3d  %s🧟 : %-3d  "
+                                + "%s🌿 : %-2d  %s⏱️ %-4ds  %s%s%s",
                         YELLOW, state.getSunAmount(),
                         GREEN, hud.protectedAlive, hud.protectedTotal, hud.protectedCol,
                         CYAN, state.getCurrentWave(),
@@ -1682,7 +1686,7 @@ public class ConsoleRenderer implements Renderer {
 
     public String getMessages() {
         StringBuilder sb = new StringBuilder();
-        int MESSAGE_BOX_WIDTH = SCREEN_WIDTH - 4;
+        int messageBoxWidth = SCREEN_WIDTH - 4;
         sb.append("╔" + "═".repeat(SCREEN_WIDTH - 2) + "╗\n");
 
         List<String> lines = buildMessageLines();
@@ -1698,12 +1702,12 @@ public class ConsoleRenderer implements Renderer {
         for (int i = start; i < end; i++) {
             String line = lines.get(i);
             int plainLength = stripAnsi(line).length();
-            int padding = Math.max(0, MESSAGE_BOX_WIDTH - plainLength);
+            int padding = Math.max(0, messageBoxWidth - plainLength);
             sb.append("║ ").append(line).append(" ".repeat(padding)).append(" ║\n");
         }
 
         for (int i = 0; i < MAX_MESSAGES - visible; i++) {
-            sb.append("║ ").append(" ".repeat(MESSAGE_BOX_WIDTH)).append(" ║\n");
+            sb.append("║ ").append(" ".repeat(messageBoxWidth)).append(" ║\n");
         }
 
         sb.append("╚" + "═".repeat(SCREEN_WIDTH - 2) + "╝\n");
@@ -1844,7 +1848,7 @@ public class ConsoleRenderer implements Renderer {
     }
 
     private String stripAnsi(String str) {
-        String ANSI_REGEX = "\u001B\\[[;\\d]*[mK]";
-        return str.replaceAll(ANSI_REGEX, "");
+        String ansiRegex = "\u001B\\[[;\\d]*[mK]";
+        return str.replaceAll(ansiRegex, "");
     }
 }

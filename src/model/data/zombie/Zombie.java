@@ -27,7 +27,7 @@ public class Zombie {
     public PlantType lastHitBy = null;
     public boolean killedByLawnMower = false;
     public boolean isEating = false;
-    public float DPS_MULTIPLIER = 1;
+    public float dpsMultiplier = 1;
 
     public List<ZombieAbilityConfig> abilities = new ArrayList<>();
 
@@ -208,7 +208,7 @@ public class Zombie {
     }
 
     public float getDPS() {
-        return type.baseStats.eatDPS * DPS_MULTIPLIER;
+        return type.baseStats.eatDPS * dpsMultiplier;
     }
 
 }

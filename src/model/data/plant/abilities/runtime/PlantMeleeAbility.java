@@ -25,7 +25,11 @@ public class PlantMeleeAbility implements PlantAbilityConfig {
     private int currentCooldown = 0;
     private final int digestTicksOnKill;
     private int digestTicksRemaining = 0;
-    public PlantMeleeAbility(AreaShape shape, int maxTargets, float cooldownSeconds, List<HitEffect> onHit , int digestTicksOnKill) {
+    public PlantMeleeAbility(AreaShape shape,
+            int maxTargets,
+            float cooldownSeconds,
+            List<HitEffect> onHit,
+            int digestTicksOnKill) {
         this.shape = shape;
         this.maxTargets = maxTargets;
         this.cooldownSeconds = cooldownSeconds;

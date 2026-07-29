@@ -229,7 +229,7 @@ public class GameMenuController {
         return success("Game started!");
     }
 
-    public CommandResult CHEAT_add_coin(int amount) {
+    public CommandResult cheatAddCoin(int amount) {
         CommandResult screenCheck = requireMainMenu(null);
         if (screenCheck != null) {
             return screenCheck;
@@ -243,7 +243,7 @@ public class GameMenuController {
         return success("Added " + amount + " coins. Total: " + user.coins);
     }
 
-    public CommandResult CHEAT_add_gem(int amount) {
+    public CommandResult cheatAddGem(int amount) {
         CommandResult screenCheck = requireMainMenu(null);
         if (screenCheck != null) {
             return screenCheck;

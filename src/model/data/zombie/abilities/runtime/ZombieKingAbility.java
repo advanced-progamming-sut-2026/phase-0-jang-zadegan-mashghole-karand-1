@@ -19,8 +19,8 @@ public class ZombieKingAbility implements ZombieAbilityConfig {
     private int cooldown=60;
     @Override
     public void onTick(Zombie zombie, GameState state, EventBus bus) {
-        int RANGE_RADIUS = ReadOnlyGameState.CELL_WIDTH * 2;
-        double rangeSq = RANGE_RADIUS * RANGE_RADIUS;
+        int rangeRadius = ReadOnlyGameState.CELL_WIDTH * 2;
+        double rangeSq = rangeRadius * rangeRadius;
 
         List<Zombie> zombiesInRange = state.getZombies().stream()
                 .filter(z -> {
@@ -32,7 +32,7 @@ public class ZombieKingAbility implements ZombieAbilityConfig {
         if(!onCooldown && !zombiesInRange.isEmpty()) {
             Random rand = new Random();
             Zombie z = zombiesInRange.get(rand.nextInt(zombiesInRange.size()));
-            z.armor = new ZombieArmor(ZombieArmorConfig.knight_armor());
+            z.armor = new ZombieArmor(ZombieArmorConfig.knightArmor());
             onCooldown = true;
         }
         if(onCooldown) {

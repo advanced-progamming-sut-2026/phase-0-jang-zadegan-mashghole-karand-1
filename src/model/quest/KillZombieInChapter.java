@@ -9,7 +9,15 @@ import model.storage.user.User;
 public class KillZombieInChapter extends Quest {
     ChapterType chapterType;
 
-    protected KillZombieInChapter(String name, QuestPriority priority, QuestCategory category ,String description, int target, ChapterType chapterType, RewardType rewardType, int rewardAmount, PlantType rewardPlant) {
+    protected KillZombieInChapter(String name,
+            QuestPriority priority,
+            QuestCategory category,
+            String description,
+            int target,
+            ChapterType chapterType,
+            RewardType rewardType,
+            int rewardAmount,
+            PlantType rewardPlant) {
         super(name, priority, category,description, target, rewardType, rewardAmount, rewardPlant);
         this.chapterType = chapterType;
     }
