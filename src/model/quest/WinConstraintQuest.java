@@ -51,62 +51,76 @@ public class WinConstraintQuest extends Quest {
     public void onEvent(Object event, User user, GameState state, ChapterType chapter) {
         if (completed)
             return;
-        if (event instanceof PlantDiedEvent && quest == Constraint.MAX_PLANT_LOSS) {
+        if (event instanceof PlantDiedEvent) {
+            handlePlantDiedEvent();
+        }
+        if (event instanceof PlantPlacedEvent e) {
+            handlePlantPlacedEvent(e);
+        }
+        if (event instanceof LevelCompleteEvent) {
+            handleLevelCompleteEvent(user, state);
+        }
+    }
+
+    private void handlePlantDiedEvent() {
+        if (quest == Constraint.MAX_PLANT_LOSS) {
             plantLost++;
             if (plantLost > maxPlantLoss)
                 failed = true;
         }
-        if (event instanceof PlantPlacedEvent e) {
-            if (e.plant.type.category == forbiddenCategory && quest == Constraint.FORBIDDEN_FAMILY) {
-                failed = true;
-            }
-            if (e.plant.type.category == PlantCategory.SUN_PRODUCER && quest == Constraint.CLOUDY_DAY) {
-                sunProducer++;
-            }
+    }
+
+    private void handlePlantPlacedEvent(PlantPlacedEvent e) {
+        if (e.plant.type.category == forbiddenCategory && quest == Constraint.FORBIDDEN_FAMILY) {
+            failed = true;
         }
-        if (event instanceof LevelCompleteEvent e) {
-            if (quest == Constraint.SUN_AT_END && state.sunAmount == 0) {
-                completed = true;
-                reward(user);
-            }
+        if (e.plant.type.category == PlantCategory.SUN_PRODUCER && quest == Constraint.CLOUDY_DAY) {
+            sunProducer++;
+        }
+    }
 
-            if (quest == Constraint.MAX_PLANT_LOSS && !failed) {
-                completed = true;
-                reward(user);
+    private void handleLevelCompleteEvent(User user, GameState state) {
+        if (quest == Constraint.SUN_AT_END && state.sunAmount == 0) {
+            completed = true;
+            reward(user);
+        }
 
-            }
-            if (quest == Constraint.FORBIDDEN_FAMILY && !failed) {
-                completed = true;
-                reward(user);
-            }
-            if (quest == Constraint.WIN_HARD) {
-                if (user.preferredSetting.getDifficultyLevel() == 5) {
-                    progress++;
-                    if (progress >= target) {
-                        completed = true;
-                        reward(user);
-                    }
-                } else {
-                    progress = 0;
-                }
-            }
+        if (quest == Constraint.MAX_PLANT_LOSS && !failed) {
+            completed = true;
+            reward(user);
 
-            if (quest == Constraint.NIGHT_OR_MORNING) {
-                completed = state.plants.stream()
-                        .allMatch(p -> p.type.tags != null && p.type.tags.contains(PlantTag.NIGHT));
-                if (completed)
-                    reward(user);
-            }
-
-            if (quest == Constraint.CLOUDY_DAY) {
-                if (sunProducer == sunProducerRequired) {
+        }
+        if (quest == Constraint.FORBIDDEN_FAMILY && !failed) {
+            completed = true;
+            reward(user);
+        }
+        if (quest == Constraint.WIN_HARD) {
+            if (user.preferredSetting.getDifficultyLevel() == 5) {
+                progress++;
+                if (progress >= target) {
                     completed = true;
                     reward(user);
                 }
+            } else {
+                progress = 0;
             }
-            plantLost = 0;
-            sunProducer = 0;
-            failed = false;
         }
+
+        if (quest == Constraint.NIGHT_OR_MORNING) {
+            completed = state.plants.stream()
+                    .allMatch(p -> p.type.tags != null && p.type.tags.contains(PlantTag.NIGHT));
+            if (completed)
+                reward(user);
+        }
+
+        if (quest == Constraint.CLOUDY_DAY) {
+            if (sunProducer == sunProducerRequired) {
+                completed = true;
+                reward(user);
+            }
+        }
+        plantLost = 0;
+        sunProducer = 0;
+        failed = false;
     }
 }

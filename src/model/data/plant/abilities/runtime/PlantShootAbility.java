@@ -1,6 +1,5 @@
 package model.data.plant.abilities.runtime;
 
-import model.data.plant.PlantType;
 import model.data.projectile.ProjectileType;
 import model.data.plant.abilities.config.Direction;
 import model.data.plant.abilities.config.PlantAbilityConfig;
@@ -26,6 +25,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
     public final int knockBack;
     private int currentCooldown = 0;
     private int lifeSpan = 0;
+
     private PlantShootAbility(Builder b) {
         this.damage = b.damage;
         this.cooldownSeconds = b.cooldownSeconds;
@@ -37,7 +37,11 @@ public class PlantShootAbility implements PlantAbilityConfig {
         this.phase = b.phase;
         this.lifeSpan = b.lifespan;
     }
-    public static Builder builder() { return new Builder(); }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public static class Builder {
         private int damage;
         private float cooldownSeconds = 1.5f;
@@ -48,15 +52,52 @@ public class PlantShootAbility implements PlantAbilityConfig {
         private int knockBack = 0;
         private int lifespan = 0;
         private EffectPhase phase = EffectPhase.ALWAYS;
-        public Builder damage(int v) { damage = v; return this; }
-        public Builder cooldown(float v) { cooldownSeconds = v; return this; }
-        public Builder projectile(ProjectileType v) { projectileType = v; return this; }
-        public Builder pattern(ShootPattern v) { shootPattern = v; return this; }
-        public Builder pierce(int v) { pierceCount = v; return this; }
-        public Builder maxRange(float v) { maxRange = v; return this; }
-        public Builder knockBack(int v) { knockBack = v; return this; }
-        public Builder phase(EffectPhase v) { phase = v; return this; }
-        public Builder lifespan(int v){ lifespan = v; return this;}
+
+        public Builder damage(int v) {
+            damage = v;
+            return this;
+        }
+
+        public Builder cooldown(float v) {
+            cooldownSeconds = v;
+            return this;
+        }
+
+        public Builder projectile(ProjectileType v) {
+            projectileType = v;
+            return this;
+        }
+
+        public Builder pattern(ShootPattern v) {
+            shootPattern = v;
+            return this;
+        }
+
+        public Builder pierce(int v) {
+            pierceCount = v;
+            return this;
+        }
+
+        public Builder maxRange(float v) {
+            maxRange = v;
+            return this;
+        }
+
+        public Builder knockBack(int v) {
+            knockBack = v;
+            return this;
+        }
+
+        public Builder phase(EffectPhase v) {
+            phase = v;
+            return this;
+        }
+
+        public Builder lifespan(int v) {
+            lifespan = v;
+            return this;
+        }
+
         public PlantShootAbility build() {
             return new PlantShootAbility(this);
         }
@@ -69,7 +110,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
         if (projectileType == ProjectileType.POISON) {
             finalDamage += plant.upgradeState.poisonDamagePerTickBonus;
         }
-        int finalSpan = ( lifeSpan + plant.upgradeState.lifeSpanBonus) * 10;
+        int finalSpan = (lifeSpan + plant.upgradeState.lifeSpanBonus) * 10;
         return PlantShootAbility.builder()
                 .damage(finalDamage)
                 .cooldown(plant.actionInterval)
@@ -80,7 +121,8 @@ public class PlantShootAbility implements PlantAbilityConfig {
                 .knockBack(knockBack)
                 .phase(phase)
                 .lifespan(finalSpan)
-                .build();    }
+                .build();
+    }
 
     @Override
     public void onTick(Plant plant, GameState state, EventBus event) {
@@ -98,48 +140,36 @@ public class PlantShootAbility implements PlantAbilityConfig {
         int targetRow = plant.row + shootPattern.getRow();
         boolean hasZombie = state.zombies.stream()
                 .anyMatch(z -> z.row == targetRow && z.isAlive);
-
         if (hasZombie && targetRow >= 0 && targetRow < 5) {
-            for (int i = 0; i < shootPattern.getBulletCount(); i++) {
-                int xOffset = 40 - (i * 20);
-                Position bulletPosition = new Position(plant.getX() + xOffset, plant.getY());
-                Projectile p;
-
-                if (this.pierceCount != 0 || this.maxRange != -1) {
-                    p = new PiercingProjectile(
-                            damage,
-                            bulletPosition,
-                            targetRow,
-                            plant.col,
-                            10,
-                            projectileType,
-                            ProjectileTarget.ZOMBIE,
-                            plant.type,
-                            this.pierceCount,
-                            this.maxRange
-                    );
-                    p.knockBack = knockBack;
-
-                } else {
-                    p = new Projectile(
-                            damage,
-                            bulletPosition,
-                            targetRow,
-                            plant.col,
-                            10,
-                            projectileType,
-                            ProjectileTarget.ZOMBIE,plant.type
-                    );
-                    p.effectDurationBonus = plant.upgradeState.effectDurationBonus;
-
-                }
-
-                p.setDirection(shootPattern.getDir());
-                state.projectiles.add(p);
-            }
-
+            spawnBullets(plant, state, targetRow);
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
         }
+    }
+
+    private void spawnBullets(Plant plant, GameState state, int targetRow) {
+        for (int i = 0; i < shootPattern.getBulletCount(); i++) {
+            int xOffset = 40 - (i * 20);
+            Position bulletPosition = new Position(plant.getX() + xOffset, plant.getY());
+            Projectile p = createProjectile(plant, bulletPosition, targetRow);
+            p.setDirection(shootPattern.getDir());
+            state.projectiles.add(p);
+        }
+    }
+
+    private Projectile createProjectile(Plant plant, Position bulletPosition, int targetRow) {
+        if (this.pierceCount != 0 || this.maxRange != -1) {
+            Projectile p = new PiercingProjectile(
+                    damage, bulletPosition, targetRow, plant.col, 10,
+                    projectileType, ProjectileTarget.ZOMBIE, plant.type,
+                    this.pierceCount, this.maxRange);
+            p.knockBack = knockBack;
+            return p;
+        }
+        Projectile p = new Projectile(
+                damage, bulletPosition, targetRow, plant.col, 10,
+                projectileType, ProjectileTarget.ZOMBIE, plant.type);
+        p.effectDurationBonus = plant.upgradeState.effectDurationBonus;
+        return p;
     }
 
     public void resetCooldown() {

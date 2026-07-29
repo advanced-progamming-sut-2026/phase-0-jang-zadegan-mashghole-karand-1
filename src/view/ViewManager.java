@@ -33,6 +33,24 @@ public class ViewManager {
             NewsViewState newsViewState, SettingsViewState settingsViewState, LeaderboardViewState leaderboardViewState,
             CollectionViewState collectionViewState, QuestViewState questViewState, HudViewState hudViewState,
             ControllerManager controllerManager, boolean hasUnreadNews) {
+        String screenKey = buildScreenKey(currentScreen, currentMenu, gameNavigation, questViewState,
+                leaderboardViewState, collectionViewState, state);
+        renderer.prepareScreen(screenKey);
+        renderScreenContent(state, currentScreen, currentMenu, authState, gameNavigation, profileViewState,
+                newsViewState, settingsViewState, leaderboardViewState, collectionViewState, questViewState,
+                hudViewState, controllerManager, hasUnreadNews);
+
+        if (currentMenu != MenuType.NONE && currentScreen != ScreenType.MAIN
+                && !(currentScreen == ScreenType.LEVEL_SELECTOR && currentMenu == MenuType.TRAVEL_LOG)) {
+            renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState, leaderboardViewState,
+                    questViewState);
+        }
+    }
+
+    private String buildScreenKey(ScreenType currentScreen, MenuType currentMenu,
+            GameNavigationState gameNavigation, QuestViewState questViewState,
+            LeaderboardViewState leaderboardViewState, CollectionViewState collectionViewState,
+            ReadOnlyGameState state) {
         String screenKey = currentScreen.name();
         if (currentScreen == ScreenType.LEVEL_SELECTOR) {
             screenKey += "-" + gameNavigation.phase.name();
@@ -59,7 +77,15 @@ public class ViewManager {
                 screenKey += "-LOSE";
             }
         }
-        renderer.prepareScreen(screenKey);
+        return screenKey;
+    }
+
+    private void renderScreenContent(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
+            AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
+            NewsViewState newsViewState, SettingsViewState settingsViewState,
+            LeaderboardViewState leaderboardViewState, CollectionViewState collectionViewState,
+            QuestViewState questViewState, HudViewState hudViewState, ControllerManager controllerManager,
+            boolean hasUnreadNews) {
         switch (currentScreen) {
             case REGISTER:
                 renderer.renderRegisterScreen(authState.questions);
@@ -96,20 +122,18 @@ public class ViewManager {
                 renderer.renderGreenHouseScreen(controllerManager.getGreenhouseController());
                 break;
             case SHOP:
-                User user = controllerManager.getStorage().getCurrentUser();
-                if (user == null)
-                    return;
-                renderer.renderShopScreen(user.getCoins(), user.getGems(),
-                        user.dailyDeal.dailyDealPlant, user.dailyDeal.dailyDealPrice,
-                        user.dailyDeal.dailyDealPurchased, controllerManager.getShopController().getShopDisplayMode());
+                renderShopScreen(controllerManager);
                 break;
         }
+    }
 
-        if (currentMenu != MenuType.NONE && currentScreen != ScreenType.MAIN
-                && !(currentScreen == ScreenType.LEVEL_SELECTOR && currentMenu == MenuType.TRAVEL_LOG)) {
-            renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState, leaderboardViewState,
-                    questViewState);
-        }
+    private void renderShopScreen(ControllerManager controllerManager) {
+        User user = controllerManager.getStorage().getCurrentUser();
+        if (user == null)
+            return;
+        renderer.renderShopScreen(user.getCoins(), user.getGems(),
+                user.dailyDeal.dailyDealPlant, user.dailyDeal.dailyDealPrice,
+                user.dailyDeal.dailyDealPurchased, controllerManager.getShopController().getShopDisplayMode());
     }
 
     private void renderMenuOverlay(MenuType currentMenu, ProfileViewState profileViewState,

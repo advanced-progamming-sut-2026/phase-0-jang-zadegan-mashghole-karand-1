@@ -16,7 +16,7 @@ import view.ViewManager;
 
 public class ControllerManager {
     private ModelManager model;
-    private ViewManager view;
+    ViewManager view;
     private GameLoop gameLoop;
     private final StorageManager storage;
 
@@ -35,18 +35,21 @@ public class ControllerManager {
     private final QuestMenuController questMenuController;
     private final LeaderboardMenuController leaderboardMenuController;
 
-    private ScreenType currentScreen = ScreenType.REGISTER;
-    private MenuType currentMenu = MenuType.NONE;
-    private final AuthState authState = new AuthState();
+    ScreenType currentScreen = ScreenType.REGISTER;
+    MenuType currentMenu = MenuType.NONE;
+    final AuthState authState = new AuthState();
     private final GameNavigationState gameNavigation = new GameNavigationState();
-    private ProfileViewState profileViewState = ProfileViewState.empty();
-    private NewsViewState newsViewState = NewsViewState.empty();
-    private SettingsViewState settingsViewState = SettingsViewState.empty();
-    private LeaderboardViewState leaderboardViewState = LeaderboardViewState.empty();
-    private CollectionViewState collectionViewState = CollectionViewState.empty();
-    private QuestViewState questViewState = QuestViewState.empty();
-    private HudViewState hudViewState = HudViewState.empty();
-    private boolean hasUnreadNews = false;
+    ProfileViewState profileViewState = ProfileViewState.empty();
+    NewsViewState newsViewState = NewsViewState.empty();
+    SettingsViewState settingsViewState = SettingsViewState.empty();
+    LeaderboardViewState leaderboardViewState = LeaderboardViewState.empty();
+    CollectionViewState collectionViewState = CollectionViewState.empty();
+    QuestViewState questViewState = QuestViewState.empty();
+    HudViewState hudViewState = HudViewState.empty();
+    boolean hasUnreadNews = false;
+
+    private final ControllerViewSupport viewSupport = new ControllerViewSupport();
+    private final ControllerMenuSupport menuSupport = new ControllerMenuSupport();
     private Shop shop;
 
     public ControllerManager(ModelManager model,
@@ -102,55 +105,7 @@ public class ControllerManager {
     }
 
     public void refreshView() {
-        if (view != null) {
-            authState.questions = authController.getQuestions();
-            authState.isAwaitingSecurityAnswer = authController.isAwaitingSecurityAnswer();
-            authState.isAwaitingNewPassword = authController.isAwaitingNewPassword();
-            authState.passwordResetQuestion = authController.getPasswordResetQuestion();
-            if (storage.isLoggedIn()) {
-                gameNavigation.unlockedChapters = storage.getUnlockedChapters();
-                gameNavigation.unlockedPlants = storage.getUnlockedPlants();
-                gameNavigation.unlockedMinigames = storage.getUnlockedMinigames();
-                gameNavigation.levelHighScores = new java.util.HashMap<>(storage.getLevelHighScores());
-                profileViewState = ProfileViewState.fromUser(storage.getCurrentUser());
-                settingsViewState = SettingsViewState.fromUser(storage.getCurrentUser());
-                leaderboardViewState = leaderboardMenuController.getViewState();
-                hasUnreadNews = storage.getCurrentUser().newsFeed.hasUnread();
-                if (currentMenu == MenuType.NEWS) {
-                    newsViewState = newsMenuController.getViewState();
-                } else {
-                    newsViewState = NewsViewState.empty();
-                }
-                if (currentMenu == MenuType.TRAVEL_LOG) {
-                    questViewState = questMenuController.getViewState();
-                } else {
-                    questViewState = QuestViewState.empty();
-                }
-                if (currentScreen == ScreenType.COLLECTION) {
-                    collectionViewState = collectionController.getViewState();
-                } else {
-                    collectionViewState = CollectionViewState.empty();
-                }
-                if (currentScreen == ScreenType.GAME) {
-                    hudViewState = HudViewState.fromSession(
-                            model.getPlayContext(), model.getState(), storage.getCurrentUser());
-                } else {
-                    hudViewState = HudViewState.empty();
-                }
-            } else {
-                profileViewState = ProfileViewState.empty();
-                newsViewState = NewsViewState.empty();
-                settingsViewState = SettingsViewState.empty();
-                collectionViewState = CollectionViewState.empty();
-                leaderboardViewState = LeaderboardViewState.empty();
-                questViewState = QuestViewState.empty();
-                hudViewState = HudViewState.empty();
-                hasUnreadNews = false;
-            }
-            view.render(model.getState(), currentScreen, currentMenu, authState, gameNavigation,
-                    profileViewState, newsViewState, settingsViewState, leaderboardViewState, collectionViewState,
-                    questViewState, hudViewState, this, hasUnreadNews);
-        }
+        viewSupport.refreshView(this);
     }
 
     public void setScreen(ScreenType screen) {
@@ -223,96 +178,7 @@ public class ControllerManager {
     }
 
     public CommandResult enterMenu(String menuName) {
-        String name = menuName.trim().toLowerCase();
-
-        if (currentScreen == ScreenType.REGISTER && name.equals("login")) {
-            setScreen(ScreenType.LOGIN);
-            return new CommandResult("Entered login menu.", true);
-        }
-
-        if (currentScreen == ScreenType.MAIN) {
-            if (name.equals("game")) {
-                if (!storage.isLoggedIn()) {
-                    return new CommandResult("You must be logged in to play.", false);
-                }
-                if (currentMenu != MenuType.NONE) {
-                    return new CommandResult("Close the current menu first.", false);
-                }
-                gameNavigation.reset();
-                gameNavigation.phase = Phase.CHAPTER;
-                setScreen(ScreenType.LEVEL_SELECTOR);
-                return new CommandResult("Entered game menu. Select a chapter.", true);
-            }
-            if (name.equals("settings") || name.equals("setting")) {
-                return openMainMenu(MenuType.SETTING, "settings");
-            }
-            if (name.equals("news")) {
-                return openMainMenu(MenuType.NEWS, "news");
-            }
-            if (name.equals("profile")) {
-                return openMainMenu(MenuType.PROFILE, "profile");
-            }
-        }
-
-        if (currentScreen == ScreenType.LEVEL_SELECTOR
-                && gameNavigation.phase == Phase.CHAPTER) {
-            if (name.equals("travel-log") || name.equals("travel log")) {
-                return openTravelLogMenu();
-            }
-            if (name.equals("collection")) {
-                CommandResult openCheck = collectionController.requireCanOpenCollection();
-                if (openCheck != null) {
-                    return openCheck;
-                }
-                collectionController.onOpened();
-                setScreen(ScreenType.COLLECTION);
-                return new CommandResult("Opened collection. Default tab: plants.", true);
-            }
-            if (name.equals("leaderboard")) {
-                CommandResult loggedInCheck = requireLoggedIn();
-                if (loggedInCheck != null) {
-                    return loggedInCheck;
-                }
-                setScreen(ScreenType.LEADERBOARD);
-                return new CommandResult("Opened leaderboard.", true);
-            }
-            if (name.equals("greenhouse") || name.equals("green-house") || name.equals("green house")) {
-                CommandResult loggedInCheck = requireLoggedIn();
-                if (loggedInCheck != null) {
-                    return loggedInCheck;
-                }
-                greenhouseController.hidePots();
-                setScreen(ScreenType.GREEN_HOUSE);
-                return new CommandResult("Opened greenhouse.", true);
-            }
-        }
-
-        if (currentScreen == ScreenType.LEVEL_SELECTOR
-                && currentMenu == MenuType.TRAVEL_LOG
-                && (name.equals("minigames") || name.equals("minigame"))) {
-            return gameMenuController.enterMinigames();
-        }
-
-        return new CommandResult("Cannot enter menu from here.", false);
-    }
-
-    private CommandResult openMainMenu(MenuType menu, String label) {
-        CommandResult screenCheck = requireScreen(ScreenType.MAIN);
-        if (screenCheck != null) {
-            return screenCheck;
-        }
-        CommandResult loggedInCheck = requireLoggedIn();
-        if (loggedInCheck != null) {
-            return loggedInCheck;
-        }
-        if (currentMenu != MenuType.NONE && currentMenu != menu) {
-            return new CommandResult("Close the current menu first.", false);
-        }
-        if (menu == MenuType.NEWS) {
-            newsMenuController.onMenuOpened();
-        }
-        currentMenu = menu;
-        return new CommandResult("Opened " + label + " menu.", true);
+        return menuSupport.enterMenu(this, menuName);
     }
 
     public CommandResult openTravelLogMenu() {
@@ -343,79 +209,7 @@ public class ControllerManager {
     }
 
     public CommandResult exitMenu() {
-        switch (currentScreen) {
-            case MAIN:
-                if (currentMenu != MenuType.NONE) {
-                    if (currentMenu == MenuType.NEWS) {
-                        newsMenuController.onMenuClosed();
-                    }
-                    currentMenu = MenuType.NONE;
-                    refreshView();
-                    return new CommandResult("Returned to main menu.", true);
-                }
-                return new CommandResult("Cannot exit this menu.", false);
-            case LOGIN:
-                authController.clearPasswordResetState();
-                authController.clearPendingRegistration();
-                setScreen(ScreenType.REGISTER);
-                return new CommandResult("Returned to register menu.", true);
-            case LEVEL_SELECTOR:
-                if (currentMenu != MenuType.NONE) {
-                    currentMenu = MenuType.NONE;
-                    refreshView();
-                    return new CommandResult("Returned to game menu.", true);
-                }
-                if (gameNavigation.phase == Phase.PLANT) {
-                    if (gameNavigation.pendingMiniGame != null) {
-                        gameNavigation.phase = Phase.MINIGAME;
-                        gameNavigation.pendingMiniGame = null;
-                        gameNavigation.pendingLevel = null;
-                        gameNavigation.pendingSpecialLevel = null;
-                        gameNavigation.selectedPlants.clear();
-                        refreshView();
-                        return new CommandResult("Returned to minigame selection.", true);
-                    }
-                    gameNavigation.phase = Phase.LEVEL;
-                    gameNavigation.selectedPlants.clear();
-                    refreshView();
-                    return new CommandResult("Returned to level selection.", true);
-                }
-                if (gameNavigation.phase == Phase.LEVEL || gameNavigation.phase == Phase.MINIGAME) {
-                    gameNavigation.phase = Phase.CHAPTER;
-                    gameNavigation.selectedChapter = null;
-                    gameNavigation.selectedLevel = 0;
-                    gameNavigation.pendingLevel = null;
-                    gameNavigation.pendingSpecialLevel = null;
-                    gameNavigation.pendingMiniGame = null;
-                    refreshView();
-                    return new CommandResult("Returned to chapter selection.", true);
-                }
-                gameNavigation.reset();
-                setScreen(ScreenType.MAIN);
-                return new CommandResult("Returned to main menu.", true);
-            case SHOP:
-                if (shopController != null) {
-                    shopController.setShopDisplayMode(ShopController.ShopDisplayMode.MENU);
-                }
-                setScreen(ScreenType.GREEN_HOUSE);
-                return new CommandResult("Returned to greenhouse.", true);
-            case GREEN_HOUSE:
-                gameNavigation.phase = Phase.CHAPTER;
-                setScreen(ScreenType.LEVEL_SELECTOR);
-                return new CommandResult("Returned to game menu.", true);
-            case COLLECTION:
-                gameNavigation.phase = Phase.CHAPTER;
-                setScreen(ScreenType.LEVEL_SELECTOR);
-                return new CommandResult("Returned to game menu.", true);
-            case LEADERBOARD:
-                gameNavigation.phase = Phase.CHAPTER;
-                setScreen(ScreenType.LEVEL_SELECTOR);
-                return new CommandResult("Returned to game menu.", true);
-            case GAME:
-                return sessionLifecycleController.returnToLevelSelect();
-            default:
-                return new CommandResult("Cannot exit this menu.", false);
-        }
+        return menuSupport.exitMenu(this);
     }
 
     public CommandResult showCurrentMenu() {
