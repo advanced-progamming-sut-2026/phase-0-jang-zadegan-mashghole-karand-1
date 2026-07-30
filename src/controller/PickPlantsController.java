@@ -1,7 +1,6 @@
 package controller;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import controller.CommandResult.CommandResult;
@@ -68,6 +67,9 @@ public class PickPlantsController {
             if (target == null || target == PlantType.Imitater){
                 return failure("Please choose a valid target plant");
             }
+            if (target.isBowlingExclusive()) {
+                return failure("Bowling plants are only used in Wall-nut Bowling.");
+            }
             gameNavigation.imitatorTarget = target;
         }
         if (gameNavigation.selectedPlants.contains(plantType)) {
@@ -119,7 +121,7 @@ public class PickPlantsController {
         user.gems -= 2;
         gameNavigation.boostedPlants.add(plantType);
         storage.saveProgress();
-        return success(plantType.name +"boosted!");
+        return success(plantType.name +" boosted!");
     }
 
     public CommandResult startGame() {

@@ -93,6 +93,9 @@ public class GameMenuController {
         if (levelNumber < 1 || levelNumber > ChapterCatalog.LEVELS_PER_CHAPTER) {
             return failure("Invalid level number.");
         }
+        if (!gameNavigation.isLevelUnlocked(gameNavigation.selectedChapter, levelNumber)) {
+            return failure("This level is locked. Complete previous levels first.");
+        }
 
         LevelConfig level = ChapterCatalog.getLevel(gameNavigation.selectedChapter, levelNumber);
         if (level == null) {
