@@ -345,7 +345,7 @@ final class ConsoleGridRenderer {
             case "Wall-nut" -> "🧱";
             case "Bowling Wall-nut" -> "🎳";
             case "Bowling Explode-o-nut" -> "💣";
-            case "Giant Bowling Wall-nut" -> "⬤ ";
+            case "Giant Bowling Wall-nut" -> "🪨";
             case "Repeater" -> "🌿";
             case "Cherry Bomb" -> "💥";
             case "Torchwood" -> "🔥";
