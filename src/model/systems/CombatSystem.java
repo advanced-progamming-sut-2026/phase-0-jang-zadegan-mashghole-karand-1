@@ -20,6 +20,7 @@ import model.data.zombie.ZombieType;
 
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 
 public class CombatSystem {
     public EventBus eventBus;
@@ -145,17 +146,24 @@ public class CombatSystem {
         z.abilities.forEach(a -> a.onProjectileHit(z, p));
 
         applyProjectileEffects(state, p, z, freezeProjectilesEnabled);
-
+        if (p instanceof LobbedProjectile lob) {
+            applyLobButter(lob, z);
+        }
         if (z.isIced())
             z.damageIce(p.damage);
 
         else if (p.type != ProjectileType.POISON) {
             new DamageEffect(p.damage).apply(z, state, eventBus, p.sourcePlant);
         }
+        if (p instanceof LobbedProjectile lob) {
+            applyLobSplash(state, eventBus, freezeProjectilesEnabled, lob, z);
+        }
         if (p instanceof PiercingProjectile piercingProjectile) {
-            piercingProjectile.pierceCount--;
+            if (piercingProjectile.pierceCount>0) {
+                piercingProjectile.pierceCount--;
+            }
 
-            if (piercingProjectile.pierceCount <= 0) {
+            if (piercingProjectile.pierceCount == 0) {
                 projIter.remove();
             }
         } else if (p instanceof BouncingProjectile bouncing) {
@@ -182,7 +190,50 @@ public class CombatSystem {
             zombieIter.remove();
         }
     }
-
+    private void applyLobButter(LobbedProjectile lob, Zombie z) {
+        if (lob.butterChance <= 0f) {
+            return;
+        }
+        if (lob.type == ProjectileType.BUTTER) {
+            return;
+        }
+        if (Math.random() < lob.butterChance) {
+            z.stunned = true;
+            z.stunTicks = 30;
+        }
+    }
+    private void applyLobSplash(GameState state, EventBus eventBus, boolean freezeProjectilesEnabled,
+                                LobbedProjectile lob, Zombie primary) {
+        if (lob.aoeRadius <= 0) {
+            return;
+        }
+        int splashDamage = lob.aoeDamage > 0 ? lob.aoeDamage : Math.max(1, lob.damage / 2);
+        int primaryCol = (int) (primary.position.x / GameState.CELL_WIDTH);
+        for (Zombie other : List.copyOf(state.zombies)) {
+            if (!other.isAlive || other == primary) {
+                continue;
+            }
+            int otherCol = (int) (other.position.x / GameState.CELL_WIDTH);
+            if (Math.abs(other.row - primary.row) > lob.aoeRadius) {
+                continue;
+            }
+            if (Math.abs(otherCol - primaryCol) > lob.aoeRadius) {
+                continue;
+            }
+            if (other.isIced()) {
+                other.damageIce(splashDamage);
+            } else {
+                new DamageEffect(splashDamage).apply(other, state, eventBus, lob.sourcePlant);
+            }
+            if (lob.type == ProjectileType.ICE_MELON && freezeProjectilesEnabled) {
+                new FreezeEffect(30).apply(other, state, eventBus, lob.sourcePlant);
+            }
+            if (!other.isAlive) {
+                other.lastHitBy = lob.sourcePlant;
+                other.kill(state);
+            }
+        }
+    }
     private void handlePlantTargetedProjectile(GameState state, EventBus eventBus,
                                                Iterator<Projectile> projIter, Projectile p) {
         Plant target = findPlantAt(state, p.row, p.position.x);
