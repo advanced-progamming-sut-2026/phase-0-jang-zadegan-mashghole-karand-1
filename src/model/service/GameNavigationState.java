@@ -31,6 +31,7 @@ public class GameNavigationState {
     public List<PlantType> unlockedPlants = new ArrayList<>();
     public List<MiniGameType> unlockedMinigames = new ArrayList<>();
     public Map<String, Integer> levelHighScores = new HashMap<>();
+    public Set<String> completedLevelIds = new HashSet<>();
     public PlantType imitatorTarget;
     public   Set<PlantType> boostedPlants = new HashSet<>();
 
@@ -40,6 +41,21 @@ public class GameNavigationState {
             return 0;
         }
         return levelHighScores.getOrDefault(CompletedLevelKey.campaign(chapter, levelNumber), 0);
+    }
+
+    public boolean isLevelUnlocked(ChapterType chapter, int levelNumber) {
+        if (chapter == null || levelNumber < 1) {
+            return false;
+        }
+        if (!unlockedChapters.contains(chapter)) {
+            return false;
+        }
+        if (levelNumber == 1) {
+            return true;
+        }
+        String current = CompletedLevelKey.campaign(chapter, levelNumber);
+        String previous = CompletedLevelKey.campaign(chapter, levelNumber - 1);
+        return completedLevelIds.contains(current) || completedLevelIds.contains(previous);
     }
 
     public void reset() {

@@ -18,9 +18,7 @@ public enum PlantType {
         Threepeater(PlantTypeShooterDefs.threepeater()),
         SnowPea(PlantTypeShooterDefs.snowPea()),
         Rotobaga(PlantTypeShooterDefs.rotobaga()),
-
         SplitPea(PlantTypeShooterDefs.splitPea()),
-
         Citron(PlantTypeShooterDefs.citron()),
         Caulipower(PlantTypeHomingDefs.caulipower()),
         Electric_Blueberry(PlantTypeHomingDefs.electricBlueberry()),

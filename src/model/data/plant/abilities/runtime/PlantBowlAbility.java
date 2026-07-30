@@ -48,7 +48,7 @@ public class PlantBowlAbility implements PlantAbilityConfig {
 
         x += vx;
         y += vy;
-        syncGrid(plant);
+        syncGrid(plant, state);
 
         if (handleEdgeBounce(plant, state, event)) {
             return;
@@ -77,13 +77,12 @@ public class PlantBowlAbility implements PlantAbilityConfig {
         initialized = true;
     }
 
-    private void syncGrid(Plant plant) {
+    private void syncGrid(Plant plant, GameState state) {
         int newCol = (int) (x / GameState.CELL_WIDTH);
         int newRow = (int) (y / GameState.CELL_HEIGHT);
         newCol = Math.max(0, Math.min(GameState.GRID_COLS - 1, newCol));
         newRow = Math.max(0, Math.min(GameState.GRID_ROWS - 1, newRow));
-        plant.col = newCol;
-        plant.row = newRow;
+        state.movePlant(plant, newRow, newCol);
     }
 
     private boolean handleEdgeBounce(Plant plant, GameState state, EventBus event) {
@@ -95,11 +94,11 @@ public class PlantBowlAbility implements PlantAbilityConfig {
             if (mode == BowlingNutMode.GIANT) {
                 vy = 0f;
                 vx = Math.abs(vx) > 0.01f ? Math.abs(vx) : SPEED;
-                syncGrid(plant);
+                syncGrid(plant, state);
                 return false;
             }
             bounceFromWall();
-            syncGrid(plant);
+            syncGrid(plant, state);
             return plant.hp <= 0;
         }
         return false;

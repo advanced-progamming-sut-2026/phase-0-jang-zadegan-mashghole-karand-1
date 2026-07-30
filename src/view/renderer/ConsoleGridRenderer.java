@@ -164,9 +164,15 @@ final class ConsoleGridRenderer {
         Tile tile = state.getBoard().getTile(row, col);
         Plant plant = tile != null ? tile.getPlant() : null;
         Plant lily = tile != null ? tile.getLilyPad() : null;
-        if (plant == null && lily != null) {
-            plant = lily;
-            lily = null;
+        Plant pumpkin = tile != null ? tile.getPumpkin() : null;
+        if (plant == null) {
+            if (pumpkin != null) {
+                plant = pumpkin;
+                pumpkin = null;
+            } else if (lily != null) {
+                plant = lily;
+                lily = null;
+            }
         }
         Zombie zombie = findZombieAt(state, row, col);
         boolean hasProjectile = hasProjectileInCell(state, row, col);
@@ -179,7 +185,7 @@ final class ConsoleGridRenderer {
         String content = switch (layer) {
             case 0 -> buildEntityRow(plant, zombie, hasProjectile);
             case 1 -> buildHealthRow(plant, zombie);
-            default -> buildGroundRow(tile, lily, hasSun, hasSeed, vase, barrel, grave);
+            default -> buildGroundRow(tile, lily, pumpkin, hasSun, hasSeed, vase, barrel, grave);
         };
         content = engine.padVisible(content, CELL_INNER_WIDTH);
         return applyTerrainBg(tile, content);
@@ -215,7 +221,7 @@ final class ConsoleGridRenderer {
         return engine.padVisible(left, 4) + "  " + engine.padVisible(right, 4);
     }
 
-    private String buildGroundRow(Tile tile, Plant lily, boolean hasSun, boolean hasSeed,
+    private String buildGroundRow(Tile tile, Plant lily, Plant pumpkin, boolean hasSun, boolean hasSeed,
             Vase vase, Barrel barrel, Grave grave) {
         StringBuilder row = new StringBuilder();
         if (hasSeed) {
@@ -234,6 +240,8 @@ final class ConsoleGridRenderer {
             row.append("🪦");
         } else if (tile != null && tile.hasBeachPost()) {
             row.append("⚓");
+        } else if (pumpkin != null) {
+            row.append("🎃");
         } else if (lily != null) {
             row.append("🪷");
         } else {
@@ -327,6 +335,9 @@ final class ConsoleGridRenderer {
         if (plant.type == PlantType.Lily_Pad) {
             return "🪷";
         }
+        if (plant.type == PlantType.Pumpkin) {
+            return "🎃";
+        }
         return switch (plant.type.name) {
             case "Sunflower" -> "🌻";
             case "Peashooter" -> "🌱";
@@ -334,7 +345,7 @@ final class ConsoleGridRenderer {
             case "Wall-nut" -> "🧱";
             case "Bowling Wall-nut" -> "🎳";
             case "Bowling Explode-o-nut" -> "💣";
-            case "Giant Bowling Wall-nut" -> "⬤ ";
+            case "Giant Bowling Wall-nut" -> "🪨";
             case "Repeater" -> "🌿";
             case "Cherry Bomb" -> "💥";
             case "Torchwood" -> "🔥";

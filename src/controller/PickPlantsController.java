@@ -1,7 +1,6 @@
 package controller;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import controller.CommandResult.CommandResult;
@@ -67,6 +66,9 @@ public class PickPlantsController {
         if (plantType == PlantType.Imitater){
             if (target == null || target == PlantType.Imitater){
                 return failure("Please choose a valid target plant");
+            }
+            if (target.isBowlingExclusive()) {
+                return failure("Bowling plants are only used in Wall-nut Bowling.");
             }
             gameNavigation.imitatorTarget = target;
         }

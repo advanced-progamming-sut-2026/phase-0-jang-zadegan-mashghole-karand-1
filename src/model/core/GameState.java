@@ -222,6 +222,19 @@ public class GameState implements ReadOnlyGameState {
         return removed;
     }
 
+    public void movePlant(Plant plant, int newRow, int newCol) {
+        if (plant == null) {
+            return;
+        }
+        if (plant.row == newRow && plant.col == newCol) {
+            return;
+        }
+        detachPlantFromTile(plant);
+        plant.row = newRow;
+        plant.col = newCol;
+        attachPlantToTile(plant);
+    }
+
     public void removeDeadPlants() {
         for (int i = plants.size() - 1; i >= 0; i--) {
             Plant plant = plants.get(i);

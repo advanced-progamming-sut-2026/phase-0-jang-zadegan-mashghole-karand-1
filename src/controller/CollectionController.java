@@ -208,6 +208,9 @@ public class CollectionController {
         if (!storage.isPlantUnlocked(type)) {
             return failure(ErrorMessages.PLANT_NOT_IN_COLLECTION.getMessage());
         }
+        if (type.isBowlingExclusive()) {
+            return failure("Bowling plants are only used in Wall-nut Bowling.");
+        }
 
         var user = storage.getCurrentUser();
         if (user == null) {
