@@ -64,7 +64,7 @@ public class ControllerManager {
         this.settingController = new SettingController(this, storage);
         this.newsMenuController = new NewsMenuController(this, storage);
         this.questMenuController = new QuestMenuController(this);
-        new AppEventHandler(eventBus, storage).register();
+        new AppEventHandler(eventBus, storage,this).register();
         this.gameMenuController = new GameMenuController(this, model, storage, gameNavigation);
         this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
         this.collectionController = new CollectionController(this, storage);

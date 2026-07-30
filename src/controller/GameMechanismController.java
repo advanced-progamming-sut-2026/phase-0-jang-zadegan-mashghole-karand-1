@@ -1,5 +1,6 @@
 package controller;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import controller.CommandResult.CommandResult;
@@ -15,6 +16,7 @@ import model.data.plant.PlantType;
 import model.data.seed.PlantSeedDrop;
 import model.data.vase.Vase;
 import model.data.vase.VaseContentType;
+import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.rule.rules.specialLevel.PlantWhatYouGetRules;
 import model.storage.user.User;
@@ -425,6 +427,90 @@ public class GameMechanismController {
                         + plant.hp + "/" + plant.totalHP)
                 .collect(Collectors.joining("; "));
         return success(status);
+    }
+
+    public CommandResult showZombiesInfo() {
+        CommandResult screenCheck = requireGameScreen();
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+
+        List<Zombie> alive = gameState.zombies.stream()
+                .filter(z -> z != null && z.isAlive)
+                .toList();
+
+        if (alive.isEmpty()) {
+            return success("No alive zombies.");
+        }
+
+        for (int i = 0; i < alive.size(); i++) {
+            if (i > 0) {
+                controllerManager.sendMessage("");
+            }
+            for (String line : formatZombieInfo(alive.get(i)).split("\\R")) {
+                controllerManager.sendMessage(line);
+            }
+        }
+
+        return success("Zombies info listed.");
+    }
+
+    private String formatZombieInfo(model.data.zombie.Zombie z) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(z.type.name).append(":\n");
+        sb.append("position: ").append(z.row).append(", ").append(z.col).append('\n');
+        sb.append("health: ").append(z.hp).append('\n');
+
+        sb.append("armor:");
+        if (z.armor != null && z.armor.isIntact()) {
+            sb.append('\n');
+            sb.append("     ").append(armorLabel(z.armor.type))
+                    .append(": ").append(z.armor.currentHealth);
+        } else {
+            sb.append(" none");
+        }
+        sb.append('\n');
+
+        sb.append("effects:");
+        boolean any = false;
+        if (z.frozenTicks > 0 || z.isFrozen) {
+            int ticks = Math.max(z.frozenTicks, z.isFrozen ? 1 : 0);
+            int seconds = (int) Math.ceil(ticks / (double) GameLoop.TICKS_PER_SECOND);
+            sb.append("\n     frozen: ").append(seconds).append('s');
+            any = true;
+        }
+        if (z.isIced()) {
+            sb.append("\n     iced: ").append(z.getIceHP()).append(" hp");
+            any = true;
+        }
+        if (z.stunned && z.stunTicks > 0) {
+            int seconds = (int) Math.ceil(z.stunTicks / (double) GameLoop.TICKS_PER_SECOND);
+            sb.append("\n     stunned: ").append(seconds).append('s');
+            any = true;
+        }
+        if (z.isHypnotized) {
+            sb.append("\n     hypnotized");
+            any = true;
+        }
+        if (z.isEating) {
+            sb.append("\n     eating");
+            any = true;
+        }
+        if (!any) {
+            sb.append(" none");
+        }
+        return sb.toString();
+    }
+
+    private String armorLabel(model.data.zombie.armor.config.ZombieArmorType type) {
+        return switch (type) {
+            case CONE -> "cone";
+            case BUCKET -> "bucket";
+            case BRICK -> "brick";
+            case NEWSPAPER -> "newspaper";
+            case KNIGHT_ARMOR -> "knightArmor";
+            case SARCOPHAGUS -> "sarcophagus";
+        };
     }
 
     public CommandResult showTileStatus(int row, int col) {

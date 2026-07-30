@@ -248,6 +248,7 @@ public class HudViewState {
                         "pluck plant -l (r,c)",
                         "feed plant -l (r,c)",
                         "show plants status",
+                        "zombies info",
                         "advance time -t <n> ticks",
                         "menu exit"),
                 true);

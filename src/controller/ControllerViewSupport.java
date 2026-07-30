@@ -42,7 +42,8 @@ final class ControllerViewSupport {
                 .toList();
         gameNavigation.unlockedMinigames = storage.getUnlockedMinigames();
         gameNavigation.levelHighScores = new java.util.HashMap<>(storage.getLevelHighScores());
-        gameNavigation.completedLevelIds = new java.util.HashSet<>(storage.getCurrentUser().gameProgress.getCompletedLevelIds());
+        gameNavigation.completedLevelIds = new java.util.HashSet<>(
+                storage.getCurrentUser().gameProgress.getCompletedLevelIds());
         manager.profileViewState = ProfileViewState.fromUser(storage.getCurrentUser());
         manager.settingsViewState = SettingsViewState.fromUser(storage.getCurrentUser());
         manager.leaderboardViewState = manager.getLeaderboardMenuController().getViewState();
