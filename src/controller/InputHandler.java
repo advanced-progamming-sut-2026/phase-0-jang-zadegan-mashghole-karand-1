@@ -346,6 +346,10 @@ public class InputHandler {
             handle(game.showPlantsStatus());
             return true;
         }
+        if (Commands.ZOMBIES_INFO.getMatcher(input).matches()) {
+            handle(game.showZombiesInfo());
+            return true;
+        }
         if ((matcher = Commands.SHOW_TILE_STATUS.getMatcher(input)).matches()) {
             handle(game.showTileStatus(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y"))));
             return true;
