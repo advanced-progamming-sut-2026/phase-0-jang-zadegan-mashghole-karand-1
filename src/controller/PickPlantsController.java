@@ -119,7 +119,7 @@ public class PickPlantsController {
         user.gems -= 2;
         gameNavigation.boostedPlants.add(plantType);
         storage.saveProgress();
-        return success(plantType.name +"boosted!");
+        return success(plantType.name +" boosted!");
     }
 
     public CommandResult startGame() {

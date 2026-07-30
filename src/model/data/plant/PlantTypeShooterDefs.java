@@ -224,19 +224,12 @@ final class PlantTypeShooterDefs {
                                                 PlantShootAbility.builder().damage(40).cooldown(2f)
                                                                 .projectile(ProjectileType.BOUNCING_AQUA)
                                                                 .pattern(new ShootPattern(Direction.FORWARD, 0, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(80).cooldown(5f)
-                                                                .projectile(ProjectileType.BOUNCING_ORANGE)
-                                                                .pattern(new ShootPattern(Direction.FORWARD, 0, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(120).cooldown(10f)
-                                                                .projectile(ProjectileType.BOUNCING_BLUE)
-                                                                .pattern(new ShootPattern(Direction.FORWARD, 0, 1))
-                                                                .build()),
-                                new PlantRapidFireEffect(1, 1f, Arrays.asList(
+                                                                .build()
+                                                ),
+                                new PlantRapidFireEffect(3, 1f, Arrays.asList(
                                                 PlantShootAbility.builder().damage(600).cooldown(1.5f)
                                                                 .projectile(ProjectileType.SUPER_BULB)
-                                                                .pattern(new ShootPattern(Direction.FORWARD, 0, 1))
+                                                                .pattern(new ShootPattern(Direction.FORWARD, 0, 3))
                                                                 .build())),
                                 new PlantLevelUpgrades(
                                                 new PlantLevelUpgrade(2, PlantStatBonus.REGEN, -1),
