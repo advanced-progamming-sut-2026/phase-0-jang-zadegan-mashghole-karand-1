@@ -182,6 +182,9 @@ public class ShopController {
         if (!user.collection.isPlantUnlocked(plantType)) {
             return failure("Plant is not unlocked.");
         }
+        if (plantType.isBowlingExclusive()) {
+            return failure("Bowling plants are only used in Wall-nut Bowling.");
+        }
         for (int i = 0; i < quantity; i++) {
             user.addSeedPackets(plantType, item.getPurchaseUnit());
         }

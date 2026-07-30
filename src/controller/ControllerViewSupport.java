@@ -37,7 +37,9 @@ final class ControllerViewSupport {
         var storage = manager.getStorage();
         var gameNavigation = manager.getGameNavigation();
         gameNavigation.unlockedChapters = storage.getUnlockedChapters();
-        gameNavigation.unlockedPlants = storage.getUnlockedPlants();
+        gameNavigation.unlockedPlants = storage.getUnlockedPlants().stream()
+                .filter(p -> p != null && !p.isBowlingExclusive())
+                .toList();
         gameNavigation.unlockedMinigames = storage.getUnlockedMinigames();
         gameNavigation.levelHighScores = new java.util.HashMap<>(storage.getLevelHighScores());
         manager.profileViewState = ProfileViewState.fromUser(storage.getCurrentUser());
