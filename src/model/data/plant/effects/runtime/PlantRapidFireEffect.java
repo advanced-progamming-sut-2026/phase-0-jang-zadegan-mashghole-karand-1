@@ -64,7 +64,7 @@ public class PlantRapidFireEffect implements PlantEffectConfig {
                 a.onTick(plant, state, event);
             }
         }
-        fireCooldown = Math.max(0, (int) (GameLoop.TICKS_PER_SECOND / fireRatePerSec) - 1);
+        fireCooldown = Math.max(0, (int) (GameLoop.TICKS_PER_SECOND * fireRatePerSec) - 1);
     }
 
     @Override
