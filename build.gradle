@@ -31,3 +31,9 @@ tasks.register('runConsole') {
     description = 'Run the terminal-based game from the repo root.'
     dependsOn ':core:runConsole'
 }
+
+tasks.register('runDesktop') {
+    group = 'application'
+    description = 'Run the LibGDX desktop client from the repo root.'
+    dependsOn ':desktop:run'
+}

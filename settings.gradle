@@ -1,3 +1,4 @@
 rootProject.name = 'pvz2'
 
 include 'core'
+include 'desktop'

@@ -6,22 +6,11 @@ Console (terminal) version:
 ./gradlew :core:run
 ```
 
-Or:
+Desktop (LibGDX graphics) version:
 
 ```bash
-./gradlew :core:runConsole
+./gradlew :desktop:run
 ```
-
-## Project layout
-
-```text
-core/          # game code (model, controller, view, Application)
-assets/        # graphics assets for LibGDX / libPVZ (empty for now)
-data/          # local SQLite DB (gitignored)
-docs/          # project docs / UML
-```
-
-Configure external PVZ2 asset path later via `pvz.assets` in `gradle.properties`.
 
 ## Contributors
 
