@@ -1,7 +1,15 @@
 ## How to run the app?
 
+Console (terminal) version:
+
 ```bash
-mvn compile exec:java
+./gradlew :core:run
+```
+
+Desktop (LibGDX graphics) version:
+
+```bash
+./gradlew :desktop:run
 ```
 
 ## Contributors

@@ -26,7 +26,8 @@ final class ConsoleAuthScreens {
                 sb.append(engine.getHeaderBox(title, GREEN));
                 sb.append("\n");
                 sb.append("  " + CYAN + "1." + RESET + " Register: " + GREEN
-                                + "register -u <username> -p <password> <password_confirm> -n <nickname> -e <email> -g <gender>"
+                                + "register -u <username> -p <password>"+ 
+                                "<password_confirm> -n <nickname> -e <email> -g <gender>"
                                 + RESET + "\n");
                 sb.append("  " + CYAN + "2." + RESET + " Pick Security Question: " + GREEN
                                 + "pick question -q <question_number> -a <answer> -c <answer_confirm>" + RESET + "\n");

@@ -1,0 +1,39 @@
+plugins {
+    id 'base'
+}
+
+allprojects {
+    group = 'pvz'
+    version = '1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+}
+
+tasks.register('runConsole') {
+    group = 'application'
+    description = 'Run the terminal-based game from the repo root.'
+    dependsOn ':core:runConsole'
+}
+
+tasks.register('runDesktop') {
+    group = 'application'
+    description = 'Run the LibGDX desktop client from the repo root.'
+    dependsOn ':desktop:run'
+}

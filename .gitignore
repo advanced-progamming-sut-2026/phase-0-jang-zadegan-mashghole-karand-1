@@ -1,8 +1,12 @@
 target/
 build/
 .gradle/
+out/
+bin/
 
 *.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
 
 .idea/
 *.iml
@@ -10,5 +14,8 @@ build/
 .vscode/
 *.code-workspace
 
-docs/doc.pdf
+docs/
+docs/
 /data/
+
+assets/

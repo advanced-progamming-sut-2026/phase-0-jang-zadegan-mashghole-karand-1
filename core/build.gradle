@@ -1,0 +1,31 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation 'org.xerial:sqlite-jdbc:3.53.2.0'
+
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+    implementation "com.github.pizpizi:libPVZ:$libPvzVersion"
+    implementation "com.github.pizpizi:pvz-skin:$pvzSkinVersion"
+    implementation "com.github.raeleus.TenPatch:tenpatch:$tenPatchVersion"
+}
+
+application {
+    mainClass = 'Application'
+}
+
+tasks.named('run', JavaExec).configure {
+    workingDir = rootProject.projectDir
+    standardInput = System.in
+}
+
+tasks.register('runConsole', JavaExec) {
+    group = 'application'
+    description = 'Run the terminal-based game (same as run).'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'Application'
+    workingDir = rootProject.projectDir
+    standardInput = System.in
+}

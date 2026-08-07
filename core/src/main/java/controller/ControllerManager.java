@@ -245,11 +245,15 @@ public class ControllerManager {
     }
 
     public void sendMessage(String message) {
-        view.showMessage(message);
+        if (view != null) {
+            view.showMessage(message);
+        }
     }
 
     public void showError(String message) {
-        view.showError(message);
+        if (view != null) {
+            view.showError(message);
+        }
     }
 
     public boolean scrollMessages(int olderDelta) {
