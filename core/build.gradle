@@ -1,0 +1,26 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation 'org.xerial:sqlite-jdbc:3.53.2.0'
+}
+
+application {
+    mainClass = 'Application'
+}
+
+// Keep CWD at repo root so relative paths like data/game.db and assets/ resolve.
+tasks.named('run', JavaExec).configure {
+    workingDir = rootProject.projectDir
+    standardInput = System.in
+}
+
+tasks.register('runConsole', JavaExec) {
+    group = 'application'
+    description = 'Run the terminal-based game (same as run).'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'Application'
+    workingDir = rootProject.projectDir
+    standardInput = System.in
+}

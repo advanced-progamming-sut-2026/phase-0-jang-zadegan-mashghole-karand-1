@@ -1,0 +1,3 @@
+rootProject.name = 'pvz2'
+
+include 'core'
