@@ -182,6 +182,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
                 spawnBullets(plant, state, targetRow);
             }
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
+            plant.startAttackAnim();
         }
     }
 
@@ -314,4 +315,11 @@ public class PlantShootAbility implements PlantAbilityConfig {
     public void resetCooldown() {
         currentCooldown = 0;
     }
+//    public int getChargeLevel() {
+//        int five = 5 * GameLoop.TICKS_PER_SECOND;
+//        int ten  = 10 * GameLoop.TICKS_PER_SECOND;
+//        if (chargeTicks >= ten) return 2;
+//        if (chargeTicks >= five) return 1;
+//        return 0;
+//    }
 }

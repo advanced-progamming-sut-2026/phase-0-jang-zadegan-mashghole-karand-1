@@ -80,6 +80,7 @@ public class PlantLobAbility implements PlantAbilityConfig {
         if (!targets.isEmpty()) {
             spawnLobProjectiles(plant, state, targets);
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
+            plant.startAttackAnim();
         }
     }
 

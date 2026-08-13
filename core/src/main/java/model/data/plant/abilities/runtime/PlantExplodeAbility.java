@@ -76,6 +76,7 @@ public class PlantExplodeAbility implements PlantAbilityConfig {
         }
         if (!shouldActivate(plant,state)) return;
         hasExploded = true;
+        plant.startAttackAnim();
         plant.hp = 0;
         plant.isAlive = false;
         List<Zombie> targets = findTarget(state , plant);
