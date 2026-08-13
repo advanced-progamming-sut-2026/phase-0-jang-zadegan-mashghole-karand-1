@@ -84,6 +84,8 @@ public class ModelManager {
         plantAbilitySystem.update(state, eventBus);
         for (Plant plant : state.plants) {
             plant.tickPlantFood(state, eventBus);
+            plant.tickAttackAnim();
+
         }
         zombieAbilitySystem.update(state, eventBus);
         if (ruleEngine.shouldDropSkySun()) {

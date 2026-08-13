@@ -68,6 +68,7 @@ public class PlantSunProduceAbility implements PlantAbilityConfig {
         Sun sun = new Sun(plant.row, new Position(plant.getX(), plant.getY()), baseAmount, plant);
         state.sunDrops.add(sun);
         waitingForCollection = true;
+        plant.startAttackAnim();
         if (plant.type == PlantType.GoldBloom){
             plant.isAlive = false;
         }
@@ -87,5 +88,8 @@ public class PlantSunProduceAbility implements PlantAbilityConfig {
 
     public void setDoubleSunChance(int change) {
         this.doubleSunDropChance = change;
+    }
+    public int getStage() {
+        return stage;
     }
 }

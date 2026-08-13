@@ -39,6 +39,7 @@ public class PlantMagnetAbility implements PlantAbilityConfig {
             metalZombie.armor.currentHealth = 0;
             metalZombie.armor.isIntact = false;
             cooldown = (int) (plant.actionInterval * TICKS_PER_SECOND);
+            plant.startAttackAnim();
         }
     }
 

@@ -70,6 +70,7 @@ public class PlantMeleeAbility implements PlantAbilityConfig {
         for (Zombie z : targets) {
             for (HitEffect e : onHit) e.apply(z, state, event,plant.type);
         }
+        plant.startAttackAnim();
         if (digestTicksOnKill > 0) {
             digestTicksRemaining = digestTicksOnKill;
         } else {
