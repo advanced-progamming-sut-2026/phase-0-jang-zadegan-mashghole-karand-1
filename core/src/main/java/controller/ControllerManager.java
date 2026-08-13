@@ -12,11 +12,12 @@ import model.storage.StorageManager;
 import model.storage.user.User;
 import view.MenuType;
 import view.ScreenType;
+import view.ViewFacade;
 import view.ViewManager;
 
 public class ControllerManager {
     private ModelManager model;
-    ViewManager view;
+    ViewFacade view;
     private GameLoop gameLoop;
     private final StorageManager storage;
 
@@ -80,7 +81,7 @@ public class ControllerManager {
         gameMechanismController = new GameMechanismController(this, gameLoop, model);
     }
 
-    public void setView(ViewManager view) {
+    public void setView(ViewFacade view) {
         this.view = view;
     }
 

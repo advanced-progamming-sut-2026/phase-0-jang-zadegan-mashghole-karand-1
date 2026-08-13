@@ -3,12 +3,13 @@ package controller;
 import model.service.*;
 import view.MenuType;
 import view.ScreenType;
+import view.ViewFacade;
 import view.ViewManager;
 
 final class ControllerViewSupport {
 
     void refreshView(ControllerManager manager) {
-        ViewManager view = manager.view;
+        ViewFacade view = manager.view;
         if (view == null) {
             return;
         }
