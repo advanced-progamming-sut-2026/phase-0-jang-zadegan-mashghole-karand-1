@@ -12,11 +12,11 @@ import model.storage.StorageManager;
 import model.storage.user.User;
 import view.MenuType;
 import view.ScreenType;
-import view.ViewManager;
+import view.ViewFacade;
 
 public class ControllerManager {
     private ModelManager model;
-    ViewManager view;
+    ViewFacade view;
     private GameLoop gameLoop;
     private final StorageManager storage;
 
@@ -64,7 +64,7 @@ public class ControllerManager {
         this.settingController = new SettingController(this, storage);
         this.newsMenuController = new NewsMenuController(this, storage);
         this.questMenuController = new QuestMenuController(this);
-        new AppEventHandler(eventBus, storage,this).register();
+        new AppEventHandler(eventBus, storage, this).register();
         this.gameMenuController = new GameMenuController(this, model, storage, gameNavigation);
         this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
         this.collectionController = new CollectionController(this, storage);
@@ -80,7 +80,7 @@ public class ControllerManager {
         gameMechanismController = new GameMechanismController(this, gameLoop, model);
     }
 
-    public void setView(ViewManager view) {
+    public void setView(ViewFacade view) {
         this.view = view;
     }
 
