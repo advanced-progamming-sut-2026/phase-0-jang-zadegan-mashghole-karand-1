@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import model.core.ReadOnlyGameState;
 import model.data.plant.Plant;
+import model.data.plant.abilities.config.PlantAbilityConfig;
+import model.data.plant.abilities.runtime.PlantSunProduceAbility;
 import model.data.zombie.Zombie;
 import pvz.libpvz.pam.ClipRef;
 import pvz.libpvz.pam.PamPlayer;
@@ -51,7 +53,21 @@ public final class LawnRenderer {
         if (visual == null) {
             return;
         }
+        String desiredClip = visual.idleClip;
+        if (plant.isPlantFoodActive && visual.plantFoodClip!=null) {
+            desiredClip = visual.plantFoodClip;
+        }else if (isPlayingAction(plant)  && visual.attackClip != null) {
+            desiredClip = visual.attackClip;
+        }
+        if (desiredClip != null && desiredClip.endsWith("_stage")) {
+            desiredClip = desiredClip + plant.getGrowthStage();
+        }
+
         EntityAnimState anim = animStates.getOrCreate(animKey(1, plant.instanceId), visual.idleClip);
+        if (!desiredClip.equals(anim.clipName)) {
+            anim.clipName = desiredClip;
+            anim.stateTime = 0f;
+        }
         ClipRef clip = assets.clip(visual.pamPath, anim.clipName);
         if (clip == null) {
             return;
@@ -60,7 +76,9 @@ public final class LawnRenderer {
         float y = layout.cellCenterY(plant.row);
         player.draw(batch, clip, anim.stateTime, x, y, true);
     }
-
+    private boolean isPlayingAction(Plant plant) {
+       return plant.isAttacking();
+    }
     private void drawZombie(SpriteBatch batch, AssetContext assets, PamPlayer player, Zombie zombie) {
         ZombieVisualDef visual = catalog.zombie(zombie.type);
         if (visual == null) {
