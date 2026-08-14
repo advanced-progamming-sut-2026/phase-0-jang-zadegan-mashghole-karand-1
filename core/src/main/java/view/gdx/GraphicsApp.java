@@ -13,6 +13,7 @@ import view.gdx.catalog.DefaultVisualCatalog;
 import view.gdx.catalog.VisualCatalog;
 import view.gdx.lawn.LawnLayout;
 import view.gdx.lawn.LawnRenderer;
+import view.gdx.ui.MenuBackdrop;
 import view.gdx.ui.UiNavigator;
 
 public final class GraphicsApp extends ApplicationAdapter {
@@ -24,6 +25,7 @@ public final class GraphicsApp extends ApplicationAdapter {
     private UiNavigator ui;
     private VisualCatalog catalog;
     private AssetContext assets;
+    private MenuBackdrop menuBackdrop;
     private LawnLayout lawnLayout;
     private LawnRenderer lawnRenderer;
     private AnimStateStore animStates;
@@ -35,17 +37,21 @@ public final class GraphicsApp extends ApplicationAdapter {
         worldViewport = new FitViewport(1280, 720, camera);
         batch = new SpriteBatch();
 
+        catalog = new DefaultVisualCatalog();
+        assets = new AssetContext(catalog);
+        menuBackdrop = new MenuBackdrop();
+        menuBackdrop.bind(assets);
+
         app = DesktopApp.create();
         ui = app.navigator();
 
-        catalog = new DefaultVisualCatalog();
-        assets = new AssetContext(catalog);
         lawnLayout = new LawnLayout();
         animStates = new AnimStateStore();
         visibilityResolver = new VisibilityResolver();
         lawnRenderer = new LawnRenderer(catalog, lawnLayout, animStates, visibilityResolver);
 
         Gdx.app.log("GraphicsApp", "ready assets=" + assets.status()
+                + " backdrop=" + menuBackdrop.ready()
                 + " screen=" + app.controller().getCurrentScreen());
     }
 
@@ -53,6 +59,9 @@ public final class GraphicsApp extends ApplicationAdapter {
     public void render() {
         float dt = Gdx.graphics.getDeltaTime();
         assets.update();
+        if (!menuBackdrop.ready()) {
+            menuBackdrop.bind(assets);
+        }
         ui.act(dt);
 
         Gdx.gl.glClearColor(0.08f, 0.1f, 0.14f, 1f);
@@ -64,6 +73,8 @@ public final class GraphicsApp extends ApplicationAdapter {
             batch.begin();
             lawnRenderer.render(batch, assets, app.gameState(), dt);
             batch.end();
+        } else {
+            menuBackdrop.render(batch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
 
         ui.draw();

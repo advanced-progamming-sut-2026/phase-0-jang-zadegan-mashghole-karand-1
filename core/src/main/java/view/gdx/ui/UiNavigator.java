@@ -17,6 +17,8 @@ import view.ScreenType;
 import view.gdx.ui.screens.GameScreenShell;
 import view.gdx.ui.screens.PlaceholderOverlayScreen;
 import view.gdx.ui.screens.PlaceholderScreen;
+import view.gdx.ui.screens.auth.LoginScreen;
+import view.gdx.ui.screens.auth.RegisterScreen;
 
 public final class UiNavigator implements Disposable {
     private final Map<ScreenType, UiScreen> screens = new EnumMap<>(ScreenType.class);
@@ -42,7 +44,12 @@ public final class UiNavigator implements Disposable {
     }
 
     private void registerDefaults() {
+        screens.put(ScreenType.LOGIN, new LoginScreen());
+        screens.put(ScreenType.REGISTER, new RegisterScreen());
         for (ScreenType type : ScreenType.values()) {
+            if (screens.containsKey(type)) {
+                continue;
+            }
             if (type == ScreenType.GAME) {
                 screens.put(type, new GameScreenShell());
             } else {
@@ -70,6 +77,13 @@ public final class UiNavigator implements Disposable {
         activeScreen.show(context);
         syncOverlay(context);
         syncGameLoop(context.screen);
+        int width = Math.max(1, Gdx.graphics.getWidth());
+        int height = Math.max(1, Gdx.graphics.getHeight());
+        activeScreen.resize(width, height);
+        if (activeOverlay != null) {
+            activeOverlay.resize(width, height);
+        }
+        toastStage.getViewport().update(width, height, true);
         updateInputProcessors();
     }
 
