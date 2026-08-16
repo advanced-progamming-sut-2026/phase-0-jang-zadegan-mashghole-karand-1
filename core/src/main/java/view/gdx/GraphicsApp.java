@@ -42,7 +42,7 @@ public final class GraphicsApp extends ApplicationAdapter {
         menuBackdrop = new MenuBackdrop();
         menuBackdrop.bind(assets);
 
-        app = DesktopApp.create();
+        app = DesktopApp.create(assets);
         ui = app.navigator();
 
         lawnLayout = new LawnLayout();

@@ -9,6 +9,7 @@ import model.core.GameLoop;
 import model.core.ReadOnlyGameState;
 import model.storage.SqlStorageManager;
 import view.ScreenType;
+import view.gdx.AssetContext;
 import view.gdx.ui.DesktopViewFacade;
 import view.gdx.ui.UiNavigator;
 
@@ -30,7 +31,7 @@ public final class DesktopApp {
         this.viewFacade = viewFacade;
     }
 
-    public static DesktopApp create() {
+    public static DesktopApp create(AssetContext assets) {
         EventBus eventBus = new EventBus();
         GameLoop gameLoop = new GameLoop();
         SqlStorageManager storage = new SqlStorageManager();
@@ -38,7 +39,7 @@ public final class DesktopApp {
         ControllerManager controller = new ControllerManager(model, eventBus, gameLoop, storage);
 
         UiNavigator navigator = new UiNavigator(gameLoop);
-        DesktopViewFacade viewFacade = new DesktopViewFacade(navigator);
+        DesktopViewFacade viewFacade = new DesktopViewFacade(navigator,assets);
         controller.setView(viewFacade);
         viewFacade.initialize();
         controller.start();

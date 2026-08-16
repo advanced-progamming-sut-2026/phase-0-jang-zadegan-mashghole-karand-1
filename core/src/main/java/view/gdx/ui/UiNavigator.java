@@ -17,7 +17,9 @@ import view.ScreenType;
 import view.gdx.ui.screens.GameScreenShell;
 import view.gdx.ui.screens.PlaceholderOverlayScreen;
 import view.gdx.ui.screens.PlaceholderScreen;
+import view.gdx.ui.screens.auth.LevelSelectorScreen;
 import view.gdx.ui.screens.auth.LoginScreen;
+import view.gdx.ui.screens.auth.MainScreen;
 import view.gdx.ui.screens.auth.RegisterScreen;
 
 public final class UiNavigator implements Disposable {
@@ -46,6 +48,8 @@ public final class UiNavigator implements Disposable {
     private void registerDefaults() {
         screens.put(ScreenType.LOGIN, new LoginScreen());
         screens.put(ScreenType.REGISTER, new RegisterScreen());
+        screens.put(ScreenType.MAIN , new MainScreen());
+        screens.put(ScreenType.LEVEL_SELECTOR , new LevelSelectorScreen());
         for (ScreenType type : ScreenType.values()) {
             if (screens.containsKey(type)) {
                 continue;
