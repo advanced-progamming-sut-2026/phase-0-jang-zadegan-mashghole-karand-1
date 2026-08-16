@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Disposable;
 
 import pvz.libpvz.pam.ClipRef;
@@ -67,6 +68,13 @@ public final class AssetContext implements Disposable {
         }
         String key = pamPath + "#" + clipName;
         return clipCache.computeIfAbsent(key, ignored -> pamPlayer.getClip(pamPath, clipName));
+    }
+
+    public TextureRegion region(String imageId) {
+        if (textures == null || imageId == null) {
+            return null;
+        }
+        return textures.region(imageId);
     }
 
     public PamPlayer pamPlayer() {

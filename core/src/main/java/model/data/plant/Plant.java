@@ -7,6 +7,7 @@ import model.core.EventBus;
 import model.core.GameLoop;
 import model.core.GameState;
 import model.data.plant.abilities.config.PlantAbilityConfig;
+import model.data.plant.abilities.runtime.PlantSunProduceAbility;
 import model.data.plant.effects.config.PlantEffectConfig;
 import model.data.plant.stuns.PlantStun;
 import model.data.plant.upgrades.PlantUpgradeState;
@@ -53,6 +54,7 @@ public class Plant {
 
     private PlantStun activeStun;
     public final PlantUpgradeState upgradeState;
+    public int attackAnimTicks = 0;
 
     public Plant(PlantType type, int row, int col, int level, EventBus bus) {
         this.instanceId = nextId++;
@@ -252,5 +254,24 @@ public class Plant {
             activeStun.onHitByAlly(this, damage);
             return;
         }
+    }
+    public int getGrowthStage() {
+        for (PlantAbilityConfig ability : abilities) {
+            if (ability instanceof PlantSunProduceAbility sun) {
+                return sun.getStage();
+            }
+        }
+        return 0;
+    }
+    public boolean isAttacking() {
+        return attackAnimTicks > 0;
+    }
+
+    public void startAttackAnim() {
+        attackAnimTicks = GameLoop.TICKS_PER_SECOND / 2;
+    }
+
+    public void tickAttackAnim() {
+        if (attackAnimTicks > 0) attackAnimTicks--;
     }
 }

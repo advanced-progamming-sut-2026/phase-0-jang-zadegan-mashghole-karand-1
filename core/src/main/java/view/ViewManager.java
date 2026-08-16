@@ -7,7 +7,7 @@ import model.service.*;
 import model.storage.user.User;
 import view.renderer.Renderer;
 
-public class ViewManager {
+public class ViewManager implements ViewFacade {
     private final Renderer renderer;
     private final InputListener inputListener;
 

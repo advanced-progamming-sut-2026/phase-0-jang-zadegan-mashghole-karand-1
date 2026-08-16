@@ -84,6 +84,7 @@ public class PlantHomingAbility implements PlantAbilityConfig {
                     target, plant.type);
             state.projectiles.add(pj);
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
+            plant.startAttackAnim();
         }
     }
 
