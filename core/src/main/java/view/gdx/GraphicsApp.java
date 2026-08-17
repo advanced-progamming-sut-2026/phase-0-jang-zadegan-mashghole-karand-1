@@ -40,10 +40,11 @@ public final class GraphicsApp extends ApplicationAdapter {
         catalog = new DefaultVisualCatalog();
         assets = new AssetContext(catalog);
         menuBackdrop = new MenuBackdrop();
-        menuBackdrop.bind(assets);
 
         app = DesktopApp.create(assets);
         ui = app.navigator();
+
+        menuBackdrop.bind(assets,app.controller().getCurrentScreen());
 
         lawnLayout = new LawnLayout();
         animStates = new AnimStateStore();
@@ -59,9 +60,7 @@ public final class GraphicsApp extends ApplicationAdapter {
     public void render() {
         float dt = Gdx.graphics.getDeltaTime();
         assets.update();
-        if (!menuBackdrop.ready()) {
-            menuBackdrop.bind(assets);
-        }
+        menuBackdrop.bind(assets, app.controller().getCurrentScreen());
         ui.act(dt);
 
         Gdx.gl.glClearColor(0.08f, 0.1f, 0.14f, 1f);

@@ -4,20 +4,27 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Matrix4;
 
+import view.ScreenType;
 import view.gdx.AssetContext;
 
 public final class MenuBackdrop {
     public static final String MAIN_MENU_BACKGROUND = "IMAGE_MAINMENU_BACKGROUND";
+    public static final String GARDEN_BACKGROUND = "IMAGE_BACKGROUNDS_ZEN_GARDEN";
 
     private final Matrix4 screenProjection = new Matrix4();
     private TextureRegion background;
 
-    public void bind(AssetContext assets) {
+    public void bind(AssetContext assets, ScreenType screenType) {
         if (assets == null) {
             background = null;
             return;
         }
-        background = assets.region(MAIN_MENU_BACKGROUND);
+        if (screenType == ScreenType.MAIN || screenType == ScreenType.LOGIN || screenType == ScreenType.LEVEL_SELECTOR) {
+
+            background = assets.region(MAIN_MENU_BACKGROUND);
+        } else if (screenType == ScreenType.GREEN_HOUSE) {
+            background = assets.region(GARDEN_BACKGROUND);
+        }
     }
 
     public void render(SpriteBatch batch, int screenWidth, int screenHeight) {

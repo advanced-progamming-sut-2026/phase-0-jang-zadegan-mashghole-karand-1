@@ -17,10 +17,7 @@ import view.ScreenType;
 import view.gdx.ui.screens.GameScreenShell;
 import view.gdx.ui.screens.PlaceholderOverlayScreen;
 import view.gdx.ui.screens.PlaceholderScreen;
-import view.gdx.ui.screens.auth.LevelSelectorScreen;
-import view.gdx.ui.screens.auth.LoginScreen;
-import view.gdx.ui.screens.auth.MainScreen;
-import view.gdx.ui.screens.auth.RegisterScreen;
+import view.gdx.ui.screens.auth.*;
 
 public final class UiNavigator implements Disposable {
     private final Map<ScreenType, UiScreen> screens = new EnumMap<>(ScreenType.class);
@@ -50,6 +47,7 @@ public final class UiNavigator implements Disposable {
         screens.put(ScreenType.REGISTER, new RegisterScreen());
         screens.put(ScreenType.MAIN , new MainScreen());
         screens.put(ScreenType.LEVEL_SELECTOR , new LevelSelectorScreen());
+        screens.put(ScreenType.GREEN_HOUSE,new GardenScreen());
         for (ScreenType type : ScreenType.values()) {
             if (screens.containsKey(type)) {
                 continue;
