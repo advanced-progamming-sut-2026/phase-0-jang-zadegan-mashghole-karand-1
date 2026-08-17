@@ -13,6 +13,7 @@ import com.badlogic.gdx.utils.Disposable;
 import pvz.libpvz.pam.ClipRef;
 import pvz.libpvz.pam.PamPlayer;
 import pvz.libpvz.textures.TextureBank;
+import view.gdx.catalog.CompanionVisual;
 import view.gdx.catalog.PlantVisualDef;
 import view.gdx.catalog.VisualCatalog;
 import view.gdx.catalog.ZombieVisualDef;
@@ -50,6 +51,17 @@ public final class AssetContext implements Disposable {
         }
         for (ZombieVisualDef def : catalog.allZombies()) {
             pamPaths.add(def.pamPath);
+            if(def.companions !=null){
+                for(CompanionVisual c :  def.companions){
+                    if(c.pamPath != null){
+                        pamPaths.add(c.pamPath);
+                    }
+                }
+            }
+        }
+        if(catalog.barrel() != null) {
+            catalog.barrel();
+            pamPaths.add(catalog.barrel().pamPath);
         }
         for (String path : pamPaths) {
             player.loadSync(path);

@@ -5,6 +5,7 @@ import java.util.Map;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import model.core.ReadOnlyGameState;
+import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.runtime.PlantSunProduceAbility;
@@ -15,9 +16,7 @@ import view.gdx.AssetContext;
 import view.gdx.VisibilityResolver;
 import view.gdx.anim.AnimStateStore;
 import view.gdx.anim.EntityAnimState;
-import view.gdx.catalog.PlantVisualDef;
-import view.gdx.catalog.VisualCatalog;
-import view.gdx.catalog.ZombieVisualDef;
+import view.gdx.catalog.*;
 
 public final class LawnRenderer {
     private final VisualCatalog catalog;
@@ -45,6 +44,9 @@ public final class LawnRenderer {
         }
         for (Zombie zombie : state.getZombies()) {
             drawZombie(batch, assets, player, zombie);
+        }
+        for(Barrel barrel : state.getBarrels()){
+            drawBarrel(batch, assets, player, barrel);
         }
     }
 
@@ -85,6 +87,9 @@ public final class LawnRenderer {
             return;
         }
         String defaultClip = zombie.isEating ? visual.eatClip : visual.walkClip;
+        if(defaultClip == null) {
+            defaultClip = visual.idleClip;
+        }
         EntityAnimState anim = animStates.getOrCreate(animKey(2, zombie.instanceId), defaultClip);
         if (!defaultClip.equals(anim.clipName)) {
             anim.clipName = defaultClip;
@@ -97,11 +102,45 @@ public final class LawnRenderer {
         float x = layout.worldX(zombie.position);
         float y = layout.worldYForRow(zombie.row, zombie.position);
         Map<String, Boolean> visibility = visibilityResolver.forZombie(zombie, visual);
+        if(!(visual.companions == null || visual.companions.isEmpty())) {
+            for (int i = 0; i < visual.companions.size(); i++) {
+                CompanionVisual c = visual.companions.get(i);
+                if (c.onlyWhileArmored && (zombie.armor == null || !zombie.armor.isIntact)) {
+                    continue;
+                }
+                ClipRef prop = assets.clip(c.pamPath, c.clipName);
+                if (prop == null) {
+                    continue;
+                }
+                long key = animKey(4 + i, zombie.instanceId);
+                EntityAnimState propAnim = animStates.getOrCreate(key, c.clipName);
+                player.draw(batch, prop, propAnim.stateTime, x + c.offsetX, y + c.offsetY, true);
+            }
+        }
         if (visibility.isEmpty()) {
             player.draw(batch, clip, anim.stateTime, x, y, true);
         } else {
             player.draw(batch, clip, anim.stateTime, x, y, true, visibility);
         }
+    }
+
+    private void drawBarrel(SpriteBatch batch, AssetContext assets,PamPlayer player ,Barrel barrel) {
+        if(!barrel.ownerDead()){
+            return;
+        }
+        BarrelVisualDef visual = catalog.barrel();
+        if (visual == null) {
+            return;
+        }
+        String clipName = visual.rollClip; //for now
+        EntityAnimState animState = animStates.getOrCreate(animKey(3,System.identityHashCode(barrel)),clipName);
+        ClipRef clip = assets.clip(visual.pamPath, clipName);
+        if (clip == null) {
+            return;
+        }
+        float x =  layout.cellCenterX(barrel.col);
+        float y = layout.cellCenterY(barrel.row);
+        player.draw(batch, clip, animState.stateTime, x, y, true);
     }
 
     private static long animKey(int kind, int instanceId) {
