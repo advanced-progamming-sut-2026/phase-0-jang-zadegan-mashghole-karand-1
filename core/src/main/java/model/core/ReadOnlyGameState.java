@@ -34,6 +34,8 @@ public interface ReadOnlyGameState {
 
     List<Zombie> getZombies();
 
+    List<Barrel> getBarrels();
+
     List<Projectile> getProjectiles();
 
     List<Sun> getSunDrops();

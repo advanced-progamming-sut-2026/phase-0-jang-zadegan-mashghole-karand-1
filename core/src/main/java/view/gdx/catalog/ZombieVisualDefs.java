@@ -1,8 +1,6 @@
 package view.gdx.catalog;
 
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 
 import model.data.zombie.ZombieType;
 
@@ -56,21 +54,24 @@ public final class ZombieVisualDefs {
                 "_zombie_newspaper_dmg2");
 
         zombies.put(ZombieType.BASIC, ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.CONE_HEAD, new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", cone));
-        zombies.put(ZombieType.BUCKET_HEAD, new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", bucket));
+        zombies.put(ZombieType.CONE_HEAD, new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", cone, Collections.emptyList()));
+        zombies.put(ZombieType.BUCKET_HEAD, new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", bucket, Collections.emptyList()));
         zombies.put(ZombieType.BRICK_HEAD, ZombieVisualDef.plain(EGYPT_BASIC, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.KNIGHT, ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.GARGANTUAR, ZombieVisualDef.plain(DEFAULT_GARGANTUAR, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.IMP, ZombieVisualDef.plain(IMP_BITCH, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.ALL_STAR, ZombieVisualDef.plain(ALL_STAR, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.ARCADE_ZOMBIE, ZombieVisualDef.plain(ARCADE, "idle", "walk", "eat", "die"));
+        zombies.put(ZombieType.ARCADE_ZOMBIE, new ZombieVisualDef(ARCADE, "idle", "walk", "eat", "die",null,
+                List.of(new CompanionVisual("768/FULL/EFFECTS/80S_ARCADE_CABINET/80S_ARCADE_CABINET.PAM"
+                        ,"idle", -100,0,true))));
         zombies.put(ZombieType.PARASOL_ZOMBIE, ZombieVisualDef.plain(PARASOL, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.TURQUOISE_ZOMBIE, ZombieVisualDef.plain(TURQUOISE, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.PROSPECTOR_ZOMBIE, ZombieVisualDef.plain(PROSPECTOR, "idle", "walk", "eat", "die"));
         // piano PAM has no walk/eat clips
-        zombies.put(ZombieType.PIANIST, ZombieVisualDef.plain(PIANO,null,null, null,null));
+        zombies.put(ZombieType.PIANIST,new ZombieVisualDef(PIANO,"idle","play", "idle","die", null, List.of(
+                new CompanionVisual("768/FULL/ZOMBIE/PIANO/PIANO.PAM", "play",-70,0,false))));
         zombies.put(ZombieType.NEWSPAPER_ZOMBIE,
-                new ZombieVisualDef(NEWSPAPER, "idle_newspaper", "walk_newspaper", "eat_newspaper", "die", newspaper));
+                new ZombieVisualDef(NEWSPAPER, "idle_newspaper", "walk_newspaper", "eat_newspaper", "die", newspaper, Collections.emptyList()));
         zombies.put(ZombieType.BARREL_ROLLER, ZombieVisualDef.plain(BARREL_ROLLER, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.RA_ZOMBIE, ZombieVisualDef.plain(RA, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.EXPLORER_ZOMBIE, ZombieVisualDef.plain(EXPLORER, "idle", "walk", "eat", "die"));
