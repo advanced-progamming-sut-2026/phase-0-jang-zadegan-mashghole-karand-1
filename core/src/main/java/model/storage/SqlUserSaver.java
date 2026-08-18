@@ -29,7 +29,7 @@ final class SqlUserSaver {
                         SET password = ?, email = ?, nickname = ?, gender = ?,
                             safety_question = ?, safety_answer = ?,
                             coins = ?, gems = ?, highest_score = ?, games_played = ?,
-                            difficulty_level = ?,
+                            difficulty_level = ?,game_speed = ?,show_ground_webbing = ?,debug_mode = ?,
                             shop_last_refresh_date = ?, shop_daily_deal_plant = ?, shop_daily_deal_purchased = ?
 
                         WHERE username = ?
@@ -45,14 +45,17 @@ final class SqlUserSaver {
             statement.setInt(9, user.highestScore);
             statement.setInt(10, user.gamesPlayed);
             statement.setInt(11, user.preferredSetting.getDifficultyLevel());
-            statement.setString(12, user.dailyDeal.lastRefreshDate == null
+            statement.setInt(12, user.preferredSetting.getGameSpeed());
+            statement.setInt(13, user.preferredSetting.isShowGroundWebbing() ? 1 : 0);
+            statement.setInt(14, user.preferredSetting.isDebugMode() ? 1 : 0);
+            statement.setString(15, user.dailyDeal.lastRefreshDate == null
                     ? null
                     : user.dailyDeal.lastRefreshDate.toString());
-            statement.setString(13, user.dailyDeal.dailyDealPlant == null
+            statement.setString(16, user.dailyDeal.dailyDealPlant == null
                     ? null
                     : user.dailyDeal.dailyDealPlant.name());
-            statement.setInt(14, user.dailyDeal.dailyDealPurchased ? 1 : 0);
-            statement.setString(15, user.username);
+            statement.setInt(17, user.dailyDeal.dailyDealPurchased ? 1 : 0);
+            statement.setString(18, user.username);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to save user profile", e);

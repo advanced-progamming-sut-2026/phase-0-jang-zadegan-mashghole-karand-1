@@ -33,8 +33,8 @@ final class SqlAccountManager {
                     INSERT INTO users (
                         username, password, email, nickname, gender,
                         safety_question, safety_answer, coins, gems, highest_score, games_played,
-                        difficulty_level
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?)
+                        difficulty_level, game_speed, show_ground_webbing, debug_mode
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?, ?, ?, ?)
                     """)) {
                 statement.setString(1, username);
                 statement.setString(2, Hash.hashPassword(password));
@@ -44,6 +44,9 @@ final class SqlAccountManager {
                 statement.setString(6, safetyQuestion.type.name());
                 statement.setString(7, safetyQuestion.answer);
                 statement.setInt(8, GameSetting.DEFAULT_DIFFICULTY);
+                statement.setInt(9, GameSetting.DEFAULT_GAME_SPEED);
+                statement.setInt(10, 0);
+                statement.setInt(11, 0);
                 statement.executeUpdate();
             }
 
