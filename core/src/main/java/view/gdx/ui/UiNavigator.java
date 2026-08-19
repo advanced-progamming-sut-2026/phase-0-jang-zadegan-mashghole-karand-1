@@ -159,8 +159,7 @@ public final class UiNavigator implements Disposable {
     }
 
     private boolean shouldDrawScreenLayer() {
-        return activeScreen != null && lastContext != null && lastContext.screen != ScreenType.GAME
-                && lastContext.menu != MenuType.SETTING;
+        return activeScreen != null && lastContext != null && lastContext.screen != ScreenType.GAME;
     }
 
     private void updateInputProcessors() {
