@@ -1,4 +1,4 @@
-package view.gdx.ui.screens.menus;
+package view.gdx.ui.screens;
 
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -41,7 +41,6 @@ public final class GlobalTopBar {
 
         stage.addActor(bar);
 
-        // Register once (NOT in act)
         UiWidgets.onChange(back, () -> {
             if (controller != null) {
                 UiWidgets.apply(controller, controller.exitMenu());
@@ -64,7 +63,6 @@ public final class GlobalTopBar {
         int coins = (ctx.profile == null) ? 0 : ctx.profile.coins;
         int gems = (ctx.profile == null) ? 0 : ctx.profile.gems;
 
-        // Correct field names:
         coinText.setText(String.valueOf(coins));
         gemText.setText(String.valueOf(gems));
     }
@@ -72,8 +70,8 @@ public final class GlobalTopBar {
     public void act(float dt) {
         if (!styled && assets != null) {
             styleBack(assets);
-            styleBadge(coinBadge, assets, "IMAGE_UI_GENERIC_BUTTONS_COIN_BUY_NORMAL",null);
-            styleBadge(gemBadge, assets, "IMAGE_UI_GENERIC_BUTTONS_PREMIUM_NORMAL", null);
+            styleBadge(coinBadge, assets, "IMAGE_UI_GENERIC_BUTTONS_COIN_BUY_NORMAL");
+            styleBadge(gemBadge, assets, "IMAGE_UI_GENERIC_BUTTONS_PREMIUM_NORMAL");
             styled = true;
         }
         stage.act(dt);
@@ -111,21 +109,13 @@ public final class GlobalTopBar {
         return g;
     }
 
-    private static void styleBadge(Group g, AssetContext assets, String bgId, String iconId) {
+    private static void styleBadge(Group g, AssetContext assets, String bgId) {
         Image bg = (Image) g.getChild(0);
 
         var bgR = assets.region(bgId);
-        var icR = assets.region(iconId);
 
         if (bgR != null) {
             bg.setDrawable(new TextureRegionDrawable(bgR));
-        }
-
-        if (icR != null) {
-            Image icon = new Image(icR);
-            icon.setSize(24f, 24f);
-            icon.setPosition(4f, 6f);
-            g.addActorAt(1, icon);
         }
     }
 

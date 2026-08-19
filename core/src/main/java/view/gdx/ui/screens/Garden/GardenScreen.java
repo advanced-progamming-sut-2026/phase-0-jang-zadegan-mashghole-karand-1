@@ -1,4 +1,4 @@
-package view.gdx.ui.screens.menus.Garden;
+package view.gdx.ui.screens.Garden;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -61,7 +61,6 @@ public class GardenScreen implements UiScreen {
 
 
     };
-    private TextureRegion zen;
 
     private static final String SLOT_IMAGE =
             "IMAGE_ZEN_GARDEN_GROWING_PLANT_SLOT_GROWING_PLANT_SLOT_184X161_2";
@@ -84,7 +83,7 @@ public class GardenScreen implements UiScreen {
         store =  new ImageButton(new ImageButton.ImageButtonStyle());
          root = new Table();
         root.setFillParent(true);
-        root.add(store).size(150,150).expand().top().right().pad(20);
+        root.add(store).size(150,150).expand().top().right().padBottom(80f);
         stage.addActor(root);
 
         UiWidgets.onChange(store, () -> UiWidgets.

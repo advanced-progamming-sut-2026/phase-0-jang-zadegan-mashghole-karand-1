@@ -1,4 +1,4 @@
-package view.gdx.ui.screens.menus.Garden;
+package view.gdx.ui.screens.Garden;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Actor;

@@ -65,20 +65,17 @@ public final class LevelSelectorScreen implements UiScreen {
         TextButton collection = UiWidgets.plain("Collection");
         TextButton greenhouse = UiWidgets.plain("Greenhouse");
         TextButton leaderboard = UiWidgets.plain("Leaderboard");
-        TextButton back = UiWidgets.plain("Back");
 
         UiWidgets.onChange(travelLog, () -> UiWidgets.apply(controller, controller.enterMenu("travel-log")));
         UiWidgets.onChange(collection, () -> UiWidgets.apply(controller, controller.enterMenu("collection")));
         UiWidgets.onChange(greenhouse, () -> UiWidgets.apply(controller, controller.enterMenu("greenhouse")));
         UiWidgets.onChange(leaderboard, () -> UiWidgets.apply(controller, controller.enterMenu("leaderboard")));
-        UiWidgets.onChange(back, () -> UiWidgets.apply(controller, controller.exitMenu()));
 
         Table chrome = new Table();
         chrome.add(travelLog).width(180f).height(40f).padRight(8f);
         chrome.add(collection).width(180f).height(40f).padRight(8f);
         chrome.add(greenhouse).width(180f).height(40f).padRight(8f);
         chrome.add(leaderboard).width(180f).height(40f).padRight(8f);
-        chrome.add(back).width(140f).height(40f);
 
         root.add(UiWidgets.title("Select a World")).padBottom(8f).row();
         root.add(map).grow().padBottom(10f).row();
@@ -91,13 +88,10 @@ public final class LevelSelectorScreen implements UiScreen {
         map.bind(controller, assets, nav);
         activeMap = map;
 
-        TextButton back = UiWidgets.plain("Back");
-        UiWidgets.onChange(back, () -> UiWidgets.apply(controller, controller.exitMenu()));
 
         String chapterName = ChapterCommands.displayName(nav.selectedChapter);
         root.add(UiWidgets.title(chapterName)).padBottom(8f).row();
         root.add(map).grow().padBottom(10f).row();
-        root.add(back).width(160f).height(40f).bottom();
     }
 
     private void buildMinigamePhase(GameNavigationState nav) {
@@ -115,11 +109,8 @@ public final class LevelSelectorScreen implements UiScreen {
             list.add(button).width(420f).height(44f).padBottom(8f).row();
         }
 
-        TextButton back = UiWidgets.plain("Back");
-        UiWidgets.onChange(back, () -> UiWidgets.apply(controller, controller.exitMenu()));
 
         root.add(list).padBottom(12f).row();
-        root.add(back).width(420f).height(44f).row();
     }
 
     private void buildPlantPhase(GameNavigationState nav) {
@@ -151,15 +142,12 @@ public final class LevelSelectorScreen implements UiScreen {
         }
 
         TextButton start = UiWidgets.primary("Start Game");
-        TextButton back = UiWidgets.plain("Back");
         UiWidgets.onChange(start, () -> UiWidgets.apply(controller,
                 controller.getPickPlantsController().startGame()));
-        UiWidgets.onChange(back, () -> UiWidgets.apply(controller, controller.exitMenu()));
 
         root.add(scroll(selected)).width(440f).height(140f).padBottom(8f).row();
         root.add(scroll(unlocked)).width(440f).height(180f).padBottom(12f).row();
         root.add(start).width(420f).height(48f).padBottom(8f).row();
-        root.add(back).width(420f).height(44f).row();
     }
 
     private ScrollPane scroll(Table table) {
