@@ -69,6 +69,9 @@ final class SqlUserLoader {
         user.highestScore = resultSet.getInt("highest_score");
         user.gamesPlayed = resultSet.getInt("games_played");
         user.preferredSetting.setDifficultyLevel(readDifficultyLevel(resultSet));
+        user.preferredSetting.setGameSpeed(readGameSpeed(resultSet));
+        user.preferredSetting.setShowGroundWebbing(readFlag(resultSet, "show_ground_webbing"));
+        user.preferredSetting.setDebugMode(readFlag(resultSet, "debug_mode"));
         loadShopStateFromUsersRow(resultSet, user);
         return user;
     }
@@ -98,6 +101,21 @@ final class SqlUserLoader {
             user.dailyDeal.dailyDealPurchased = purchased == 1;
         } catch (SQLException ignored) {
             // Columns may not exist yet on older DBs.
+        }
+    }
+    private int readGameSpeed(ResultSet resultSet) {
+        try {
+            return resultSet.getInt("game_speed");
+        } catch (SQLException e) {
+            return GameSetting.DEFAULT_GAME_SPEED;
+        }
+    }
+
+    private boolean readFlag(ResultSet resultSet, String column) {
+        try {
+            return resultSet.getInt(column) == 1;
+        } catch (SQLException e) {
+            return false;
         }
     }
 }

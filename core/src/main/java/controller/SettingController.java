@@ -37,6 +37,56 @@ public class SettingController {
         return success("Difficulty changed to " + difficultyLevel + ".");
     }
 
+    public CommandResult changeGameSpeed(int gameSpeed) {
+        CommandResult menuCheck = requireSettingsMenu();
+        if (menuCheck != null) {
+            return menuCheck;
+        }
+        if (gameSpeed < GameSetting.MIN_GAME_SPEED || gameSpeed > GameSetting.MAX_GAME_SPEED) {
+            return failure("Game speed must be between "
+                    + GameSetting.MIN_GAME_SPEED + " and " + GameSetting.MAX_GAME_SPEED + ".");
+        }
+        int current = storage.getCurrentUser().preferredSetting.getGameSpeed();
+        if (gameSpeed == current) {
+            return failure("Game speed is already set to " + gameSpeed + ".");
+        }
+        storage.getCurrentUser().preferredSetting.setGameSpeed(gameSpeed);
+        storage.saveProgress();
+        return success("Game speed changed to " + gameSpeed + ".");
+    }
+
+    public CommandResult setDebugMode(boolean debugMode) {
+        CommandResult menuCheck = requireSettingsMenu();
+        if (menuCheck != null) {
+            return menuCheck;
+        }
+        GameSetting gameSetting = storage.getCurrentUser().preferredSetting;
+        if(gameSetting.isDebugMode() ==  debugMode) {
+            return failure("Debug mode is already " + onOff(debugMode) + ".");
+        }
+        gameSetting.setDebugMode(debugMode);
+        storage.saveProgress();
+        return success("Debug mode  " + onOff(debugMode) + ".");
+    }
+
+    public CommandResult setShowGroundWebbing(boolean showGroundWebbing) {
+        CommandResult menuCheck = requireSettingsMenu();
+        if (menuCheck != null) {
+            return menuCheck;
+        }
+        GameSetting gameSetting = storage.getCurrentUser().preferredSetting;
+        if(gameSetting.isShowGroundWebbing() == showGroundWebbing) {
+            return failure("Ground webbing is already "+onOff(showGroundWebbing)+".");
+        }
+        gameSetting.setShowGroundWebbing(showGroundWebbing);
+        storage.saveProgress();
+        return success("Ground webbing is now "+onOff(showGroundWebbing));
+    }
+
+    private static String onOff(boolean showGroundWebbing) {
+        return showGroundWebbing ? "on" : "off";
+    }
+
     private CommandResult requireSettingsMenu() {
         CommandResult screenCheck = controllerManager.requireScreen(ScreenType.MAIN);
         if (screenCheck != null) {
