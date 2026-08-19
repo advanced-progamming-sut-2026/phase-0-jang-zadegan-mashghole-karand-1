@@ -1,10 +1,9 @@
-package view.gdx.ui.screens.auth;
+package view.gdx.ui.screens.menus.Garden;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import pvz.libpvz.pam.ClipRef;
 import view.gdx.AssetContext;
-import view.gdx.catalog.PlantVisualDef;
 
 final class GardenPamActor extends Actor {
     private final AssetContext assets;

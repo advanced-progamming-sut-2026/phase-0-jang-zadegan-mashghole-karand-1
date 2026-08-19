@@ -1,4 +1,4 @@
-package view.gdx.ui.screens.auth;
+package view.gdx.ui.screens.menus.Garden;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -23,6 +23,7 @@ import view.gdx.catalog.VisualCatalog;
 import view.gdx.ui.UiScreen;
 import view.gdx.ui.UiSkin;
 import view.gdx.ui.UiViewContext;
+import view.gdx.ui.widgets.UiWidgets;
 
 public class GardenScreen implements UiScreen {
     private final Stage stage;
@@ -86,7 +87,7 @@ public class GardenScreen implements UiScreen {
         root.add(store).size(150,150).expand().top().right().pad(20);
         stage.addActor(root);
 
-        AuthWidgets.onChange(store, () -> AuthWidgets.
+        UiWidgets.onChange(store, () -> UiWidgets.
                 apply(controller, controller.getGreenhouseController().enterShop()));
     }
 
@@ -171,7 +172,7 @@ public class GardenScreen implements UiScreen {
                     btn.setSize(size, size);
                     btn.setPosition(screenX - size * 0.5f, screenY - size * 0.5f);
 
-                    AuthWidgets.onChange(btn, () -> AuthWidgets.apply(
+                    UiWidgets.onChange(btn, () -> UiWidgets.apply(
                             controller,
                             controller.getGreenhouseController().plantPot(pos)));
 
@@ -225,7 +226,7 @@ public class GardenScreen implements UiScreen {
                             (btnW - cost.getPrefWidth()) * 0.5f,
                             (btnH - cost.getPrefHeight()) * 0.5f);
                     group.addActor(cost);
-                    AuthWidgets.onChange(btn, () -> AuthWidgets.apply(
+                    UiWidgets.onChange(btn, () -> UiWidgets.apply(
                             controller,
                             controller.getGreenhouseController().grow(pos)));
                     stage.addActor(group);
@@ -262,7 +263,7 @@ public class GardenScreen implements UiScreen {
                     btn.setPosition(0, 0);
                     group.addActor(btn);
 
-                    AuthWidgets.onChange(btn, () -> AuthWidgets.apply(
+                    UiWidgets.onChange(btn, () -> UiWidgets.apply(
                             controller,
                             controller.getGreenhouseController().collect(pos)));
 
