@@ -1,4 +1,4 @@
-package view.gdx.ui.screens.auth;
+package view.gdx.ui.widgets;
 
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
@@ -14,23 +14,23 @@ import controller.CommandResult.CommandResult;
 import controller.ControllerManager;
 import view.gdx.ui.UiSkin;
 
-final class AuthWidgets {
-    private AuthWidgets() {
+public final class UiWidgets {
+    private UiWidgets() {
     }
 
-    static Skin skin() {
+    public static Skin skin() {
         return UiSkin.get();
     }
 
-    static Label title(String text) {
+    public static Label title(String text) {
         return new Label(text, skin(), "big");
     }
 
-    static Label body(String text) {
+    public static Label body(String text) {
         return new Label(text, skin(), "default");
     }
 
-    static TextField field(String message, boolean password) {
+    public static TextField field(String message, boolean password) {
         TextField field = new TextField("", skin(), "default");
         field.setMessageText(message);
         if (password) {
@@ -40,29 +40,29 @@ final class AuthWidgets {
         return field;
     }
 
-    static CheckBox checkBox(String text) {
+    public static CheckBox checkBox(String text) {
         return new CheckBox("  " + text, skin(), "default");
     }
 
-    static TextButton primary(String text) {
+    public static TextButton primary(String text) {
         return new TextButton(text, skin(), "green");
     }
 
-    static TextButton secondary(String text) {
+    public static TextButton secondary(String text) {
         return new TextButton(text, skin(), "brown");
     }
 
-    static TextButton plain(String text) {
+    public static TextButton plain(String text) {
         return new TextButton(text, skin(), "default");
     }
 
-    static SelectBox<String> selectBox(Array<String> items) {
+    public static SelectBox<String> selectBox(Array<String> items) {
         SelectBox<String> box = new SelectBox<>(skin(), "default");
         box.setItems(items);
         return box;
     }
 
-    static void onChange(Actor actor, Runnable action) {
+    public static void onChange(Actor actor, Runnable action) {
         actor.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -71,15 +71,15 @@ final class AuthWidgets {
         });
     }
 
-    static void apply(ControllerManager controller, CommandResult result) {
+    public static void apply(ControllerManager controller, CommandResult result) {
         controller.handleCommandResult(result);
     }
 
-    static String text(TextField field) {
+    public static String text(TextField field) {
         return field.getText() == null ? "" : field.getText().trim();
     }
 
-    static String raw(TextField field) {
+    public static String raw(TextField field) {
         return field.getText() == null ? "" : field.getText();
     }
 }

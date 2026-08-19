@@ -10,6 +10,8 @@ public interface VisualCatalog {
 
     ZombieVisualDef zombie(ZombieType type);
 
+    BarrelVisualDef barrel();
+
     Collection<PlantVisualDef> allPlants();
 
     Collection<ZombieVisualDef> allZombies();

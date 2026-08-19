@@ -21,6 +21,11 @@ public final class DefaultVisualCatalog implements VisualCatalog {
     }
 
     @Override
+    public BarrelVisualDef barrel() {
+        return new  BarrelVisualDef();
+    }
+
+    @Override
     public Collection<PlantVisualDef> allPlants() {
         return plants.values();
     }

@@ -60,6 +60,9 @@ public class GameState implements ReadOnlyGameState {
     }
 
     @Override
+    public List<Barrel> getBarrels() {return  Collections.unmodifiableList(barrels);}
+
+    @Override
     public List<Projectile> getProjectiles() {
         return Collections.unmodifiableList(projectiles);
     }

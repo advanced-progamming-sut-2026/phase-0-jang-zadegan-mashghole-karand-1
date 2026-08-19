@@ -17,7 +17,11 @@ import view.ScreenType;
 import view.gdx.ui.screens.GameScreenShell;
 import view.gdx.ui.screens.PlaceholderOverlayScreen;
 import view.gdx.ui.screens.PlaceholderScreen;
-import view.gdx.ui.screens.auth.*;
+import view.gdx.ui.screens.map.LevelSelectorScreen;
+import view.gdx.ui.screens.auth.LoginScreen;
+import view.gdx.ui.screens.main.MainScreen;
+import view.gdx.ui.screens.auth.RegisterScreen;
+import view.gdx.ui.screens.menus.SettingsOverlayScreen;
 
 public final class UiNavigator implements Disposable {
     private final Map<ScreenType, UiScreen> screens = new EnumMap<>(ScreenType.class);
@@ -47,7 +51,6 @@ public final class UiNavigator implements Disposable {
         screens.put(ScreenType.REGISTER, new RegisterScreen());
         screens.put(ScreenType.MAIN , new MainScreen());
         screens.put(ScreenType.LEVEL_SELECTOR , new LevelSelectorScreen());
-        screens.put(ScreenType.GREEN_HOUSE,new GardenScreen());
         for (ScreenType type : ScreenType.values()) {
             if (screens.containsKey(type)) {
                 continue;
@@ -59,7 +62,7 @@ public final class UiNavigator implements Disposable {
             }
         }
         overlays.put(MenuType.PAUSE, new PlaceholderOverlayScreen("Pause"));
-        overlays.put(MenuType.SETTING, new PlaceholderOverlayScreen("Settings"));
+        overlays.put(MenuType.SETTING, new SettingsOverlayScreen());
         overlays.put(MenuType.PROFILE, new PlaceholderOverlayScreen("Profile"));
         overlays.put(MenuType.NEWS, new PlaceholderOverlayScreen("News"));
         overlays.put(MenuType.TRAVEL_LOG, new PlaceholderOverlayScreen("Travel Log"));
@@ -156,7 +159,8 @@ public final class UiNavigator implements Disposable {
     }
 
     private boolean shouldDrawScreenLayer() {
-        return activeScreen != null && lastContext != null && lastContext.screen != ScreenType.GAME;
+        return activeScreen != null && lastContext != null && lastContext.screen != ScreenType.GAME
+                && lastContext.menu != MenuType.SETTING;
     }
 
     private void updateInputProcessors() {
