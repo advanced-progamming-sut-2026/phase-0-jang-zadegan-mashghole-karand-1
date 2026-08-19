@@ -7,10 +7,10 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import controller.ControllerManager;
-import controller.GreenhouseController;
 import model.core.Position;
 import model.data.plant.PlantType;
 import model.greenhouse.Greenhouse;
@@ -29,7 +29,8 @@ public class GardenScreen implements UiScreen {
     private ControllerManager controller;
     private UiViewContext lastContext;
     public  VisualCatalog catalog = new DefaultVisualCatalog();
-
+    private final ImageButton store;
+    private final Table root;
 
     private static final int SLOT_COL = 4;
     private static final int SLOT_ROW = 3;
@@ -59,7 +60,6 @@ public class GardenScreen implements UiScreen {
 
 
     };
-    private final ImageButton slot;
     private TextureRegion zen;
 
     private static final String SLOT_IMAGE =
@@ -72,18 +72,25 @@ public class GardenScreen implements UiScreen {
             "IMAGE_UI_GENERIC_GEMSBUYBUTTON_DOWN";
     private static final String READY_CARD =
             "IMAGE_ZEN_GARDEN_BOOSTCARD_ANIM_BOOSTCARD_ANIM_244X161";
+    private static final String SHOP_ICON =
+            "IMAGE_UI_HUD_WORLDMAP_BUTTONS_HUD_STORE_NORMAL";
     private AssetContext assets;
+
+
+
     public GardenScreen() {
         stage = new Stage(new ScreenViewport());
-        slot = new ImageButton(new ImageButton.ImageButtonStyle());
-        stage.addActor(slot);
+        store =  new ImageButton(new ImageButton.ImageButtonStyle());
+         root = new Table();
+        root.setFillParent(true);
+        root.add(store).size(150,150).expand().top().right().pad(20);
+        stage.addActor(root);
 
-        AuthWidgets.onChange(slot, () -> AuthWidgets.apply(controller,
-                controller.getGreenhouseController().plantPot(new Position(SLOT_COL, SLOT_ROW))));
+        AuthWidgets.onChange(store, () -> AuthWidgets.
+                apply(controller, controller.getGreenhouseController().enterShop()));
     }
-    public void buildPot(UiViewContext context) {
-        stage.clear();
 
+    public void buildPot(UiViewContext context) {
         User user = context.controller.getGreenhouseController().getUser();
         Greenhouse greenhouse = user.greenhouse;
 
@@ -274,6 +281,14 @@ public class GardenScreen implements UiScreen {
 
     @Override
     public void act(float deltaSeconds) {
+        if (store.getStyle().imageUp == null && assets != null) {
+            var region = assets.region(SHOP_ICON);
+            if (region != null) {
+                ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(store.getStyle());
+                style.imageUp = new TextureRegionDrawable(region);
+                store.setStyle(style);
+            }
+        }
         stage.act(deltaSeconds);
 
     }
@@ -304,6 +319,8 @@ public class GardenScreen implements UiScreen {
         return "IMAGE_UI_PACKETS_" + key;
     }
     private void rebuild() {
+        stage.clear();
+        stage.addActor(root);
         buildPot(lastContext);
         buildPlant(controller);
     }
