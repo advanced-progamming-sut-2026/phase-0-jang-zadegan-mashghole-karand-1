@@ -15,6 +15,7 @@ import controller.ControllerManager;
 import model.storage.user.SafetyQuestion;
 import view.gdx.ui.UiScreen;
 import view.gdx.ui.UiViewContext;
+import view.gdx.ui.widgets.UiWidgets;
 
 public final class RegisterScreen implements UiScreen {
     private final Stage stage;
@@ -41,27 +42,27 @@ public final class RegisterScreen implements UiScreen {
     public RegisterScreen() {
         stage = new Stage(new ScreenViewport());
 
-        username = AuthWidgets.field("Username", false);
-        password = AuthWidgets.field("Password", true);
-        passwordConfirm = AuthWidgets.field("Confirm password", true);
-        nickname = AuthWidgets.field("Nickname", false);
-        email = AuthWidgets.field("Email", false);
+        username = UiWidgets.field("Username", false);
+        password = UiWidgets.field("Password", true);
+        passwordConfirm = UiWidgets.field("Confirm password", true);
+        nickname = UiWidgets.field("Nickname", false);
+        email = UiWidgets.field("Email", false);
 
         Array<String> genders = new Array<>();
         genders.add("male");
         genders.add("female");
-        gender = AuthWidgets.selectBox(genders);
+        gender = UiWidgets.selectBox(genders);
 
-        questionBox = AuthWidgets.selectBox(new Array<>());
-        answer = AuthWidgets.field("Answer", false);
-        answerConfirm = AuthWidgets.field("Confirm answer", false);
-        questionHint = AuthWidgets.body("Pick a security question to finish registration.");
+        questionBox = UiWidgets.selectBox(new Array<>());
+        answer = UiWidgets.field("Answer", false);
+        answerConfirm = UiWidgets.field("Confirm answer", false);
+        questionHint = UiWidgets.body("Pick a security question to finish registration.");
         questionHint.setWrap(true);
 
         formPanel = buildFormPanel();
         questionPanel = buildQuestionPanel();
 
-        title = AuthWidgets.title("Register");
+        title = UiWidgets.title("Register");
         content = new Table();
 
         Table root = new Table();
@@ -75,13 +76,13 @@ public final class RegisterScreen implements UiScreen {
 
     private Table buildFormPanel() {
         Table table = new Table();
-        TextButton register = AuthWidgets.primary("Continue");
-        TextButton login = AuthWidgets.plain("Already have an account");
-        TextButton quit = AuthWidgets.plain("Quit");
+        TextButton register = UiWidgets.primary("Continue");
+        TextButton login = UiWidgets.plain("Already have an account");
+        TextButton quit = UiWidgets.plain("Quit");
 
-        AuthWidgets.onChange(register, this::submitRegister);
-        AuthWidgets.onChange(login, this::goLogin);
-        AuthWidgets.onChange(quit, this::quit);
+        UiWidgets.onChange(register, this::submitRegister);
+        UiWidgets.onChange(login, this::goLogin);
+        UiWidgets.onChange(quit, this::quit);
 
         table.add(username).growX().height(44f).padBottom(8f).row();
         table.add(password).growX().height(44f).padBottom(8f).row();
@@ -97,11 +98,11 @@ public final class RegisterScreen implements UiScreen {
 
     private Table buildQuestionPanel() {
         Table table = new Table();
-        TextButton submit = AuthWidgets.primary("Create account");
-        TextButton back = AuthWidgets.plain("Back");
+        TextButton submit = UiWidgets.primary("Create account");
+        TextButton back = UiWidgets.plain("Back");
 
-        AuthWidgets.onChange(submit, this::submitQuestion);
-        AuthWidgets.onChange(back, this::backToForm);
+        UiWidgets.onChange(submit, this::submitQuestion);
+        UiWidgets.onChange(back, this::backToForm);
 
         table.add(questionHint).growX().padBottom(10f).row();
         table.add(questionBox).growX().height(44f).padBottom(8f).row();
@@ -136,13 +137,13 @@ public final class RegisterScreen implements UiScreen {
 
     private void submitRegister() {
         CommandResult result = auth().register(
-                AuthWidgets.text(username),
-                AuthWidgets.raw(password),
-                AuthWidgets.raw(passwordConfirm),
-                AuthWidgets.text(nickname),
-                AuthWidgets.text(email),
+                UiWidgets.text(username),
+                UiWidgets.raw(password),
+                UiWidgets.raw(passwordConfirm),
+                UiWidgets.text(nickname),
+                UiWidgets.text(email),
                 gender.getSelected());
-        AuthWidgets.apply(controller, result);
+        UiWidgets.apply(controller, result);
         if (result.isSuccess()) {
             showQuestionStep(true);
         }
@@ -152,14 +153,14 @@ public final class RegisterScreen implements UiScreen {
         int index = questionBox.getSelectedIndex();
         CommandResult result = auth().pickQuestion(
                 index + 1,
-                AuthWidgets.raw(answer),
-                AuthWidgets.raw(answerConfirm));
+                UiWidgets.raw(answer),
+                UiWidgets.raw(answerConfirm));
         if (result.isSuccess()) {
             awaitingQuestion = false;
             answer.setText("");
             answerConfirm.setText("");
         }
-        AuthWidgets.apply(controller, result);
+        UiWidgets.apply(controller, result);
     }
 
     private void backToForm() {
@@ -172,7 +173,7 @@ public final class RegisterScreen implements UiScreen {
 
     private void goLogin() {
         awaitingQuestion = false;
-        AuthWidgets.apply(controller, controller.enterMenu("login"));
+        UiWidgets.apply(controller, controller.enterMenu("login"));
     }
 
     private void quit() {

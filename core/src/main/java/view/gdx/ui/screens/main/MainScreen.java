@@ -1,14 +1,18 @@
-package view.gdx.ui.screens.auth;
+package view.gdx.ui.screens.main;
 
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+
 import controller.ControllerManager;
 import view.gdx.AssetContext;
 import view.gdx.ui.UiScreen;
-import view.gdx.ui.UiSkin;
 import view.gdx.ui.UiViewContext;
+import view.gdx.ui.widgets.UiWidgets;
 
 public final class MainScreen implements UiScreen {
     private final Stage stage;
@@ -26,19 +30,19 @@ public final class MainScreen implements UiScreen {
     public MainScreen() {
         this.stage = new Stage(new ScreenViewport());
         this.title = new Image();
-        this.startGame = AuthWidgets.primary("Play");
+        this.startGame = UiWidgets.primary("Play");
         this.settings = new ImageButton(new ImageButton.ImageButtonStyle());
         this.news = new ImageButton(new ImageButton.ImageButtonStyle());
         this.profile = new ImageButton(new ImageButton.ImageButtonStyle());
-        this.logout = AuthWidgets.plain("Logout");
-        this.quit = AuthWidgets.plain("Quit");
+        this.logout = UiWidgets.plain("Logout");
+        this.quit = UiWidgets.plain("Quit");
 
-        AuthWidgets.onChange(startGame, () -> AuthWidgets.apply(controller, controller.enterMenu("game")));
-        AuthWidgets.onChange(settings, () -> AuthWidgets.apply(controller, controller.enterMenu("settings")));
-        AuthWidgets.onChange(news, () -> AuthWidgets.apply(controller, controller.enterMenu("news")));
-        AuthWidgets.onChange(profile, () -> AuthWidgets.apply(controller, controller.enterMenu("profile")));
-        AuthWidgets.onChange(logout, () -> AuthWidgets.apply(controller, controller.getMainMenuController().logout()));
-        AuthWidgets.onChange(quit, () -> controller.quit());
+        UiWidgets.onChange(startGame, () -> UiWidgets.apply(controller, controller.enterMenu("game")));
+        UiWidgets.onChange(settings, () -> UiWidgets.apply(controller, controller.enterMenu("settings")));
+        UiWidgets.onChange(news, () -> UiWidgets.apply(controller, controller.enterMenu("news")));
+        UiWidgets.onChange(profile, () -> UiWidgets.apply(controller, controller.enterMenu("profile")));
+        UiWidgets.onChange(logout, () -> UiWidgets.apply(controller, controller.getMainMenuController().logout()));
+        UiWidgets.onChange(quit, () -> controller.quit());
 
         Table topLeft = new Table();
         topLeft.add(logout).padRight(8f);
@@ -65,12 +69,10 @@ public final class MainScreen implements UiScreen {
         stage.addActor(root);
     }
 
-
     @Override
     public void show(UiViewContext context) {
         this.controller = context.controller;
         this.assets = context.assets;
-
     }
 
     @Override
@@ -111,7 +113,7 @@ public final class MainScreen implements UiScreen {
 
     @Override
     public void resize(int width, int height) {
-        stage.getViewport().update(width,height,true);
+        stage.getViewport().update(width, height, true);
     }
 
     @Override

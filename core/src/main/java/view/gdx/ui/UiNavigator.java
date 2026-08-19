@@ -17,7 +17,11 @@ import view.ScreenType;
 import view.gdx.ui.screens.GameScreenShell;
 import view.gdx.ui.screens.PlaceholderOverlayScreen;
 import view.gdx.ui.screens.PlaceholderScreen;
-import view.gdx.ui.screens.auth.*;
+import view.gdx.ui.screens.auth.LoginScreen;
+import view.gdx.ui.screens.auth.RegisterScreen;
+import view.gdx.ui.screens.main.MainScreen;
+import view.gdx.ui.screens.map.LevelSelectorScreen;
+import view.gdx.ui.screens.menus.SettingsOverlayScreen;
 
 public final class UiNavigator implements Disposable {
     private final Map<ScreenType, UiScreen> screens = new EnumMap<>(ScreenType.class);
@@ -45,8 +49,8 @@ public final class UiNavigator implements Disposable {
     private void registerDefaults() {
         screens.put(ScreenType.LOGIN, new LoginScreen());
         screens.put(ScreenType.REGISTER, new RegisterScreen());
-        screens.put(ScreenType.MAIN , new MainScreen());
-        screens.put(ScreenType.LEVEL_SELECTOR , new LevelSelectorScreen());
+        screens.put(ScreenType.MAIN, new MainScreen());
+        screens.put(ScreenType.LEVEL_SELECTOR, new LevelSelectorScreen());
         for (ScreenType type : ScreenType.values()) {
             if (screens.containsKey(type)) {
                 continue;
@@ -155,7 +159,8 @@ public final class UiNavigator implements Disposable {
     }
 
     private boolean shouldDrawScreenLayer() {
-        return activeScreen != null && lastContext != null && lastContext.screen != ScreenType.GAME && lastContext.menu != MenuType.SETTING;
+        return activeScreen != null && lastContext != null && lastContext.screen != ScreenType.GAME
+                && lastContext.menu != MenuType.SETTING;
     }
 
     private void updateInputProcessors() {

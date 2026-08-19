@@ -12,6 +12,7 @@ import controller.AuthController;
 import controller.ControllerManager;
 import view.gdx.ui.UiScreen;
 import view.gdx.ui.UiViewContext;
+import view.gdx.ui.widgets.UiWidgets;
 
 public final class LoginScreen implements UiScreen {
     private enum Panel {
@@ -45,26 +46,26 @@ public final class LoginScreen implements UiScreen {
     public LoginScreen() {
         stage = new Stage(new ScreenViewport());
 
-        loginUsername = AuthWidgets.field("Username", false);
-        loginPassword = AuthWidgets.field("Password", true);
-        stayLoggedIn = AuthWidgets.checkBox("Stay logged in");
+        loginUsername = UiWidgets.field("Username", false);
+        loginPassword = UiWidgets.field("Password", true);
+        stayLoggedIn = UiWidgets.checkBox("Stay logged in");
 
-        forgotUsername = AuthWidgets.field("Username", false);
-        forgotEmail = AuthWidgets.field("Email", false);
+        forgotUsername = UiWidgets.field("Username", false);
+        forgotEmail = UiWidgets.field("Email", false);
 
-        securityQuestion = AuthWidgets.body("");
+        securityQuestion = UiWidgets.body("");
         securityQuestion.setWrap(true);
-        securityAnswer = AuthWidgets.field("Security answer", false);
+        securityAnswer = UiWidgets.field("Security answer", false);
 
-        newPassword = AuthWidgets.field("New password", true);
-        newPasswordConfirm = AuthWidgets.field("Confirm password", true);
+        newPassword = UiWidgets.field("New password", true);
+        newPasswordConfirm = UiWidgets.field("Confirm password", true);
 
         loginPanel = buildLoginPanel();
         forgotPanel = buildForgotPanel();
         answerPanel = buildAnswerPanel();
         resetPanel = buildResetPanel();
 
-        title = AuthWidgets.title("Login");
+        title = UiWidgets.title("Login");
         content = new Table();
 
         Table root = new Table();
@@ -78,15 +79,15 @@ public final class LoginScreen implements UiScreen {
 
     private Table buildLoginPanel() {
         Table table = new Table();
-        TextButton login = AuthWidgets.primary("Login");
-        TextButton forgot = AuthWidgets.secondary("Forgot password");
-        TextButton register = AuthWidgets.plain("Create account");
-        TextButton quit = AuthWidgets.plain("Quit");
+        TextButton login = UiWidgets.primary("Login");
+        TextButton forgot = UiWidgets.secondary("Forgot password");
+        TextButton register = UiWidgets.plain("Create account");
+        TextButton quit = UiWidgets.plain("Quit");
 
-        AuthWidgets.onChange(login, this::submitLogin);
-        AuthWidgets.onChange(forgot, () -> showPanel(Panel.FORGOT));
-        AuthWidgets.onChange(register, this::goRegister);
-        AuthWidgets.onChange(quit, this::quit);
+        UiWidgets.onChange(login, this::submitLogin);
+        UiWidgets.onChange(forgot, () -> showPanel(Panel.FORGOT));
+        UiWidgets.onChange(register, this::goRegister);
+        UiWidgets.onChange(quit, this::quit);
 
         table.add(loginUsername).growX().height(44f).padBottom(8f).row();
         table.add(loginPassword).growX().height(44f).padBottom(8f).row();
@@ -100,13 +101,13 @@ public final class LoginScreen implements UiScreen {
 
     private Table buildForgotPanel() {
         Table table = new Table();
-        TextButton submit = AuthWidgets.primary("Continue");
-        TextButton back = AuthWidgets.plain("Back");
+        TextButton submit = UiWidgets.primary("Continue");
+        TextButton back = UiWidgets.plain("Back");
 
-        AuthWidgets.onChange(submit, this::submitForgot);
-        AuthWidgets.onChange(back, () -> showPanel(Panel.LOGIN));
+        UiWidgets.onChange(submit, this::submitForgot);
+        UiWidgets.onChange(back, () -> showPanel(Panel.LOGIN));
 
-        table.add(AuthWidgets.body("Recover password")).padBottom(10f).row();
+        table.add(UiWidgets.body("Recover password")).padBottom(10f).row();
         table.add(forgotUsername).growX().height(44f).padBottom(8f).row();
         table.add(forgotEmail).growX().height(44f).padBottom(12f).row();
         table.add(submit).growX().height(48f).padBottom(8f).row();
@@ -116,13 +117,13 @@ public final class LoginScreen implements UiScreen {
 
     private Table buildAnswerPanel() {
         Table table = new Table();
-        TextButton submit = AuthWidgets.primary("Submit answer");
-        TextButton cancel = AuthWidgets.plain("Cancel");
+        TextButton submit = UiWidgets.primary("Submit answer");
+        TextButton cancel = UiWidgets.plain("Cancel");
 
-        AuthWidgets.onChange(submit, this::submitAnswer);
-        AuthWidgets.onChange(cancel, this::cancelRecovery);
+        UiWidgets.onChange(submit, this::submitAnswer);
+        UiWidgets.onChange(cancel, this::cancelRecovery);
 
-        table.add(AuthWidgets.body("Security question")).padBottom(8f).row();
+        table.add(UiWidgets.body("Security question")).padBottom(8f).row();
         table.add(securityQuestion).growX().padBottom(10f).row();
         table.add(securityAnswer).growX().height(44f).padBottom(12f).row();
         table.add(submit).growX().height(48f).padBottom(8f).row();
@@ -132,13 +133,13 @@ public final class LoginScreen implements UiScreen {
 
     private Table buildResetPanel() {
         Table table = new Table();
-        TextButton submit = AuthWidgets.primary("Reset password");
-        TextButton cancel = AuthWidgets.plain("Cancel");
+        TextButton submit = UiWidgets.primary("Reset password");
+        TextButton cancel = UiWidgets.plain("Cancel");
 
-        AuthWidgets.onChange(submit, this::submitReset);
-        AuthWidgets.onChange(cancel, this::cancelRecovery);
+        UiWidgets.onChange(submit, this::submitReset);
+        UiWidgets.onChange(cancel, this::cancelRecovery);
 
-        table.add(AuthWidgets.body("Choose a new password")).padBottom(10f).row();
+        table.add(UiWidgets.body("Choose a new password")).padBottom(10f).row();
         table.add(newPassword).growX().height(44f).padBottom(8f).row();
         table.add(newPasswordConfirm).growX().height(44f).padBottom(12f).row();
         table.add(submit).growX().height(48f).padBottom(8f).row();
@@ -186,26 +187,26 @@ public final class LoginScreen implements UiScreen {
     }
 
     private void submitLogin() {
-        AuthWidgets.apply(controller, auth().login(
-                AuthWidgets.text(loginUsername),
-                AuthWidgets.raw(loginPassword),
+        UiWidgets.apply(controller, auth().login(
+                UiWidgets.text(loginUsername),
+                UiWidgets.raw(loginPassword),
                 stayLoggedIn.isChecked()));
     }
 
     private void submitForgot() {
-        AuthWidgets.apply(controller, auth().forgotPassword(
-                AuthWidgets.text(forgotUsername),
-                AuthWidgets.text(forgotEmail)));
+        UiWidgets.apply(controller, auth().forgotPassword(
+                UiWidgets.text(forgotUsername),
+                UiWidgets.text(forgotEmail)));
     }
 
     private void submitAnswer() {
-        AuthWidgets.apply(controller, auth().answer(AuthWidgets.raw(securityAnswer)));
+        UiWidgets.apply(controller, auth().answer(UiWidgets.raw(securityAnswer)));
     }
 
     private void submitReset() {
-        AuthWidgets.apply(controller, auth().resetPassword(
-                AuthWidgets.raw(newPassword),
-                AuthWidgets.raw(newPasswordConfirm)));
+        UiWidgets.apply(controller, auth().resetPassword(
+                UiWidgets.raw(newPassword),
+                UiWidgets.raw(newPasswordConfirm)));
     }
 
     private void cancelRecovery() {
@@ -218,7 +219,7 @@ public final class LoginScreen implements UiScreen {
     }
 
     private void goRegister() {
-        AuthWidgets.apply(controller, controller.exitMenu());
+        UiWidgets.apply(controller, controller.exitMenu());
     }
 
     private void quit() {
