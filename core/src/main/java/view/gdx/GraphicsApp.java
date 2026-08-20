@@ -5,12 +5,16 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import app.DesktopApp;
+import model.data.content.chapter.ChapterType;
+import model.rule.SessionContext;
 import view.gdx.anim.AnimStateStore;
 import view.gdx.catalog.DefaultVisualCatalog;
 import view.gdx.catalog.VisualCatalog;
+import view.gdx.lawn.LawnBackgroundRenderer;
 import view.gdx.lawn.LawnLayout;
 import view.gdx.lawn.LawnRenderer;
 import view.gdx.ui.MenuBackdrop;
@@ -18,7 +22,7 @@ import view.gdx.ui.UiNavigator;
 
 public final class GraphicsApp extends ApplicationAdapter {
     private OrthographicCamera camera;
-    private FitViewport worldViewport;
+    private Viewport worldViewport;
     private SpriteBatch batch;
 
     private DesktopApp app;
@@ -27,6 +31,7 @@ public final class GraphicsApp extends ApplicationAdapter {
     private AssetContext assets;
     private MenuBackdrop menuBackdrop;
     private LawnLayout lawnLayout;
+    private LawnBackgroundRenderer lawnBackground;
     private LawnRenderer lawnRenderer;
     private AnimStateStore animStates;
     private VisibilityResolver visibilityResolver;
@@ -34,7 +39,7 @@ public final class GraphicsApp extends ApplicationAdapter {
     @Override
     public void create() {
         camera = new OrthographicCamera();
-        worldViewport = new FitViewport(1280, 720, camera);
+        worldViewport = new ExtendViewport(1280, 720, camera);
         batch = new SpriteBatch();
 
         catalog = new DefaultVisualCatalog();
@@ -46,6 +51,7 @@ public final class GraphicsApp extends ApplicationAdapter {
         ui = app.navigator();
 
         lawnLayout = new LawnLayout();
+        lawnBackground = new LawnBackgroundRenderer();
         animStates = new AnimStateStore();
         visibilityResolver = new VisibilityResolver();
         lawnRenderer = new LawnRenderer(catalog, lawnLayout, animStates, visibilityResolver);
@@ -69,8 +75,10 @@ public final class GraphicsApp extends ApplicationAdapter {
 
         if (app.isGameScreen()) {
             worldViewport.apply();
+            lawnBackground.bind(assets, resolveChapter(), worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
             batch.setProjectionMatrix(camera.combined);
             batch.begin();
+            lawnBackground.render(batch);
             lawnRenderer.render(batch, assets, app.gameState(), dt);
             batch.end();
         } else {
@@ -84,6 +92,14 @@ public final class GraphicsApp extends ApplicationAdapter {
     public void resize(int width, int height) {
         worldViewport.update(width, height, true);
         ui.resize(width, height);
+    }
+
+    private ChapterType resolveChapter() {
+        SessionContext session = app.model().getPlayContext();
+        if (session == null || session.getConfig() == null || session.getConfig().levelConfig == null) {
+            return null;
+        }
+        return session.getConfig().levelConfig.chapterType;
     }
 
     @Override

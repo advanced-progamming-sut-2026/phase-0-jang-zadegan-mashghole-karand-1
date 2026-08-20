@@ -73,7 +73,6 @@ public class ControllerManager {
         this.sessionLifecycleController.register();
         this.gameLoop.setOnTickHandler(() -> {
             model.tick();
-            tick();
             model.getState().totalTicks++;
         });
 
@@ -89,10 +88,6 @@ public class ControllerManager {
         initShopForCurrentUser();
         initQuestsForCurrentUser();
         currentScreen = storage.isLoggedIn() ? ScreenType.MAIN : ScreenType.REGISTER;
-        refreshView();
-    }
-
-    public void tick() {
         refreshView();
     }
 

@@ -7,8 +7,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
-import model.data.plant.abilities.config.PlantAbilityConfig;
-import model.data.plant.abilities.runtime.PlantSunProduceAbility;
 import model.data.zombie.Zombie;
 import pvz.libpvz.pam.ClipRef;
 import pvz.libpvz.pam.PamPlayer;
@@ -19,6 +17,7 @@ import view.gdx.anim.EntityAnimState;
 import view.gdx.catalog.*;
 
 public final class LawnRenderer {
+    private static final boolean RENDER_ZOMBIES = false;
     private final VisualCatalog catalog;
     private final LawnLayout layout;
     private final AnimStateStore animStates;
@@ -42,8 +41,10 @@ public final class LawnRenderer {
         for (Plant plant : state.getPlants()) {
             drawPlant(batch, assets, player, plant);
         }
-        for (Zombie zombie : state.getZombies()) {
-            drawZombie(batch, assets, player, zombie);
+        if (RENDER_ZOMBIES) {
+            for (Zombie zombie : state.getZombies()) {
+                drawZombie(batch, assets, player, zombie);
+            }
         }
         for(Barrel barrel : state.getBarrels()){
             drawBarrel(batch, assets, player, barrel);
