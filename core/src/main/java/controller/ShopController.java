@@ -96,7 +96,7 @@ public class ShopController {
             user.greenhouse = new Greenhouse();
         }
         if (user.greenhouse.getUnlockPotCount() + quantity > Shop.LIMIT_OF_POT) {
-            return failure("Greenhouse is full. Max pots is 20.");
+            return failure("Greenhouse is full. Max pots is 12.");
         }
         int totalCost = item.getPrice() * quantity;
         if (user.coins < totalCost) {
@@ -153,7 +153,7 @@ public class ShopController {
         user.gems -= totalCost;
         user.coins += totalGain;
         storageManager.saveProgress();
-        return success("Purchased " + quantity + " coins.");
+        return success("Purchased " + totalGain + " coins.");
     }
 
     public CommandResult buy(String itemId, int quantity, PlantType plantType) {
@@ -200,7 +200,9 @@ public class ShopController {
     public void setShopDisplayMode(ShopDisplayMode shopDisplayMode) {
         this.shopDisplayMode = shopDisplayMode;
     }
-
+    public void refreshDailyDeal() {
+        shop.ensureDailyFresh();
+    }
     private CommandResult success(String message) {
         return new CommandResult(message, true);
     }

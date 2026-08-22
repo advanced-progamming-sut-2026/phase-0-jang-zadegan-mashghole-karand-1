@@ -17,10 +17,13 @@ import view.ScreenType;
 import view.gdx.ui.screens.GameScreenShell;
 import view.gdx.ui.screens.PlaceholderOverlayScreen;
 import view.gdx.ui.screens.PlaceholderScreen;
-import view.gdx.ui.screens.auth.LoginScreen;
-import view.gdx.ui.screens.auth.RegisterScreen;
-import view.gdx.ui.screens.main.MainScreen;
+import view.gdx.ui.screens.menus.ShopOverlayScreen;
 import view.gdx.ui.screens.map.LevelSelectorScreen;
+import view.gdx.ui.screens.auth.LoginScreen;
+import view.gdx.ui.screens.main.MainScreen;
+import view.gdx.ui.screens.auth.RegisterScreen;
+import view.gdx.ui.screens.Garden.GardenScreen;
+import view.gdx.ui.screens.GlobalTopBar;
 import view.gdx.ui.screens.menus.SettingsOverlayScreen;
 
 public final class UiNavigator implements Disposable {
@@ -29,6 +32,7 @@ public final class UiNavigator implements Disposable {
     private final Stage toastStage;
     private final Label toastLabel;
     private final GameLoop gameLoop;
+    private final GlobalTopBar topBar;
 
     private UiScreen activeScreen;
     private UiScreen activeOverlay;
@@ -36,6 +40,7 @@ public final class UiNavigator implements Disposable {
 
     public UiNavigator(GameLoop gameLoop) {
         this.gameLoop = gameLoop;
+        this.topBar = new GlobalTopBar();
         registerDefaults();
         toastStage = new Stage(new ScreenViewport());
         Table toastRoot = new Table();
@@ -49,8 +54,9 @@ public final class UiNavigator implements Disposable {
     private void registerDefaults() {
         screens.put(ScreenType.LOGIN, new LoginScreen());
         screens.put(ScreenType.REGISTER, new RegisterScreen());
-        screens.put(ScreenType.MAIN, new MainScreen());
-        screens.put(ScreenType.LEVEL_SELECTOR, new LevelSelectorScreen());
+        screens.put(ScreenType.MAIN , new MainScreen());
+        screens.put(ScreenType.LEVEL_SELECTOR , new LevelSelectorScreen());
+        screens.put(ScreenType.GREEN_HOUSE, new GardenScreen());
         for (ScreenType type : ScreenType.values()) {
             if (screens.containsKey(type)) {
                 continue;
@@ -67,6 +73,7 @@ public final class UiNavigator implements Disposable {
         overlays.put(MenuType.NEWS, new PlaceholderOverlayScreen("News"));
         overlays.put(MenuType.TRAVEL_LOG, new PlaceholderOverlayScreen("Travel Log"));
         overlays.put(MenuType.PLANT_SELECTOR, new PlaceholderOverlayScreen("Plant Selector"));
+        overlays.put(MenuType.SHOP,new ShopOverlayScreen());
     }
 
     public void show(UiViewContext context) {
@@ -89,6 +96,8 @@ public final class UiNavigator implements Disposable {
             activeOverlay.resize(width, height);
         }
         toastStage.getViewport().update(width, height, true);
+        topBar.bind(context);
+        topBar.resize(width, height);
         updateInputProcessors();
     }
 
@@ -124,6 +133,7 @@ public final class UiNavigator implements Disposable {
         if (activeOverlay != null) {
             activeOverlay.act(deltaSeconds);
         }
+        topBar.act(deltaSeconds);
         toastStage.act(deltaSeconds);
     }
 
@@ -136,6 +146,7 @@ public final class UiNavigator implements Disposable {
             activeOverlay.stage().getViewport().apply();
             activeOverlay.stage().draw();
         }
+        topBar.draw();
         toastStage.getViewport().apply();
         toastStage.draw();
     }
@@ -147,6 +158,7 @@ public final class UiNavigator implements Disposable {
         if (activeOverlay != null) {
             activeOverlay.resize(width, height);
         }
+        topBar.resize(width, height);
         toastStage.getViewport().update(width, height, true);
     }
 
@@ -171,6 +183,7 @@ public final class UiNavigator implements Disposable {
             mux.addProcessor(activeScreen.stage());
         }
         mux.addProcessor(toastStage);
+        mux.addProcessor(topBar.stage());
         Gdx.input.setInputProcessor(mux);
     }
 
@@ -196,6 +209,7 @@ public final class UiNavigator implements Disposable {
         for (UiScreen overlay : overlays.values()) {
             overlay.dispose();
         }
+        topBar.dispose();
         toastStage.dispose();
     }
 }

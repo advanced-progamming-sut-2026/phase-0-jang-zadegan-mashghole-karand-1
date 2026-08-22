@@ -6,6 +6,7 @@ import model.data.plant.PlantType;
 import model.greenhouse.Pot;
 import model.storage.StorageManager;
 import model.storage.user.User;
+import view.MenuType;
 import view.ScreenType;
 
 import java.util.Arrays;
@@ -130,7 +131,9 @@ public class GreenhouseController {
 
     public CommandResult enterShop() {
         controllerManager.getShopController().setShopDisplayMode(ShopController.ShopDisplayMode.MENU);
-        controllerManager.setScreen(ScreenType.SHOP);
+        controllerManager.currentMenu = MenuType.SHOP;
+        controllerManager.getShopController().setShopDisplayMode(ShopController.ShopDisplayMode.LIST);
+        controllerManager.refreshView();
         return success("Entered shop");
     }
 

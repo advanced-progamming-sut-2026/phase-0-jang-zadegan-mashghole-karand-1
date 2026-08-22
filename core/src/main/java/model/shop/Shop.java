@@ -12,7 +12,7 @@ public class Shop {
 
     private List<ShopItems> permanentItems;
     private User user;
-    public final static int LIMIT_OF_POT = 20;
+    public final static int LIMIT_OF_POT = 12;
     public final static int LIMIT_OF_PLANT_FOOD = 3;
     public Shop(User user) {
         this.permanentItems = Arrays.asList(ShopItems.values());

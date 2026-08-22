@@ -7,5 +7,6 @@ public enum MenuType {
     PROFILE,
     NEWS,
     TRAVEL_LOG,
-    PLANT_SELECTOR
+    PLANT_SELECTOR,
+    SHOP
 }
