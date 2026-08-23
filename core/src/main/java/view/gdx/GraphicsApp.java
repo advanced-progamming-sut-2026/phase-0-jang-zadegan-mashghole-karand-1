@@ -11,12 +11,16 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import app.DesktopApp;
 import model.data.content.chapter.ChapterType;
 import model.rule.SessionContext;
+import model.service.HudViewState;
 import view.gdx.anim.AnimStateStore;
 import view.gdx.catalog.DefaultVisualCatalog;
 import view.gdx.catalog.VisualCatalog;
 import view.gdx.lawn.LawnBackgroundRenderer;
+import view.gdx.lawn.LawnGridDebugOverlay;
 import view.gdx.lawn.LawnLayout;
+import view.gdx.lawn.LawnPlantInput;
 import view.gdx.lawn.LawnRenderer;
+import view.gdx.lawn.SeedTrayRenderer;
 import view.gdx.ui.MenuBackdrop;
 import view.gdx.ui.UiNavigator;
 
@@ -33,6 +37,9 @@ public final class GraphicsApp extends ApplicationAdapter {
     private LawnLayout lawnLayout;
     private LawnBackgroundRenderer lawnBackground;
     private LawnRenderer lawnRenderer;
+    private SeedTrayRenderer seedTray;
+    private LawnPlantInput plantInput;
+    private LawnGridDebugOverlay lawnGridDebug;
     private AnimStateStore animStates;
     private VisibilityResolver visibilityResolver;
 
@@ -56,6 +63,10 @@ public final class GraphicsApp extends ApplicationAdapter {
         animStates = new AnimStateStore();
         visibilityResolver = new VisibilityResolver();
         lawnRenderer = new LawnRenderer(catalog, lawnLayout, animStates, visibilityResolver);
+        seedTray = new SeedTrayRenderer();
+        plantInput = new LawnPlantInput(worldViewport, lawnLayout, seedTray);
+        lawnGridDebug = new LawnGridDebugOverlay();
+        ui.setGameWorldInput(plantInput);
 
         Gdx.app.log("GraphicsApp", "ready assets=" + assets.status()
                 + " backdrop=" + menuBackdrop.ready()
@@ -74,13 +85,30 @@ public final class GraphicsApp extends ApplicationAdapter {
 
         if (app.isGameScreen()) {
             worldViewport.apply();
-            lawnBackground.bind(assets, resolveChapter(), worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
+            ChapterType chapter = resolveChapter();
+            lawnBackground.bind(assets, chapter, worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
+            if (lawnBackground.ready()) {
+                lawnLayout.syncFromBackground(
+                        lawnBackground.drawX(), lawnBackground.drawY(),
+                        lawnBackground.leftW(), lawnBackground.centerW(), lawnBackground.stripH(),
+                        lawnBackground.scale());
+            }
             batch.setProjectionMatrix(camera.combined);
             batch.begin();
             lawnBackground.render(batch);
             lawnRenderer.render(batch, assets, app.gameState(), dt);
+            HudViewState hud = HudViewState.fromSession(
+                    app.model().getPlayContext(),
+                    app.gameState(),
+                    app.controller().getStorage().getCurrentUser());
+            int sun = app.gameState() != null ? app.gameState().getSunAmount() : 0;
+            plantInput.bind(app.controller(), assets, hud, sun, worldViewport::getWorldHeight);
+            seedTray.render(batch, assets, hud, chapter, sun, worldViewport.getWorldHeight(),
+                    plantInput.selectedPlantName());
             batch.end();
+            lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
         } else {
+            plantInput.clearSelection();
             menuBackdrop.render(batch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
 
@@ -108,6 +136,9 @@ public final class GraphicsApp extends ApplicationAdapter {
         }
         if (assets != null) {
             assets.dispose();
+        }
+        if (lawnGridDebug != null) {
+            lawnGridDebug.dispose();
         }
         if (batch != null) {
             batch.dispose();

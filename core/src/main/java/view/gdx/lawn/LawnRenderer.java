@@ -3,6 +3,7 @@ package view.gdx.lawn;
 import java.util.Map;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Matrix4;
 
 import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
@@ -17,11 +18,16 @@ import view.gdx.anim.EntityAnimState;
 import view.gdx.catalog.*;
 
 public final class LawnRenderer {
-    private static final boolean RENDER_ZOMBIES = false;
+    private static final boolean RENDER_ZOMBIES = true;
+    private static final float PAM_CANVAS = 390f;
+    private static final float ENTITY_HEIGHT_IN_CELLS = 2f;
+
     private final VisualCatalog catalog;
     private final LawnLayout layout;
     private final AnimStateStore animStates;
     private final VisibilityResolver visibilityResolver;
+    private final Matrix4 savedTransform = new Matrix4();
+    private final Matrix4 entityTransform = new Matrix4();
 
     public LawnRenderer(VisualCatalog catalog, LawnLayout layout, AnimStateStore animStates,
             VisibilityResolver visibilityResolver) {
@@ -46,9 +52,13 @@ public final class LawnRenderer {
                 drawZombie(batch, assets, player, zombie);
             }
         }
-        for(Barrel barrel : state.getBarrels()){
+        for (Barrel barrel : state.getBarrels()) {
             drawBarrel(batch, assets, player, barrel);
         }
+    }
+
+    private float entityScale() {
+        return (layout.cellHeight() * ENTITY_HEIGHT_IN_CELLS) / PAM_CANVAS;
     }
 
     private void drawPlant(SpriteBatch batch, AssetContext assets, PamPlayer player, Plant plant) {
@@ -57,9 +67,9 @@ public final class LawnRenderer {
             return;
         }
         String desiredClip = visual.idleClip;
-        if (plant.isPlantFoodActive && visual.plantFoodClip!=null) {
+        if (plant.isPlantFoodActive && visual.plantFoodClip != null) {
             desiredClip = visual.plantFoodClip;
-        }else if (isPlayingAction(plant)  && visual.attackClip != null) {
+        } else if (isPlayingAction(plant) && visual.attackClip != null) {
             desiredClip = visual.attackClip;
         }
         if (desiredClip != null && desiredClip.endsWith("_stage")) {
@@ -77,18 +87,20 @@ public final class LawnRenderer {
         }
         float x = layout.cellCenterX(plant.col);
         float y = layout.cellCenterY(plant.row);
-        player.draw(batch, clip, anim.stateTime, x, y, true);
+        drawPam(batch, player, clip, anim.stateTime, x, y, true, null);
     }
+
     private boolean isPlayingAction(Plant plant) {
-       return plant.isAttacking();
+        return plant.isAttacking();
     }
+
     private void drawZombie(SpriteBatch batch, AssetContext assets, PamPlayer player, Zombie zombie) {
         ZombieVisualDef visual = catalog.zombie(zombie.type);
         if (visual == null) {
             return;
         }
         String defaultClip = zombie.isEating ? visual.eatClip : visual.walkClip;
-        if(defaultClip == null) {
+        if (defaultClip == null) {
             defaultClip = visual.idleClip;
         }
         EntityAnimState anim = animStates.getOrCreate(animKey(2, zombie.instanceId), defaultClip);
@@ -103,45 +115,76 @@ public final class LawnRenderer {
         float x = layout.worldX(zombie.position);
         float y = layout.worldYForRow(zombie.row, zombie.position);
         Map<String, Boolean> visibility = visibilityResolver.forZombie(zombie, visual);
-        if(!(visual.companions == null || visual.companions.isEmpty())) {
-            for (int i = 0; i < visual.companions.size(); i++) {
-                CompanionVisual c = visual.companions.get(i);
-                if (c.onlyWhileArmored && (zombie.armor == null || !zombie.armor.isIntact)) {
-                    continue;
+        beginEntityScale(batch, x, y);
+        try {
+            if (!(visual.companions == null || visual.companions.isEmpty())) {
+                for (int i = 0; i < visual.companions.size(); i++) {
+                    CompanionVisual c = visual.companions.get(i);
+                    if (c.onlyWhileArmored && (zombie.armor == null || !zombie.armor.isIntact)) {
+                        continue;
+                    }
+                    ClipRef prop = assets.clip(c.pamPath, c.clipName);
+                    if (prop == null) {
+                        continue;
+                    }
+                    long key = animKey(4 + i, zombie.instanceId);
+                    EntityAnimState propAnim = animStates.getOrCreate(key, c.clipName);
+                    player.draw(batch, prop, propAnim.stateTime, x + c.offsetX, y + c.offsetY, true);
                 }
-                ClipRef prop = assets.clip(c.pamPath, c.clipName);
-                if (prop == null) {
-                    continue;
-                }
-                long key = animKey(4 + i, zombie.instanceId);
-                EntityAnimState propAnim = animStates.getOrCreate(key, c.clipName);
-                player.draw(batch, prop, propAnim.stateTime, x + c.offsetX, y + c.offsetY, true);
             }
-        }
-        if (visibility.isEmpty()) {
-            player.draw(batch, clip, anim.stateTime, x, y, true);
-        } else {
-            player.draw(batch, clip, anim.stateTime, x, y, true, visibility);
+            if (visibility.isEmpty()) {
+                player.draw(batch, clip, anim.stateTime, x, y, true);
+            } else {
+                player.draw(batch, clip, anim.stateTime, x, y, true, visibility);
+            }
+        } finally {
+            endEntityScale(batch);
         }
     }
 
-    private void drawBarrel(SpriteBatch batch, AssetContext assets,PamPlayer player ,Barrel barrel) {
-        if(!barrel.ownerDead()){
+    private void drawBarrel(SpriteBatch batch, AssetContext assets, PamPlayer player, Barrel barrel) {
+        if (!barrel.ownerDead()) {
             return;
         }
         BarrelVisualDef visual = catalog.barrel();
         if (visual == null) {
             return;
         }
-        String clipName = visual.rollClip; //for now
-        EntityAnimState animState = animStates.getOrCreate(animKey(3,System.identityHashCode(barrel)),clipName);
+        String clipName = visual.rollClip;
+        EntityAnimState animState = animStates.getOrCreate(animKey(3, System.identityHashCode(barrel)), clipName);
         ClipRef clip = assets.clip(visual.pamPath, clipName);
         if (clip == null) {
             return;
         }
-        float x =  layout.cellCenterX(barrel.col);
+        float x = layout.cellCenterX(barrel.col);
         float y = layout.cellCenterY(barrel.row);
-        player.draw(batch, clip, animState.stateTime, x, y, true);
+        drawPam(batch, player, clip, animState.stateTime, x, y, true, null);
+    }
+
+    private void drawPam(SpriteBatch batch, PamPlayer player, ClipRef clip, float time,
+            float x, float y, boolean loop, Map<String, Boolean> visibility) {
+        beginEntityScale(batch, x, y);
+        try {
+            if (visibility == null) {
+                player.draw(batch, clip, time, x, y, loop);
+            } else {
+                player.draw(batch, clip, time, x, y, loop, visibility);
+            }
+        } finally {
+            endEntityScale(batch);
+        }
+    }
+
+    private void beginEntityScale(SpriteBatch batch, float x, float y) {
+        float s = entityScale();
+        savedTransform.set(batch.getTransformMatrix());
+        entityTransform.set(savedTransform);
+        entityTransform.translate(x, y, 0f).scale(s, s, 1f).translate(-x, -y, 0f);
+        batch.setTransformMatrix(entityTransform);
+    }
+
+    private void endEntityScale(SpriteBatch batch) {
+        batch.setTransformMatrix(savedTransform);
     }
 
     private static long animKey(int kind, int instanceId) {

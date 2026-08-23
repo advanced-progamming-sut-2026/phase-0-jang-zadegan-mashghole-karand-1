@@ -39,17 +39,31 @@ public class HudViewState {
         public final String name;
         public final int cost;
         public final int cooldownSeconds;
+        public final float cooldownFraction;
         public final boolean ready;
         public final boolean highlighted;
         public final int count;
+        public final int level;
 
         public TraySlot(String name, int cost, int cooldownSeconds, boolean ready, boolean highlighted, int count) {
+            this(name, cost, cooldownSeconds, 0f, ready, highlighted, count, 1);
+        }
+
+        public TraySlot(String name, int cost, int cooldownSeconds, boolean ready, boolean highlighted, int count,
+                int level) {
+            this(name, cost, cooldownSeconds, 0f, ready, highlighted, count, level);
+        }
+
+        public TraySlot(String name, int cost, int cooldownSeconds, float cooldownFraction,
+                boolean ready, boolean highlighted, int count, int level) {
             this.name = name;
             this.cost = cost;
             this.cooldownSeconds = Math.max(0, cooldownSeconds);
+            this.cooldownFraction = Math.max(0f, Math.min(1f, cooldownFraction));
             this.ready = ready;
             this.highlighted = highlighted;
             this.count = count;
+            this.level = Math.max(1, level);
         }
     }
 
@@ -344,7 +358,10 @@ public class HudViewState {
             int cdTicks = context.getPlantingCooldownTicks(type);
             int cdSec = (int) Math.ceil(cdTicks / (double) GameLoop.TICKS_PER_SECOND);
             boolean ready = cdTicks <= 0;
-            slots.add(new TraySlot(type.name, stats.cost, cdSec, ready, false, 1));
+            float totalSec = Math.max(0.001f, stats.recharge);
+            float remainingSec = cdTicks / (float) GameLoop.TICKS_PER_SECOND;
+            float cdFraction = ready ? 0f : Math.min(1f, remainingSec / totalSec);
+            slots.add(new TraySlot(type.name, stats.cost, cdSec, cdFraction, ready, false, 1, level));
         }
         return slots;
     }

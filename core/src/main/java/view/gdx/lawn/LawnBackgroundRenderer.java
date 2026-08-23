@@ -22,13 +22,15 @@ public final class LawnBackgroundRenderer {
     private float centerW;
     private float rightW;
     private float stripH;
+    private float scale = 1f;
 
     public void bind(AssetContext assets, ChapterType chapter, float worldWidth, float worldHeight) {
         if (assets == null) {
             clear();
             return;
         }
-        boolean chapterChanged = chapter != boundChapter || art == null || left == null || center == null || right == null;
+        boolean chapterChanged = chapter != boundChapter || art == null || left == null || center == null
+                || right == null;
         if (chapterChanged) {
             boundChapter = chapter;
             art = LawnBackgroundDefs.forChapter(chapter);
@@ -42,6 +44,34 @@ public final class LawnBackgroundRenderer {
 
     public boolean ready() {
         return left != null && center != null && right != null;
+    }
+
+    public float drawX() {
+        return drawX;
+    }
+
+    public float drawY() {
+        return drawY;
+    }
+
+    public float leftW() {
+        return leftW;
+    }
+
+    public float centerW() {
+        return centerW;
+    }
+
+    public float rightW() {
+        return rightW;
+    }
+
+    public float stripH() {
+        return stripH;
+    }
+
+    public float scale() {
+        return scale;
     }
 
     public void render(SpriteBatch batch) {
@@ -72,7 +102,7 @@ public final class LawnBackgroundRenderer {
         }
 
         stripH = worldHeight;
-        float scale = stripH / sideH;
+        scale = stripH / sideH;
         leftW = left.getRegionWidth() * scale;
         centerW = centerDraw.getRegionWidth() * scale;
         rightW = right.getRegionWidth() * scale;

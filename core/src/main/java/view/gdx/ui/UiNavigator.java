@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -37,6 +38,7 @@ public final class UiNavigator implements Disposable {
     private UiScreen activeScreen;
     private UiScreen activeOverlay;
     private UiViewContext lastContext;
+    private InputProcessor gameWorldInput;
 
     public UiNavigator(GameLoop gameLoop) {
         this.gameLoop = gameLoop;
@@ -170,6 +172,11 @@ public final class UiNavigator implements Disposable {
         return lastContext != null && lastContext.screen == ScreenType.GAME;
     }
 
+    public void setGameWorldInput(InputProcessor processor) {
+        gameWorldInput = processor;
+        updateInputProcessors();
+    }
+
     private boolean shouldDrawScreenLayer() {
         return activeScreen != null && lastContext != null && lastContext.screen != ScreenType.GAME;
     }
@@ -178,6 +185,9 @@ public final class UiNavigator implements Disposable {
         InputMultiplexer mux = new InputMultiplexer();
         if (activeOverlay != null) {
             mux.addProcessor(activeOverlay.stage());
+        }
+        if (gameWorldInput != null && isGameScreen()) {
+            mux.addProcessor(gameWorldInput);
         }
         if (activeScreen != null) {
             mux.addProcessor(activeScreen.stage());
