@@ -10,6 +10,7 @@ import view.gdx.AssetContext;
 public final class MenuBackdrop {
     public static final String MAIN_MENU_BACKGROUND = "IMAGE_MAINMENU_BACKGROUND";
     public static final String GARDEN_BACKGROUND = "IMAGE_BACKGROUNDS_ZEN_GARDEN";
+    public static final String STORE_BACKGROUND = "IMAGE_UI_STORE_MINISTORE_BG";
 
     private final Matrix4 screenProjection = new Matrix4();
     private TextureRegion background;
@@ -24,6 +25,8 @@ public final class MenuBackdrop {
             background = assets.region(MAIN_MENU_BACKGROUND);
         } else if (screenType == ScreenType.GREEN_HOUSE) {
             background = assets.region(GARDEN_BACKGROUND);
+        }else if (screenType == ScreenType.SHOP) {
+            background = assets.region(STORE_BACKGROUND);
         }
     }
 

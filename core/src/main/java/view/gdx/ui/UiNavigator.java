@@ -17,12 +17,13 @@ import view.ScreenType;
 import view.gdx.ui.screens.GameScreenShell;
 import view.gdx.ui.screens.PlaceholderOverlayScreen;
 import view.gdx.ui.screens.PlaceholderScreen;
+import view.gdx.ui.screens.menus.ShopOverlayScreen;
 import view.gdx.ui.screens.map.LevelSelectorScreen;
 import view.gdx.ui.screens.auth.LoginScreen;
 import view.gdx.ui.screens.main.MainScreen;
 import view.gdx.ui.screens.auth.RegisterScreen;
-import view.gdx.ui.screens.menus.Garden.GardenScreen;
-import view.gdx.ui.screens.menus.GlobalTopBar;
+import view.gdx.ui.screens.Garden.GardenScreen;
+import view.gdx.ui.screens.GlobalTopBar;
 import view.gdx.ui.screens.menus.SettingsOverlayScreen;
 
 public final class UiNavigator implements Disposable {
@@ -72,6 +73,7 @@ public final class UiNavigator implements Disposable {
         overlays.put(MenuType.NEWS, new PlaceholderOverlayScreen("News"));
         overlays.put(MenuType.TRAVEL_LOG, new PlaceholderOverlayScreen("Travel Log"));
         overlays.put(MenuType.PLANT_SELECTOR, new PlaceholderOverlayScreen("Plant Selector"));
+        overlays.put(MenuType.SHOP,new ShopOverlayScreen());
     }
 
     public void show(UiViewContext context) {

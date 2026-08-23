@@ -122,8 +122,15 @@ final class ControllerMenuSupport {
             case MAIN -> exitMainMenu(manager);
             case LOGIN -> exitLoginMenu(manager);
             case LEVEL_SELECTOR -> exitLevelSelectorMenu(manager);
-            case SHOP -> exitShopMenu(manager);
-            case GREEN_HOUSE -> exitToLevelSelector(manager, "Returned to game menu.");
+            case SHOP -> null;
+            case GREEN_HOUSE -> {
+                if (manager.currentMenu == MenuType.SHOP) {
+                    manager.currentMenu = MenuType.NONE;
+                    manager.refreshView();
+                    yield new CommandResult("Closed shop.", true);
+                }
+                yield exitToLevelSelector(manager, "Returned to game menu.");
+            }
             case COLLECTION -> exitToLevelSelector(manager, "Returned to game menu.");
             case LEADERBOARD -> exitToLevelSelector(manager, "Returned to game menu.");
             case GAME -> manager.getSessionLifecycleController().returnToLevelSelect();
