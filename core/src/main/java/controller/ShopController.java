@@ -96,7 +96,7 @@ public class ShopController {
             user.greenhouse = new Greenhouse();
         }
         if (user.greenhouse.getUnlockPotCount() + quantity > Shop.LIMIT_OF_POT) {
-            return failure("Greenhouse is full. Max pots is 20.");
+            return failure("Greenhouse is full. Max pots is 12.");
         }
         int totalCost = item.getPrice() * quantity;
         if (user.coins < totalCost) {
