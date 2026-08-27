@@ -29,7 +29,14 @@ public class NewsMenuController {
     }
 
     public void onMenuOpened() {
-        filter = NewsFilter.NONE;
+        if (!storage.isLoggedIn()) {
+            filter = NewsFilter.ALL;
+            return;
+        }
+
+        NewsFeed feed = storage.getCurrentUser().newsFeed;
+
+        filter = feed.hasUnread() ? NewsFilter.UNREAD : NewsFilter.ALL;
     }
 
     public void onMenuClosed() {
@@ -116,4 +123,13 @@ public class NewsMenuController {
     private CommandResult failure(String message) {
         return new CommandResult(message, false);
     }
+
+    public NewsFilter getFilter() {
+        return filter;
+    }
+
+    public void setFilter(NewsFilter filter) {
+        this.filter = filter;
+    }
+
 }
