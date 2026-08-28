@@ -4,6 +4,9 @@ import model.ModelManager;
 import model.core.EventBus;
 import model.core.GameLoop;
 import model.storage.SqlStorageManager;
+import network.NetworkAuthBridge;
+import network.NetworkConfig;
+import network.NetworkSession;
 import view.ViewManager;
 import view.renderer.*;
 
@@ -16,6 +19,8 @@ public class Application {
         ModelManager model = new ModelManager(storageManager, eventBus);
 
         ControllerManager controller = new ControllerManager(model, eventBus, gameLoop, storageManager);
+        NetworkSession networkSession = new NetworkSession(NetworkConfig.fromEnv());
+        controller.setNetworkAuth(new NetworkAuthBridge(networkSession, storageManager));
 
         InputHandler inputHandler = new InputHandler(controller);
 

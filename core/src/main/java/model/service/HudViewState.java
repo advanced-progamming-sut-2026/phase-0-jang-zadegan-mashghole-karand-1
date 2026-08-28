@@ -163,6 +163,9 @@ public class HudViewState {
         SpecialLevelType special = config.specialLevelType;
 
         if ((state != null && state.isBrainsMode()) || mini == MiniGameType.I_ZOMBIE) {
+            if (config.isIZombiePvP()) {
+                return iZombiePvPHud(config, state);
+            }
             return brainsHud();
         }
         if (mini == MiniGameType.VASE_BREAKER) {
@@ -202,6 +205,52 @@ public class HudViewState {
                         "show available zombies",
                         "show sun amount",
                         "advance time -t <n> ticks",
+                        "menu exit"),
+                false);
+    }
+
+    private static HudViewState iZombiePvPHud(SessionConfig config, ReadOnlyGameState state) {
+        List<TraySlot> slots = new ArrayList<>();
+        boolean plantsSide = config.iZombiePlayMode == shared.izombie.IZombiePlayMode.COUCH
+                || config.localMatchRole == shared.izombie.MatchRole.PLANTS;
+        boolean zombiesSide = config.iZombiePlayMode == shared.izombie.IZombiePlayMode.COUCH
+                || config.localMatchRole == shared.izombie.MatchRole.ZOMBIES;
+
+        if (plantsSide && (config.iZombiePlayMode == shared.izombie.IZombiePlayMode.COUCH
+                || config.localMatchRole == shared.izombie.MatchRole.PLANTS)) {
+            for (PlantType type : model.rule.rules.minigame.IZombiePvPRules.plantShop()) {
+                int cost = PlantStats.forLevel(type, PlantStats.DEFAULT_LEVEL).cost;
+                slots.add(new TraySlot(type.name, cost, 0, true, false, 1));
+            }
+        }
+        if (zombiesSide && config.localMatchRole == shared.izombie.MatchRole.ZOMBIES
+                && config.iZombiePlayMode != shared.izombie.IZombiePlayMode.COUCH) {
+            slots.clear();
+            for (Map.Entry<ZombieType, Integer> entry : IZombieShop.getCosts().entrySet()) {
+                slots.add(new TraySlot(entry.getKey().name, entry.getValue(), 0, true, false, 1));
+            }
+        }
+        if (config.iZombiePlayMode == shared.izombie.IZombiePlayMode.COUCH) {
+            slots.clear();
+            for (PlantType type : model.rule.rules.minigame.IZombiePvPRules.plantShop()) {
+                int cost = PlantStats.forLevel(type, PlantStats.DEFAULT_LEVEL).cost;
+                slots.add(new TraySlot(type.name, cost, 0, true, false, 1));
+            }
+        }
+
+        String label = "I, Zombie PvP";
+        if (state != null && state.isDualSunMode()) {
+            label = "P-Sun " + state.getPlantSun() + " | Z-Sun " + state.getZombieSun();
+        }
+        return new HudViewState(
+                Mode.BRAINS, label, true, false, false,
+                null, 0, 0,
+                "", 0, 0, 0,
+                -1, 0, 0, -1, 0,
+                slots,
+                List.of(
+                        "Mouse: plants | Keys 1-5+Arrows+Enter: zombies",
+                        "M: quick messages (online)",
                         "menu exit"),
                 false);
     }

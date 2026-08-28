@@ -101,7 +101,7 @@ public final class GraphicsApp extends ApplicationAdapter {
                     app.model().getPlayContext(),
                     app.gameState(),
                     app.controller().getStorage().getCurrentUser());
-            int sun = app.gameState() != null ? app.gameState().getSunAmount() : 0;
+            int sun = resolveTraySun(hud);
             plantInput.bind(app.controller(), assets, hud, sun, worldViewport::getWorldHeight);
             seedTray.render(batch, assets, hud, chapter, sun, worldViewport.getWorldHeight(),
                     plantInput.selectedPlantName());
@@ -127,6 +127,25 @@ public final class GraphicsApp extends ApplicationAdapter {
             return null;
         }
         return session.getConfig().levelConfig.chapterType;
+    }
+
+    private int resolveTraySun(HudViewState hud) {
+        if (app.gameState() == null) {
+            return 0;
+        }
+        if (app.gameState().isDualSunMode()) {
+            SessionContext session = app.model().getPlayContext();
+            if (session != null && session.getConfig() != null
+                    && session.getConfig().localMatchRole == shared.izombie.MatchRole.PLANTS) {
+                return app.gameState().getPlantSun();
+            }
+            if (session != null && session.getConfig() != null
+                    && session.getConfig().iZombiePlayMode == shared.izombie.IZombiePlayMode.COUCH) {
+                return app.gameState().getPlantSun();
+            }
+            return app.gameState().getZombieSun();
+        }
+        return app.gameState().getSunAmount();
     }
 
     @Override

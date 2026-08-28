@@ -8,6 +8,10 @@ import model.core.EventBus;
 import model.core.GameLoop;
 import model.core.ReadOnlyGameState;
 import model.storage.SqlStorageManager;
+import network.NetworkAuthBridge;
+import network.NetworkConfig;
+import network.NetworkEventRouter;
+import network.NetworkSession;
 import view.ScreenType;
 import view.gdx.AssetContext;
 import view.gdx.ui.DesktopViewFacade;
@@ -38,11 +42,17 @@ public final class DesktopApp {
         ModelManager model = new ModelManager(storage, eventBus);
         ControllerManager controller = new ControllerManager(model, eventBus, gameLoop, storage);
 
+        NetworkSession networkSession = new NetworkSession(NetworkConfig.fromEnv());
+        NetworkAuthBridge networkAuth = new NetworkAuthBridge(networkSession, storage);
+        controller.setNetworkAuth(networkAuth);
+
         UiNavigator navigator = new UiNavigator(gameLoop);
         DesktopViewFacade viewFacade = new DesktopViewFacade(navigator,assets);
         controller.setView(viewFacade);
         viewFacade.initialize();
         controller.start();
+
+        new NetworkEventRouter(controller, model, navigator, networkSession);
 
         Gdx.app.log("DesktopApp", "started screen=" + controller.getCurrentScreen());
         return new DesktopApp(model, controller, gameLoop, storage, navigator, viewFacade);

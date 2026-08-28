@@ -29,6 +29,9 @@ public class GameState implements ReadOnlyGameState {
     public List<Barrel> barrels = new ArrayList<>();
     public List<Brain> brains = new ArrayList<>();
     public boolean brainsMode = false;
+    public boolean dualSunMode = false;
+    public int plantSun = 0;
+    public int zombieSun = 0;
     private GameBoard board = new GameBoard(GameState.GRID_ROWS, GameState.GRID_COLS, this);
 
     public int sunAmount = INITIAL_SUN_AMOUNT;
@@ -90,6 +93,21 @@ public class GameState implements ReadOnlyGameState {
     @Override
     public boolean isBrainsMode() {
         return brainsMode;
+    }
+
+    @Override
+    public boolean isDualSunMode() {
+        return dualSunMode;
+    }
+
+    @Override
+    public int getPlantSun() {
+        return dualSunMode ? plantSun : sunAmount;
+    }
+
+    @Override
+    public int getZombieSun() {
+        return dualSunMode ? zombieSun : sunAmount;
     }
 
     public Brain getBrainAtRow(int row) {
@@ -336,6 +354,9 @@ public class GameState implements ReadOnlyGameState {
         barrels.clear();
         brains.clear();
         brainsMode = false;
+        dualSunMode = false;
+        plantSun = 0;
+        zombieSun = 0;
         sunAmount = INITIAL_SUN_AMOUNT;
         plantFoodAmount = 0;
         currentWave = 0;

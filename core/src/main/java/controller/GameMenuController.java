@@ -16,6 +16,9 @@ import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
 import model.storage.user.User;
+import network.NetworkSession;
+import shared.izombie.IZombiePlayMode;
+import shared.izombie.MatchRole;
 import view.MenuType;
 import view.ScreenType;
 
@@ -173,7 +176,14 @@ public class GameMenuController {
         gameNavigation.pendingMiniGame = type;
         gameNavigation.pendingLevel = levelConfig;
         gameNavigation.pendingSpecialLevel = null;
+        gameNavigation.pendingIZombieMode = null;
+        gameNavigation.pendingMatchRole = null;
         gameNavigation.selectedPlants.clear();
+
+        if (type == MiniGameType.I_ZOMBIE) {
+            controllerManager.openMenu(MenuType.I_ZOMBIE_MODE);
+            return success("Choose I, Zombie play mode.");
+        }
 
         SessionConfig probe = SessionConfig.builder()
                 .miniGame(type)
@@ -192,6 +202,71 @@ public class GameMenuController {
         gameNavigation.phase = Phase.PLANT;
         controllerManager.refreshView();
         return success(MiniGameCommands.displayName(type) + " selected. Pick your plants.");
+    }
+
+    public CommandResult startIZombieOffline() {
+        return startIZombie(IZombiePlayMode.OFFLINE, MatchRole.ZOMBIES);
+    }
+
+    public CommandResult startIZombieCouch() {
+        return startIZombie(IZombiePlayMode.COUCH, MatchRole.ZOMBIES);
+    }
+
+    public CommandResult startIZombieOnlineRandom() {
+        NetworkSession net = controllerManager.getNetworkSession();
+        if (net == null || !net.isLoggedIn()) {
+            return failure("Log in to the game server first.");
+        }
+        controllerManager.clearCurrentMenu();
+        net.socket().joinQueue();
+        controllerManager.openMenu(MenuType.I_ZOMBIE_QUEUE);
+        return success("Joined matchmaking queue. Waiting for an opponent...");
+    }
+
+    public CommandResult startIZombieInvite(String targetUsername) {
+        NetworkSession net = controllerManager.getNetworkSession();
+        if (net == null || !net.isLoggedIn()) {
+            return failure("Log in to the game server first.");
+        }
+        if (targetUsername == null || targetUsername.isBlank()) {
+            return failure("Enter a username to invite.");
+        }
+        controllerManager.clearCurrentMenu();
+        net.socket().invite(targetUsername.trim());
+        controllerManager.openMenu(MenuType.I_ZOMBIE_QUEUE);
+        return success("Invite sent to " + targetUsername.trim() + ".");
+    }
+
+    public CommandResult startIZombie(IZombiePlayMode mode, MatchRole localRole) {
+        if (gameNavigation.pendingMiniGame != MiniGameType.I_ZOMBIE || gameNavigation.pendingLevel == null) {
+            return failure("Select I, Zombie first.");
+        }
+        SessionConfig config = SessionConfig.builder()
+                .miniGame(MiniGameType.I_ZOMBIE)
+                .levelConfig(gameNavigation.pendingLevel)
+                .selectedPlants(List.of())
+                .iZombiePlayMode(mode)
+                .localMatchRole(localRole)
+                .build();
+        model.startSession(config);
+        storage.recordGamePlayed();
+        gameNavigation.reset();
+        controllerManager.clearCurrentMenu();
+        controllerManager.setScreen(ScreenType.GAME);
+        return success("I, Zombie (" + mode.name().toLowerCase().replace('_', ' ') + ") started!");
+    }
+
+    public CommandResult beginOnlineMatch(shared.dto.MatchStartPayload payload) {
+        if (payload == null) {
+            return failure("Invalid match payload.");
+        }
+        LevelConfig levelConfig = MiniGameCatalog.levelConfig(MiniGameType.I_ZOMBIE);
+        if (levelConfig == null) {
+            return failure("Minigame configuration missing.");
+        }
+        gameNavigation.pendingMiniGame = MiniGameType.I_ZOMBIE;
+        gameNavigation.pendingLevel = levelConfig;
+        return startIZombie(IZombiePlayMode.ONLINE_RANDOM, payload.yourRole);
     }
 
     private CommandResult startSessionSkippingPlantSelection(SpecialLevelType special) {

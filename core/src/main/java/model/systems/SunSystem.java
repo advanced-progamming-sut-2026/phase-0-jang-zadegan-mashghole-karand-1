@@ -61,7 +61,15 @@ public class SunSystem {
             notifyPlantSunCollected(state, target);
         }
 
-        state.sunAmount += target.amount;
+        if (state.dualSunMode) {
+            if (target.generatorPlant != null) {
+                state.plantSun += target.amount;
+            } else {
+                state.zombieSun += target.amount;
+            }
+        } else {
+            state.sunAmount += target.amount;
+        }
         state.sunDrops.remove(target);
         bus.publish(new SunCollectedEvent(target));
         return true;

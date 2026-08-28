@@ -25,6 +25,10 @@ import view.gdx.ui.screens.main.MainScreen;
 import view.gdx.ui.screens.auth.RegisterScreen;
 import view.gdx.ui.screens.Garden.GardenScreen;
 import view.gdx.ui.screens.GlobalTopBar;
+import view.gdx.ui.screens.izombie.IZombieInviteOverlayScreen;
+import view.gdx.ui.screens.izombie.IZombieModeOverlayScreen;
+import view.gdx.ui.screens.izombie.IZombieQueueOverlayScreen;
+import view.gdx.ui.screens.izombie.QuickMessageOverlayScreen;
 import view.gdx.ui.screens.menus.SettingsOverlayScreen;
 
 public final class UiNavigator implements Disposable {
@@ -75,7 +79,11 @@ public final class UiNavigator implements Disposable {
         overlays.put(MenuType.NEWS, new PlaceholderOverlayScreen("News"));
         overlays.put(MenuType.TRAVEL_LOG, new PlaceholderOverlayScreen("Travel Log"));
         overlays.put(MenuType.PLANT_SELECTOR, new PlaceholderOverlayScreen("Plant Selector"));
-        overlays.put(MenuType.SHOP,new ShopOverlayScreen());
+        overlays.put(MenuType.SHOP, new ShopOverlayScreen());
+        overlays.put(MenuType.I_ZOMBIE_MODE, new IZombieModeOverlayScreen());
+        overlays.put(MenuType.I_ZOMBIE_QUEUE, new IZombieQueueOverlayScreen());
+        overlays.put(MenuType.I_ZOMBIE_INVITE, new IZombieInviteOverlayScreen());
+        overlays.put(MenuType.QUICK_MESSAGES, new QuickMessageOverlayScreen());
     }
 
     public void show(UiViewContext context) {

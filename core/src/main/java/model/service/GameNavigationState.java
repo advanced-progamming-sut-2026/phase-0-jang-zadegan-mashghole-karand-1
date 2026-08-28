@@ -26,6 +26,8 @@ public class GameNavigationState {
     public LevelConfig pendingLevel;
     public SpecialLevelType pendingSpecialLevel;
     public MiniGameType pendingMiniGame;
+    public shared.izombie.IZombiePlayMode pendingIZombieMode;
+    public shared.izombie.MatchRole pendingMatchRole;
     public final List<PlantType> selectedPlants = new ArrayList<>();
     public List<ChapterType> unlockedChapters = new ArrayList<>();
     public List<PlantType> unlockedPlants = new ArrayList<>();
@@ -65,6 +67,8 @@ public class GameNavigationState {
         pendingLevel = null;
         pendingSpecialLevel = null;
         pendingMiniGame = null;
+        pendingIZombieMode = null;
+        pendingMatchRole = null;
         selectedPlants.clear();
         imitatorTarget = null;
         boostedPlants.clear();

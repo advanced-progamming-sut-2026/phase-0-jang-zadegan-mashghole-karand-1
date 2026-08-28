@@ -135,6 +135,10 @@ public class ModelManager {
         }
     }
 
+    public EventBus getEventBus() {
+        return eventBus;
+    }
+
     public GameState getState() {
         return state;
     }
@@ -197,12 +201,20 @@ public class ModelManager {
                 }
             }
         }
-        if (shouldChargeSun && state.sunAmount < plant.cost)
-            return false;
+        if (shouldChargeSun) {
+            int available = state.dualSunMode ? state.plantSun : state.sunAmount;
+            if (available < plant.cost) {
+                return false;
+            }
+        }
 
         state.addPlant(plant);
         if (shouldChargeSun) {
-            state.sunAmount -= plant.cost;
+            if (state.dualSunMode) {
+                state.plantSun -= plant.cost;
+            } else {
+                state.sunAmount -= plant.cost;
+            }
         }
         boolean usedHeldSeed = false;
         if (sessionContext != null && sessionContext.hasHeldSeed(plantType)) {
@@ -282,7 +294,8 @@ public class ModelManager {
             return false;
         }
         int cost = IZombieShop.getCost(type);
-        if (state.sunAmount < cost) {
+        int available = state.dualSunMode ? state.zombieSun : state.sunAmount;
+        if (available < cost) {
             return false;
         }
 
@@ -295,7 +308,11 @@ public class ModelManager {
                         row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),
                 eventBus,
                 state.getGlowingChance());
-        state.sunAmount -= cost;
+        if (state.dualSunMode) {
+            state.zombieSun -= cost;
+        } else {
+            state.sunAmount -= cost;
+        }
         state.addZombie(zombie);
         eventBus.publish(new ZombieSpawnedEvent(zombie));
         return true;

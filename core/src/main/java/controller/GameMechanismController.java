@@ -166,8 +166,9 @@ public class GameMechanismController {
             return failure("Invalid cell (" + row + ", " + col + ").");
         }
         int cost = IZombieShop.getCost(zombieType);
-        if (gameState.sunAmount < cost) {
-            return failure("Not enough sun. Need " + cost + ", have " + gameState.sunAmount + ".");
+        int available = gameState.dualSunMode ? gameState.zombieSun : gameState.sunAmount;
+        if (available < cost) {
+            return failure("Not enough sun. Need " + cost + ", have " + available + ".");
         }
         if (model.placeZombie(row, col, zombieType)) {
             return success("Spawned " + zombieType.name + " at (" + row + ", " + col + ") (-" + cost + " sun).");
@@ -193,6 +194,9 @@ public class GameMechanismController {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
+        }
+        if (gameState.dualSunMode) {
+            return success("Plant sun: " + gameState.plantSun + ", Zombie sun: " + gameState.zombieSun + ".");
         }
         return success("Current sun: " + gameState.sunAmount + ".");
     }

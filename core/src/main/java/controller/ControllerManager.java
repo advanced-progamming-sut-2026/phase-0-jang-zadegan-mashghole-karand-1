@@ -10,6 +10,8 @@ import model.service.GameNavigationState.Phase;
 import model.shop.Shop;
 import model.storage.StorageManager;
 import model.storage.user.User;
+import network.NetworkAuthBridge;
+import network.NetworkSession;
 import view.MenuType;
 import view.ScreenType;
 import view.ViewFacade;
@@ -19,6 +21,8 @@ public class ControllerManager {
     ViewFacade view;
     private GameLoop gameLoop;
     private final StorageManager storage;
+    private NetworkAuthBridge networkAuth;
+    private NetworkSession networkSession;
 
     private final AuthController authController;
     private final GameMenuController gameMenuController;
@@ -79,15 +83,31 @@ public class ControllerManager {
         gameMechanismController = new GameMechanismController(this, gameLoop, model);
     }
 
+    public void setNetworkAuth(NetworkAuthBridge networkAuth) {
+        this.networkAuth = networkAuth;
+        this.networkSession = networkAuth != null ? networkAuth.session() : null;
+        authController.setNetworkAuth(networkAuth);
+    }
+
+    public NetworkAuthBridge getNetworkAuth() {
+        return networkAuth;
+    }
+
+    public NetworkSession getNetworkSession() {
+        return networkSession;
+    }
+
     public void setView(ViewFacade view) {
         this.view = view;
     }
 
     public void start() {
-        storage.loadProgress();
+        if (networkAuth == null) {
+            storage.loadProgress();
+        }
         initShopForCurrentUser();
         initQuestsForCurrentUser();
-        currentScreen = storage.isLoggedIn() ? ScreenType.MAIN : ScreenType.REGISTER;
+        currentScreen = storage.isLoggedIn() ? ScreenType.MAIN : ScreenType.LOGIN;
         refreshView();
     }
 
@@ -197,6 +217,11 @@ public class ControllerManager {
 
     public void clearCurrentMenu() {
         currentMenu = MenuType.NONE;
+    }
+
+    public void openMenu(MenuType menu) {
+        currentMenu = menu == null ? MenuType.NONE : menu;
+        refreshView();
     }
 
     public MenuType getCurrentMenu() {

@@ -83,6 +83,26 @@ public class InMemoryStorageManager implements StorageManager {
     }
 
     @Override
+    public boolean forceLogin(String username, boolean stayLoggedIn) {
+        if (username == null) {
+            return false;
+        }
+        User profile = users.get(username);
+        if (profile == null) {
+            return false;
+        }
+        currentUser = profile;
+        sessionToken = UUID.randomUUID().toString();
+        this.stayLoggedIn = stayLoggedIn;
+        if (stayLoggedIn) {
+            persistedUsername = username;
+        } else {
+            persistedUsername = null;
+        }
+        return true;
+    }
+
+    @Override
     public void logout() {
         currentUser = null;
         sessionToken = null;

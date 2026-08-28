@@ -81,6 +81,7 @@ public class MovementSystem {
                 Brain brain = state.getBrainAtRow(z.row);
                 if (brain != null && !brain.isCollected()) {
                     brain.collect();
+                    eventBus.publish(new model.event.events.BrainCollectedEvent(z.row));
                 }
                 continue;
             }

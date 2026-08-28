@@ -6,7 +6,8 @@ public enum GameOverReason {
     PLANT_DEATH_LIMIT("Too many plants died."),
     PROTECTED_PLANT_DIED("A protected plant was destroyed."),
     DEADLINE_REACHED("A zombie crossed the deadline!"),
-    TIME_UP("Time's up! You didn't reach the goal.");
+    TIME_UP("Time's up! You didn't reach the goal."),
+    BRAINS_EATEN("Zombies collected all the brains!");
 
     public final String message;
 

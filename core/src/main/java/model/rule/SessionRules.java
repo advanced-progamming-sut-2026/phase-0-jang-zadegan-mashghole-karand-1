@@ -25,7 +25,7 @@ public final class SessionRules {
             rules.addAll(SpecialLevelRules.forSpecialLevel(config.specialLevelType, config.levelConfig));
         }
         if (config.isMinigame()) {
-            rules.addAll(MiniGameRules.forMiniGame(config.miniGameType));
+            rules.addAll(MiniGameRules.forMiniGame(config.miniGameType, config));
         }
         return rules;
     }
