@@ -37,6 +37,13 @@ final class ControllerMenuSupport {
             return manager.getGameMenuController().enterMinigames();
         }
 
+        if(manager.currentScreen == ScreenType.GAME){
+            CommandResult gameres = enterFromGame(manager, name);
+            if(gameres != null){
+                return gameres;
+            }
+        }
+
         return new CommandResult("Cannot enter menu from here.", false);
     }
 
@@ -133,7 +140,14 @@ final class ControllerMenuSupport {
             }
             case COLLECTION -> exitToLevelSelector(manager, "Returned to game menu.");
             case LEADERBOARD -> exitToLevelSelector(manager, "Returned to game menu.");
-            case GAME -> manager.getSessionLifecycleController().returnToLevelSelect();
+            case GAME -> {
+                if(manager.currentMenu == MenuType.PAUSE){
+                    manager.currentMenu = MenuType.NONE;
+                    manager.refreshView();
+                    yield new CommandResult("Resumed", true);
+                }
+                yield manager.getSessionLifecycleController().returnToLevelSelect();
+            }
             default -> new CommandResult("Cannot exit this menu.", false);
         };
     }
@@ -216,4 +230,14 @@ final class ControllerMenuSupport {
         manager.setScreen(ScreenType.LEVEL_SELECTOR);
         return new CommandResult(message, true);
     }
+
+    private CommandResult enterFromGame(ControllerManager manager , String name){
+        if(!name.equals("pause")) return null;
+
+        if(manager.currentMenu != MenuType.NONE && manager.currentMenu != MenuType.PAUSE){
+            return new CommandResult("Close the current menu first.", false);
+        }
+        manager.currentMenu = MenuType.PAUSE;
+        return new CommandResult("Paused", true);
+    } 
 }

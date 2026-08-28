@@ -26,6 +26,7 @@ import view.gdx.ui.screens.auth.RegisterScreen;
 import view.gdx.ui.screens.Garden.GardenScreen;
 import view.gdx.ui.screens.GlobalTopBar;
 import view.gdx.ui.screens.menus.NewsOverlayScreen;
+import view.gdx.ui.screens.menus.PauseOverlayScreen;
 import view.gdx.ui.screens.menus.SettingsOverlayScreen;
 
 public final class UiNavigator implements Disposable {
@@ -70,7 +71,7 @@ public final class UiNavigator implements Disposable {
                 screens.put(type, new PlaceholderScreen(prettyName(type)));
             }
         }
-        overlays.put(MenuType.PAUSE, new PlaceholderOverlayScreen("Pause"));
+        overlays.put(MenuType.PAUSE, new PauseOverlayScreen());
         overlays.put(MenuType.SETTING, new SettingsOverlayScreen());
         overlays.put(MenuType.PROFILE, new PlaceholderOverlayScreen("Profile"));
         overlays.put(MenuType.NEWS, new NewsOverlayScreen());
@@ -91,7 +92,7 @@ public final class UiNavigator implements Disposable {
         }
         activeScreen.show(context);
         syncOverlay(context);
-        syncGameLoop(context.screen);
+        syncGameLoop(context);
         int width = Math.max(1, Gdx.graphics.getWidth());
         int height = Math.max(1, Gdx.graphics.getHeight());
         activeScreen.resize(width, height);
@@ -115,8 +116,9 @@ public final class UiNavigator implements Disposable {
         }
     }
 
-    private void syncGameLoop(ScreenType screen) {
-        if (screen == ScreenType.GAME) {
+    private void syncGameLoop(UiViewContext context) {
+        boolean playing = context.screen == ScreenType.GAME && context.menu != MenuType.PAUSE;
+        if (playing) {
             if (!gameLoop.isAutoTickRunning()) {
                 gameLoop.startAutoTick();
             }
@@ -179,7 +181,7 @@ public final class UiNavigator implements Disposable {
     }
 
     private boolean shouldDrawScreenLayer() {
-        return activeScreen != null && lastContext != null && lastContext.screen != ScreenType.GAME;
+        return activeScreen != null && lastContext != null;
     }
 
     private void updateInputProcessors() {
@@ -187,11 +189,11 @@ public final class UiNavigator implements Disposable {
         if (activeOverlay != null) {
             mux.addProcessor(activeOverlay.stage());
         }
-        if (gameWorldInput != null && isGameScreen()) {
-            mux.addProcessor(gameWorldInput);
-        }
         if (activeScreen != null) {
             mux.addProcessor(activeScreen.stage());
+        }
+        if (gameWorldInput != null && isGameScreen()) {
+            mux.addProcessor(gameWorldInput);
         }
         mux.addProcessor(toastStage);
         mux.addProcessor(topBar.stage());

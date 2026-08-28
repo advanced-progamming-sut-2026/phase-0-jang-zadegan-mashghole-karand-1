@@ -53,8 +53,9 @@ public final class GlobalTopBar {
         assets = ctx.assets;
 
         boolean auth = ctx.screen == ScreenType.LOGIN || ctx.screen == ScreenType.REGISTER;
+        boolean game = ctx.screen == ScreenType.GAME;
         boolean showBack = !auth && ctx.screen != ScreenType.MAIN;
-        boolean showWallet = !auth;
+        boolean showWallet = !auth && !game;
 
         back.setVisible(showBack);
         coinBadge.setVisible(showWallet);

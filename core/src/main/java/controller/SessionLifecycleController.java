@@ -60,6 +60,23 @@ public class SessionLifecycleController {
         return new CommandResult("Returned to level selection.", true);
     }
 
+    public CommandResult restartLevel(){
+        if(controllerManager.getCurrentScreen() != ScreenType.GAME){
+            return new CommandResult("not in a game session.", false);
+        }
+        SessionContext context = model.getPlayContext();
+        if(context == null || context.getConfig() == null){
+            return new CommandResult("no session to restart", false);
+        }
+        SessionConfig config = context.getConfig();
+        gameLoop.stopAutoTick();
+        controllerManager.clearCurrentMenu();
+        model.startSession(config);
+        onSessionStart();
+        controllerManager.refreshView();
+        return new CommandResult("Level restarted", true);
+    }
+
     private void onLevelComplete(LevelCompleteEvent event) {
         handleSessionEnd(true, null);
     }
