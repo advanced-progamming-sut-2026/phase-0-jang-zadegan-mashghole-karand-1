@@ -26,6 +26,7 @@ public final class LevelSelectorScreen implements UiScreen {
     private ControllerManager controller;
     private AssetContext assets;
     private WorldMapPane activeMap;
+    private PlantType plantSelectionFocus;
 
     public LevelSelectorScreen() {
         stage = new Stage(new ScreenViewport());
@@ -44,6 +45,9 @@ public final class LevelSelectorScreen implements UiScreen {
         }
         root.clearChildren();
         GameNavigationState nav = context.gameNavigation;
+        if (nav != null && nav.phase != Phase.PLANT) {
+            plantSelectionFocus = null;
+        }
         if (nav == null || nav.phase == Phase.CHAPTER || nav.phase == Phase.NONE) {
             buildChapterPhase(nav);
         } else if (nav.phase == Phase.LEVEL) {
@@ -53,6 +57,15 @@ public final class LevelSelectorScreen implements UiScreen {
         } else if (nav.phase == Phase.PLANT) {
             buildPlantPhase(nav);
         }
+    }
+
+    private void buildPlantPhase(GameNavigationState nav) {
+        if (plantSelectionFocus != null && !nav.unlockedPlants.contains(plantSelectionFocus)
+                && !nav.selectedPlants.contains(plantSelectionFocus)) {
+            plantSelectionFocus = null;
+        }
+        PlantSelectionPanel.build(root, controller, assets, nav, plantSelectionFocus,
+                focus -> plantSelectionFocus = focus);
     }
 
     private void buildChapterPhase(GameNavigationState nav) {
@@ -111,43 +124,6 @@ public final class LevelSelectorScreen implements UiScreen {
 
 
         root.add(list).padBottom(12f).row();
-    }
-
-    private void buildPlantPhase(GameNavigationState nav) {
-        root.center();
-        root.add(UiWidgets.title("Pick Plants")).padBottom(8f).row();
-        root.add(UiWidgets.body("Selected " + nav.selectedPlants.size() + "/8")).padBottom(12f).row();
-
-        Table selected = new Table();
-        if (nav.selectedPlants.isEmpty()) {
-            selected.add(UiWidgets.body("(none)")).row();
-        } else {
-            for (PlantType plant : nav.selectedPlants) {
-                TextButton remove = UiWidgets.plain("Remove " + plant.name);
-                UiWidgets.onChange(remove, () -> UiWidgets.apply(controller,
-                        controller.getPickPlantsController().removePlant(plant)));
-                selected.add(remove).width(420f).height(40f).padBottom(6f).row();
-            }
-        }
-
-        Table unlocked = new Table();
-        for (PlantType plant : nav.unlockedPlants) {
-            if (nav.selectedPlants.contains(plant) || plant == PlantType.Imitater) {
-                continue;
-            }
-            TextButton add = UiWidgets.secondary("Add " + plant.name);
-            UiWidgets.onChange(add, () -> UiWidgets.apply(controller,
-                    controller.getPickPlantsController().addPlant(plant, null)));
-            unlocked.add(add).width(420f).height(40f).padBottom(6f).row();
-        }
-
-        TextButton start = UiWidgets.primary("Start Game");
-        UiWidgets.onChange(start, () -> UiWidgets.apply(controller,
-                controller.getPickPlantsController().startGame()));
-
-        root.add(scroll(selected)).width(440f).height(140f).padBottom(8f).row();
-        root.add(scroll(unlocked)).width(440f).height(180f).padBottom(12f).row();
-        root.add(start).width(420f).height(48f).padBottom(8f).row();
     }
 
     private ScrollPane scroll(Table table) {

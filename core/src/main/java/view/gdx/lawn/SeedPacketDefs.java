@@ -6,13 +6,13 @@ import java.util.Map;
 import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
 
-final class SeedPacketDefs {
+public final class SeedPacketDefs {
     private static final Map<PlantType, String> PACKET_IDS = createPacketIds();
 
-    private SeedPacketDefs() {
+    public SeedPacketDefs() {
     }
 
-    static String worldBack(ChapterType chapter) {
+    public static String worldBack(ChapterType chapter) {
         if (chapter == null) {
             return "IMAGE_UI_PACKETS_EGYPT";
         }
@@ -24,27 +24,27 @@ final class SeedPacketDefs {
         };
     }
 
-    static String packetId(PlantType type) {
+   public static String packetId(PlantType type) {
         if (type == null) {
             return null;
         }
         return PACKET_IDS.get(type);
     }
 
-    static String packetId(String plantName) {
+   public static String packetId(String plantName) {
         return packetId(PlantType.fromName(plantName));
     }
 
-    static final String EMPTY = "IMAGE_UI_PACKETS_EMPTY_PACKET";
-    static final String COOLDOWN = "IMAGE_UI_PACKETS_COOLDOWN";
-    static final String READY = "IMAGE_UI_PACKETS_READY";
-    static final String SELECT = "IMAGE_UI_PACKETS_SELECT";
-    static final String PRICE_TAB = "IMAGE_UI_PACKETS_PRICE_TAB";
-    static final String CONVEYOR_BELT = "IMAGE_UI_CONVEYOR_CONVEYOR_BELT";
-    static final String CONVEYOR_SIDE = "IMAGE_UI_CONVEYOR_CONVEYOR_SIDE";
-    static final String CONVEYOR_TOP = "IMAGE_UI_CONVEYOR_CONVEYOR_TOP";
+    public static final String EMPTY = "IMAGE_UI_PACKETS_EMPTY_PACKET";
+    public static final String COOLDOWN = "IMAGE_UI_PACKETS_COOLDOWN";
+    public static final String READY = "IMAGE_UI_PACKETS_READY";
+    public static final String SELECT = "IMAGE_UI_PACKETS_SELECT";
+    public static final String PRICE_TAB = "IMAGE_UI_PACKETS_PRICE_TAB";
+    public static final String CONVEYOR_BELT = "IMAGE_UI_CONVEYOR_CONVEYOR_BELT";
+    public static final String CONVEYOR_SIDE = "IMAGE_UI_CONVEYOR_CONVEYOR_SIDE";
+    public static final String CONVEYOR_TOP = "IMAGE_UI_CONVEYOR_CONVEYOR_TOP";
 
-    private static Map<PlantType, String> createPacketIds() {
+    public static Map<PlantType, String> createPacketIds() {
         Map<PlantType, String> map = new EnumMap<>(PlantType.class);
         map.put(PlantType.Sunflower, "IMAGE_UI_PACKETS_SUNFLOWER");
         map.put(PlantType.TwinSunflower, "IMAGE_UI_PACKETS_TWINSUNFLOWER");

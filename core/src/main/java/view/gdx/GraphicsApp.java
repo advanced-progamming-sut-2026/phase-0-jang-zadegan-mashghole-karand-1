@@ -97,14 +97,16 @@ public final class GraphicsApp extends ApplicationAdapter {
             batch.begin();
             lawnBackground.render(batch);
             lawnRenderer.render(batch, assets, app.gameState(), dt);
+            SessionContext session = app.model().getPlayContext();
             HudViewState hud = HudViewState.fromSession(
-                    app.model().getPlayContext(),
+                    session,
                     app.gameState(),
                     app.controller().getStorage().getCurrentUser());
             int sun = app.gameState() != null ? app.gameState().getSunAmount() : 0;
             plantInput.bind(app.controller(), assets, hud, sun, worldViewport::getWorldHeight);
             seedTray.render(batch, assets, hud, chapter, sun, worldViewport.getWorldHeight(),
-                    plantInput.selectedPlantName());
+                    plantInput.selectedPlantName(),
+                    session != null ? session.getConfig().boostedPlants : null);
             batch.end();
             lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
         } else {

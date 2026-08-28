@@ -25,7 +25,7 @@ public final class PlantVisualDefs {
                 "768/INITIAL/PLANT/GOLDBLOOM/GOLDBLOOM.PAM","idle","attack","plantfood"
         ));
         plants.put(PlantType.SunShroom, new PlantVisualDef(
-                "768/FULL/PLANT/SUNSHROOM/SUNSHROOM.PAM","idle_stage","special_stage","plantfood_stage"
+                "768/FULL/PLANT/SUNSHROOM/SUNSHROOM.PAM","idle_stage1","special_stage1","plantfood_stage1"
         ));
 //*******************************
         //shooter
@@ -67,7 +67,7 @@ public final class PlantVisualDefs {
                 "768/INITIAL/PLANT/FUMESHROOM/FUMESHROOM.PAM","idle","special","plantfood"
         ));
         plants.put(PlantType.PuffShroom,new PlantVisualDef(
-                "768/INITIAL/PLANT/PUFFSHROOM/PUFFSHROOM.PAM","idle_stage","special_stage","plantfood"
+                "768/INITIAL/PLANT/PUFFSHROOM/PUFFSHROOM.PAM","idle_stage1","special_stage1","plantfood_stage1"
         ));
         plants.put(PlantType.Citron,new PlantVisualDef(
                 "768/FULL/PLANT/CITRON/CITRON.PAM","idle","attack","plantfood"

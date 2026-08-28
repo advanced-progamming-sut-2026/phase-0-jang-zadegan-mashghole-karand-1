@@ -79,7 +79,22 @@ public final class AssetContext implements Disposable {
             return null;
         }
         String key = pamPath + "#" + clipName;
-        return clipCache.computeIfAbsent(key, ignored -> pamPlayer.getClip(pamPath, clipName));
+        ClipRef cached = clipCache.get(key);
+        if (cached != null) {
+            return cached;
+        }
+        if (clipCache.containsKey(key)) {
+            return null;
+        }
+        try {
+            ClipRef clip = pamPlayer.getClip(pamPath, clipName);
+            clipCache.put(key, clip);
+            return clip;
+        } catch (IllegalArgumentException e) {
+            Gdx.app.debug("AssetContext", "Missing PAM clip " + clipName + " in " + pamPath);
+            clipCache.put(key, null);
+            return null;
+        }
     }
 
     public TextureRegion region(String imageId) {
