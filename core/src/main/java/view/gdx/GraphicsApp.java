@@ -21,6 +21,7 @@ import view.gdx.lawn.LawnLayout;
 import view.gdx.lawn.LawnPlantInput;
 import view.gdx.lawn.LawnRenderer;
 import view.gdx.lawn.SeedTrayRenderer;
+import view.gdx.ui.HudOverlayRenderer;
 import view.gdx.ui.MenuBackdrop;
 import view.gdx.ui.UiNavigator;
 
@@ -42,6 +43,7 @@ public final class GraphicsApp extends ApplicationAdapter {
     private LawnGridDebugOverlay lawnGridDebug;
     private AnimStateStore animStates;
     private VisibilityResolver visibilityResolver;
+    private HudOverlayRenderer hudOverlay;
 
     @Override
     public void create() {
@@ -66,6 +68,8 @@ public final class GraphicsApp extends ApplicationAdapter {
         seedTray = new SeedTrayRenderer();
         plantInput = new LawnPlantInput(worldViewport, lawnLayout, seedTray);
         lawnGridDebug = new LawnGridDebugOverlay();
+
+        hudOverlay = new HudOverlayRenderer();
         ui.setGameWorldInput(plantInput);
 
         Gdx.app.log("GraphicsApp", "ready assets=" + assets.status()
@@ -105,6 +109,19 @@ public final class GraphicsApp extends ApplicationAdapter {
             plantInput.bind(app.controller(), assets, hud, sun, worldViewport::getWorldHeight);
             seedTray.render(batch, assets, hud, chapter, sun, worldViewport.getWorldHeight(),
                     plantInput.selectedPlantName());
+            int pf = app.gameState() != null ? app.gameState().getPlantFoodAmount() : 0;
+            SessionContext session = app.model().getPlayContext();
+            float progress = 0f;
+            if (session != null && session.getWaveManager() != null && app.gameState() != null) {
+                progress = session.getWaveManager().getLevelProgress(app.model().getState());
+            }
+            int totalWaves = 0;
+            if (session != null && session.getWaveManager() != null) {
+                totalWaves = session.getWaveManager().getTotalWaves();
+            }
+            hudOverlay.render(batch, assets, hud, sun, pf, progress, totalWaves,
+                    worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
+            hudOverlay.render(batch,assets,hud,sun,pf,progress,totalWaves,worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
             batch.end();
             lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
         } else {

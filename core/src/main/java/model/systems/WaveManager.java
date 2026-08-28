@@ -294,4 +294,20 @@ public class WaveManager {
         }
         return false;
     }
+    public float getLevelProgress(GameState state) {
+        if (totalWaves <= 0) return 0f;
+        int wave = Math.max(0, state.getCurrentWave());
+        float completed = Math.max(0, wave - 1);
+        float inWave = 0f;
+        if (totalZombiesInWave > 0) {
+            int alive = 0;
+            for (Zombie z : state.getZombies()) {
+                if (z.isAlive && currentWaveZombieIds.contains(z.instanceId)) alive++;
+            }
+            int killed = Math.max(0, totalZombiesInWave - alive - pendingSpawns.size());
+            killed = Math.max(0, zombiesSpawnedInWave - alive);
+            inWave = Math.min(1f, killed / (float) totalZombiesInWave);
+        }
+        return Math.max(0f, Math.min(1f, (completed + inWave) / totalWaves));
+    }
 }
