@@ -15,6 +15,7 @@ import model.service.HudViewState;
 import view.gdx.anim.AnimStateStore;
 import view.gdx.catalog.DefaultVisualCatalog;
 import view.gdx.catalog.VisualCatalog;
+import view.gdx.lawn.ConveyorTrayAnimator;
 import view.gdx.lawn.LawnBackgroundRenderer;
 import view.gdx.lawn.LawnGridDebugOverlay;
 import view.gdx.lawn.LawnLayout;
@@ -23,6 +24,7 @@ import view.gdx.lawn.LawnRenderer;
 import view.gdx.lawn.SeedTrayRenderer;
 import view.gdx.ui.MenuBackdrop;
 import view.gdx.ui.UiNavigator;
+import view.gdx.ui.screens.GlobalTopBar;
 
 public final class GraphicsApp extends ApplicationAdapter {
     private OrthographicCamera camera;
@@ -38,6 +40,7 @@ public final class GraphicsApp extends ApplicationAdapter {
     private LawnBackgroundRenderer lawnBackground;
     private LawnRenderer lawnRenderer;
     private SeedTrayRenderer seedTray;
+    private ConveyorTrayAnimator conveyorAnimator;
     private LawnPlantInput plantInput;
     private LawnGridDebugOverlay lawnGridDebug;
     private AnimStateStore animStates;
@@ -64,6 +67,7 @@ public final class GraphicsApp extends ApplicationAdapter {
         visibilityResolver = new VisibilityResolver();
         lawnRenderer = new LawnRenderer(catalog, lawnLayout, animStates, visibilityResolver);
         seedTray = new SeedTrayRenderer();
+        conveyorAnimator = new ConveyorTrayAnimator();
         plantInput = new LawnPlantInput(worldViewport, lawnLayout, seedTray);
         lawnGridDebug = new LawnGridDebugOverlay();
         ui.setGameWorldInput(plantInput);
@@ -102,13 +106,20 @@ public final class GraphicsApp extends ApplicationAdapter {
                     app.gameState(),
                     app.controller().getStorage().getCurrentUser());
             int sun = app.gameState() != null ? app.gameState().getSunAmount() : 0;
-            plantInput.bind(app.controller(), assets, hud, sun, worldViewport::getWorldHeight);
-            seedTray.render(batch, assets, hud, chapter, sun, worldViewport.getWorldHeight(),
-                    plantInput.selectedPlantName());
+            float worldHeight = worldViewport.getWorldHeight();
+            float hudTopReserve = GlobalTopBar.reservedScreenHeight()
+                    * (worldHeight / Math.max(1, Gdx.graphics.getHeight()));
+            conveyorAnimator.update(dt, hud, worldHeight, hudTopReserve);
+            plantInput.bind(app.controller(), assets, hud, sun, worldViewport::getWorldHeight,
+                    conveyorAnimator, hudTopReserve);
+            seedTray.render(batch, assets, hud, chapter, sun, worldHeight,
+                    plantInput.selectedPlantName(), plantInput.selectedConveyorIndex(),
+                    conveyorAnimator, hudTopReserve);
             batch.end();
             lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
         } else {
             plantInput.clearSelection();
+            conveyorAnimator.reset();
             menuBackdrop.render(batch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
 

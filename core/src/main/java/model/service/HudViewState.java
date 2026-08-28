@@ -243,17 +243,15 @@ public class HudViewState {
         ConveyorState conveyor = context.getConveyorState();
         if (conveyor != null) {
             seconds = conveyor.getSecondsUntilNextOffer();
-            PlantType offer = conveyor.getCurrentOffer();
-            if (offer != null) {
-                slots.add(new TraySlot(offer.name, 0, 0, true, true, 1));
-            }
-            for (PlantType upcoming : conveyor.getUpcomingQueue()) {
-                slots.add(new TraySlot(upcoming.name, 0, 0, false, false, 1));
+            List<PlantType> belt = conveyor.getBeltPlants();
+            for (int i = 0; i < belt.size(); i++) {
+                PlantType type = belt.get(i);
+                slots.add(new TraySlot(type.name, 0, 0, true, false, 1));
             }
         }
         return new HudViewState(
                 Mode.CONVEYOR, label, false, true, false,
-                null, 0, seconds,
+                null, conveyor != null ? conveyor.getBeltCount() : 0, seconds,
                 "", 0, 0, 0,
                 -1, 0, 0, -1, 0,
                 slots,

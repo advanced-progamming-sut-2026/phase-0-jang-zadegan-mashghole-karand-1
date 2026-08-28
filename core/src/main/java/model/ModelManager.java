@@ -222,10 +222,14 @@ public class ModelManager {
     }
 
     public boolean placeConveyorPlant(int row, int col) {
+        return placeConveyorPlant(row, col, 0);
+    }
+
+    public boolean placeConveyorPlant(int row, int col, int beltIndex) {
         if (sessionContext == null || !sessionContext.isConveyorMode()) {
             return false;
         }
-        PlantType offered = sessionContext.getConveyorOffer();
+        PlantType offered = sessionContext.getConveyorPlant(beltIndex);
         if (offered == null) {
             return false;
         }
@@ -236,7 +240,7 @@ public class ModelManager {
         if (!placePlant(row, col, offered, level, false)) {
             return false;
         }
-        sessionContext.consumeConveyorOffer();
+        sessionContext.consumeConveyorOfferAt(beltIndex);
         return true;
     }
 

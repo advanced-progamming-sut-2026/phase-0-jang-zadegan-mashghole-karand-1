@@ -67,6 +67,10 @@ public final class GlobalTopBar {
         gemText.setText(String.valueOf(gems));
     }
 
+    public static float reservedScreenHeight() {
+        return 10f + 64f + 10f;
+    }
+
     public void act(float dt) {
         if (!styled && assets != null) {
             styleBack(assets);
@@ -122,11 +126,13 @@ public final class GlobalTopBar {
     private void styleBack(AssetContext assets) {
         var up = assets.region("IMAGE_UI_HUD_WORLDMAP_BUTTONS_HUD_BACK_NORMAL");
         var down = assets.region("IMAGE_UI_HUD_WORLDMAP_BUTTONS_HUD_BACK_SELECTED");
-        if (up == null) return;
+        if (up == null)
+            return;
 
         ImageButton.ImageButtonStyle s = new ImageButton.ImageButtonStyle();
         s.imageUp = new TextureRegionDrawable(up);
-        if (down != null) s.imageDown = new TextureRegionDrawable(down);
+        if (down != null)
+            s.imageDown = new TextureRegionDrawable(down);
         back.setStyle(s);
     }
 }

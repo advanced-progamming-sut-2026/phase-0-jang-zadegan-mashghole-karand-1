@@ -58,6 +58,10 @@ public class WallnutBowlingRules implements LevelRule {
     public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
         context.initializeConveyor(CONVEYOR_POOL);
         bus.publish(new MinigameStartedEvent(context.getConfig().miniGameType));
+        PlantType initial = context.getConveyorOffer();
+        if (initial != null) {
+            bus.publish(new PlantOfferedEvent(initial));
+        }
     }
 
     @Override

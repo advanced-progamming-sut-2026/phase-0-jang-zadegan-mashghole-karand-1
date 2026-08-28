@@ -51,9 +51,19 @@ public class SessionContext {
         return conveyorState != null ? conveyorState.getCurrentOffer() : null;
     }
 
+    public PlantType getConveyorPlant(int beltIndex) {
+        return conveyorState != null ? conveyorState.getBeltPlant(beltIndex) : null;
+    }
+
     public void consumeConveyorOffer() {
         if (conveyorState != null) {
             conveyorState.consumeOffer();
+        }
+    }
+
+    public void consumeConveyorOfferAt(int beltIndex) {
+        if (conveyorState != null) {
+            conveyorState.consumeOfferAt(beltIndex);
         }
     }
 

@@ -294,6 +294,10 @@ public class GameMechanismController {
     }
 
     public CommandResult placeConveyorPlant(int row, int col) {
+        return placeConveyorPlant(row, col, 0);
+    }
+
+    public CommandResult placeConveyorPlant(int row, int col, int beltIndex) {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {
             return screenCheck;
@@ -308,11 +312,14 @@ public class GameMechanismController {
         if (!isValidCell(row, col)) {
             return failure("Invalid cell (" + row + ", " + col + ").");
         }
-        if (!model.getPlayContext().hasConveyorOffer()) {
+        if (beltIndex < 0 || beltIndex >= model.getPlayContext().getConveyorState().getBeltCount()) {
+            return failure("No plant is available at that conveyor slot.");
+        }
+        PlantType offered = model.getPlayContext().getConveyorPlant(beltIndex);
+        if (offered == null) {
             return failure("No plant is currently offered on the conveyor.");
         }
-        PlantType offered = model.getPlayContext().getConveyorOffer();
-        if (model.placeConveyorPlant(row, col)) {
+        if (model.placeConveyorPlant(row, col, beltIndex)) {
             return success("Planted " + offered.name + " from conveyor at (" + row + ", " + col + ").");
         }
         return failure("Could not place " + offered.name + " at (" + row + ", " + col + ").");

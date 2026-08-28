@@ -21,6 +21,18 @@ public class ConveyorBeltRules implements LevelRule {
     public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
         List<PlantType> pool = context.getConfig().selectedPlants;
         context.initializeConveyor(pool);
+        publishInitialOffer(context, bus);
+    }
+
+    private static void publishInitialOffer(SessionContext context, EventBus bus) {
+        ConveyorState conveyor = context.getConveyorState();
+        if (conveyor == null) {
+            return;
+        }
+        PlantType initial = conveyor.getCurrentOffer();
+        if (initial != null) {
+            bus.publish(new PlantOfferedEvent(initial));
+        }
     }
 
     @Override

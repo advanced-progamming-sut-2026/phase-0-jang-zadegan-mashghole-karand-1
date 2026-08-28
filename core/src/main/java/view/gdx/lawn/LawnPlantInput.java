@@ -23,8 +23,11 @@ public final class LawnPlantInput extends InputAdapter {
     private AssetContext assets;
     private HudViewState hud;
     private ChapterWorldHeight worldHeightProvider;
+    private ConveyorTrayAnimator conveyorAnimator;
+    private float hudTopReserve;
     private int sunAmount;
     private String selectedPlantName;
+    private int selectedConveyorIndex = -1;
 
     @FunctionalInterface
     public interface ChapterWorldHeight {
@@ -38,13 +41,20 @@ public final class LawnPlantInput extends InputAdapter {
     }
 
     public void bind(ControllerManager controller, AssetContext assets,
-            HudViewState hud, int sunAmount, ChapterWorldHeight worldHeightProvider) {
+            HudViewState hud, int sunAmount, ChapterWorldHeight worldHeightProvider,
+            ConveyorTrayAnimator conveyorAnimator, float hudTopReserve) {
         this.controller = controller;
         this.assets = assets;
         this.hud = hud;
         this.sunAmount = sunAmount;
         this.worldHeightProvider = worldHeightProvider;
-        if (selectedPlantName != null && !isStillSelectable(selectedPlantName)) {
+        this.conveyorAnimator = conveyorAnimator;
+        this.hudTopReserve = hudTopReserve;
+        if (hud != null && hud.trayIsConveyorRow) {
+            if (selectedConveyorIndex >= 0 && !isConveyorIndexSelectable(selectedConveyorIndex)) {
+                clearSelection();
+            }
+        } else if (selectedPlantName != null && !isStillSelectable(selectedPlantName)) {
             clearSelection();
         }
     }
@@ -53,8 +63,13 @@ public final class LawnPlantInput extends InputAdapter {
         return selectedPlantName;
     }
 
+    public int selectedConveyorIndex() {
+        return selectedConveyorIndex;
+    }
+
     public void clearSelection() {
         selectedPlantName = null;
+        selectedConveyorIndex = -1;
     }
 
     private boolean isStillSelectable(String plantName) {
@@ -69,9 +84,16 @@ public final class LawnPlantInput extends InputAdapter {
         return false;
     }
 
+    private boolean isConveyorIndexSelectable(int index) {
+        if (hud == null || index < 0 || index >= hud.traySlots.size()) {
+            return false;
+        }
+        return SeedTrayRenderer.isSelectable(hud, hud.traySlots.get(index), sunAmount);
+    }
+
     @Override
     public boolean keyDown(int keycode) {
-        if (keycode == Input.Keys.ESCAPE && selectedPlantName != null) {
+        if (keycode == Input.Keys.ESCAPE && (selectedPlantName != null || selectedConveyorIndex >= 0)) {
             clearSelection();
             return true;
         }
@@ -84,7 +106,7 @@ public final class LawnPlantInput extends InputAdapter {
             return false;
         }
         if (button == Input.Buttons.RIGHT) {
-            if (selectedPlantName != null) {
+            if (selectedPlantName != null || selectedConveyorIndex >= 0) {
                 clearSelection();
                 return true;
             }
@@ -100,18 +122,37 @@ public final class LawnPlantInput extends InputAdapter {
         float worldY = touch.y;
         float worldH = worldHeightProvider.worldHeight();
 
-        String packet = seedTray.hitTest(hud, assets, worldX, worldY, worldH, sunAmount);
-        if (packet != null) {
-            if (packet.equals(selectedPlantName)) {
-                clearSelection();
-            } else {
-                selectedPlantName = packet;
+        if (hud.trayIsConveyorRow) {
+            ConveyorTrayHit hit = seedTray.hitTestConveyor(hud, assets, worldX, worldY, worldH, sunAmount,
+                    true, conveyorAnimator, hudTopReserve);
+            if (hit.isHit()) {
+                if (hit.isSlot()) {
+                    int index = hit.slotIndex();
+                    if (index == selectedConveyorIndex) {
+                        clearSelection();
+                    } else {
+                        selectedConveyorIndex = index;
+                        selectedPlantName = hud.traySlots.get(index).name;
+                    }
+                }
+                return true;
             }
-            return true;
-        }
+        } else {
+            String packet = seedTray.hitTest(hud, assets, worldX, worldY, worldH, sunAmount,
+                    conveyorAnimator, hudTopReserve);
+            if (packet != null) {
+                if (packet.equals(selectedPlantName)) {
+                    clearSelection();
+                } else {
+                    selectedPlantName = packet;
+                }
+                return true;
+            }
 
-        if (seedTray.hitTest(hud, assets, worldX, worldY, worldH, sunAmount, false) != null) {
-            return true;
+            if (seedTray.hitTest(hud, assets, worldX, worldY, worldH, sunAmount, false,
+                    conveyorAnimator, hudTopReserve) != null) {
+                return true;
+            }
         }
 
         if (lawnLayout.worldToCell(worldX, worldY, cell)) {
@@ -120,7 +161,10 @@ public final class LawnPlantInput extends InputAdapter {
             GameMechanismController game = controller.getGameMechanismController();
             CommandResult result;
             if (hud.trayIsConveyorRow) {
-                result = game.placeConveyorPlant(row, col);
+                if (selectedConveyorIndex < 0) {
+                    return false;
+                }
+                result = game.placeConveyorPlant(row, col, selectedConveyorIndex);
             } else if (selectedPlantName != null) {
                 PlantType type = PlantType.fromName(selectedPlantName);
                 result = game.plantPlant(row, col, type);
@@ -128,6 +172,9 @@ public final class LawnPlantInput extends InputAdapter {
                 return false;
             }
             controller.handleCommandResult(result);
+            if (result.isSuccess()) {
+                clearSelection();
+            }
             return true;
         }
         return false;

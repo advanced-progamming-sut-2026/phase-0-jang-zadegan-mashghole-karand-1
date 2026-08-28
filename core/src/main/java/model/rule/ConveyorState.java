@@ -10,12 +10,14 @@ import model.core.GameLoop;
 import model.data.plant.PlantType;
 
 public class ConveyorState {
+    public static final int MAX_BELT_SIZE = 8;
+
     private static final int OFFER_INTERVAL_TICKS = 12 * GameLoop.TICKS_PER_SECOND;
 
     private final List<PlantType> availablePlants;
-    private final Queue<PlantType> queue = new LinkedList<>();
+    private final List<PlantType> belt = new ArrayList<>();
+    private final Queue<PlantType> pool = new LinkedList<>();
     private int ticksUntilNextOffer = OFFER_INTERVAL_TICKS;
-    private PlantType currentOffer = null;
     private boolean isActive = true;
     private int totalOffersMade = 0;
 
@@ -25,19 +27,21 @@ public class ConveyorState {
             this.isActive = false;
         } else {
             this.availablePlants = new ArrayList<>(availablePlants);
-            shuffleQueue();
+            shufflePool();
+            addPlantToBelt();
         }
+        ticksUntilNextOffer = OFFER_INTERVAL_TICKS;
     }
 
-    private void shuffleQueue() {
+    private void shufflePool() {
         if (availablePlants.isEmpty()) {
             isActive = false;
             return;
         }
         List<PlantType> shuffled = new ArrayList<>(availablePlants);
         Collections.shuffle(shuffled);
-        queue.clear();
-        queue.addAll(shuffled);
+        pool.clear();
+        pool.addAll(shuffled);
         isActive = true;
     }
 
@@ -46,10 +50,12 @@ public class ConveyorState {
             return null;
         }
 
-        if (queue.isEmpty() && currentOffer == null) {
-            if (!availablePlants.isEmpty()) {
-                shuffleQueue();
-            }
+        ensurePoolHasPlants();
+        if (!isActive) {
+            return null;
+        }
+
+        if (isBeltFull()) {
             return null;
         }
 
@@ -58,41 +64,88 @@ public class ConveyorState {
             return null;
         }
 
-        if (queue.isEmpty() && !availablePlants.isEmpty()) {
-            shuffleQueue();
-        }
+        ticksUntilNextOffer = OFFER_INTERVAL_TICKS;
+        return addPlantToBelt();
+    }
 
-        if (!queue.isEmpty()) {
-            currentOffer = queue.poll();
-            totalOffersMade++;
-        } else {
-            currentOffer = null;
+    private void ensurePoolHasPlants() {
+        if (pool.isEmpty() && !availablePlants.isEmpty()) {
+            shufflePool();
+        }
+        if (pool.isEmpty() && belt.isEmpty()) {
             isActive = false;
         }
+    }
 
-        ticksUntilNextOffer = OFFER_INTERVAL_TICKS;
-        return currentOffer;
+    private PlantType addPlantToBelt() {
+        if (isBeltFull()) {
+            return null;
+        }
+        if (pool.isEmpty()) {
+            if (!availablePlants.isEmpty()) {
+                shufflePool();
+            }
+            if (pool.isEmpty()) {
+                isActive = false;
+                return null;
+            }
+        }
+        PlantType plant = pool.poll();
+        belt.add(plant);
+        totalOffersMade++;
+        return plant;
     }
 
     public PlantType getCurrentOffer() {
-        return currentOffer;
+        return belt.isEmpty() ? null : belt.get(0);
+    }
+
+    public PlantType getBeltPlant(int index) {
+        if (index < 0 || index >= belt.size()) {
+            return null;
+        }
+        return belt.get(index);
     }
 
     public void consumeOffer() {
-        currentOffer = null;
-        ticksUntilNextOffer = OFFER_INTERVAL_TICKS / 2;
+        consumeOfferAt(0);
+    }
+
+    public void consumeOfferAt(int index) {
+        if (index < 0 || index >= belt.size()) {
+            return;
+        }
+        belt.remove(index);
+        if (belt.isEmpty() && pool.isEmpty() && !availablePlants.isEmpty()) {
+            shufflePool();
+        }
+        if (belt.isEmpty() && pool.isEmpty()) {
+            isActive = false;
+        }
     }
 
     public boolean hasOffer() {
-        return currentOffer != null;
+        return !belt.isEmpty();
+    }
+
+    public boolean isBeltFull() {
+        return belt.size() >= MAX_BELT_SIZE;
+    }
+
+    public int getBeltCount() {
+        return belt.size();
+    }
+
+    public List<PlantType> getBeltPlants() {
+        return List.copyOf(belt);
     }
 
     public int getRemainingPlants() {
-        return queue.size();
+        return pool.size();
     }
 
     public List<PlantType> getUpcomingQueue() {
-        return List.copyOf(queue);
+        return List.copyOf(pool);
     }
 
     public int getTicksUntilNextOffer() {

@@ -1,5 +1,7 @@
 package view.gdx.lawn;
 
+import java.util.List;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -31,16 +33,28 @@ public final class SeedTrayRenderer {
     private static final float TEXT_OUTLINE = 1f;
     private static final float LEVEL_SCALE = 0.8f;
 
+    private static final float TRAY_TOP_PAD = 14f;
+
     private final GlyphLayout glyphLayout = new GlyphLayout();
     private BitmapFont costFont;
     private BitmapFont levelFont;
 
     public void render(SpriteBatch batch, AssetContext assets, HudViewState hud,
-            ChapterType chapter, int sunAmount, float worldHeight, String selectedPlantName) {
-        if (batch == null || assets == null || hud == null || hud.traySlots.isEmpty()) {
+            ChapterType chapter, int sunAmount, float worldHeight, String selectedPlantName,
+            int selectedConveyorIndex, ConveyorTrayAnimator conveyorAnimator, float hudTopReserve) {
+        if (batch == null || assets == null || hud == null) {
             return;
         }
         ensureFonts();
+
+        if (hud.trayIsConveyorRow) {
+            drawConveyor(batch, assets, hud, conveyorAnimator, worldHeight, hudTopReserve,
+                    selectedConveyorIndex);
+            return;
+        }
+        if (hud.traySlots.isEmpty()) {
+            return;
+        }
 
         TextureRegion back = assets.region(SeedPacketDefs.worldBack(chapter));
         TextureRegion empty = assets.region(SeedPacketDefs.EMPTY);
@@ -49,12 +63,7 @@ public final class SeedTrayRenderer {
         float packetW = packetH * aspectOf(frameSample, FALLBACK_PACKET_ASPECT);
         float gap = Math.max(4f, packetH * 0.06f);
         float x = 10f;
-        float top = worldHeight - 14f;
-
-        if (hud.trayIsConveyorRow) {
-            drawConveyor(batch, assets, hud, x, top, packetW, packetH, gap, worldHeight, selectedPlantName);
-            return;
-        }
+        float top = trayTop(worldHeight, hudTopReserve);
 
         TextureRegion cooldown = assets.region(SeedPacketDefs.COOLDOWN);
         TextureRegion priceTab = assets.region(SeedPacketDefs.PRICE_TAB);
@@ -115,16 +124,67 @@ public final class SeedTrayRenderer {
         batch.setColor(Color.WHITE);
     }
 
-    public String hitTest(HudViewState hud, AssetContext assets,
-            float worldX, float worldY, float worldHeight, int sunAmount) {
-        return hitTest(hud, assets, worldX, worldY, worldHeight, sunAmount, true);
+    public ConveyorTrayHit hitTestConveyor(HudViewState hud, AssetContext assets,
+            float worldX, float worldY, float worldHeight, int sunAmount,
+            boolean requireSelectable, ConveyorTrayAnimator conveyorAnimator, float hudTopReserve) {
+        ConveyorTrayAnimator.ConveyorLayout layout = conveyorAnimator != null
+                ? conveyorAnimator.layout()
+                : ConveyorTrayAnimator.ConveyorLayout.compute(worldHeight, hudTopReserve);
+
+        List<ConveyorTrayAnimator.AnimatedPacket> animated = conveyorAnimator != null
+                ? conveyorAnimator.visiblePackets()
+                : List.of();
+        if (!animated.isEmpty()) {
+            for (int i = 0; i < animated.size(); i++) {
+                ConveyorTrayAnimator.AnimatedPacket packet = animated.get(i);
+                HudViewState.TraySlot slot = i < hud.traySlots.size() ? hud.traySlots.get(i) : null;
+                if (contains(layout.packetX, packet.y, layout.packetW, layout.packetH, worldX, worldY)
+                        && (!requireSelectable || (slot != null && isSelectable(hud, slot, sunAmount)))) {
+                    return ConveyorTrayHit.slot(i);
+                }
+            }
+            return containsConveyorArea(layout, worldX, worldY) ? ConveyorTrayHit.beltArea() : ConveyorTrayHit.MISS;
+        }
+
+        for (int i = 0; i < hud.traySlots.size(); i++) {
+            HudViewState.TraySlot slot = hud.traySlots.get(i);
+            if (contains(layout.packetX, layout.slotY(i), layout.packetW, layout.packetH, worldX, worldY)
+                    && (!requireSelectable || isSelectable(hud, slot, sunAmount))) {
+                return ConveyorTrayHit.slot(i);
+            }
+        }
+        return containsConveyorArea(layout, worldX, worldY) ? ConveyorTrayHit.beltArea() : ConveyorTrayHit.MISS;
     }
 
     public String hitTest(HudViewState hud, AssetContext assets,
-            float worldX, float worldY, float worldHeight, int sunAmount, boolean requireSelectable) {
-        if (hud == null || hud.traySlots.isEmpty() || assets == null) {
+            float worldX, float worldY, float worldHeight, int sunAmount,
+            ConveyorTrayAnimator conveyorAnimator, float hudTopReserve) {
+        return hitTest(hud, assets, worldX, worldY, worldHeight, sunAmount, true,
+                conveyorAnimator, hudTopReserve);
+    }
+
+    public String hitTest(HudViewState hud, AssetContext assets,
+            float worldX, float worldY, float worldHeight, int sunAmount, boolean requireSelectable,
+            ConveyorTrayAnimator conveyorAnimator, float hudTopReserve) {
+        if (hud == null || assets == null) {
             return null;
         }
+
+        if (hud.trayIsConveyorRow) {
+            ConveyorTrayHit hit = hitTestConveyor(hud, assets, worldX, worldY, worldHeight, sunAmount,
+                    requireSelectable, conveyorAnimator, hudTopReserve);
+            if (!hit.isHit()) {
+                return null;
+            }
+            if (hit.isSlot()) {
+                return hud.traySlots.get(hit.slotIndex()).name;
+            }
+            return "";
+        }
+        if (hud.traySlots.isEmpty()) {
+            return null;
+        }
+
         TextureRegion back = assets.region(SeedPacketDefs.worldBack(null));
         TextureRegion empty = assets.region(SeedPacketDefs.EMPTY);
         TextureRegion frameSample = back != null ? back : empty;
@@ -132,27 +192,7 @@ public final class SeedTrayRenderer {
         float packetW = packetH * aspectOf(frameSample, FALLBACK_PACKET_ASPECT);
         float gap = Math.max(4f, packetH * 0.06f);
         float x = 10f;
-        float top = worldHeight - 14f;
-
-        if (hud.trayIsConveyorRow) {
-            float beltW = packetW * 1.18f;
-            float packetX = x + (beltW - packetW) * 0.5f;
-            float beltH = Math.min(worldHeight - 24f,
-                    Math.max(1, hud.traySlots.size()) * (packetH + gap) + packetH * 0.4f);
-            float beltY = top - beltH;
-            float y = top - packetH - 8f;
-            for (HudViewState.TraySlot slot : hud.traySlots) {
-                if (contains(packetX, y, packetW, packetH, worldX, worldY)
-                        && (!requireSelectable || isSelectable(hud, slot, sunAmount))) {
-                    return slot.name;
-                }
-                y -= packetH + gap;
-                if (y + packetH < beltY + 4f) {
-                    break;
-                }
-            }
-            return null;
-        }
+        float top = trayTop(worldHeight, hudTopReserve);
 
         float y = top - packetH;
         for (HudViewState.TraySlot slot : hud.traySlots) {
@@ -178,6 +218,10 @@ public final class SeedTrayRenderer {
         return true;
     }
 
+    private static float trayTop(float worldHeight, float hudTopReserve) {
+        return Math.max(0f, worldHeight - hudTopReserve - TRAY_TOP_PAD);
+    }
+
     private static boolean contains(float x, float y, float w, float h, float px, float py) {
         return px >= x && px <= x + w && py >= y && py <= y + h;
     }
@@ -187,59 +231,98 @@ public final class SeedTrayRenderer {
     }
 
     private void drawConveyor(SpriteBatch batch, AssetContext assets, HudViewState hud,
-            float x, float top, float packetW, float packetH, float gap, float worldHeight,
-            String selectedPlantName) {
+            ConveyorTrayAnimator conveyorAnimator, float worldHeight, float hudTopReserve,
+            int selectedConveyorIndex) {
+        ConveyorTrayAnimator.ConveyorLayout layout = conveyorAnimator != null
+                ? conveyorAnimator.layout()
+                : ConveyorTrayAnimator.ConveyorLayout.compute(worldHeight, hudTopReserve);
+
         TextureRegion belt = assets.region(SeedPacketDefs.CONVEYOR_BELT);
         TextureRegion side = assets.region(SeedPacketDefs.CONVEYOR_SIDE);
         TextureRegion topCap = assets.region(SeedPacketDefs.CONVEYOR_TOP);
         TextureRegion empty = assets.region(SeedPacketDefs.EMPTY);
 
-        int slots = Math.max(1, hud.traySlots.size());
-        float beltH = Math.min(worldHeight - 24f, slots * (packetH + gap) + packetH * 0.4f);
-        float beltW = packetW * 1.18f;
-        float beltX = x;
-        float beltY = top - beltH;
+        float scroll = conveyorAnimator != null ? conveyorAnimator.beltScrollOffset() : 0f;
+        drawScrollingBelt(batch, belt, layout.beltX, layout.beltY, layout.beltW, layout.beltH, scroll);
 
-        if (belt != null) {
-            batch.setColor(Color.WHITE);
-            batch.draw(belt, beltX, beltY, beltW, beltH);
-        }
         if (side != null) {
-            float sideW = beltW * 0.12f;
-            batch.draw(side, beltX, beltY, sideW, beltH);
-            batch.draw(side, beltX + beltW - sideW, beltY, sideW, beltH);
+            float sideW = layout.beltW * 0.12f;
+            batch.setColor(Color.WHITE);
+            batch.draw(side, layout.beltX, layout.beltY, sideW, layout.beltH);
+            batch.draw(side, layout.beltX + layout.beltW - sideW, layout.beltY, sideW, layout.beltH);
         }
         if (topCap != null) {
-            float capH = packetH * 0.28f;
-            batch.draw(topCap, beltX, top - capH, beltW, capH);
+            batch.setColor(Color.WHITE);
+            batch.draw(topCap, layout.beltX, layout.hudBottomY - layout.topCapH, layout.beltW, layout.topCapH);
         }
 
-        float packetX = beltX + (beltW - packetW) * 0.5f;
-        float y = top - packetH - 8f;
-        for (HudViewState.TraySlot slot : hud.traySlots) {
-            Color tint = slot.highlighted || slot.ready ? AFFORDABLE : UNAFFORDABLE;
-            if (empty != null) {
-                batch.setColor(tint);
-                batch.draw(empty, packetX, y, packetW, packetH);
+        List<ConveyorTrayAnimator.AnimatedPacket> animated = conveyorAnimator != null
+                ? conveyorAnimator.visiblePackets()
+                : List.of();
+        if (animated.isEmpty() && !hud.traySlots.isEmpty()) {
+            for (int i = 0; i < hud.traySlots.size(); i++) {
+                HudViewState.TraySlot slot = hud.traySlots.get(i);
+                drawConveyorPacket(batch, assets, empty, layout, slot.name, layout.slotY(i),
+                        slot.ready, selectedConveyorIndex == i, slot.level);
             }
-            TextureRegion plant = assets.region(SeedPacketDefs.packetId(slot.name));
-            if (plant != null) {
-                drawPlantIcon(batch, plant, packetX, y, packetW, packetH, tint);
-            }
-            drawLevel(batch, slot.level, packetX, y, packetW, packetH);
-            if (isSelected(slot, selectedPlantName) || slot.highlighted) {
-                TextureRegion selected = assets.region(SeedPacketDefs.SELECT);
-                if (selected != null) {
-                    batch.setColor(Color.WHITE);
-                    batch.draw(selected, packetX, y, packetW, packetH);
+        } else {
+            for (ConveyorTrayAnimator.AnimatedPacket packet : animated) {
+                if (packet.y + layout.packetH < layout.beltY - layout.packetH) {
+                    continue;
                 }
-            }
-            y -= packetH + gap;
-            if (y + packetH < beltY + 4f) {
-                break;
+                drawConveyorPacket(batch, assets, empty, layout, packet.name, packet.y,
+                        packet.ready, selectedConveyorIndex == packet.slotIndex, packet.level);
             }
         }
         batch.setColor(Color.WHITE);
+    }
+
+    private void drawConveyorPacket(SpriteBatch batch, AssetContext assets, TextureRegion empty,
+            ConveyorTrayAnimator.ConveyorLayout layout, String plantName, float y,
+            boolean ready, boolean selected, int level) {
+        Color tint = ready ? AFFORDABLE : UNAFFORDABLE;
+        if (empty != null) {
+            batch.setColor(tint);
+            batch.draw(empty, layout.packetX, y, layout.packetW, layout.packetH);
+        }
+        TextureRegion plant = assets.region(SeedPacketDefs.packetId(plantName));
+        if (plant != null) {
+            drawPlantIcon(batch, plant, layout.packetX, y, layout.packetW, layout.packetH, tint);
+        }
+        drawLevel(batch, level, layout.packetX, y, layout.packetW, layout.packetH);
+        if (selected) {
+            TextureRegion selectFx = assets.region(SeedPacketDefs.SELECT);
+            if (selectFx != null) {
+                batch.setColor(Color.WHITE);
+                batch.draw(selectFx, layout.packetX, y, layout.packetW, layout.packetH);
+            }
+        }
+    }
+
+    private static void drawScrollingBelt(SpriteBatch batch, TextureRegion belt,
+            float beltX, float beltY, float beltW, float beltH, float scrollOffset) {
+        if (belt == null) {
+            return;
+        }
+        batch.setColor(Color.WHITE);
+        float tileH = belt.getRegionHeight();
+        if (tileH <= 0f) {
+            batch.draw(belt, beltX, beltY, beltW, beltH);
+            return;
+        }
+        float offset = scrollOffset % tileH;
+        for (float y = beltY - offset; y < beltY + beltH; y += tileH) {
+            float drawH = Math.min(tileH, beltY + beltH - y);
+            if (drawH > 0f) {
+                batch.draw(belt, beltX, y, beltW, drawH);
+            }
+        }
+    }
+
+    private static boolean containsConveyorArea(ConveyorTrayAnimator.ConveyorLayout layout,
+            float worldX, float worldY) {
+        return worldX >= layout.beltX && worldX <= layout.beltX + layout.beltW
+                && worldY >= layout.beltY && worldY <= layout.hudBottomY;
     }
 
     private static void drawPlantIcon(SpriteBatch batch, TextureRegion plant,
