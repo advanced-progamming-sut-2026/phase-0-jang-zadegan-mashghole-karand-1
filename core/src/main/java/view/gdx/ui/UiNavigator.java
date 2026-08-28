@@ -19,6 +19,7 @@ import view.gdx.ui.screens.GameScreenShell;
 import view.gdx.ui.screens.PlaceholderOverlayScreen;
 import view.gdx.ui.screens.PlaceholderScreen;
 import view.gdx.ui.screens.menus.ShopOverlayScreen;
+import view.gdx.ui.screens.menus.TravelLogOverlayScreen;
 import view.gdx.ui.screens.map.LevelSelectorScreen;
 import view.gdx.ui.screens.auth.LoginScreen;
 import view.gdx.ui.screens.main.MainScreen;
@@ -74,7 +75,7 @@ public final class UiNavigator implements Disposable {
         overlays.put(MenuType.SETTING, new SettingsOverlayScreen());
         overlays.put(MenuType.PROFILE, new PlaceholderOverlayScreen("Profile"));
         overlays.put(MenuType.NEWS, new NewsOverlayScreen());
-        overlays.put(MenuType.TRAVEL_LOG, new PlaceholderOverlayScreen("Travel Log"));
+        overlays.put(MenuType.TRAVEL_LOG, new TravelLogOverlayScreen());
         overlays.put(MenuType.PLANT_SELECTOR, new PlaceholderOverlayScreen("Plant Selector"));
         overlays.put(MenuType.SHOP,new ShopOverlayScreen());
     }
