@@ -22,6 +22,7 @@ import view.gdx.lawn.LawnLayout;
 import view.gdx.lawn.LawnPlantInput;
 import view.gdx.lawn.LawnRenderer;
 import view.gdx.lawn.SeedTrayRenderer;
+import view.gdx.ui.HudOverlayRenderer;
 import view.gdx.ui.MenuBackdrop;
 import view.gdx.ui.UiNavigator;
 import view.gdx.ui.screens.GlobalTopBar;
@@ -45,6 +46,7 @@ public final class GraphicsApp extends ApplicationAdapter {
     private LawnGridDebugOverlay lawnGridDebug;
     private AnimStateStore animStates;
     private VisibilityResolver visibilityResolver;
+    private HudOverlayRenderer hudOverlay;
 
     @Override
     public void create() {
@@ -70,6 +72,8 @@ public final class GraphicsApp extends ApplicationAdapter {
         conveyorAnimator = new ConveyorTrayAnimator();
         plantInput = new LawnPlantInput(worldViewport, lawnLayout, seedTray);
         lawnGridDebug = new LawnGridDebugOverlay();
+
+        hudOverlay = new HudOverlayRenderer();
         ui.setGameWorldInput(plantInput);
 
         Gdx.app.log("GraphicsApp", "ready assets=" + assets.status()
@@ -108,6 +112,7 @@ public final class GraphicsApp extends ApplicationAdapter {
                     app.controller().getStorage().getCurrentUser());
             int sun = app.gameState() != null ? app.gameState().getSunAmount() : 0;
             float worldHeight = worldViewport.getWorldHeight();
+            float worldWidth = worldViewport.getWorldWidth();
             float hudTopReserve = GlobalTopBar.reservedScreenHeight()
                     * (worldHeight / Math.max(1, Gdx.graphics.getHeight()));
             conveyorAnimator.update(dt, hud, worldHeight, hudTopReserve);
@@ -119,6 +124,17 @@ public final class GraphicsApp extends ApplicationAdapter {
                     session != null && session.getConfig() != null
                             ? session.getConfig().boostedPlants
                             : null);
+            int pf = app.gameState() != null ? app.gameState().getPlantFoodAmount() : 0;
+            float progress = 0f;
+            int totalWaves = 0;
+            if (session != null && session.getWaveManager() != null) {
+                totalWaves = session.getWaveManager().getTotalWaves();
+                if (app.gameState() != null) {
+                    progress = session.getWaveManager().getLevelProgress(app.model().getState());
+                }
+            }
+            hudOverlay.render(batch, assets, hud, sun, pf, progress, totalWaves,
+                    worldWidth, worldHeight);
             batch.end();
             lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
         } else {

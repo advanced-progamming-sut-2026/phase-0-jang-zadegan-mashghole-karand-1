@@ -51,11 +51,10 @@ public final class GlobalTopBar {
     public void bind(UiViewContext ctx) {
         controller = ctx.controller;
         assets = ctx.assets;
-
+        boolean inGame = ctx.screen == ScreenType.GAME;
         boolean auth = ctx.screen == ScreenType.LOGIN || ctx.screen == ScreenType.REGISTER;
-        boolean game = ctx.screen == ScreenType.GAME;
-        boolean showBack = !auth && ctx.screen != ScreenType.MAIN;
-        boolean showWallet = !auth && !game;
+        boolean showBack = !auth && ctx.screen != ScreenType.MAIN && !inGame;
+        boolean showWallet = !auth && !inGame;
 
         back.setVisible(showBack);
         coinBadge.setVisible(showWallet);
