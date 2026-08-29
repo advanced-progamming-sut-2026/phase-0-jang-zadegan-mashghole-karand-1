@@ -1,50 +1,30 @@
-package view.gdx.lawn;
+package view.gdx.ui.screens.collection;
 
 import java.util.EnumMap;
 import java.util.Map;
-
-import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
-
-public final class SeedPacketDefs {
+final class PlantPacketImages {
     private static final Map<PlantType, String> PACKET_IDS = createPacketIds();
 
-    public SeedPacketDefs() {
+    private PlantPacketImages() {
     }
 
-    public static String worldBack(ChapterType chapter) {
-        if (chapter == null) {
-            return "IMAGE_UI_PACKETS_EGYPT";
-        }
-        return switch (chapter) {
-            case ANCIENT_EGYPT -> "IMAGE_UI_PACKETS_EGYPT";
-            case FROSTBITE_CAVES -> "IMAGE_UI_PACKETS_ICEAGE";
-            case BIG_WAVE_BEACH -> "IMAGE_UI_PACKETS_BEACH";
-            case DARK_AGES -> "IMAGE_UI_PACKETS_DARK";
-        };
-    }
-
-   public static String packetId(PlantType type) {
+    static String packetId(PlantType type) {
         if (type == null) {
-            return null;
+            return "IMAGE_UI_PACKETS_EMPTY_PACKET";
         }
-        return PACKET_IDS.get(type);
+        return PACKET_IDS.getOrDefault(type, fallbackId(type));
     }
 
-   public static String packetId(String plantName) {
-        return packetId(PlantType.fromName(plantName));
+    private static String fallbackId(PlantType type) {
+        String key = type.name().replace("_", "").toUpperCase();
+        if (type == PlantType.MegaGatlingPea) {
+            key = "MEGAGATLING";
+        }
+        return "IMAGE_UI_PACKETS_" + key;
     }
 
-    public static final String EMPTY = "IMAGE_UI_PACKETS_EMPTY_PACKET";
-    public static final String COOLDOWN = "IMAGE_UI_PACKETS_COOLDOWN";
-    public static final String READY = "IMAGE_UI_PACKETS_READY";
-    public static final String SELECT = "IMAGE_UI_PACKETS_SELECT";
-    public static final String PRICE_TAB = "IMAGE_UI_PACKETS_PRICE_TAB";
-    public static final String CONVEYOR_BELT = "IMAGE_UI_CONVEYOR_CONVEYOR_BELT";
-    public static final String CONVEYOR_SIDE = "IMAGE_UI_CONVEYOR_CONVEYOR_SIDE";
-    public static final String CONVEYOR_TOP = "IMAGE_UI_CONVEYOR_CONVEYOR_TOP";
-
-    public static Map<PlantType, String> createPacketIds() {
+    private static Map<PlantType, String> createPacketIds() {
         Map<PlantType, String> map = new EnumMap<>(PlantType.class);
         map.put(PlantType.Sunflower, "IMAGE_UI_PACKETS_SUNFLOWER");
         map.put(PlantType.TwinSunflower, "IMAGE_UI_PACKETS_TWINSUNFLOWER");

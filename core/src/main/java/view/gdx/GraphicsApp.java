@@ -101,8 +101,9 @@ public final class GraphicsApp extends ApplicationAdapter {
             batch.begin();
             lawnBackground.render(batch);
             lawnRenderer.render(batch, assets, app.gameState(), dt);
+            SessionContext session = app.model().getPlayContext();
             HudViewState hud = HudViewState.fromSession(
-                    app.model().getPlayContext(),
+                    session,
                     app.gameState(),
                     app.controller().getStorage().getCurrentUser());
             int sun = app.gameState() != null ? app.gameState().getSunAmount() : 0;
@@ -114,7 +115,10 @@ public final class GraphicsApp extends ApplicationAdapter {
                     conveyorAnimator, hudTopReserve);
             seedTray.render(batch, assets, hud, chapter, sun, worldHeight,
                     plantInput.selectedPlantName(), plantInput.selectedConveyorIndex(),
-                    conveyorAnimator, hudTopReserve);
+                    conveyorAnimator, hudTopReserve,
+                    session != null && session.getConfig() != null
+                            ? session.getConfig().boostedPlants
+                            : null);
             batch.end();
             lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
         } else {

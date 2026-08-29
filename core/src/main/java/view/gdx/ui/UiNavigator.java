@@ -18,6 +18,7 @@ import view.ScreenType;
 import view.gdx.ui.screens.GameScreenShell;
 import view.gdx.ui.screens.PlaceholderOverlayScreen;
 import view.gdx.ui.screens.PlaceholderScreen;
+import view.gdx.ui.screens.collection.CollectionScreen;
 import view.gdx.ui.screens.menus.ShopOverlayScreen;
 import view.gdx.ui.screens.menus.TravelLogOverlayScreen;
 import view.gdx.ui.screens.map.LevelSelectorScreen;
@@ -62,6 +63,7 @@ public final class UiNavigator implements Disposable {
         screens.put(ScreenType.MAIN , new MainScreen());
         screens.put(ScreenType.LEVEL_SELECTOR , new LevelSelectorScreen());
         screens.put(ScreenType.GREEN_HOUSE, new GardenScreen());
+        screens.put(ScreenType.COLLECTION, new CollectionScreen());
         for (ScreenType type : ScreenType.values()) {
             if (screens.containsKey(type)) {
                 continue;
