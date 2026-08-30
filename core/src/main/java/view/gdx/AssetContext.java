@@ -13,10 +13,7 @@ import com.badlogic.gdx.utils.Disposable;
 import pvz.libpvz.pam.ClipRef;
 import pvz.libpvz.pam.PamPlayer;
 import pvz.libpvz.textures.TextureBank;
-import view.gdx.catalog.CompanionVisual;
-import view.gdx.catalog.PlantVisualDef;
-import view.gdx.catalog.VisualCatalog;
-import view.gdx.catalog.ZombieVisualDef;
+import view.gdx.catalog.*;
 
 public final class AssetContext implements Disposable {
     public static final String RESOLUTION = "768";
@@ -58,6 +55,9 @@ public final class AssetContext implements Disposable {
                     }
                 }
             }
+        }
+        for (ProjectileVisualDef def : catalog.allProjectile()){
+            pamPaths.add(def.pamPath);
         }
         if(catalog.barrel() != null) {
             catalog.barrel();

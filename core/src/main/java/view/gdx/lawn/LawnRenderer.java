@@ -8,6 +8,8 @@ import com.badlogic.gdx.math.Matrix4;
 import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
+import model.data.projectile.Projectile;
+import model.data.projectile.ProjectileType;
 import model.data.zombie.Zombie;
 import pvz.libpvz.pam.ClipRef;
 import pvz.libpvz.pam.PamPlayer;
@@ -46,6 +48,9 @@ public final class LawnRenderer {
 
         for (Plant plant : state.getPlants()) {
             drawPlant(batch, assets, player, plant);
+        }
+        for (Projectile p : state.getProjectiles()) {
+            drawProjectile(batch, assets, player, p);
         }
         if (RENDER_ZOMBIES) {
             for (Zombie zombie : state.getZombies()) {
@@ -160,7 +165,21 @@ public final class LawnRenderer {
         float y = layout.cellCenterY(barrel.row);
         drawPam(batch, player, clip, animState.stateTime, x, y, true, null);
     }
+    private void drawProjectile(SpriteBatch batch, AssetContext assets, PamPlayer player, Projectile p){
+        ProjectileVisualDef visual = catalog.projectile(p.type);
+        if (visual == null){
+            return;
+        }
+        String visualClip = visual.clipName;
+        EntityAnimState anim = animStates.getOrCreate(
+                animKey(5, System.identityHashCode(p)), visualClip);
+        ClipRef clip = assets.clip(visual.pamPath, visualClip);
+        if (clip == null) return;
+        float x = layout.worldX(p.position);
+        float y = layout.worldYForRow(p.row,p.position);
+        drawPam(batch, player, clip, anim.stateTime, x, y, true, null);
 
+    }
     private void drawPam(SpriteBatch batch, PamPlayer player, ClipRef clip, float time,
             float x, float y, boolean loop, Map<String, Boolean> visibility) {
         beginEntityScale(batch, x, y);
@@ -174,7 +193,6 @@ public final class LawnRenderer {
             endEntityScale(batch);
         }
     }
-
     private void beginEntityScale(SpriteBatch batch, float x, float y) {
         float s = entityScale();
         savedTransform.set(batch.getTransformMatrix());
