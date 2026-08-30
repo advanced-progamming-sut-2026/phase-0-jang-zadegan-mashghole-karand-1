@@ -4,7 +4,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
@@ -21,7 +20,7 @@ public final class GameScreenShell implements UiScreen {
     private ControllerManager controller;
     private AssetContext assets;
 
-    public GameScreenShell(){
+    public GameScreenShell() {
         pause = new ImageButton(new ImageButton.ImageButtonStyle());
         UiWidgets.onChange(pause, () -> {
             if (controller != null) {
@@ -41,7 +40,7 @@ public final class GameScreenShell implements UiScreen {
     public void show(UiViewContext context) {
         controller = context.controller;
         assets = context.assets;
-        pause.setVisible(context.menu != MenuType.PAUSE);
+        pause.setVisible(context.menu == null || context.menu == MenuType.NONE);
     }
 
     @Override

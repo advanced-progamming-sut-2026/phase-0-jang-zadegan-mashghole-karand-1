@@ -91,7 +91,7 @@ public enum ZombieType {
                 }
 
                 for (ZombieType type : ZombieType.values()) {
-                        if (type.name.equalsIgnoreCase(name)) {
+                        if (type.name.equalsIgnoreCase(name) || type.name().equalsIgnoreCase(name)) {
                                 return type;
                         }
                 }

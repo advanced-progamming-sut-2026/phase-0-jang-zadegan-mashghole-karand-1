@@ -86,6 +86,23 @@ public class SqlStorageManager implements StorageManager {
     }
 
     @Override
+    public boolean forceLogin(String username, boolean stayLoggedIn) {
+        if (username == null) {
+            return false;
+        }
+        synchronized (lock) {
+            User user = userLoader.loadUser(username);
+            if (user == null) {
+                return false;
+            }
+            currentUser = user;
+            sessionToken = UUID.randomUUID().toString();
+            accountManager.persistSession(stayLoggedIn ? username : null, stayLoggedIn);
+            return true;
+        }
+    }
+
+    @Override
     public void logout() {
         synchronized (lock) {
             currentUser = null;

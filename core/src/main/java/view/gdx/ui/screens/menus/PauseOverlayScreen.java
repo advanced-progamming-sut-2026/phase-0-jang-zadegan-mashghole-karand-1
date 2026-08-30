@@ -17,8 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import controller.ControllerManager;
-import model.data.wave.LevelConfig;
-import model.rule.SessionContext;
+import view.MenuType;
 import view.gdx.AssetContext;
 import view.gdx.ui.UiScreen;
 import view.gdx.ui.UiViewContext;
@@ -62,13 +61,20 @@ public class PauseOverlayScreen implements UiScreen{
         TextButton restart = UiWidgets.secondary("Restart level");
         TextButton resume = UiWidgets.primary("Resume");
 
-        UiWidgets.onChange(exit,()-> UiWidgets.apply(controller, 
-            controller.getSessionLifecycleController().returnToLevelSelect()
-        ));
+        UiWidgets.onChange(exit, () -> UiWidgets.apply(controller,
+                controller.getSessionLifecycleController().returnToLevelSelect()));
 
-        UiWidgets.onChange(restart,()-> UiWidgets.apply(controller, 
-            controller.getSessionLifecycleController().restartLevel()
-        ));
+        UiWidgets.onChange(restart, () -> {
+            if (controller.getSessionLifecycleController().isOnlineMatch()) {
+                var net = controller.getNetworkSession();
+                if (net != null && net.socket().requestRestart()) {
+                    controller.openMenu(MenuType.MATCH_RESTART_WAIT);
+                    return;
+                }
+            }
+            UiWidgets.apply(controller,
+                    controller.getSessionLifecycleController().restartLevel());
+        });
 
         UiWidgets.onChange(resume, () -> UiWidgets.apply(controller, 
             controller.exitMenu()
@@ -165,7 +171,6 @@ public class PauseOverlayScreen implements UiScreen{
     public Stage stage() {
         return stage;
     }
-
 
     private static Texture solid(Color color, int w, int h) {
         Pixmap px = new Pixmap(w, h, Pixmap.Format.RGBA8888);

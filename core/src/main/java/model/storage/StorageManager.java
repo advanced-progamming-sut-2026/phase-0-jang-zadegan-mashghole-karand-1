@@ -15,6 +15,8 @@ public interface StorageManager {
 
     boolean login(String username, String password, boolean stayLoggedIn);
 
+    boolean forceLogin(String username, boolean stayLoggedIn);
+
     void logout();
 
     User getCurrentUser();

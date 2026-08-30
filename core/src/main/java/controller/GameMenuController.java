@@ -16,6 +16,9 @@ import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.storage.StorageManager;
 import model.storage.user.User;
+import network.NetworkSession;
+import shared.izombie.IZombiePlayMode;
+import shared.izombie.MatchRole;
 import view.MenuType;
 import view.ScreenType;
 
@@ -173,7 +176,14 @@ public class GameMenuController {
         gameNavigation.pendingMiniGame = type;
         gameNavigation.pendingLevel = levelConfig;
         gameNavigation.pendingSpecialLevel = null;
+        gameNavigation.pendingIZombieMode = null;
+        gameNavigation.pendingMatchRole = null;
         gameNavigation.selectedPlants.clear();
+
+        if (type == MiniGameType.I_ZOMBIE) {
+            controllerManager.openMenu(MenuType.I_ZOMBIE_MODE);
+            return success("Choose I, Zombie play mode.");
+        }
 
         SessionConfig probe = SessionConfig.builder()
                 .miniGame(type)
@@ -192,6 +202,92 @@ public class GameMenuController {
         gameNavigation.phase = Phase.PLANT;
         controllerManager.refreshView();
         return success(MiniGameCommands.displayName(type) + " selected. Pick your plants.");
+    }
+
+    public CommandResult startIZombieOffline() {
+        return startIZombie(IZombiePlayMode.OFFLINE, MatchRole.ZOMBIES);
+    }
+
+    public CommandResult startIZombieCouch() {
+        return startIZombie(IZombiePlayMode.COUCH, MatchRole.ZOMBIES);
+    }
+
+    public CommandResult startIZombieOnlineRandom() {
+        NetworkSession net = controllerManager.getNetworkSession();
+        if (net == null || !net.isLoggedIn()) {
+            return failure("Log in to the game server first.");
+        }
+        String readyError = net.ensureOnlineReady(5_000);
+        if (readyError != null) {
+            return failure(mapOnlineError(readyError));
+        }
+        if (!net.socket().joinQueue()) {
+            return failure("Could not reach the matchmaking server. Try again.");
+        }
+        controllerManager.clearCurrentMenu();
+        controllerManager.openMenu(MenuType.I_ZOMBIE_QUEUE);
+        return success("Joining matchmaking queue...");
+    }
+
+    public CommandResult startIZombieInvite(String targetUsername) {
+        NetworkSession net = controllerManager.getNetworkSession();
+        if (net == null || !net.isLoggedIn()) {
+            return failure("Log in to the game server first.");
+        }
+        if (targetUsername == null || targetUsername.isBlank()) {
+            return failure("Enter a username to invite.");
+        }
+        String readyError = net.ensureOnlineReady(5_000);
+        if (readyError != null) {
+            return failure(mapOnlineError(readyError));
+        }
+        String target = targetUsername.trim();
+        if (!net.socket().invite(target)) {
+            return failure("Could not reach the matchmaking server. Try again.");
+        }
+        controllerManager.clearCurrentMenu();
+        controllerManager.openMenu(MenuType.I_ZOMBIE_QUEUE);
+        return success("Sending invite to " + target + "...");
+    }
+
+    private static String mapOnlineError(String code) {
+        return switch (code) {
+            case "WS_NOT_READY" -> "Still connecting to the game server. Wait a moment and try again.";
+            case "NOT_LOGGED_IN" -> "Log in to the game server first.";
+            default -> "Online connection not ready.";
+        };
+    }
+
+    public CommandResult startIZombie(IZombiePlayMode mode, MatchRole localRole) {
+        if (gameNavigation.pendingMiniGame != MiniGameType.I_ZOMBIE || gameNavigation.pendingLevel == null) {
+            return failure("Select I, Zombie first.");
+        }
+        SessionConfig config = SessionConfig.builder()
+                .miniGame(MiniGameType.I_ZOMBIE)
+                .levelConfig(gameNavigation.pendingLevel)
+                .selectedPlants(List.of())
+                .iZombiePlayMode(mode)
+                .localMatchRole(localRole)
+                .build();
+        model.startSession(config);
+        storage.recordGamePlayed();
+        gameNavigation.reset();
+        controllerManager.clearCurrentMenu();
+        controllerManager.setScreen(ScreenType.GAME);
+        return success("I, Zombie (" + mode.name().toLowerCase().replace('_', ' ') + ") started!");
+    }
+
+    public CommandResult beginOnlineMatch(shared.dto.MatchStartPayload payload) {
+        if (payload == null) {
+            return failure("Invalid match payload.");
+        }
+        LevelConfig levelConfig = MiniGameCatalog.levelConfig(MiniGameType.I_ZOMBIE);
+        if (levelConfig == null) {
+            return failure("Minigame configuration missing.");
+        }
+        gameNavigation.pendingMiniGame = MiniGameType.I_ZOMBIE;
+        gameNavigation.pendingLevel = levelConfig;
+        return startIZombie(IZombiePlayMode.ONLINE_RANDOM, payload.yourRole);
     }
 
     private CommandResult startSessionSkippingPlantSelection(SpecialLevelType special) {

@@ -30,6 +30,12 @@ import view.gdx.ui.screens.GlobalTopBar;
 import view.gdx.ui.screens.menus.NewsOverlayScreen;
 import view.gdx.ui.screens.menus.PauseOverlayScreen;
 import view.gdx.ui.screens.menus.ProfileOverlayScreen;
+import view.gdx.ui.screens.izombie.IZombieInviteOverlayScreen;
+import view.gdx.ui.screens.izombie.IZombieModeOverlayScreen;
+import view.gdx.ui.screens.izombie.IZombieQueueOverlayScreen;
+import view.gdx.ui.screens.izombie.MatchRestartOverlayScreen;
+import view.gdx.ui.screens.izombie.MatchResultOverlayScreen;
+import view.gdx.ui.screens.izombie.QuickMessageOverlayScreen;
 import view.gdx.ui.screens.menus.SettingsOverlayScreen;
 
 public final class UiNavigator implements Disposable {
@@ -61,8 +67,8 @@ public final class UiNavigator implements Disposable {
     private void registerDefaults() {
         screens.put(ScreenType.LOGIN, new LoginScreen());
         screens.put(ScreenType.REGISTER, new RegisterScreen());
-        screens.put(ScreenType.MAIN , new MainScreen());
-        screens.put(ScreenType.LEVEL_SELECTOR , new LevelSelectorScreen());
+        screens.put(ScreenType.MAIN, new MainScreen());
+        screens.put(ScreenType.LEVEL_SELECTOR, new LevelSelectorScreen());
         screens.put(ScreenType.GREEN_HOUSE, new GardenScreen());
         screens.put(ScreenType.COLLECTION, new CollectionScreen());
         for (ScreenType type : ScreenType.values()) {
@@ -81,7 +87,15 @@ public final class UiNavigator implements Disposable {
         overlays.put(MenuType.NEWS, new NewsOverlayScreen());
         overlays.put(MenuType.TRAVEL_LOG, new TravelLogOverlayScreen());
         overlays.put(MenuType.PLANT_SELECTOR, new PlaceholderOverlayScreen("Plant Selector"));
-        overlays.put(MenuType.SHOP,new ShopOverlayScreen());
+        overlays.put(MenuType.SHOP, new ShopOverlayScreen());
+        overlays.put(MenuType.I_ZOMBIE_MODE, new IZombieModeOverlayScreen());
+        overlays.put(MenuType.I_ZOMBIE_QUEUE, new IZombieQueueOverlayScreen());
+        overlays.put(MenuType.I_ZOMBIE_INVITE, new IZombieInviteOverlayScreen());
+        overlays.put(MenuType.QUICK_MESSAGES, new QuickMessageOverlayScreen());
+        MatchRestartOverlayScreen restartOverlay = new MatchRestartOverlayScreen();
+        overlays.put(MenuType.MATCH_RESTART, restartOverlay);
+        overlays.put(MenuType.MATCH_RESTART_WAIT, restartOverlay);
+        overlays.put(MenuType.MATCH_RESULT, new MatchResultOverlayScreen());
     }
 
     public void show(UiViewContext context) {
@@ -121,7 +135,7 @@ public final class UiNavigator implements Disposable {
     }
 
     private void syncGameLoop(UiViewContext context) {
-        boolean playing = context.screen == ScreenType.GAME && context.menu != MenuType.PAUSE;
+        boolean playing = context.screen == ScreenType.GAME && !pausesGameplay(context.menu);
         if (playing) {
             if (!gameLoop.isAutoTickRunning()) {
                 gameLoop.startAutoTick();
@@ -129,6 +143,31 @@ public final class UiNavigator implements Disposable {
         } else {
             gameLoop.stopAutoTick();
         }
+    }
+
+    private static boolean pausesGameplay(MenuType menu) {
+        return menu == MenuType.PAUSE
+                || menu == MenuType.MATCH_RESTART
+                || menu == MenuType.MATCH_RESTART_WAIT
+                || menu == MenuType.MATCH_RESULT
+                || menu == MenuType.QUICK_MESSAGES;
+    }
+
+    private void updateInputProcessors() {
+        InputMultiplexer mux = new InputMultiplexer();
+        if (activeOverlay != null) {
+            mux.addProcessor(activeOverlay.stage());
+        }
+        if (activeScreen != null) {
+            mux.addProcessor(activeScreen.stage());
+        }
+        boolean blockWorld = lastContext != null && pausesGameplay(lastContext.menu);
+        if (gameWorldInput != null && isGameScreen() && !blockWorld) {
+            mux.addProcessor(gameWorldInput);
+        }
+        mux.addProcessor(toastStage);
+        mux.addProcessor(topBar.stage());
+        Gdx.input.setInputProcessor(mux);
     }
 
     public void showToast(String message) {
@@ -185,23 +224,7 @@ public final class UiNavigator implements Disposable {
     }
 
     private boolean shouldDrawScreenLayer() {
-        return activeScreen != null && lastContext != null;
-    }
-
-    private void updateInputProcessors() {
-        InputMultiplexer mux = new InputMultiplexer();
-        if (activeOverlay != null) {
-            mux.addProcessor(activeOverlay.stage());
-        }
-        if (activeScreen != null) {
-            mux.addProcessor(activeScreen.stage());
-        }
-        if (gameWorldInput != null && isGameScreen()) {
-            mux.addProcessor(gameWorldInput);
-        }
-        mux.addProcessor(toastStage);
-        mux.addProcessor(topBar.stage());
-        Gdx.input.setInputProcessor(mux);
+        return activeScreen != null && lastContext != null && lastContext.screen != ScreenType.GAME;
     }
 
     private static String prettyName(ScreenType type) {
@@ -223,8 +246,11 @@ public final class UiNavigator implements Disposable {
         for (UiScreen screen : screens.values()) {
             screen.dispose();
         }
+        java.util.IdentityHashMap<UiScreen, Boolean> seen = new java.util.IdentityHashMap<>();
         for (UiScreen overlay : overlays.values()) {
-            overlay.dispose();
+            if (seen.put(overlay, Boolean.TRUE) == null) {
+                overlay.dispose();
+            }
         }
         topBar.dispose();
         toastStage.dispose();

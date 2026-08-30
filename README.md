@@ -8,8 +8,16 @@ Console (terminal) version:
 
 Desktop (LibGDX graphics) version:
 
+Run Game Client:
+
 ```bash
 ./gradlew :desktop:run
+```
+
+Run Game Server:
+
+```bash
+./gradlew :server:run
 ```
 
 ## Contributors

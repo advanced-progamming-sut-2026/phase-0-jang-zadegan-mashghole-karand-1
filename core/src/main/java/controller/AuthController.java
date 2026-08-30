@@ -6,6 +6,7 @@ import model.storage.user.Gender;
 import model.storage.user.SafetyQuestion;
 import model.storage.user.SafetyQuestionType;
 import model.storage.user.User;
+import network.NetworkAuthBridge;
 import view.ScreenType;
 import view.messages.ErrorMessages;
 
@@ -19,11 +20,13 @@ public class AuthController {
 
     private final ControllerManager controllerManager;
     private final StorageManager storage;
+    private NetworkAuthBridge networkAuth;
 
     private final List<SafetyQuestion> questions;
 
     private PendingRegistration pendingRegistration;
     private String passwordResetUsername;
+    private String passwordResetEmail;
     private boolean awaitingSecurityAnswer;
     private boolean awaitingNewPassword;
 
@@ -37,12 +40,19 @@ public class AuthController {
         this.questions = Collections.unmodifiableList(available);
     }
 
+    public void setNetworkAuth(NetworkAuthBridge networkAuth) {
+        this.networkAuth = networkAuth;
+    }
+
     public List<SafetyQuestion> getQuestions() {
         return questions;
     }
 
     public String getPasswordResetQuestion() {
         if (passwordResetUsername == null) {
+            return null;
+        }
+        if (networkAuth != null) {
             return null;
         }
         User user = storage.getUserByUsername(passwordResetUsername);
@@ -74,9 +84,6 @@ public class AuthController {
         String error = AuthValidator.validateUsername(username);
         if (error != null) {
             return failure(error);
-        }
-        if (storage.usernameExists(username)) {
-            return failure(ErrorMessages.USERNAME_TAKEN.getMessage());
         }
 
         error = AuthValidator.validatePassword(password);
@@ -133,6 +140,22 @@ public class AuthController {
         SafetyQuestion selectedQuestion = questions.get(questionNum - 1);
         SafetyQuestion userQuestion = new SafetyQuestion(selectedQuestion.type, answer);
 
+        if (networkAuth != null) {
+            String netError = networkAuth.register(
+                    pendingRegistration.username,
+                    pendingRegistration.password,
+                    pendingRegistration.email,
+                    pendingRegistration.nickname,
+                    pendingRegistration.gender,
+                    userQuestion);
+            pendingRegistration = null;
+            if (netError != null) {
+                return failure(mapNetworkError(netError));
+            }
+            controllerManager.setScreen(ScreenType.LOGIN);
+            return success("Account created successfully. Please log in.");
+        }
+
         boolean registered = storage.register(
                 pendingRegistration.username,
                 pendingRegistration.password,
@@ -161,6 +184,18 @@ public class AuthController {
             return loggedInCheck;
         }
 
+        if (networkAuth != null) {
+            String netError = networkAuth.login(username, password, stayLoggedIn);
+            if (netError != null) {
+                return failure(mapNetworkError(netError));
+            }
+            storage.saveProgress();
+            controllerManager.initShopForCurrentUser();
+            controllerManager.initQuestsForCurrentUser();
+            controllerManager.setScreen(ScreenType.MAIN);
+            return success("Welcome back, " + username + "!");
+        }
+
         if (storage.login(username, password, stayLoggedIn)) {
             storage.saveProgress();
             controllerManager.initShopForCurrentUser();
@@ -180,6 +215,19 @@ public class AuthController {
         awaitingSecurityAnswer = false;
         awaitingNewPassword = false;
         passwordResetUsername = null;
+        passwordResetEmail = null;
+
+        if (networkAuth != null) {
+            String question = networkAuth.forgot(username, email);
+            if (question == null) {
+                return failure(ErrorMessages.INVALID_SECURITY_ANSWER.getMessage());
+            }
+            passwordResetUsername = username;
+            passwordResetEmail = email;
+            awaitingSecurityAnswer = true;
+            SafetyQuestionType type = SafetyQuestionType.fromStored(question);
+            return success("Answer your security question: " + type.question);
+        }
 
         User user = storage.getUserByUsername(username);
         if (user == null || user.email == null || !user.email.equalsIgnoreCase(email)) {
@@ -187,6 +235,7 @@ public class AuthController {
         }
 
         passwordResetUsername = username;
+        passwordResetEmail = email;
         awaitingSecurityAnswer = true;
         return success("Answer your security question: " + user.safetyQuestion.type.question);
     }
@@ -198,6 +247,15 @@ public class AuthController {
         }
         if (!awaitingSecurityAnswer || passwordResetUsername == null) {
             return failure("Start password recovery with forget password first.");
+        }
+
+        if (networkAuth != null) {
+            pendingRegistration = null;
+            this.awaitingSecurityAnswer = false;
+            this.awaitingNewPassword = true;
+            this.pendingSecurityAnswer = answer;
+            return success("Security answer accepted. Enter a new password with: "
+                    + "reset password -p <password> <password_confirm>");
         }
 
         User user = storage.getUserByUsername(passwordResetUsername);
@@ -218,6 +276,8 @@ public class AuthController {
                 + "reset password -p <password> <password_confirm>");
     }
 
+    private String pendingSecurityAnswer;
+
     public CommandResult resetPassword(String password, String passwordConfirm) {
         CommandResult screenCheck = controllerManager.requireScreen(ScreenType.LOGIN);
         if (screenCheck != null) {
@@ -237,6 +297,20 @@ public class AuthController {
             return failure(error);
         }
 
+        if (networkAuth != null) {
+            String netError = networkAuth.resetPassword(
+                    passwordResetUsername,
+                    passwordResetEmail,
+                    pendingSecurityAnswer,
+                    password);
+            clearPasswordResetState();
+            if (netError != null) {
+                return failure(mapNetworkError(netError));
+            }
+            controllerManager.setScreen(ScreenType.LOGIN);
+            return success("Password updated successfully. Please log in with your new password.");
+        }
+
         if (!storage.updatePassword(passwordResetUsername, password)) {
             clearPasswordResetState();
             return failure(ErrorMessages.INVALID_SECURITY_ANSWER.getMessage());
@@ -249,12 +323,34 @@ public class AuthController {
 
     public void clearPasswordResetState() {
         passwordResetUsername = null;
+        passwordResetEmail = null;
+        pendingSecurityAnswer = null;
         awaitingSecurityAnswer = false;
         awaitingNewPassword = false;
     }
 
     public void clearPendingRegistration() {
         pendingRegistration = null;
+    }
+
+    private String mapNetworkError(String code) {
+        if (code == null) {
+            return ErrorMessages.LOGIN_FAILED.getMessage();
+        }
+        return switch (code) {
+            case "USERNAME_TAKEN" -> ErrorMessages.USERNAME_TAKEN.getMessage();
+            case "LOGIN_FAILED" -> ErrorMessages.LOGIN_FAILED.getMessage();
+            case "SERVER_UNAVAILABLE" -> "Game server is unavailable. Start the server and try again.";
+            case "USERNAME_FORMAT" -> ErrorMessages.USERNAME_FORMAT.getMessage();
+            case "WEAK_PASSWORD_LENGTH" -> ErrorMessages.WEAK_PASSWORD_LENGTH.getMessage();
+            case "WEAK_PASSWORD_FORMAT" -> ErrorMessages.WEAK_PASSWORD_FORMAT.getMessage();
+            case "PASSWORD_MISMATCH" -> ErrorMessages.PASSWORD_MISMATCH.getMessage();
+            case "INVALID_NICKNAME_LENGTH" -> ErrorMessages.INVALID_NICKNAME_LENGTH.getMessage();
+            case "INVALID_EMAIL" -> ErrorMessages.INVALID_EMAIL.getMessage();
+            case "INVALID_GENDER" -> ErrorMessages.INVALID_GENDER.getMessage();
+            case "INVALID_SECURITY_ANSWER" -> ErrorMessages.INVALID_SECURITY_ANSWER.getMessage();
+            default -> code;
+        };
     }
 
     private CommandResult success(String message) {

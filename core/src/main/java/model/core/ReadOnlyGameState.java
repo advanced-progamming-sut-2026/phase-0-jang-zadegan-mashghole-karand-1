@@ -48,6 +48,18 @@ public interface ReadOnlyGameState {
 
     boolean isBrainsMode();
 
+    default boolean isDualSunMode() {
+        return false;
+    }
+
+    default int getPlantSun() {
+        return getSunAmount();
+    }
+
+    default int getZombieSun() {
+        return getSunAmount();
+    }
+
     int getSunAmount();
 
     int getPlantFoodAmount();

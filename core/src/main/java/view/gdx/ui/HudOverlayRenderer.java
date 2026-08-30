@@ -25,6 +25,21 @@ public final class HudOverlayRenderer {
             int totalWaves,
             float worldWidth,
             float worldHeight) {
+        render(batch, assets, hud, sunAmount, -1, plantFoodAmount, progress, totalWaves,
+                worldWidth, worldHeight);
+    }
+
+    public void render(
+            SpriteBatch batch,
+            AssetContext assets,
+            HudViewState hud,
+            int sunAmount,
+            int zombieSunAmount,
+            int plantFoodAmount,
+            float progress,
+            int totalWaves,
+            float worldWidth,
+            float worldHeight) {
         if (hud == null) return;
         if ( hud.showPlantFood){
             drawPlantFood(batch,assets,plantFoodAmount,worldWidth,worldHeight);
@@ -33,7 +48,15 @@ public final class HudOverlayRenderer {
             drawWave(batch,assets,progress, totalWaves,worldWidth,worldHeight);
         }
         if (hud.showSun){
-            drawSun(batch,assets,sunAmount,worldWidth,worldHeight);
+            if (zombieSunAmount >= 0) {
+                float leftX = Math.max(220f, worldWidth * 0.22f);
+                float rightX = leftX + 110f;
+                drawSunCounter(batch, assets, sunAmount, "P", leftX, worldHeight);
+                drawSunCounter(batch, assets, zombieSunAmount, "Z", rightX, worldHeight);
+            } else {
+                drawSunCounter(batch, assets, sunAmount, null,
+                        Math.max(220f, worldWidth * 0.22f), worldHeight);
+            }
         }
     }
     private void drawPlantFood(SpriteBatch batch, AssetContext assets,
@@ -150,26 +173,33 @@ public final class HudOverlayRenderer {
             batch.draw(flag, edgeX - flagW * 0.05f, flagY, flagW, flagH);
         }
     }
-    private void drawSun(SpriteBatch batch, AssetContext assets,
-                         int sunAmount , float worldWidth, float worldHeight){
+
+    private void drawSunCounter(SpriteBatch batch, AssetContext assets,
+            int sunAmount, String sideLabel, float x, float worldHeight) {
         TextureRegion backGround = assets.region("IMAGE_UI_HUD_INGAME_BACKGROUND_3SLICE");
-        if (backGround == null){
+        if (backGround == null) {
             return;
         }
         float backGroundH = 30f;
-        float backGroundW = 85f;
-        float x = 300f;
+        float backGroundW = sideLabel != null ? 95f : 85f;
         float y = worldHeight - backGroundH - 25f;
         batch.setColor(Color.WHITE);
         batch.draw(backGround, x, y, backGroundW, backGroundH);
+
         TextureRegion sun = assets.region("IMAGE_UI_HUD_INGAME_SUN");
-        float sunH = 50f;
-        float sunW = 30f;
-        float sunX = 290f;
-        float sunY = worldHeight - backGroundH - 38f;
-        batch.setColor(Color.WHITE);
-        batch.draw(sun, sunX, sunY, sunW, sunH);
+        if (sun != null && sun.getRegionHeight() > 0) {
+            float sunH = 42f;
+            float sunW = sunH * (sun.getRegionWidth() / (float) sun.getRegionHeight());
+            float sunX = x - sunW * 0.35f;
+            float sunY = y + (backGroundH - sunH) * 0.5f;
+            batch.setColor(Color.WHITE);
+            batch.draw(sun, sunX, sunY, sunW, sunH);
+        }
+
         font.setColor(Color.WHITE);
-        font.draw(batch, String.valueOf(sunAmount), x + 35f, y + 21f);
+        String text = sideLabel != null
+                ? sideLabel + " " + sunAmount
+                : String.valueOf(sunAmount);
+        font.draw(batch, text, x + 28f, y + 21f);
     }
 }

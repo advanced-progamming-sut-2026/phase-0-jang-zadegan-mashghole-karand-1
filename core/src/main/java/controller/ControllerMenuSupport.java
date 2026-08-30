@@ -3,6 +3,7 @@ package controller;
 import controller.CommandResult.CommandResult;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
+import network.NetworkSession;
 import view.MenuType;
 import view.ScreenType;
 
@@ -37,9 +38,9 @@ final class ControllerMenuSupport {
             return manager.getGameMenuController().enterMinigames();
         }
 
-        if(manager.currentScreen == ScreenType.GAME){
+        if (manager.currentScreen == ScreenType.GAME) {
             CommandResult gameres = enterFromGame(manager, name);
-            if(gameres != null){
+            if (gameres != null) {
                 return gameres;
             }
         }
@@ -141,10 +142,24 @@ final class ControllerMenuSupport {
             case COLLECTION -> exitToLevelSelector(manager, "Returned to game menu.");
             case LEADERBOARD -> exitToLevelSelector(manager, "Returned to game menu.");
             case GAME -> {
-                if(manager.currentMenu == MenuType.PAUSE){
+                if (manager.currentMenu == MenuType.PAUSE
+                        || manager.currentMenu == MenuType.QUICK_MESSAGES) {
                     manager.currentMenu = MenuType.NONE;
                     manager.refreshView();
                     yield new CommandResult("Resumed", true);
+                }
+                if (manager.currentMenu == MenuType.MATCH_RESTART
+                        || manager.currentMenu == MenuType.MATCH_RESTART_WAIT) {
+                    NetworkSession net = manager.getNetworkSession();
+                    if (net != null) {
+                        net.socket().cancelRestart();
+                    }
+                    manager.currentMenu = MenuType.NONE;
+                    manager.refreshView();
+                    yield new CommandResult("Cancelled restart", true);
+                }
+                if (manager.currentMenu == MenuType.MATCH_RESULT) {
+                    yield manager.getSessionLifecycleController().returnToLevelSelect();
                 }
                 yield manager.getSessionLifecycleController().returnToLevelSelect();
             }
@@ -231,13 +246,15 @@ final class ControllerMenuSupport {
         return new CommandResult(message, true);
     }
 
-    private CommandResult enterFromGame(ControllerManager manager , String name){
-        if(!name.equals("pause")) return null;
+    private CommandResult enterFromGame(ControllerManager manager, String name) {
+        if (!name.equals("pause")) {
+            return null;
+        }
 
-        if(manager.currentMenu != MenuType.NONE && manager.currentMenu != MenuType.PAUSE){
+        if (manager.currentMenu != MenuType.NONE && manager.currentMenu != MenuType.PAUSE) {
             return new CommandResult("Close the current menu first.", false);
         }
         manager.currentMenu = MenuType.PAUSE;
         return new CommandResult("Paused", true);
-    } 
+    }
 }

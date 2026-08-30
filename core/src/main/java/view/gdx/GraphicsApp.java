@@ -62,7 +62,7 @@ public final class GraphicsApp extends ApplicationAdapter {
         app = DesktopApp.create(assets);
         ui = app.navigator();
 
-        menuBackdrop.bind(assets,app.controller().getCurrentScreen());
+        menuBackdrop.bind(assets, app.controller().getCurrentScreen());
 
         lawnLayout = new LawnLayout();
         lawnBackground = new LawnBackgroundRenderer();
@@ -106,7 +106,7 @@ public final class GraphicsApp extends ApplicationAdapter {
             batch.begin();
             lawnBackground.render(batch);
 
-            boolean paused = app.controller().getCurrentMenu() == MenuType.PAUSE;
+            boolean paused = pausesWorld(app.controller().getCurrentMenu());
             float worldDt = paused ? 0f : dt;
             lawnRenderer.render(batch, assets, app.gameState(), worldDt);
             SessionContext session = app.model().getPlayContext();
@@ -114,17 +114,32 @@ public final class GraphicsApp extends ApplicationAdapter {
                     session,
                     app.gameState(),
                     app.controller().getStorage().getCurrentUser());
-            int sun = app.gameState() != null ? app.gameState().getSunAmount() : 0;
+            int sun = resolveTraySun(hud);
+            int plantSun = app.gameState() != null ? app.gameState().getPlantSun() : sun;
+            int zombieSun = app.gameState() != null ? app.gameState().getZombieSun() : sun;
+            boolean dualSun = app.gameState() != null && app.gameState().isDualSunMode();
             float worldHeight = worldViewport.getWorldHeight();
             float worldWidth = worldViewport.getWorldWidth();
             float hudTopReserve = GlobalTopBar.reservedScreenHeight()
                     * (worldHeight / Math.max(1, Gdx.graphics.getHeight()));
-            if(!paused){
+            if (!paused) {
                 conveyorAnimator.update(dt, hud, worldHeight, hudTopReserve);
             }
-            plantInput.bind(app.controller(), assets, hud, sun, worldViewport::getWorldHeight,
-                    conveyorAnimator, hudTopReserve);
-            seedTray.render(batch, assets, hud, chapter, sun, worldHeight,
+            int leftSun = sun;
+            int rightSun = sun;
+            if (dualSun) {
+                boolean hasRightTray = hud.rightTraySlots != null && !hud.rightTraySlots.isEmpty();
+                if (hasRightTray) {
+                    leftSun = plantSun;
+                    rightSun = zombieSun;
+                } else {
+                    leftSun = resolveTraySun(hud);
+                    rightSun = leftSun;
+                }
+            }
+            plantInput.bind(app.controller(), assets, hud, leftSun, rightSun, worldWidth,
+                    worldViewport::getWorldHeight, conveyorAnimator, hudTopReserve);
+            seedTray.render(batch, assets, hud, chapter, leftSun, rightSun, worldHeight, worldWidth,
                     plantInput.selectedPlantName(), plantInput.selectedConveyorIndex(),
                     conveyorAnimator, hudTopReserve,
                     session != null && session.getConfig() != null
@@ -139,8 +154,8 @@ public final class GraphicsApp extends ApplicationAdapter {
                     progress = session.getWaveManager().getLevelProgress(app.model().getState());
                 }
             }
-            hudOverlay.render(batch, assets, hud, sun, pf, progress, totalWaves,
-                    worldWidth, worldHeight);
+            hudOverlay.render(batch, assets, hud, plantSun, dualSun ? zombieSun : -1, pf, progress,
+                    totalWaves, worldWidth, worldHeight);
             batch.end();
             lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
         } else {
@@ -164,6 +179,33 @@ public final class GraphicsApp extends ApplicationAdapter {
             return null;
         }
         return session.getConfig().levelConfig.chapterType;
+    }
+
+    private int resolveTraySun(HudViewState hud) {
+        if (app.gameState() == null) {
+            return 0;
+        }
+        if (app.gameState().isDualSunMode()) {
+            SessionContext session = app.model().getPlayContext();
+            if (session != null && session.getConfig() != null
+                    && session.getConfig().localMatchRole == shared.izombie.MatchRole.PLANTS) {
+                return app.gameState().getPlantSun();
+            }
+            if (session != null && session.getConfig() != null
+                    && session.getConfig().iZombiePlayMode == shared.izombie.IZombiePlayMode.COUCH) {
+                return app.gameState().getPlantSun();
+            }
+            return app.gameState().getZombieSun();
+        }
+        return app.gameState().getSunAmount();
+    }
+
+    private static boolean pausesWorld(MenuType menu) {
+        return menu == MenuType.PAUSE
+                || menu == MenuType.MATCH_RESTART
+                || menu == MenuType.MATCH_RESTART_WAIT
+                || menu == MenuType.MATCH_RESULT
+                || menu == MenuType.QUICK_MESSAGES;
     }
 
     @Override

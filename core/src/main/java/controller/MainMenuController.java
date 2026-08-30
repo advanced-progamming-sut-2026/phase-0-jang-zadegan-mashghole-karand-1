@@ -25,7 +25,12 @@ public class MainMenuController {
         }
 
         storage.saveProgress();
-        storage.logout();
+        if (controllerManager.getNetworkAuth() != null) {
+            controllerManager.getNetworkAuth().syncProfileUpload();
+            controllerManager.getNetworkAuth().logout();
+        } else {
+            storage.logout();
+        }
         controllerManager.initShopForCurrentUser();
         controllerManager.clearCurrentMenu();
         controllerManager.getAuthController().clearPasswordResetState();

@@ -8,5 +8,12 @@ public enum MenuType {
     NEWS,
     TRAVEL_LOG,
     PLANT_SELECTOR,
-    SHOP
+    SHOP,
+    I_ZOMBIE_MODE,
+    I_ZOMBIE_QUEUE,
+    I_ZOMBIE_INVITE,
+    QUICK_MESSAGES,
+    MATCH_RESTART,
+    MATCH_RESTART_WAIT,
+    MATCH_RESULT
 }

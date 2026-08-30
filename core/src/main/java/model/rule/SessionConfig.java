@@ -8,6 +8,8 @@ import model.data.plant.PlantType;
 import model.data.wave.LevelConfig;
 import model.data.content.specialLevel.SpecialLevelType;
 import model.data.content.minigame.MiniGameType;
+import shared.izombie.IZombiePlayMode;
+import shared.izombie.MatchRole;
 
 public class SessionConfig {
     public final boolean isSpecialLevel;
@@ -18,6 +20,9 @@ public class SessionConfig {
     public final SessionType sessionType;
     public final PlantType imitatorTarget;
     public final Set<PlantType> boostedPlants;
+    public final IZombiePlayMode iZombiePlayMode;
+    public final MatchRole localMatchRole;
+
     public enum SessionType {
         NORMAL,
         SPECIAL,
@@ -33,6 +38,8 @@ public class SessionConfig {
         this.sessionType = builder.sessionType;
         this.imitatorTarget = builder.imitatorTarget;
         this.boostedPlants = builder.boostedPlants;
+        this.iZombiePlayMode = builder.iZombiePlayMode;
+        this.localMatchRole = builder.localMatchRole;
     }
 
     public static Builder builder() {
@@ -51,6 +58,12 @@ public class SessionConfig {
         return sessionType == SessionType.NORMAL;
     }
 
+    public boolean isIZombiePvP() {
+        return miniGameType == MiniGameType.I_ZOMBIE
+                && iZombiePlayMode != null
+                && iZombiePlayMode != IZombiePlayMode.OFFLINE;
+    }
+
     public static class Builder {
         private boolean isSpecialLevel = false;
         private SpecialLevelType specialLevelType;
@@ -59,7 +72,10 @@ public class SessionConfig {
         private LevelConfig levelConfig;
         private SessionType sessionType = SessionType.NORMAL;
         private PlantType imitatorTarget;
-        private  Set<PlantType> boostedPlants;
+        private Set<PlantType> boostedPlants;
+        private IZombiePlayMode iZombiePlayMode = IZombiePlayMode.OFFLINE;
+        private MatchRole localMatchRole = MatchRole.ZOMBIES;
+
         public Builder specialLevel(SpecialLevelType type) {
             this.isSpecialLevel = true;
             this.specialLevelType = type;
@@ -82,14 +98,27 @@ public class SessionConfig {
             this.levelConfig = config;
             return this;
         }
-        public Builder imitatorTarget(PlantType type){
+
+        public Builder imitatorTarget(PlantType type) {
             this.imitatorTarget = type;
             return this;
         }
-        public Builder boostedPlant(Set<PlantType> boostedPlants){
+
+        public Builder boostedPlant(Set<PlantType> boostedPlants) {
             this.boostedPlants = boostedPlants;
             return this;
         }
+
+        public Builder iZombiePlayMode(IZombiePlayMode mode) {
+            this.iZombiePlayMode = mode == null ? IZombiePlayMode.OFFLINE : mode;
+            return this;
+        }
+
+        public Builder localMatchRole(MatchRole role) {
+            this.localMatchRole = role == null ? MatchRole.ZOMBIES : role;
+            return this;
+        }
+
         public SessionConfig build() {
             return new SessionConfig(this);
         }

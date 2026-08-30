@@ -1,4 +1,6 @@
 rootProject.name = 'pvz2'
 
+include 'shared'
 include 'core'
 include 'desktop'
+include 'server'
