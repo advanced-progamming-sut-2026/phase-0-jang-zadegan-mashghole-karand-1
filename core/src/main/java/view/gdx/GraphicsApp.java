@@ -12,6 +12,7 @@ import app.DesktopApp;
 import model.data.content.chapter.ChapterType;
 import model.rule.SessionContext;
 import model.service.HudViewState;
+import view.MenuType;
 import view.gdx.anim.AnimStateStore;
 import view.gdx.catalog.DefaultVisualCatalog;
 import view.gdx.catalog.VisualCatalog;
@@ -104,7 +105,10 @@ public final class GraphicsApp extends ApplicationAdapter {
             batch.setProjectionMatrix(camera.combined);
             batch.begin();
             lawnBackground.render(batch);
-            lawnRenderer.render(batch, assets, app.gameState(), dt);
+
+            boolean paused = app.controller().getCurrentMenu() == MenuType.PAUSE;
+            float worldDt = paused ? 0f : dt;
+            lawnRenderer.render(batch, assets, app.gameState(), worldDt);
             SessionContext session = app.model().getPlayContext();
             HudViewState hud = HudViewState.fromSession(
                     session,
@@ -115,7 +119,9 @@ public final class GraphicsApp extends ApplicationAdapter {
             float worldWidth = worldViewport.getWorldWidth();
             float hudTopReserve = GlobalTopBar.reservedScreenHeight()
                     * (worldHeight / Math.max(1, Gdx.graphics.getHeight()));
-            conveyorAnimator.update(dt, hud, worldHeight, hudTopReserve);
+            if(!paused){
+                conveyorAnimator.update(dt, hud, worldHeight, hudTopReserve);
+            }
             plantInput.bind(app.controller(), assets, hud, sun, worldViewport::getWorldHeight,
                     conveyorAnimator, hudTopReserve);
             seedTray.render(batch, assets, hud, chapter, sun, worldHeight,
