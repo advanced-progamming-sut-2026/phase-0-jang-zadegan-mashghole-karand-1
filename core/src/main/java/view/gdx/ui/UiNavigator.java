@@ -29,6 +29,7 @@ import view.gdx.ui.screens.Garden.GardenScreen;
 import view.gdx.ui.screens.GlobalTopBar;
 import view.gdx.ui.screens.menus.NewsOverlayScreen;
 import view.gdx.ui.screens.menus.PauseOverlayScreen;
+import view.gdx.ui.screens.menus.ProfileOverlayScreen;
 import view.gdx.ui.screens.menus.SettingsOverlayScreen;
 
 public final class UiNavigator implements Disposable {
@@ -76,7 +77,7 @@ public final class UiNavigator implements Disposable {
         }
         overlays.put(MenuType.PAUSE, new PauseOverlayScreen());
         overlays.put(MenuType.SETTING, new SettingsOverlayScreen());
-        overlays.put(MenuType.PROFILE, new PlaceholderOverlayScreen("Profile"));
+        overlays.put(MenuType.PROFILE, new ProfileOverlayScreen());
         overlays.put(MenuType.NEWS, new NewsOverlayScreen());
         overlays.put(MenuType.TRAVEL_LOG, new TravelLogOverlayScreen());
         overlays.put(MenuType.PLANT_SELECTOR, new PlaceholderOverlayScreen("Plant Selector"));

@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,6 +104,9 @@ final class SqlAccountManager {
 
     boolean renameUsername(String oldUsername, String newUsername) {
         try (Connection connection = SqlConnections.open(databasePath)) {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("PRAGMA foreign_keys = OFF");
+            }
             connection.setAutoCommit(false);
             try {
                 updateUsernameReferences(connection, oldUsername, newUsername);
