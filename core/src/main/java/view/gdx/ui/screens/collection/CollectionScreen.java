@@ -1,7 +1,10 @@
 package view.gdx.ui.screens.collection;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.badlogic.gdx.graphics.Color;
@@ -284,7 +287,7 @@ public final class CollectionScreen implements UiScreen {
         if (entry.unlocked && type != null) {
             ZombieVisualDef visual = catalog.zombie(type);
             if (visual != null) {
-                PamPreviewActor preview = new PamPreviewActor(assets, visual.pamPath, visual.idleClip, 0.45f);
+                PamPreviewActor preview = new PamPreviewActor(assets, visual.pamPath, visual.idleClip, 0.45f, intactArmorVisibility(visual));
                 preview.setSize(90f, 90f);
                 card.add(preview).size(90f).padBottom(4f).row();
             } else {
@@ -390,7 +393,7 @@ public final class CollectionScreen implements UiScreen {
         if (type != null) {
             ZombieVisualDef visual = catalog.zombie(type);
             if (visual != null) {
-                PamPreviewActor preview = new PamPreviewActor(assets, visual.pamPath, visual.idleClip, 0.7f);
+                PamPreviewActor preview = new PamPreviewActor(assets, visual.pamPath, visual.idleClip, 0.7f, intactArmorVisibility(visual));
                 preview.setSize(180f, 180f);
                 detail.add(preview).size(180f).padBottom(8f).row();
             }
@@ -399,6 +402,20 @@ public final class CollectionScreen implements UiScreen {
         for (String line : collection.detailLines) {
             detail.add(UiWidgets.body(line)).left().row();
         }
+    }
+
+    private Map<String, Boolean> intactArmorVisibility(ZombieVisualDef visual){
+        if(visual == null || visual.armor == null){
+            return Collections.emptyMap();
+        }
+        Map<String, Boolean> map = new HashMap<>();
+        if(visual.armor.groupPart != null){
+            map.put(visual.armor.groupPart, true);
+        }
+        if(visual.armor.intactPart != null){
+            map.put(visual.armor.intactPart, true);
+        }
+        return map;
     }
 
     private Image image(String id, float width, float height) {

@@ -42,6 +42,16 @@ public final class ZombieVisualDefs {
                 "zombie_armor_cone_norm",
                 "zombie_armor_cone_damage_01",
                 "zombie_armor_cone_damage_02");
+        ArmorVisualRecipe brick = new ArmorVisualRecipe(
+                "_zombie_egypt_armor4_states",
+                "zombie_armor_brick_norm",
+                "zombie_armor_brick_damage_01",
+                "zombie_armor_brick_damage_02");
+        ArmorVisualRecipe knight = new ArmorVisualRecipe(
+                "_zombie_dark_armor3_states",
+                "zombie_armor_helmet_norm",
+                "zombie_armor_helmet_damage_01",
+                "zombie_armor_helmet_damage_02");
         ArmorVisualRecipe bucket = new ArmorVisualRecipe(
                 "_zombie_egypt_armor2_states",
                 "zombie_armor_bucket_norm",
@@ -56,8 +66,8 @@ public final class ZombieVisualDefs {
         zombies.put(ZombieType.BASIC, ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.CONE_HEAD, new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", cone, Collections.emptyList()));
         zombies.put(ZombieType.BUCKET_HEAD, new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", bucket, Collections.emptyList()));
-        zombies.put(ZombieType.BRICK_HEAD, ZombieVisualDef.plain(EGYPT_BASIC, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.KNIGHT, ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die"));
+        zombies.put(ZombieType.BRICK_HEAD, new ZombieVisualDef(EGYPT_BASIC, "idle", "walk", "eat", "die", brick, Collections.emptyList()));
+        zombies.put(ZombieType.KNIGHT, new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", knight, Collections.emptyList()));
         zombies.put(ZombieType.GARGANTUAR, ZombieVisualDef.plain(DEFAULT_GARGANTUAR, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.IMP, ZombieVisualDef.plain(IMP_BITCH, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.ALL_STAR, ZombieVisualDef.plain(ALL_STAR, "idle", "walk", "eat", "die"));
