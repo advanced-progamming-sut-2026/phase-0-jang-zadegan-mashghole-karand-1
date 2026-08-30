@@ -30,7 +30,13 @@ public final class LawnPlantInput extends InputAdapter {
     private HudViewState hud;
     private ChapterWorldHeight worldHeightProvider;
     private int sunAmount;
+    private int rightSunAmount;
+    private float worldWidth;
     private String selectedPlantName;
+
+    private ZombieType selectedZombie;
+    private int zombieCursorRow = 2;
+    private int zombieCursorCol = 6;
 
     private ZombieType selectedZombie;
     private int zombieCursorRow = 2;
@@ -48,11 +54,26 @@ public final class LawnPlantInput extends InputAdapter {
     }
 
     public void bind(ControllerManager controller, AssetContext assets,
+<<<<<<< Updated upstream
             HudViewState hud, int sunAmount, ChapterWorldHeight worldHeightProvider) {
+=======
+            HudViewState hud, int sunAmount, ChapterWorldHeight worldHeightProvider,
+            ConveyorTrayAnimator conveyorAnimator, float hudTopReserve) {
+        bind(controller, assets, hud, sunAmount, sunAmount, 1280f, worldHeightProvider,
+                conveyorAnimator, hudTopReserve);
+    }
+
+    public void bind(ControllerManager controller, AssetContext assets,
+            HudViewState hud, int leftSun, int rightSun, float worldWidth,
+            ChapterWorldHeight worldHeightProvider, ConveyorTrayAnimator conveyorAnimator,
+            float hudTopReserve) {
+>>>>>>> Stashed changes
         this.controller = controller;
         this.assets = assets;
         this.hud = hud;
-        this.sunAmount = sunAmount;
+        this.sunAmount = leftSun;
+        this.rightSunAmount = rightSun;
+        this.worldWidth = worldWidth;
         this.worldHeightProvider = worldHeightProvider;
         if (selectedPlantName != null && !isStillSelectable(selectedPlantName)) {
             clearSelection();
@@ -76,7 +97,37 @@ public final class LawnPlantInput extends InputAdapter {
                 return SeedTrayRenderer.isSelectable(hud, slot, sunAmount);
             }
         }
+        if (hud.rightTraySlots != null) {
+            for (HudViewState.TraySlot slot : hud.rightTraySlots) {
+                if (plantName.equals(slot.name)) {
+                    return SeedTrayRenderer.isSelectable(hud, slot, rightSunAmount);
+                }
+            }
+        }
         return false;
+    }
+
+    private SessionConfig sessionConfig() {
+        if (controller == null || controller.getModel() == null || controller.getModel().getPlayContext() == null) {
+            return null;
+        }
+        return controller.getModel().getPlayContext().getConfig();
+    }
+
+    private boolean isCouch() {
+        SessionConfig cfg = sessionConfig();
+        return cfg != null && cfg.iZombiePlayMode == IZombiePlayMode.COUCH;
+    }
+
+    private boolean isOnline() {
+        SessionConfig cfg = sessionConfig();
+        return cfg != null && (cfg.iZombiePlayMode == IZombiePlayMode.ONLINE_RANDOM
+                || cfg.iZombiePlayMode == IZombiePlayMode.ONLINE_INVITE);
+    }
+
+    private MatchRole localRole() {
+        SessionConfig cfg = sessionConfig();
+        return cfg == null ? MatchRole.ZOMBIES : cfg.localMatchRole;
     }
 
     private SessionConfig sessionConfig() {
@@ -169,18 +220,60 @@ public final class LawnPlantInput extends InputAdapter {
         float worldY = touch.y;
         float worldH = worldHeightProvider.worldHeight();
 
+<<<<<<< Updated upstream
         String packet = seedTray.hitTest(hud, assets, worldX, worldY, worldH, sunAmount);
         if (packet != null) {
             if (packet.equals(selectedPlantName)) {
                 clearSelection();
             } else {
                 selectedPlantName = packet;
+=======
+        if (hud.trayIsConveyorRow) {
+            ConveyorTrayHit hit = seedTray.hitTestConveyor(hud, assets, worldX, worldY, worldH, sunAmount,
+                    true, conveyorAnimator, hudTopReserve);
+            if (hit.isHit()) {
+                if (hit.isSlot()) {
+                    int index = hit.slotIndex();
+                    if (index == selectedConveyorIndex) {
+                        clearSelection();
+                    } else {
+                        selectedConveyorIndex = index;
+                        selectedPlantName = hud.traySlots.get(index).name;
+                    }
+                }
+                return true;
+            }
+        } else {
+            String packet = seedTray.hitTest(hud, assets, worldX, worldY, worldH,
+                    sunAmount, rightSunAmount, worldWidth, true, conveyorAnimator, hudTopReserve);
+            if (packet != null) {
+                if (packet.isEmpty()) {
+                    return true;
+                }
+                if (packet.equals(selectedPlantName)) {
+                    clearSelection();
+                } else {
+                    selectedPlantName = packet;
+                    ZombieType zt = ZombieType.fromName(packet);
+                    if (zt != null && IZombieShop.isPurchasable(zt)) {
+                        selectedZombie = zt;
+                    }
+                }
+                return true;
+>>>>>>> Stashed changes
             }
             return true;
         }
 
+<<<<<<< Updated upstream
         if (seedTray.hitTest(hud, assets, worldX, worldY, worldH, sunAmount, false) != null) {
             return true;
+=======
+            if (seedTray.hitTest(hud, assets, worldX, worldY, worldH,
+                    sunAmount, rightSunAmount, worldWidth, false, conveyorAnimator, hudTopReserve) != null) {
+                return true;
+            }
+>>>>>>> Stashed changes
         }
 
         if (lawnLayout.worldToCell(worldX, worldY, cell)) {
@@ -190,8 +283,19 @@ public final class LawnPlantInput extends InputAdapter {
             CommandResult result;
 
             if (hud.trayIsConveyorRow) {
+<<<<<<< Updated upstream
                 result = game.placeConveyorPlant(row, col);
                 controller.handleCommandResult(result);
+=======
+                if (selectedConveyorIndex < 0) {
+                    return false;
+                }
+                result = game.placeConveyorPlant(row, col, selectedConveyorIndex);
+                controller.handleCommandResult(result);
+                if (result.isSuccess()) {
+                    clearSelection();
+                }
+>>>>>>> Stashed changes
                 return true;
             }
 
@@ -203,9 +307,12 @@ public final class LawnPlantInput extends InputAdapter {
             PlantType plantType = PlantType.fromName(selectedPlantName);
 
             if (zombieType != null && IZombieShop.isPurchasable(zombieType)) {
+<<<<<<< Updated upstream
                 if (isCouch()) {
                     return false;
                 }
+=======
+>>>>>>> Stashed changes
                 if (isOnline() && localRole() != MatchRole.ZOMBIES) {
                     return false;
                 }

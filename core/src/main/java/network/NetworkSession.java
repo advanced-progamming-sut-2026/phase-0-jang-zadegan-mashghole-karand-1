@@ -54,6 +54,30 @@ public final class NetworkSession {
         return token != null && profile != null;
     }
 
+<<<<<<< Updated upstream
+=======
+    public boolean isOnlineReady() {
+        return isLoggedIn() && socket.isAuthenticated();
+    }
+
+    public String ensureOnlineReady(long timeoutMs) {
+        if (!isLoggedIn()) {
+            return "NOT_LOGGED_IN";
+        }
+        if (socket.isAuthenticated()) {
+            return null;
+        }
+        if (socket.awaitAuthenticated(timeoutMs)) {
+            return null;
+        }
+        socket.connect(token);
+        if (!socket.awaitAuthenticated(timeoutMs)) {
+            return "WS_NOT_READY";
+        }
+        return null;
+    }
+
+>>>>>>> Stashed changes
     public MatchStartPayload activeMatch() {
         return activeMatch;
     }
@@ -112,8 +136,18 @@ public final class NetworkSession {
             case MATCH_STATE -> emit(NetworkEvent.matchState(msg.as(MatchStatePayload.class)));
             case MATCH_END -> {
                 activeMatch = null;
+<<<<<<< Updated upstream
                 emit(NetworkEvent.matchEnd(msg.payload.toString()));
             }
+=======
+                emit(NetworkEvent.matchEnd(msg.getString("winnerRole"), msg.getString("reason")));
+            }
+            case MATCH_RESTART_OFFER -> emit(NetworkEvent.restartOffer(msg.getString("from")));
+            case MATCH_RESTART -> {
+                emit(NetworkEvent.restart());
+            }
+            case MATCH_RESTART_DECLINED -> emit(NetworkEvent.restartDeclined());
+>>>>>>> Stashed changes
             case QUICK_MSG_RECV -> emit(NetworkEvent.quickMessage(
                     msg.getString("from"),
                     msg.getString("messageId"),
@@ -146,6 +180,12 @@ public final class NetworkSession {
         MATCH_START,
         MATCH_STATE,
         MATCH_END,
+<<<<<<< Updated upstream
+=======
+        MATCH_RESTART_OFFER,
+        MATCH_RESTART,
+        MATCH_RESTART_DECLINED,
+>>>>>>> Stashed changes
         QUICK_MSG,
         LOOKUP_RESULT,
         ERROR,
@@ -196,8 +236,25 @@ public final class NetworkSession {
             return new NetworkEvent(EventType.MATCH_STATE, null, null, null, null, false, false, null, payload);
         }
 
+<<<<<<< Updated upstream
         static NetworkEvent matchEnd(String raw) {
             return new NetworkEvent(EventType.MATCH_END, raw, null, null, null, false, false, null, null);
+=======
+        static NetworkEvent matchEnd(String winnerRole, String reason) {
+            return new NetworkEvent(EventType.MATCH_END, winnerRole, reason, null, null, false, false, null, null);
+        }
+
+        static NetworkEvent restartOffer(String from) {
+            return new NetworkEvent(EventType.MATCH_RESTART_OFFER, from, null, null, null, false, false, null, null);
+        }
+
+        static NetworkEvent restart() {
+            return new NetworkEvent(EventType.MATCH_RESTART, null, null, null, null, false, false, null, null);
+        }
+
+        static NetworkEvent restartDeclined() {
+            return new NetworkEvent(EventType.MATCH_RESTART_DECLINED, null, null, null, null, false, false, null, null);
+>>>>>>> Stashed changes
         }
 
         static NetworkEvent quickMessage(String from, String id, String display, String kind) {

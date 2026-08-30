@@ -15,7 +15,11 @@ import model.rule.SessionConfig;
 import model.rule.SessionContext;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
+import model.service.MatchResultUi;
 import model.storage.StorageManager;
+import network.NetworkSession;
+import shared.izombie.IZombiePlayMode;
+import view.MenuType;
 import view.ScreenType;
 
 public class SessionLifecycleController {
@@ -26,6 +30,7 @@ public class SessionLifecycleController {
     private final ModelManager model;
 
     private boolean endHandled;
+    private MatchResultUi matchResultUi;
 
     public SessionLifecycleController(ControllerManager controllerManager, EventBus eventBus,
             GameLoop gameLoop, ModelManager model) {
@@ -42,10 +47,36 @@ public class SessionLifecycleController {
 
     public void onSessionStart() {
         endHandled = false;
+        matchResultUi = null;
     }
 
     public boolean hasEnded() {
         return endHandled;
+    }
+
+    public MatchResultUi matchResultUi() {
+        return matchResultUi;
+    }
+
+    public void showMatchResult(MatchResultUi ui) {
+        if (ui == null) {
+            return;
+        }
+        endHandled = true;
+        matchResultUi = ui;
+        gameLoop.stopAutoTick();
+        Runnable open = () -> {
+            if (controllerManager.getCurrentScreen() != ScreenType.GAME) {
+                return;
+            }
+            controllerManager.openMenu(MenuType.MATCH_RESULT);
+        };
+        if (com.badlogic.gdx.Gdx.app != null
+                && Thread.currentThread().getName().startsWith("AutoTick")) {
+            com.badlogic.gdx.Gdx.app.postRunnable(open);
+        } else {
+            open.run();
+        }
     }
 
     public CommandResult returnToLevelSelect() {
@@ -53,13 +84,66 @@ public class SessionLifecycleController {
             return new CommandResult("Not in a game session.", false);
         }
 
+        leaveOnlineMatchIfNeeded();
         gameLoop.stopAutoTick();
         restoreNavigationFromSession();
         model.endSession();
+        matchResultUi = null;
+        endHandled = false;
+        controllerManager.clearCurrentMenu();
         controllerManager.setScreen(ScreenType.LEVEL_SELECTOR);
         return new CommandResult("Returned to level selection.", true);
     }
 
+<<<<<<< Updated upstream
+=======
+    public CommandResult restartLevel() {
+        if (controllerManager.getCurrentScreen() != ScreenType.GAME) {
+            return new CommandResult("not in a game session.", false);
+        }
+        SessionContext context = model.getPlayContext();
+        if (context == null || context.getConfig() == null) {
+            return new CommandResult("no session to restart", false);
+        }
+        SessionConfig config = context.getConfig();
+        gameLoop.stopAutoTick();
+        controllerManager.clearCurrentMenu();
+        matchResultUi = null;
+        model.startSession(config);
+        onSessionStart();
+        controllerManager.refreshView();
+        return new CommandResult("Level restarted", true);
+    }
+
+    /** Notify server we left, if still in an online I-Zombie match. */
+    public void leaveOnlineMatchIfNeeded() {
+        if (!isOnlineMatch()) {
+            return;
+        }
+        NetworkSession net = controllerManager.getNetworkSession();
+        if (net == null) {
+            return;
+        }
+        if (net.activeMatch() != null) {
+            net.socket().leaveMatch();
+            net.clearActiveMatch();
+        }
+    }
+
+    public boolean isOnlineMatch() {
+        NetworkSession net = controllerManager.getNetworkSession();
+        if (net != null && net.activeMatch() != null) {
+            return true;
+        }
+        SessionContext session = model.getPlayContext();
+        if (session == null || session.getConfig() == null) {
+            return false;
+        }
+        IZombiePlayMode mode = session.getConfig().iZombiePlayMode;
+        return mode == IZombiePlayMode.ONLINE_RANDOM || mode == IZombiePlayMode.ONLINE_INVITE;
+    }
+
+>>>>>>> Stashed changes
     private void onLevelComplete(LevelCompleteEvent event) {
         handleSessionEnd(true, null);
     }
@@ -72,12 +156,54 @@ public class SessionLifecycleController {
         if (endHandled) {
             return;
         }
-        endHandled = true;
+        // Online I-Zombie ends come from MATCH_END; ignore local end signals.
+        if (isOnlineMatch()) {
+            return;
+        }
 
+        endHandled = true;
         gameLoop.stopAutoTick();
 
+        Runnable ui = () -> {
+            if (won) {
+                applyProgressOnWin();
+            }
+            matchResultUi = buildLocalResult(won, reason);
+            controllerManager.openMenu(MenuType.MATCH_RESULT);
+        };
+
+        if (com.badlogic.gdx.Gdx.app != null
+                && Thread.currentThread().getName().startsWith("AutoTick")) {
+            com.badlogic.gdx.Gdx.app.postRunnable(ui);
+        } else {
+            ui.run();
+        }
+    }
+
+    private MatchResultUi buildLocalResult(boolean won, GameOverReason reason) {
+        if (model.getState().sessionEndTitle != null) {
+            return new MatchResultUi(
+                    model.getState().sessionEndTitle,
+                    model.getState().sessionEndDetail,
+                    won,
+                    true,
+                    false,
+                    false);
+        }
+
+        SessionContext context = model.getPlayContext();
+        SessionConfig config = context != null ? context.getConfig() : null;
+        boolean iZombiePvP = config != null && config.isIZombiePvP();
+
+        if (iZombiePvP) {
+            String title = won ? "Victory!" : "Defeat";
+            String detail = reason != null ? reason.message : (won ? "You cleared the challenge." : "Try again.");
+            return new MatchResultUi(title, detail, won, true, false, false);
+        }
+
+        String title = won ? "Level Complete!" : "Game Over";
+        String detail;
         if (won) {
-            applyProgressOnWin();
             String scoreNote = "";
             if (model.getState().hasSessionScore()) {
                 scoreNote = " Score: " + model.getState().getSessionScore() + ".";
@@ -85,12 +211,11 @@ public class SessionLifecycleController {
                     scoreNote += " New high score!";
                 }
             }
-            controllerManager.sendMessage("Level complete!" + scoreNote + " Use 'menu exit' to return.");
+            detail = "Nice work." + scoreNote;
         } else {
-            String detail = reason != null ? reason.message + " " : "";
-            controllerManager.sendMessage("Game over! " + detail + "Use 'menu exit' to return.");
+            detail = reason != null ? reason.message : "Better luck next time.";
         }
-        controllerManager.refreshView();
+        return new MatchResultUi(title, detail, won, true, false, false);
     }
 
     private void applyProgressOnWin() {
@@ -156,6 +281,7 @@ public class SessionLifecycleController {
 
         if (config.isMinigame()) {
             nav.pendingMiniGame = config.miniGameType;
+            nav.pendingLevel = config.levelConfig;
             nav.phase = Phase.MINIGAME;
             return;
         }

@@ -30,6 +30,11 @@ public class GameState implements ReadOnlyGameState {
     public List<Brain> brains = new ArrayList<>();
     public boolean brainsMode = false;
     public boolean dualSunMode = false;
+<<<<<<< Updated upstream
+=======
+    /** When true, dual-sun totals come from the server; local sun picks are visual-only. */
+    public boolean networkSunAuthority = false;
+>>>>>>> Stashed changes
     public int plantSun = 0;
     public int zombieSun = 0;
     private GameBoard board = new GameBoard(GameState.GRID_ROWS, GameState.GRID_COLS, this);
@@ -46,6 +51,9 @@ public class GameState implements ReadOnlyGameState {
     public int sessionScore = 0;
     public boolean hasSessionScore = false;
     public boolean sessionScoreNewRecord = false;
+    /** Optional UI blurb set by rules before SessionEnd (e.g. couch I-Zombie). */
+    public String sessionEndTitle = null;
+    public String sessionEndDetail = null;
 
     @Override
     public GameBoard getBoard() {
@@ -355,6 +363,10 @@ public class GameState implements ReadOnlyGameState {
         brains.clear();
         brainsMode = false;
         dualSunMode = false;
+<<<<<<< Updated upstream
+=======
+        networkSunAuthority = false;
+>>>>>>> Stashed changes
         plantSun = 0;
         zombieSun = 0;
         sunAmount = INITIAL_SUN_AMOUNT;
@@ -365,6 +377,8 @@ public class GameState implements ReadOnlyGameState {
         levelComplete = false;
         gameOverReason = null;
         totalTicks = 0;
+        sessionEndTitle = null;
+        sessionEndDetail = null;
         clearSessionScore();
     }
 }

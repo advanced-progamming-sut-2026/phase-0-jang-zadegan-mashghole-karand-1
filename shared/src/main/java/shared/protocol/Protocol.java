@@ -11,6 +11,10 @@ public final class Protocol {
     public static final int IZOMBIE_SURVIVAL_SECONDS = 120;
     public static final int INVITE_TIMEOUT_MS = 30_000;
     public static final int QUICK_MSG_RATE_LIMIT_MS = 1_500;
+<<<<<<< Updated upstream
+=======
+    public static final int MATCH_RESTART_TIMEOUT_MS = 30_000;
+>>>>>>> Stashed changes
 
     private Protocol() {
     }

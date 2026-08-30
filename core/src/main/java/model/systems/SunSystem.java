@@ -61,6 +61,7 @@ public class SunSystem {
             notifyPlantSunCollected(state, target);
         }
 
+<<<<<<< Updated upstream
         if (state.dualSunMode) {
             if (target.generatorPlant != null) {
                 state.plantSun += target.amount;
@@ -69,6 +70,18 @@ public class SunSystem {
             }
         } else {
             state.sunAmount += target.amount;
+=======
+        if (!(state.dualSunMode && state.networkSunAuthority)) {
+            if (state.dualSunMode) {
+                if (target.generatorPlant != null) {
+                    state.plantSun += target.amount;
+                } else {
+                    state.zombieSun += target.amount;
+                }
+            } else {
+                state.sunAmount += target.amount;
+            }
+>>>>>>> Stashed changes
         }
         state.sunDrops.remove(target);
         bus.publish(new SunCollectedEvent(target));

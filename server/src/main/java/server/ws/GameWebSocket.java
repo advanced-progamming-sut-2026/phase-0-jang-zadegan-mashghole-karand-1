@@ -94,6 +94,19 @@ public final class GameWebSocket {
                     .ifPresent(r -> r.reportNoResources(user));
             case QUICK_MSG -> matchmaking.roomForUser(user)
                     .ifPresent(r -> r.quickMessage(user, msg.getString("messageId")));
+<<<<<<< Updated upstream
+=======
+            case MATCH_LEAVE -> matchmaking.roomForUser(user)
+                    .ifPresent(r -> r.forfeit(user));
+            case MATCH_RESTART_REQUEST -> matchmaking.roomForUser(user)
+                    .ifPresent(r -> r.requestRestart(user));
+            case MATCH_RESTART_ACCEPT -> matchmaking.roomForUser(user)
+                    .ifPresent(r -> r.acceptRestart(user));
+            case MATCH_RESTART_REJECT -> matchmaking.roomForUser(user)
+                    .ifPresent(r -> r.rejectRestart(user));
+            case MATCH_RESTART_CANCEL -> matchmaking.roomForUser(user)
+                    .ifPresent(r -> r.cancelRestart(user));
+>>>>>>> Stashed changes
             default -> ctx.send(Protocol.envelope(WsMessageType.ERROR, Map.of("error", "UNKNOWN_TYPE")));
         }
     }

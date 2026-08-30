@@ -102,9 +102,51 @@ public final class GraphicsApp extends ApplicationAdapter {
                     app.gameState(),
                     app.controller().getStorage().getCurrentUser());
             int sun = resolveTraySun(hud);
+<<<<<<< Updated upstream
             plantInput.bind(app.controller(), assets, hud, sun, worldViewport::getWorldHeight);
             seedTray.render(batch, assets, hud, chapter, sun, worldViewport.getWorldHeight(),
                     plantInput.selectedPlantName());
+=======
+            int plantSun = app.gameState() != null ? app.gameState().getPlantSun() : sun;
+            int zombieSun = app.gameState() != null ? app.gameState().getZombieSun() : sun;
+            boolean dualSun = app.gameState() != null && app.gameState().isDualSunMode();
+            float worldHeight = worldViewport.getWorldHeight();
+            float worldWidth = worldViewport.getWorldWidth();
+            float hudTopReserve = GlobalTopBar.reservedScreenHeight()
+                    * (worldHeight / Math.max(1, Gdx.graphics.getHeight()));
+            conveyorAnimator.update(dt, hud, worldHeight, hudTopReserve);
+            int leftSun = sun;
+            int rightSun = sun;
+            if (dualSun) {
+                boolean hasRightTray = hud.rightTraySlots != null && !hud.rightTraySlots.isEmpty();
+                if (hasRightTray) {
+                    leftSun = plantSun;
+                    rightSun = zombieSun;
+                } else {
+                    leftSun = resolveTraySun(hud);
+                    rightSun = leftSun;
+                }
+            }
+            plantInput.bind(app.controller(), assets, hud, leftSun, rightSun, worldWidth,
+                    worldViewport::getWorldHeight, conveyorAnimator, hudTopReserve);
+            seedTray.render(batch, assets, hud, chapter, leftSun, rightSun, worldHeight, worldWidth,
+                    plantInput.selectedPlantName(), plantInput.selectedConveyorIndex(),
+                    conveyorAnimator, hudTopReserve,
+                    session != null && session.getConfig() != null
+                            ? session.getConfig().boostedPlants
+                            : null);
+            int pf = app.gameState() != null ? app.gameState().getPlantFoodAmount() : 0;
+            float progress = 0f;
+            int totalWaves = 0;
+            if (session != null && session.getWaveManager() != null) {
+                totalWaves = session.getWaveManager().getTotalWaves();
+                if (app.gameState() != null) {
+                    progress = session.getWaveManager().getLevelProgress(app.model().getState());
+                }
+            }
+            hudOverlay.render(batch, assets, hud, plantSun, dualSun ? zombieSun : -1, pf, progress,
+                    totalWaves, worldWidth, worldHeight);
+>>>>>>> Stashed changes
             batch.end();
             lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
         } else {

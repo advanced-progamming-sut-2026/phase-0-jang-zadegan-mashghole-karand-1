@@ -11,6 +11,11 @@ import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
+<<<<<<< Updated upstream
+=======
+import model.rule.SessionContext;
+import model.service.MatchResultUi;
+>>>>>>> Stashed changes
 import shared.dto.MatchStatePayload;
 import view.MenuType;
 import view.ScreenType;
@@ -46,15 +51,33 @@ public final class NetworkEventRouter {
                 String status = event.a;
                 if ("REJECTED".equals(status)) {
                     navigator.showToast("Invite rejected");
+<<<<<<< Updated upstream
                 } else if ("TIMEOUT".equals(status) || "CANCELLED".equals(status)) {
                     navigator.showToast("Invite " + status.toLowerCase());
                 } else if ("SENT".equals(status)) {
                     navigator.showToast("Invite sent");
+=======
+                    if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {
+                        controller.openMenu(MenuType.I_ZOMBIE_MODE);
+                    }
+                } else if ("TIMEOUT".equals(status) || "CANCELLED".equals(status)) {
+                    navigator.showToast("Invite " + status.toLowerCase());
+                    if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {
+                        controller.openMenu(MenuType.I_ZOMBIE_MODE);
+                    }
+                } else if ("SENT".equals(status)) {
+                    navigator.showToast("Invite delivered to " + (event.b == null ? "player" : event.b));
+>>>>>>> Stashed changes
                 }
             }
             case QUEUE_STATUS -> {
                 if ("WAITING".equals(event.a)) {
                     navigator.showToast("In matchmaking queue...");
+<<<<<<< Updated upstream
+=======
+                } else if ("LEFT".equals(event.a)) {
+                    navigator.showToast("Left matchmaking queue");
+>>>>>>> Stashed changes
                 }
             }
             case MATCH_START -> {
@@ -64,9 +87,38 @@ public final class NetworkEventRouter {
             case MATCH_STATE -> applyMatchState(event.matchState);
             case MATCH_END -> {
                 session.clearActiveMatch();
+<<<<<<< Updated upstream
                 navigator.showToast("Match ended");
                 if (controller.getCurrentScreen() == ScreenType.GAME) {
                     controller.setScreen(ScreenType.LEVEL_SELECTOR);
+=======
+                if (controller.getCurrentScreen() == ScreenType.GAME) {
+                    MatchResultUi ui = onlineMatchResult(event.a, event.b, model.getPlayContext());
+                    controller.getSessionLifecycleController().showMatchResult(ui);
+                    navigator.showToast(ui.title);
+                } else {
+                    navigator.showToast(formatMatchEnd(event.a, event.b, model.getPlayContext()));
+                }
+            }
+            case MATCH_RESTART_OFFER -> {
+                navigator.showToast((event.a == null ? "Opponent" : event.a) + " wants to restart");
+                controller.openMenu(MenuType.MATCH_RESTART);
+            }
+            case MATCH_RESTART -> {
+                navigator.showToast("Match restarted");
+                if (controller.getCurrentScreen() == ScreenType.GAME) {
+                    controller.getSessionLifecycleController().restartLevel();
+                } else {
+                    controller.clearCurrentMenu();
+                }
+            }
+            case MATCH_RESTART_DECLINED -> {
+                navigator.showToast("Opponent declined restart");
+                if (controller.getCurrentMenu() == MenuType.MATCH_RESTART
+                        || controller.getCurrentMenu() == MenuType.MATCH_RESTART_WAIT) {
+                    controller.clearCurrentMenu();
+                    controller.refreshView();
+>>>>>>> Stashed changes
                 }
             }
             case QUICK_MSG -> navigator.showToast(
@@ -80,7 +132,19 @@ public final class NetworkEventRouter {
                     navigator.showToast(event.a + " is online");
                 }
             }
+<<<<<<< Updated upstream
             case ERROR -> navigator.showToast(mapError(event.a));
+=======
+            case ERROR -> {
+                navigator.showToast(mapError(event.a));
+                if ("USER_OFFLINE".equals(event.a) || "INVALID_USERNAME".equals(event.a)
+                        || "USER_BUSY".equals(event.a) || "UNAUTHORIZED".equals(event.a)) {
+                    if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {
+                        controller.openMenu(MenuType.I_ZOMBIE_MODE);
+                    }
+                }
+            }
+>>>>>>> Stashed changes
             default -> {
             }
         }
@@ -96,7 +160,21 @@ public final class NetworkEventRouter {
         }
         gs.plantSun = state.plantSun;
         gs.zombieSun = state.zombieSun;
+<<<<<<< Updated upstream
         gs.sunAmount = gs.zombieSun;
+=======
+        if (gs.networkSunAuthority) {
+            SessionContext ctx = model.getPlayContext();
+            if (ctx != null && ctx.getConfig() != null
+                    && ctx.getConfig().localMatchRole == shared.izombie.MatchRole.PLANTS) {
+                gs.sunAmount = gs.plantSun;
+            } else {
+                gs.sunAmount = gs.zombieSun;
+            }
+        } else {
+            gs.sunAmount = gs.zombieSun;
+        }
+>>>>>>> Stashed changes
 
         if (state.brainsCollected != null) {
             for (int i = 0; i < Math.min(state.brainsCollected.length, gs.brains.size()); i++) {
@@ -143,6 +221,42 @@ public final class NetworkEventRouter {
         }
     }
 
+<<<<<<< Updated upstream
+=======
+    private static MatchResultUi onlineMatchResult(String winnerRole, String reason, SessionContext context) {
+        shared.izombie.MatchRole local = context != null && context.getConfig() != null
+                ? context.getConfig().localMatchRole
+                : null;
+        boolean localWon = local != null && local.name().equalsIgnoreCase(winnerRole);
+        String detail = formatMatchEnd(winnerRole, reason, context);
+        String title = localWon ? "Victory!" : "Defeat";
+        // Match room is already closed; offer Play again → I, Zombie modes.
+        return new MatchResultUi(title, detail, localWon, false, false, true);
+    }
+
+    private static String formatMatchEnd(String winnerRole, String reason, SessionContext context) {
+        shared.izombie.MatchRole local = context != null && context.getConfig() != null
+                ? context.getConfig().localMatchRole
+                : null;
+        boolean localWon = local != null && local.name().equalsIgnoreCase(winnerRole);
+        String r = reason == null ? "" : reason.toUpperCase();
+
+        if ("FORFEIT".equals(r)) {
+            return localWon ? "Opponent left — you win" : "You left the match";
+        }
+        if ("SURVIVED".equals(r)) {
+            return localWon ? "You survived — you win" : "Plants survived — you lose";
+        }
+        if ("ALL_BRAINS".equals(r)) {
+            return localWon ? "All brains collected — you win" : "All brains collected — you lose";
+        }
+        if ("NO_RESOURCES".equals(r)) {
+            return localWon ? "Zombies out of resources — you win" : "Out of resources — you lose";
+        }
+        return localWon ? "Match ended — you win" : "Match ended";
+    }
+
+>>>>>>> Stashed changes
     private static String mapError(String code) {
         if (code == null) {
             return "Network error";
@@ -155,6 +269,12 @@ public final class NetworkEventRouter {
             case "WRONG_ROLE" -> "Not your side to place that";
             case "CANNOT_PLACE" -> "Cannot place there";
             case "SERVER_UNAVAILABLE" -> "Server unavailable";
+<<<<<<< Updated upstream
+=======
+            case "WS_CONNECT_FAILED" -> "Could not connect to game server";
+            case "WS_NOT_READY" -> "Still connecting to the game server";
+            case "UNAUTHORIZED" -> "Online session expired — log in again";
+>>>>>>> Stashed changes
             default -> code;
         };
     }

@@ -54,6 +54,11 @@ public final class IZombieRoom {
     private final List<MatchStatePayload.PlacedEntity> plants = new ArrayList<>();
     private final List<MatchStatePayload.PlacedEntity> zombies = new ArrayList<>();
     private final Map<String, Long> lastQuickMsg = new java.util.concurrent.ConcurrentHashMap<>();
+<<<<<<< Updated upstream
+=======
+    private volatile String restartRequestedBy;
+    private volatile long restartRequestedAt;
+>>>>>>> Stashed changes
 
     private ScheduledExecutorService scheduler;
     private ScheduledFuture<?> tickFuture;
@@ -75,6 +80,10 @@ public final class IZombieRoom {
     }
 
     public void start() {
+<<<<<<< Updated upstream
+=======
+        spawnSunZombies();
+>>>>>>> Stashed changes
         scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "izombie-room-" + roomId);
             t.setDaemon(true);
@@ -84,11 +93,32 @@ public final class IZombieRoom {
         broadcastState();
     }
 
+<<<<<<< Updated upstream
+=======
+    private void spawnSunZombies() {
+        int col = GRID_COLS - 1;
+        for (int row = 0; row < GRID_ROWS; row++) {
+            zombies.add(new MatchStatePayload.PlacedEntity(
+                    "SUN_ZOMBIE", row, col, 190, MatchRole.ZOMBIES));
+        }
+    }
+
+>>>>>>> Stashed changes
     private void tick() {
         if (ended.get()) {
             return;
         }
         elapsedSeconds++;
+<<<<<<< Updated upstream
+=======
+        if (restartRequestedBy != null
+                && System.currentTimeMillis() - restartRequestedAt > Protocol.MATCH_RESTART_TIMEOUT_MS) {
+            expireRestartOffer();
+        }
+        if (elapsedSeconds > 0 && elapsedSeconds % 24 == 0) {
+            applyPassiveSun();
+        }
+>>>>>>> Stashed changes
         if (elapsedSeconds >= Protocol.IZOMBIE_SURVIVAL_SECONDS) {
             endMatch(MatchRole.PLANTS, "SURVIVED");
             return;
@@ -96,6 +126,22 @@ public final class IZombieRoom {
         broadcastState();
     }
 
+<<<<<<< Updated upstream
+=======
+    private synchronized void applyPassiveSun() {
+        for (MatchStatePayload.PlacedEntity z : zombies) {
+            if ("SUN_ZOMBIE".equals(z.type)) {
+                zombieSun += 25;
+            }
+        }
+        for (MatchStatePayload.PlacedEntity p : plants) {
+            if ("Sunflower".equals(p.type)) {
+                plantSun += 50;
+            }
+        }
+    }
+
+>>>>>>> Stashed changes
     public synchronized void placePlant(String username, PlaceIntent intent) {
         if (ended.get() || intent == null) {
             return;
@@ -213,6 +259,91 @@ public final class IZombieRoom {
         endMatch(winner, "FORFEIT");
     }
 
+<<<<<<< Updated upstream
+=======
+    public synchronized void requestRestart(String username) {
+        if (ended.get() || roleOf(username) == null) {
+            return;
+        }
+        restartRequestedBy = username;
+        restartRequestedAt = System.currentTimeMillis();
+        String other = otherUser(username);
+        presence.send(other, WsMessageType.MATCH_RESTART_OFFER, Map.of("from", username));
+    }
+
+    public synchronized void acceptRestart(String username) {
+        if (ended.get() || restartRequestedBy == null) {
+            return;
+        }
+        if (username.equals(restartRequestedBy)) {
+            return;
+        }
+        if (!username.equals(otherUser(restartRequestedBy))) {
+            return;
+        }
+        restartRequestedBy = null;
+        restartRequestedAt = 0L;
+        resetMatchState();
+        presence.send(userA, WsMessageType.MATCH_RESTART, Map.of());
+        presence.send(userB, WsMessageType.MATCH_RESTART, Map.of());
+        broadcastState();
+    }
+
+    public synchronized void rejectRestart(String username) {
+        if (restartRequestedBy == null) {
+            return;
+        }
+        if (!username.equals(otherUser(restartRequestedBy))) {
+            return;
+        }
+        String requester = restartRequestedBy;
+        restartRequestedBy = null;
+        restartRequestedAt = 0L;
+        presence.send(requester, WsMessageType.MATCH_RESTART_DECLINED, Map.of());
+    }
+
+    public synchronized void cancelRestart(String username) {
+        if (restartRequestedBy == null) {
+            return;
+        }
+        // Requester cancels, or either side clears a stale offer.
+        if (!username.equals(restartRequestedBy) && !username.equals(otherUser(restartRequestedBy))) {
+            return;
+        }
+        String requester = restartRequestedBy;
+        String other = otherUser(requester);
+        restartRequestedBy = null;
+        restartRequestedAt = 0L;
+        if (username.equals(requester)) {
+            presence.send(other, WsMessageType.MATCH_RESTART_DECLINED, Map.of());
+        } else {
+            presence.send(requester, WsMessageType.MATCH_RESTART_DECLINED, Map.of());
+        }
+    }
+
+    private synchronized void expireRestartOffer() {
+        if (restartRequestedBy == null) {
+            return;
+        }
+        String requester = restartRequestedBy;
+        String other = otherUser(requester);
+        restartRequestedBy = null;
+        restartRequestedAt = 0L;
+        presence.send(requester, WsMessageType.MATCH_RESTART_DECLINED, Map.of());
+        presence.send(other, WsMessageType.MATCH_RESTART_DECLINED, Map.of());
+    }
+
+    private void resetMatchState() {
+        plantSun = START_SUN;
+        zombieSun = START_SUN;
+        elapsedSeconds = 0;
+        plants.clear();
+        zombies.clear();
+        java.util.Arrays.fill(brainsCollected, false);
+        spawnSunZombies();
+    }
+
+>>>>>>> Stashed changes
     private void checkZombieResources() {
         if (zombies.isEmpty() && zombieSun < cheapestZombie()) {
             endMatch(MatchRole.PLANTS, "NO_RESOURCES");

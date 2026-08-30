@@ -4,12 +4,23 @@ import java.util.List;
 
 import model.core.EventBus;
 import model.core.GameState;
+<<<<<<< Updated upstream
+=======
+import model.core.Position;
+>>>>>>> Stashed changes
 import model.core.SessionEnd;
 import model.data.brain.Brain;
 import model.data.content.minigame.IZombieShop;
 import model.data.plant.PlantType;
+<<<<<<< Updated upstream
 import model.data.zombie.ZombieType;
 import model.event.events.GameOverReason;
+=======
+import model.data.zombie.Zombie;
+import model.data.zombie.ZombieType;
+import model.event.events.GameOverReason;
+import model.event.events.ZombieSpawnedEvent;
+>>>>>>> Stashed changes
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 import shared.izombie.IZombiePlayMode;
@@ -101,6 +112,12 @@ public class IZombiePvPRules implements LevelRule {
     public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
         sessionReady = false;
         state.dualSunMode = true;
+<<<<<<< Updated upstream
+=======
+        IZombiePlayMode startMode = context.getConfig().iZombiePlayMode;
+        state.networkSunAuthority = startMode == IZombiePlayMode.ONLINE_RANDOM
+                || startMode == IZombiePlayMode.ONLINE_INVITE;
+>>>>>>> Stashed changes
         state.plantSun = STARTING_SUN;
         state.zombieSun = STARTING_SUN;
         state.sunAmount = STARTING_SUN;
@@ -109,6 +126,10 @@ public class IZombiePvPRules implements LevelRule {
         for (int row = 0; row < GameState.GRID_ROWS; row++) {
             state.brains.add(new Brain(row));
         }
+<<<<<<< Updated upstream
+=======
+        spawnSunZombies(state, bus);
+>>>>>>> Stashed changes
         startTick = state.totalTicks;
         sessionReady = true;
     }
@@ -119,16 +140,35 @@ public class IZombiePvPRules implements LevelRule {
             return;
         }
 
+<<<<<<< Updated upstream
         int elapsedTicks = state.totalTicks - startTick;
         int survivalTicks = Protocol.IZOMBIE_SURVIVAL_SECONDS * model.core.GameLoop.TICKS_PER_SECOND;
         if (elapsedTicks >= survivalTicks) {
+=======
+        // Online matches are server-authoritative for end conditions.
+        IZombiePlayMode mode = context.getConfig().iZombiePlayMode;
+        if (mode == IZombiePlayMode.ONLINE_RANDOM || mode == IZombiePlayMode.ONLINE_INVITE) {
+            return;
+        }
+
+        int elapsedTicks = state.totalTicks - startTick;
+        int survivalTicks = Protocol.IZOMBIE_SURVIVAL_SECONDS * model.core.GameLoop.TICKS_PER_SECOND;
+        if (elapsedTicks >= survivalTicks) {
+            markEnd(state, "Plants Win!", "Survived the full timer.");
+>>>>>>> Stashed changes
             SessionEnd.win(state, bus);
             return;
         }
 
         if (state.getCollectedBrainCount() >= GameState.GRID_ROWS) {
+<<<<<<< Updated upstream
             if (context.getConfig().localMatchRole == MatchRole.ZOMBIES
                     || context.getConfig().iZombiePlayMode == IZombiePlayMode.COUCH) {
+=======
+            markEnd(state, "Zombies Win!", "All brains collected.");
+            if (context.getConfig().localMatchRole == MatchRole.ZOMBIES
+                    || mode == IZombiePlayMode.COUCH) {
+>>>>>>> Stashed changes
                 SessionEnd.win(state, bus);
             } else {
                 SessionEnd.lose(state, bus, GameOverReason.BRAINS_EATEN);
@@ -137,9 +177,17 @@ public class IZombiePvPRules implements LevelRule {
         }
 
         boolean anyAlive = state.zombies.stream().anyMatch(z -> z.isAlive);
+<<<<<<< Updated upstream
         if (!anyAlive && state.zombieSun < IZombieShop.getCheapestCost()) {
             if (context.getConfig().localMatchRole == MatchRole.PLANTS
                     || context.getConfig().iZombiePlayMode == IZombiePlayMode.COUCH) {
+=======
+        int zombieSun = state.dualSunMode ? state.zombieSun : state.sunAmount;
+        if (!anyAlive && zombieSun < IZombieShop.getCheapestCost()) {
+            markEnd(state, "Plants Win!", "Zombies ran out of resources.");
+            if (context.getConfig().localMatchRole == MatchRole.PLANTS
+                    || mode == IZombiePlayMode.COUCH) {
+>>>>>>> Stashed changes
                 SessionEnd.win(state, bus);
             } else {
                 SessionEnd.lose(state, bus, GameOverReason.NO_RESOURCES);
@@ -147,6 +195,30 @@ public class IZombiePvPRules implements LevelRule {
         }
     }
 
+<<<<<<< Updated upstream
+=======
+    private static void markEnd(GameState state, String title, String detail) {
+        state.sessionEndTitle = title;
+        state.sessionEndDetail = detail;
+    }
+
+    private void spawnSunZombies(GameState state, EventBus bus) {
+        for (int row = 0; row < GameState.GRID_ROWS; row++) {
+            int col = GameState.GRID_COLS - 1;
+            Zombie zombie = new Zombie(
+                    ZombieType.SUN_ZOMBIE,
+                    row,
+                    col,
+                    new Position(
+                            col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f,
+                            row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),
+                    bus);
+            state.addZombie(zombie);
+            bus.publish(new ZombieSpawnedEvent(zombie));
+        }
+    }
+
+>>>>>>> Stashed changes
     public static List<PlantType> plantShop() {
         return PLANT_SHOP;
     }

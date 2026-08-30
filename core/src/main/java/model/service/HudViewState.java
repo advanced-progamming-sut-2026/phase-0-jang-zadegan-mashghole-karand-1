@@ -91,6 +91,7 @@ public class HudViewState {
     public final int heldSeedTypes;
 
     public final List<TraySlot> traySlots;
+    public final List<TraySlot> rightTraySlots;
     public final List<String> helpLines;
     public final boolean trayIsConveyorRow;
 
@@ -115,6 +116,35 @@ public class HudViewState {
             List<TraySlot> traySlots,
             List<String> helpLines,
             boolean trayIsConveyorRow) {
+        this(mode, modeLabel, showSun, showWave, showPlantFood,
+                conveyorOfferName, conveyorRemaining, conveyorSecondsUntilNext,
+                timedWarGoalLabel, timedWarProgress, timedWarGoal, timedWarSecondsLeft,
+                deadlineColumn, protectedAlive, protectedTotal, protectedCol, heldSeedTypes,
+                traySlots, helpLines, trayIsConveyorRow, List.of());
+    }
+
+    public HudViewState(
+            Mode mode,
+            String modeLabel,
+            boolean showSun,
+            boolean showWave,
+            boolean showPlantFood,
+            String conveyorOfferName,
+            int conveyorRemaining,
+            int conveyorSecondsUntilNext,
+            String timedWarGoalLabel,
+            int timedWarProgress,
+            int timedWarGoal,
+            int timedWarSecondsLeft,
+            int deadlineColumn,
+            int protectedAlive,
+            int protectedTotal,
+            int protectedCol,
+            int heldSeedTypes,
+            List<TraySlot> traySlots,
+            List<String> helpLines,
+            boolean trayIsConveyorRow,
+            List<TraySlot> rightTraySlots) {
         this.mode = mode != null ? mode : Mode.NORMAL;
         this.modeLabel = modeLabel != null ? modeLabel : "";
         this.showSun = showSun;
@@ -133,6 +163,7 @@ public class HudViewState {
         this.protectedCol = protectedCol;
         this.heldSeedTypes = heldSeedTypes;
         this.traySlots = traySlots != null ? List.copyOf(traySlots) : List.of();
+        this.rightTraySlots = rightTraySlots != null ? List.copyOf(rightTraySlots) : List.of();
         this.helpLines = helpLines != null ? List.copyOf(helpLines) : List.of();
         this.trayIsConveyorRow = trayIsConveyorRow;
     }
@@ -210,6 +241,7 @@ public class HudViewState {
     }
 
     private static HudViewState iZombiePvPHud(SessionConfig config, ReadOnlyGameState state) {
+<<<<<<< Updated upstream
         List<TraySlot> slots = new ArrayList<>();
         boolean plantsSide = config.iZombiePlayMode == shared.izombie.IZombiePlayMode.COUCH
                 || config.localMatchRole == shared.izombie.MatchRole.PLANTS;
@@ -236,23 +268,68 @@ public class HudViewState {
                 int cost = PlantStats.forLevel(type, PlantStats.DEFAULT_LEVEL).cost;
                 slots.add(new TraySlot(type.name, cost, 0, true, false, 1));
             }
+=======
+        List<TraySlot> plantSlots = new ArrayList<>();
+        List<TraySlot> zombieSlots = new ArrayList<>();
+        boolean couch = config.iZombiePlayMode == shared.izombie.IZombiePlayMode.COUCH;
+        boolean plantsSide = couch || config.localMatchRole == shared.izombie.MatchRole.PLANTS;
+        boolean zombiesSide = couch || config.localMatchRole == shared.izombie.MatchRole.ZOMBIES;
+
+        if (plantsSide) {
+            for (PlantType type : model.rule.rules.minigame.IZombiePvPRules.plantShop()) {
+                int cost = PlantStats.forLevel(type, PlantStats.DEFAULT_LEVEL).cost;
+                plantSlots.add(new TraySlot(type.name, cost, 0, true, false, 1));
+            }
+        }
+        if (zombiesSide) {
+            for (Map.Entry<ZombieType, Integer> entry : IZombieShop.getCosts().entrySet()) {
+                zombieSlots.add(new TraySlot(entry.getKey().name, entry.getValue(), 0, true, false, 1));
+            }
+        }
+
+        List<TraySlot> left;
+        List<TraySlot> right;
+        if (couch) {
+            left = plantSlots;
+            right = zombieSlots;
+        } else if (config.localMatchRole == shared.izombie.MatchRole.PLANTS) {
+            left = plantSlots;
+            right = List.of();
+        } else {
+            left = zombieSlots;
+            right = List.of();
+>>>>>>> Stashed changes
         }
 
         String label = "I, Zombie PvP";
         if (state != null && state.isDualSunMode()) {
+<<<<<<< Updated upstream
             label = "P-Sun " + state.getPlantSun() + " | Z-Sun " + state.getZombieSun();
+=======
+            label = "P " + state.getPlantSun() + " / Z " + state.getZombieSun();
+>>>>>>> Stashed changes
         }
         return new HudViewState(
                 Mode.BRAINS, label, true, false, false,
                 null, 0, 0,
                 "", 0, 0, 0,
                 -1, 0, 0, -1, 0,
+<<<<<<< Updated upstream
                 slots,
                 List.of(
                         "Mouse: plants | Keys 1-5+Arrows+Enter: zombies",
                         "M: quick messages (online)",
                         "menu exit"),
                 false);
+=======
+                left,
+                List.of(
+                        "Mouse plants (left) | zombie tray (right) or Keys 1-5 + Arrows + Enter/Space",
+                        "M: quick messages (online)",
+                        "menu exit"),
+                false,
+                right);
+>>>>>>> Stashed changes
     }
 
     private static HudViewState vaseBreakerHud(SessionContext context, ReadOnlyGameState state) {

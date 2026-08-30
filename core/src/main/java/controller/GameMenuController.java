@@ -217,10 +217,23 @@ public class GameMenuController {
         if (net == null || !net.isLoggedIn()) {
             return failure("Log in to the game server first.");
         }
+<<<<<<< Updated upstream
         controllerManager.clearCurrentMenu();
         net.socket().joinQueue();
         controllerManager.openMenu(MenuType.I_ZOMBIE_QUEUE);
         return success("Joined matchmaking queue. Waiting for an opponent...");
+=======
+        String readyError = net.ensureOnlineReady(5_000);
+        if (readyError != null) {
+            return failure(mapOnlineError(readyError));
+        }
+        if (!net.socket().joinQueue()) {
+            return failure("Could not reach the matchmaking server. Try again.");
+        }
+        controllerManager.clearCurrentMenu();
+        controllerManager.openMenu(MenuType.I_ZOMBIE_QUEUE);
+        return success("Joining matchmaking queue...");
+>>>>>>> Stashed changes
     }
 
     public CommandResult startIZombieInvite(String targetUsername) {
@@ -231,10 +244,32 @@ public class GameMenuController {
         if (targetUsername == null || targetUsername.isBlank()) {
             return failure("Enter a username to invite.");
         }
+<<<<<<< Updated upstream
         controllerManager.clearCurrentMenu();
         net.socket().invite(targetUsername.trim());
         controllerManager.openMenu(MenuType.I_ZOMBIE_QUEUE);
         return success("Invite sent to " + targetUsername.trim() + ".");
+=======
+        String readyError = net.ensureOnlineReady(5_000);
+        if (readyError != null) {
+            return failure(mapOnlineError(readyError));
+        }
+        String target = targetUsername.trim();
+        if (!net.socket().invite(target)) {
+            return failure("Could not reach the matchmaking server. Try again.");
+        }
+        controllerManager.clearCurrentMenu();
+        controllerManager.openMenu(MenuType.I_ZOMBIE_QUEUE);
+        return success("Sending invite to " + target + "...");
+    }
+
+    private static String mapOnlineError(String code) {
+        return switch (code) {
+            case "WS_NOT_READY" -> "Still connecting to the game server. Wait a moment and try again.";
+            case "NOT_LOGGED_IN" -> "Log in to the game server first.";
+            default -> "Online connection not ready.";
+        };
+>>>>>>> Stashed changes
     }
 
     public CommandResult startIZombie(IZombiePlayMode mode, MatchRole localRole) {

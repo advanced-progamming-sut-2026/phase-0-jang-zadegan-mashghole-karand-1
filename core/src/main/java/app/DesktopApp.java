@@ -85,6 +85,17 @@ public final class DesktopApp {
     public void dispose() {
         gameLoop.stopAutoTick();
         try {
+            controller.getSessionLifecycleController().leaveOnlineMatchIfNeeded();
+        } catch (Exception ignored) {
+        }
+        try {
+            NetworkSession net = controller.getNetworkSession();
+            if (net != null) {
+                net.socket().disconnect();
+            }
+        } catch (Exception ignored) {
+        }
+        try {
             storage.saveProgress();
         } catch (RuntimeException e) {
             Gdx.app.error("DesktopApp", "Failed to save progress", e);

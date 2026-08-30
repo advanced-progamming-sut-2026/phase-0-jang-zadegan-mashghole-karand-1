@@ -11,6 +11,12 @@ public final class GameScreenShell implements UiScreen {
 
     @Override
     public void show(UiViewContext context) {
+<<<<<<< Updated upstream
+=======
+        controller = context.controller;
+        assets = context.assets;
+        pause.setVisible(context.menu == null || context.menu == MenuType.NONE);
+>>>>>>> Stashed changes
     }
 
     @Override
