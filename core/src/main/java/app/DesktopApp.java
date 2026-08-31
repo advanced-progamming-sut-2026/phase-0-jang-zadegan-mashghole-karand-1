@@ -39,7 +39,7 @@ public final class DesktopApp {
         ControllerManager controller = new ControllerManager(model, eventBus, gameLoop, storage);
 
         UiNavigator navigator = new UiNavigator(gameLoop);
-        DesktopViewFacade viewFacade = new DesktopViewFacade(navigator,assets);
+        DesktopViewFacade viewFacade = new DesktopViewFacade(navigator, assets);
         controller.setView(viewFacade);
         viewFacade.initialize();
         controller.start();

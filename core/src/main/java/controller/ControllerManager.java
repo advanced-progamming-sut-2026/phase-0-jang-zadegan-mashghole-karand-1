@@ -1,10 +1,17 @@
 package controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import controller.CommandResult.CommandResult;
 import model.ModelManager;
 import model.core.EventBus;
 import model.core.GameLoop;
+import model.data.content.chapter.ChapterType;
+import model.data.wave.LevelConfig;
 import model.quest.QuestAssigner;
+import model.rule.SessionConfig;
+import model.rule.SessionContext;
 import model.service.*;
 import model.service.GameNavigationState.Phase;
 import model.shop.Shop;
@@ -47,6 +54,10 @@ public class ControllerManager {
     QuestViewState questViewState = QuestViewState.empty();
     HudViewState hudViewState = HudViewState.empty();
     boolean hasUnreadNews = false;
+
+    private final List<String> dialogueSpeakers = new ArrayList<>();
+    private final List<String> dialogueTexts = new ArrayList<>();
+    private int dialogueIndex = -1;
 
     private final ControllerViewSupport viewSupport = new ControllerViewSupport();
     private final ControllerMenuSupport menuSupport = new ControllerMenuSupport();
@@ -105,11 +116,16 @@ public class ControllerManager {
 
     public void setScreen(ScreenType screen) {
         this.currentScreen = screen;
-        if (screen == ScreenType.GAME) {
-            sessionLifecycleController.onSessionStart();
-        }
         if (screen != ScreenType.MAIN) {
             currentMenu = MenuType.NONE;
+        }
+        if (screen == ScreenType.GAME) {
+            sessionLifecycleController.onSessionStart();
+            clearDialogue();
+            showAnnouncement("Get ready to defend your lawn!");
+            startLevelDialogueIfNeeded();
+        } else {
+            clearDialogue();
         }
         refreshView();
     }
@@ -245,6 +261,12 @@ public class ControllerManager {
         }
     }
 
+    public void showAnnouncement(String message) {
+        if (view != null) {
+            view.showAnnouncement(message);
+        }
+    }
+
     public void showError(String message) {
         if (view != null) {
             view.showError(message);
@@ -256,6 +278,102 @@ public class ControllerManager {
             return false;
         }
         return view.scrollMessages(olderDelta);
+    }
+
+    public boolean isDialogueActive() {
+        return dialogueIndex >= 0 && dialogueIndex < dialogueTexts.size();
+    }
+
+    public String currentDialogueSpeaker() {
+        return isDialogueActive() ? dialogueSpeakers.get(dialogueIndex) : "";
+    }
+
+    public String currentDialogueText() {
+        return isDialogueActive() ? dialogueTexts.get(dialogueIndex) : "";
+    }
+
+    public void advanceDialogue() {
+        if (!isDialogueActive()) {
+            return;
+        }
+        dialogueIndex++;
+        if (!isDialogueActive()) {
+            clearDialogue();
+        }
+        refreshView();
+    }
+
+    public void startZombossEndDialogue(boolean won) {
+        SessionContext context = model.getPlayContext();
+        if (context == null || context.getConfig() == null || context.getConfig().levelConfig == null) {
+            return;
+        }
+        if (context.getConfig().levelConfig.levelNumber != 5) {
+            return;
+        }
+        dialogueSpeakers.clear();
+        dialogueTexts.clear();
+        if (won) {
+            addDialogueLine("Penny", "Zomboss has been defeated.");
+            addDialogueLine("Crazy Dave", "We did it! Victory tacos for everyone!");
+            addDialogueLine("Penny", "Well done. The lawn is safe for now.");
+        } else {
+            addDialogueLine("Crazy Dave", "Zomboss got us this time.");
+            addDialogueLine("Penny", "Regroup and try again.");
+            addDialogueLine("Crazy Dave", "Next round, we win for sure!");
+        }
+        dialogueIndex = 0;
+    }
+
+    private void startLevelDialogueIfNeeded() {
+        SessionContext context = model.getPlayContext();
+        if (context == null || context.getConfig() == null) {
+            return;
+        }
+        SessionConfig config = context.getConfig();
+        if (config.isMinigame() || config.levelConfig == null) {
+            return;
+        }
+        LevelConfig level = config.levelConfig;
+        ChapterType chapter = level.chapterType;
+        int number = level.levelNumber;
+        dialogueSpeakers.clear();
+        dialogueTexts.clear();
+        if (number == 1) {
+            addDialogueLine("Penny", "Welcome to " + chapterLabel(chapter) + ".");
+            addDialogueLine("Crazy Dave", "Time to plant some defenses!");
+            addDialogueLine("Penny", "Collect sun and stop the zombies.");
+        } else if (number == 5) {
+            addDialogueLine("Penny", "Zomboss is near. Prepare for the boss fight.");
+            addDialogueLine("Crazy Dave", "This is gonna be wild!");
+        } else if (number == 2 || number == 3) {
+            addDialogueLine("Penny", "New threats ahead in " + chapterLabel(chapter) + ".");
+            addDialogueLine("Crazy Dave", "Let's keep those zombies off the lawn!");
+        }
+        dialogueIndex = dialogueTexts.isEmpty() ? -1 : 0;
+    }
+
+    private void addDialogueLine(String speaker, String text) {
+        dialogueSpeakers.add(speaker);
+        dialogueTexts.add(text);
+    }
+
+    private void clearDialogue() {
+        dialogueSpeakers.clear();
+        dialogueTexts.clear();
+        dialogueIndex = -1;
+    }
+
+    private static String chapterLabel(ChapterType chapter) {
+        if (chapter == null) {
+            return "this world";
+        }
+        return switch (chapter) {
+            case ANCIENT_EGYPT -> "Ancient Egypt";
+            case FROSTBITE_CAVES -> "Frostbite Caves";
+            case BIG_WAVE_BEACH -> "Big Wave Beach";
+            case DARK_AGES -> "Dark Ages";
+        };
     }
 
     public AuthController getAuthController() {

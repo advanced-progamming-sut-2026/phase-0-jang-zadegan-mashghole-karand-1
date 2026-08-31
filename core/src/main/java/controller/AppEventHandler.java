@@ -1,10 +1,12 @@
 package controller;
 
 import model.core.EventBus;
+import model.data.content.chapter.ChapterType;
 import model.data.content.minigame.MiniGameType;
 import model.data.plant.PlantType;
 import model.data.zombie.Zombie;
 import model.event.events.*;
+import model.rule.SessionContext;
 import model.storage.StorageManager;
 
 public class AppEventHandler {
@@ -52,14 +54,36 @@ public class AppEventHandler {
     }
 
     private void onWaveStarted(WaveStartedEvent event) {
-        if (event == null)
+        if (event == null) {
             return;
+        }
 
         if (event.isFinalWave) {
             controller.sendMessage("The final wave has come.");
         } else {
             controller.sendMessage("Wave " + event.waveNumber + " started.");
         }
+
+        ChapterType chapter = resolveChapter();
+        if (chapter == ChapterType.DARK_AGES) {
+            controller.showAnnouncement("Beware the Necromancer!");
+        } else if (chapter == ChapterType.BIG_WAVE_BEACH) {
+            controller.showAnnouncement("Zombies are emerging from the beach!");
+        } else if (event.isFinalWave) {
+            controller.showAnnouncement("The final wave is approaching!");
+        } else if (event.waveNumber == 1) {
+            controller.showAnnouncement("A huge wave of zombies is approaching!");
+        } else {
+            controller.showAnnouncement("Wave " + event.waveNumber + " is approaching!");
+        }
+    }
+
+    private ChapterType resolveChapter() {
+        SessionContext context = controller.getModel().getPlayContext();
+        if (context == null || context.getConfig() == null || context.getConfig().levelConfig == null) {
+            return null;
+        }
+        return context.getConfig().levelConfig.chapterType;
     }
 
     private void onZombieDied(ZombieDiedEvent event) {

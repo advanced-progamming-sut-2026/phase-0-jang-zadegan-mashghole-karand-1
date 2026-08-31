@@ -141,10 +141,14 @@ final class ControllerMenuSupport {
             case COLLECTION -> exitToLevelSelector(manager, "Returned to game menu.");
             case LEADERBOARD -> exitToLevelSelector(manager, "Returned to game menu.");
             case GAME -> {
-                if(manager.currentMenu == MenuType.PAUSE){
+                if (manager.currentMenu == MenuType.PAUSE) {
                     manager.currentMenu = MenuType.NONE;
                     manager.refreshView();
                     yield new CommandResult("Resumed", true);
+                }
+                if (manager.isDialogueActive()) {
+                    manager.advanceDialogue();
+                    yield new CommandResult("Dialogue advanced.", true);
                 }
                 yield manager.getSessionLifecycleController().returnToLevelSelect();
             }

@@ -106,7 +106,8 @@ public final class GraphicsApp extends ApplicationAdapter {
             batch.begin();
             lawnBackground.render(batch);
 
-            boolean paused = app.controller().getCurrentMenu() == MenuType.PAUSE;
+            boolean paused = app.controller().getCurrentMenu() == MenuType.PAUSE
+                    || app.controller().isDialogueActive();
             float worldDt = paused ? 0f : dt;
             lawnRenderer.render(batch, assets, app.gameState(), worldDt, chapter);
             SessionContext session = app.model().getPlayContext();

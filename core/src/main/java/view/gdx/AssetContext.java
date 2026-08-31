@@ -72,6 +72,8 @@ public final class AssetContext implements Disposable {
         for (GraveVisualDef def : GraveVisualDef.all()) {
             pamPaths.add(def.pamPath);
         }
+        pamPaths.add("768/FULL/NPC/ZOMBOSS/ZOMBOSS.PAM");
+        pamPaths.add("768/INITIAL/CRAZYDAVE/CRAZYDAVE/CRAZYDAVE.PAM");
         for (String path : pamPaths) {
             player.loadSync(path);
         }

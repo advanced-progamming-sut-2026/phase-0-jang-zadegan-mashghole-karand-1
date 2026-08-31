@@ -8,6 +8,8 @@ import view.gdx.AssetContext;
 public interface ViewFacade {
     void showMessage(String message);
 
+    void showAnnouncement(String message);
+
     void showError(String error);
 
     boolean scrollMessages(int olderDelta);

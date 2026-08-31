@@ -20,6 +20,10 @@ public class ViewManager implements ViewFacade {
         renderer.renderMessage(message);
     }
 
+    public void showAnnouncement(String message) {
+        renderer.renderMessage(message);
+    }
+
     public void showError(String message) {
         renderer.renderError(message);
     }

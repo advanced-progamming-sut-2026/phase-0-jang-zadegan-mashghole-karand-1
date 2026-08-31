@@ -102,9 +102,11 @@ public class SessionLifecycleController {
                     scoreNote += " New high score!";
                 }
             }
+            controllerManager.startZombossEndDialogue(true);
             controllerManager.sendMessage("Level complete!" + scoreNote + " Use 'menu exit' to return.");
         } else {
             String detail = reason != null ? reason.message + " " : "";
+            controllerManager.startZombossEndDialogue(false);
             controllerManager.sendMessage("Game over! " + detail + "Use 'menu exit' to return.");
         }
         controllerManager.refreshView();
