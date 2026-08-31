@@ -41,7 +41,7 @@ public class Grave {
                 state.sunDrops.add(sun);
                 return;
             case PLANT_FOOD:
-                state.plantFoodAmount++;
+                state.addPlantFood();
 
         }
     }
