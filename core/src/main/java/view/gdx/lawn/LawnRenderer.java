@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 
 import model.core.ReadOnlyGameState;
+import model.data.content.chapter.ChapterType;
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
 import model.data.plant.PlantType;
@@ -31,6 +32,8 @@ public final class LawnRenderer {
     private final AnimStateStore animStates;
     private final VisibilityResolver visibilityResolver;
     private final SunRenderer sunRenderer;
+    private final MowerRenderer mowerRenderer;
+    private final GraveRenderer graveRenderer;
     private final Matrix4 savedTransform = new Matrix4();
     private final Matrix4 entityTransform = new Matrix4();
     private final float[] projectileAnchorDelta = new float[2];
@@ -42,14 +45,20 @@ public final class LawnRenderer {
         this.animStates = animStates;
         this.visibilityResolver = visibilityResolver;
         this.sunRenderer = new SunRenderer(layout, animStates);
+        this.mowerRenderer = new MowerRenderer(layout, animStates);
+        this.graveRenderer = new GraveRenderer(layout, animStates);
     }
 
-    public void render(SpriteBatch batch, AssetContext assets, ReadOnlyGameState state, float deltaSeconds) {
+    public void render(SpriteBatch batch, AssetContext assets, ReadOnlyGameState state, float deltaSeconds,
+            ChapterType chapter) {
         if (state == null || assets.pamPlayer() == null) {
             return;
         }
         animStates.advanceAll(deltaSeconds);
         PamPlayer player = assets.pamPlayer();
+
+        mowerRenderer.render(batch, assets, state, chapter);
+        graveRenderer.render(batch, assets, state, chapter);
 
         for (Plant plant : new ArrayList<>(state.getPlants())) {
             if (plant.type != PlantType.Pumpkin) {

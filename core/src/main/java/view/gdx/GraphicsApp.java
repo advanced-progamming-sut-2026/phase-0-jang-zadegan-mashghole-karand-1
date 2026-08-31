@@ -108,7 +108,7 @@ public final class GraphicsApp extends ApplicationAdapter {
 
             boolean paused = app.controller().getCurrentMenu() == MenuType.PAUSE;
             float worldDt = paused ? 0f : dt;
-            lawnRenderer.render(batch, assets, app.gameState(), worldDt);
+            lawnRenderer.render(batch, assets, app.gameState(), worldDt, chapter);
             SessionContext session = app.model().getPlayContext();
             HudViewState hud = HudViewState.fromSession(
                     session,
