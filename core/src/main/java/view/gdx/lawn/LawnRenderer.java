@@ -1,5 +1,6 @@
 package view.gdx.lawn;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -8,7 +9,6 @@ import com.badlogic.gdx.math.Matrix4;
 import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
-import model.data.projectile.LobbedProjectile;
 import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
 import pvz.libpvz.pam.ClipRef;
@@ -52,7 +52,7 @@ public final class LawnRenderer {
         for (Plant plant : state.getPlants()) {
             drawPlant(batch, assets, player, plant);
         }
-        for (Projectile p : state.getProjectiles()) {
+        for (Projectile p : new ArrayList<>(state.getProjectiles())) {
             drawProjectile(batch, assets, player, p);
         }
         if (RENDER_ZOMBIES) {
@@ -182,9 +182,7 @@ public final class LawnRenderer {
         }
 
         float x = layout.worldX(p.position);
-        float y = (p instanceof LobbedProjectile || p.direction.vx != 0 && p.direction.vy != 0)
-                ? layout.worldY(p.position)
-                : layout.worldYForRow(p.row, p.position);
+        float y = layout.worldY(p.position);
         float drawX = x;
         float drawY = y;
         if (ProjectilePamAnchor.drawOriginDelta(clip, anim.stateTime, true, projectileAnchorDelta)) {
