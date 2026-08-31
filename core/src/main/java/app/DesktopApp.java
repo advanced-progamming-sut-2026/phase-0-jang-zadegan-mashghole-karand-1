@@ -47,7 +47,7 @@ public final class DesktopApp {
         controller.setNetworkAuth(networkAuth);
 
         UiNavigator navigator = new UiNavigator(gameLoop);
-        DesktopViewFacade viewFacade = new DesktopViewFacade(navigator,assets);
+        DesktopViewFacade viewFacade = new DesktopViewFacade(navigator, assets);
         controller.setView(viewFacade);
         viewFacade.initialize();
         controller.start();

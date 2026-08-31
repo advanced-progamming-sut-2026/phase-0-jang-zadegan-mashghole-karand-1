@@ -9,6 +9,7 @@ import model.core.SessionEnd;
 import model.data.brain.Brain;
 import model.data.plant.abilities.config.Direction;
 import model.data.projectile.HomingProjectile;
+import model.data.projectile.LobbedProjectile;
 import model.data.projectile.PiercingProjectile;
 import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
@@ -101,8 +102,14 @@ public class MovementSystem {
 
     private void moveProjectiles(GameState state) {
         for (Projectile projectile : state.projectiles) {
-            if (projectile instanceof HomingProjectile homing) {
+            if (projectile instanceof LobbedProjectile lob) {
+                lob.updateMovement();
+                // Keep the landing lane; arched model Y must not rewrite row mid-flight.
+                projectile.col = (int) (projectile.position.x / GameState.CELL_WIDTH);
+            } else if (projectile instanceof HomingProjectile homing) {
                 homing.updateMovement();
+                projectile.row = (int) (projectile.position.y / GameState.CELL_HEIGHT);
+                projectile.col = (int) (projectile.position.x / GameState.CELL_WIDTH);
             } else {
                 Direction direction = projectile.direction;
                 float dx = direction.vx * projectile.speed;
@@ -118,22 +125,31 @@ public class MovementSystem {
                 }
                 projectile.position.x += dx;
                 projectile.position.y += dy;
+                projectile.row = (int) (projectile.position.y / GameState.CELL_HEIGHT);
+                projectile.col = (int) (projectile.position.x / GameState.CELL_WIDTH);
             }
-            projectile.row = (int) (projectile.position.y / GameState.CELL_HEIGHT);
-            projectile.col = (int) (projectile.position.x / GameState.CELL_WIDTH);
         }
     }
 
     private void cleanupProjectilesAndZombies(GameState state) {
-        state.projectiles.removeIf(p -> (p.position.x > GameState.SCREEN_WIDTH ||
-                p.position.y > GameState.SCREEN_HEIGHT ||
-                p.position.x < 0 ||
-                p.position.y < 0 ||
-                p.row < 0 ||
-                p.row >= GameState.GRID_ROWS)||
-                (p instanceof PiercingProjectile pp
-                        && pp.maxRange >= 0
-                        && pp.traveledDistance >= pp.maxRange * GameState.CELL_WIDTH));
+        state.projectiles.removeIf(p -> {
+            if (p instanceof LobbedProjectile lob) {
+
+                if (!lob.hasLanded()) {
+                    return p.position.x > GameState.SCREEN_WIDTH || p.position.x < 0;
+                }
+                return false;
+            }
+            return (p.position.x > GameState.SCREEN_WIDTH ||
+                    p.position.y > GameState.SCREEN_HEIGHT ||
+                    p.position.x < 0 ||
+                    p.position.y < 0 ||
+                    p.row < 0 ||
+                    p.row >= GameState.GRID_ROWS)
+                    || (p instanceof PiercingProjectile pp
+                            && pp.maxRange >= 0
+                            && pp.traveledDistance >= pp.maxRange * GameState.CELL_WIDTH);
+        });
         state.zombies.removeIf(z -> z.isHypnotized && z.position.x > GameState.SCREEN_WIDTH);
         state.zombies.removeIf(z -> z.position.x < -GameState.CELL_WIDTH);
     }

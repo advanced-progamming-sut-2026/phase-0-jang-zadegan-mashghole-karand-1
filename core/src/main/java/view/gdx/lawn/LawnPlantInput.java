@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import controller.CommandResult.CommandResult;
 import controller.ControllerManager;
 import controller.GameMechanismController;
+import model.core.ReadOnlyGameState;
 import model.data.content.minigame.IZombieShop;
 import model.data.plant.PlantType;
 import model.data.zombie.ZombieType;
@@ -250,10 +251,19 @@ public final class LawnPlantInput extends InputAdapter {
             }
         }
 
+        GameMechanismController game = controller.getGameMechanismController();
+        float modelX = lawnLayout.modelX(worldX);
+        float modelY = lawnLayout.modelY(worldY);
+        float hitRadius = ReadOnlyGameState.CELL_WIDTH * 0.45f;
+        CommandResult sunResult = game.collectSunAtPosition(modelX, modelY, hitRadius);
+        if (sunResult.isSuccess()) {
+            controller.handleCommandResult(sunResult);
+            return true;
+        }
+
         if (lawnLayout.worldToCell(worldX, worldY, cell)) {
             int row = cell[0];
             int col = cell[1];
-            GameMechanismController game = controller.getGameMechanismController();
             CommandResult result;
 
             if (hud.trayIsConveyorRow) {

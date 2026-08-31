@@ -1,5 +1,6 @@
 package view.gdx.lawn;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import com.badlogic.gdx.graphics.Color;
@@ -10,12 +11,16 @@ import com.badlogic.gdx.math.Matrix4;
 import model.board.Tile;
 import model.board.TileType;
 import model.core.ReadOnlyGameState;
+import model.data.content.chapter.ChapterType;
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
+import model.data.plant.PlantType;
+import model.data.projectile.Projectile;
 import model.data.vfx.LawnEffect;
 import model.data.zombie.Zombie;
 import pvz.libpvz.pam.ClipRef;
 import pvz.libpvz.pam.PamPlayer;
+import pvz.libpvz.pam.ProjectilePamAnchor;
 import view.gdx.AssetContext;
 import view.gdx.VisibilityResolver;
 import view.gdx.anim.AnimStateStore;
@@ -32,8 +37,12 @@ public final class LawnRenderer {
     private final LawnLayout layout;
     private final AnimStateStore animStates;
     private final VisibilityResolver visibilityResolver;
+    private final SunRenderer sunRenderer;
+    private final MowerRenderer mowerRenderer;
+    private final GraveRenderer graveRenderer;
     private final Matrix4 savedTransform = new Matrix4();
     private final Matrix4 entityTransform = new Matrix4();
+    private final float[] projectileAnchorDelta = new float[2];
 
     public LawnRenderer(VisualCatalog catalog, LawnLayout layout, AnimStateStore animStates,
             VisibilityResolver visibilityResolver) {
@@ -41,9 +50,13 @@ public final class LawnRenderer {
         this.layout = layout;
         this.animStates = animStates;
         this.visibilityResolver = visibilityResolver;
+        this.sunRenderer = new SunRenderer(layout, animStates);
+        this.mowerRenderer = new MowerRenderer(layout, animStates);
+        this.graveRenderer = new GraveRenderer(layout, animStates);
     }
 
-    public void render(SpriteBatch batch, AssetContext assets, ReadOnlyGameState state, float deltaSeconds) {
+    public void render(SpriteBatch batch, AssetContext assets, ReadOnlyGameState state, float deltaSeconds,
+            ChapterType chapter) {
         if (state == null || assets.pamPlayer() == null) {
             return;
         }
@@ -51,28 +64,41 @@ public final class LawnRenderer {
         PamPlayer player = assets.pamPlayer();
 
         drawFireTiles(batch, assets, player, state);
+        mowerRenderer.render(batch, assets, state, chapter);
+        graveRenderer.render(batch, assets, state, chapter);
 
         if (RENDER_ZOMBIES) {
-            for (Zombie zombie : state.getZombies()) {
+            for (Zombie zombie : new ArrayList<>(state.getZombies())) {
                 if (zombie.type != null && zombie.type.isZomboss()) {
                     drawZombie(batch, assets, player, zombie);
                 }
             }
         }
-        for (Plant plant : state.getPlants()) {
-            drawPlant(batch, assets, player, plant);
+        for (Plant plant : new ArrayList<>(state.getPlants())) {
+            if (plant.type != PlantType.Pumpkin) {
+                drawPlant(batch, assets, player, plant);
+            }
+        }
+        for (Plant plant : new ArrayList<>(state.getPlants())) {
+            if (plant.type == PlantType.Pumpkin) {
+                drawPlant(batch, assets, player, plant);
+            }
+        }
+        for (Projectile p : new ArrayList<>(state.getProjectiles())) {
+            drawProjectile(batch, assets, player, p);
         }
         if (RENDER_ZOMBIES) {
-            for (Zombie zombie : state.getZombies()) {
+            for (Zombie zombie : new ArrayList<>(state.getZombies())) {
                 if (zombie.type == null || !zombie.type.isZomboss()) {
                     drawZombie(batch, assets, player, zombie);
                 }
             }
         }
-        for (Barrel barrel : state.getBarrels()) {
+        for (Barrel barrel : new ArrayList<>(state.getBarrels())) {
             drawBarrel(batch, assets, player, barrel);
         }
         drawLawnEffects(batch, assets, player, state);
+        sunRenderer.render(batch, assets, state);
     }
 
     private float entityScale() {
@@ -196,6 +222,35 @@ public final class LawnRenderer {
         float x = layout.cellCenterX(barrel.col);
         float y = layout.cellCenterY(barrel.row);
         drawPam(batch, player, clip, animState.stateTime, x, y, true, null);
+    }
+
+    private void drawProjectile(SpriteBatch batch, AssetContext assets, PamPlayer player, Projectile p) {
+        ProjectileVisualDef visual = catalog.projectile(p.type);
+        if (visual == null) {
+            return;
+        }
+        String visualClip = visual.clipName;
+        EntityAnimState anim = animStates.getOrCreate(
+                animKey(5, System.identityHashCode(p)), visualClip);
+        ClipRef clip = assets.clip(visual.pamPath, visualClip);
+        if (clip == null) {
+            return;
+        }
+
+        float x = layout.worldX(p.position);
+        float y = layout.worldY(p.position);
+        float drawX = x;
+        float drawY = y;
+        if (ProjectilePamAnchor.drawOriginDelta(clip, anim.stateTime, true, projectileAnchorDelta)) {
+            drawX += projectileAnchorDelta[0];
+            drawY += projectileAnchorDelta[1];
+        }
+        beginEntityScale(batch, x, y);
+        try {
+            player.draw(batch, clip, anim.stateTime, drawX, drawY, true);
+        } finally {
+            endEntityScale(batch);
+        }
     }
 
     private void drawFireTiles(SpriteBatch batch, AssetContext assets, PamPlayer player,

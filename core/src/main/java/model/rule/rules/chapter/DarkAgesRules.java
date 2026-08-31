@@ -19,7 +19,10 @@ import model.rule.SessionContext;
 
 public class DarkAgesRules implements LevelRule {
     private static final Random RANDOM = new Random();
-    private static final int MIN_COL = 3; // don't spawn graves and necromancy tiles in the first 3 columns
+    private static final int MIN_COL = 3;
+    private static final int NECROMANCY_SPAWN_DELAY_TICKS = 20;
+
+    private int pendingNecromancyTicks = -1;
 
     @Override
     public boolean shouldDropSkySun() {
@@ -28,6 +31,7 @@ public class DarkAgesRules implements LevelRule {
 
     @Override
     public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
+        pendingNecromancyTicks = -1;
         placeNecromancyTiles(state);
         placeInitialGraves(state);
     }
@@ -66,9 +70,35 @@ public class DarkAgesRules implements LevelRule {
     }
 
     @Override
+    public void preTick(SessionContext context, GameState state, EventBus bus) {
+        if (pendingNecromancyTicks <= 0) {
+            return;
+        }
+        pendingNecromancyTicks--;
+        if (pendingNecromancyTicks == 0) {
+            spawnZombiesFromNecromancy(state, bus);
+            pendingNecromancyTicks = -1;
+        }
+    }
+
+    @Override
     public void onWaveStart(SessionContext context, GameState state, EventBus bus) {
         spawnDynamicGraves(state, bus);
-        spawnZombiesFromNecromancy(state, bus);
+        if (hasPendingNecromancySpawns(state)) {
+            pendingNecromancyTicks = NECROMANCY_SPAWN_DELAY_TICKS;
+        }
+    }
+
+    private boolean hasPendingNecromancySpawns(GameState state) {
+        for (int row = 0; row < GameState.GRID_ROWS; row++) {
+            for (int col = MIN_COL; col < GameState.GRID_COLS; col++) {
+                Tile tile = state.getBoard().getTile(row, col);
+                if (tile.getType() == TileType.NECROMANCY && tile.hasGrave()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void spawnDynamicGraves(GameState state, EventBus bus) {
@@ -97,9 +127,9 @@ public class DarkAgesRules implements LevelRule {
                 Tile tile = state.getBoard().getTile(row, col);
                 if (tile.getType() == TileType.NECROMANCY && tile.hasGrave()) {
                     bus.publish(new NecromancySpawnEvent(row, col));
-                    ZombieType type = RANDOM.nextInt(2)==0? ZombieType.BASIC : ZombieType.CONE_HEAD;
+                    ZombieType type = RANDOM.nextInt(2) == 0 ? ZombieType.BASIC : ZombieType.CONE_HEAD;
                     Zombie zombie = new Zombie(type, row, col, new Position((col + 0.5f) * GameState.CELL_WIDTH,
-                            (row + 0.5f) * GameState.CELL_HEIGHT), bus,state.getGlowingChance());
+                            (row + 0.5f) * GameState.CELL_HEIGHT), bus, state.getGlowingChance());
                     state.addZombie(zombie);
                     bus.publish(new ZombieSpawnedEvent(zombie));
                 }
@@ -108,7 +138,6 @@ public class DarkAgesRules implements LevelRule {
     }
 
     private GraveContent decideGraveContent() {
-        // 30% chance to drop sun, 20% chance to drop plant food
         int roll = RANDOM.nextInt(100);
         if (roll < 30) {
             return GraveContent.SUN_50;

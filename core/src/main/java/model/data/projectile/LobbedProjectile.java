@@ -13,6 +13,7 @@ public class LobbedProjectile extends Projectile{
     public int butterDamage = 0;
     public int aoeRadius = 0;
     public int aoeDamage = 0;
+    private boolean landed = false;
 
     public LobbedProjectile(int damage, Position position, int row, int col, float speed, ProjectileType type,
                             ProjectileTarget target, PlantType sourcePlant, Position targetPosition, float
@@ -94,5 +95,45 @@ public class LobbedProjectile extends Projectile{
 
     public void setAoeRadius(int aoeRadius) {
         this.aoeRadius = aoeRadius;
+    }
+
+    public boolean hasLanded() {
+        return landed;
+    }
+
+    public void updateMovement() {
+        if (landed) {
+            position.x = targetPosition.x;
+            position.y = targetPosition.y;
+            return;
+        }
+        if (flightDuration <= 0f) {
+            position.x = targetPosition.x;
+            position.y = targetPosition.y;
+            landed = true;
+            return;
+        }
+
+        flightProgress += 1f;
+        float t = Math.min(1f, flightProgress / flightDuration);
+
+        float linearX = startPosition.x + (targetPosition.x - startPosition.x) * t;
+        float linearY = startPosition.y + (targetPosition.y - startPosition.y) * t;
+        float arc = arcHeight * 4f * t * (1f - t);
+        position.x = linearX;
+        position.y = linearY - arc;
+
+        if (t >= 1f) {
+            position.x = targetPosition.x;
+            position.y = targetPosition.y;
+            landed = true;
+        }
+    }
+
+    public float normalizedProgress() {
+        if (flightDuration <= 0f) {
+            return 1f;
+        }
+        return Math.min(1f, flightProgress / flightDuration);
     }
 }

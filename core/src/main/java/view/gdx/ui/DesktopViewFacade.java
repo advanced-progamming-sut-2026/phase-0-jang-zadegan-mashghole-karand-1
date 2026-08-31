@@ -23,6 +23,11 @@ public final class DesktopViewFacade implements ViewFacade {
     }
 
     @Override
+    public void showAnnouncement(String message) {
+        navigator.announcementOverlay().show(message);
+    }
+
+    @Override
     public void showError(String error) {
         navigator.showToast(error);
     }

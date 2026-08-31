@@ -20,9 +20,18 @@ public class BigWaveBeachRules implements LevelRule {
     private static final int MAX_BEACH_POSTS = 3;
     private static final int MIN_TIDE_LEVEL = 1;
     private static final int MAX_TIDE_LEVEL = 5;
+    private static final int BEACH_SPAWN_DELAY_TICKS = 20;
+
+    private int pendingBeachSpawnTicks = -1;
+    private SessionContext pendingSpawnContext;
+    private GameState pendingSpawnState;
+    private EventBus pendingSpawnBus;
+    private final List<Tile> pendingBeachTiles = new ArrayList<>();
 
     @Override
     public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
+        pendingBeachSpawnTicks = -1;
+        pendingBeachTiles.clear();
         placeBeachPosts(state);
     }
 
@@ -45,6 +54,18 @@ public class BigWaveBeachRules implements LevelRule {
     }
 
     @Override
+    public void preTick(SessionContext context, GameState state, EventBus bus) {
+        if (pendingBeachSpawnTicks <= 0) {
+            return;
+        }
+        pendingBeachSpawnTicks--;
+        if (pendingBeachSpawnTicks == 0) {
+            spawnPendingBeachZombies();
+            pendingBeachSpawnTicks = -1;
+        }
+    }
+
+    @Override
     public void onWaveStart(SessionContext context, GameState state, EventBus bus) {
         int tideLevel = MIN_TIDE_LEVEL + RANDOM.nextInt(MAX_TIDE_LEVEL - MIN_TIDE_LEVEL + 1);
 
@@ -61,17 +82,38 @@ public class BigWaveBeachRules implements LevelRule {
                 tile.setType(TileType.WATER);
             }
         }
-        spawnPostBeachZombies(context, state, bus);
+
+        collectPendingBeachSpawns(context, state, bus);
+        if (!pendingBeachTiles.isEmpty()) {
+            pendingBeachSpawnTicks = BEACH_SPAWN_DELAY_TICKS;
+        }
     }
 
-    private void spawnPostBeachZombies(SessionContext context, GameState state, EventBus bus) {
+    private void collectPendingBeachSpawns(SessionContext context, GameState state, EventBus bus) {
+        pendingBeachTiles.clear();
+        pendingSpawnContext = context;
+        pendingSpawnState = state;
+        pendingSpawnBus = bus;
+
         GameBoard board = state.getBoard();
-        for(int i = 0; i< ReadOnlyGameState.GRID_ROWS * ReadOnlyGameState.GRID_COLS; i++ ){
-            Tile tile = board.getTile(i/ReadOnlyGameState.GRID_COLS, i%ReadOnlyGameState.GRID_COLS);
-            if(tile.isWater() && tile.hasBeachPost() && RANDOM.nextBoolean()){
-                context.getWaveManager().spawnPostBeachZombies(state,bus,tile);
+        for (int i = 0; i < ReadOnlyGameState.GRID_ROWS * ReadOnlyGameState.GRID_COLS; i++) {
+            Tile tile = board.getTile(i / ReadOnlyGameState.GRID_COLS, i % ReadOnlyGameState.GRID_COLS);
+            if (tile.isWater() && tile.hasBeachPost() && RANDOM.nextBoolean()) {
+                pendingBeachTiles.add(tile);
             }
         }
+    }
 
+    private void spawnPendingBeachZombies() {
+        if (pendingSpawnContext == null || pendingSpawnState == null || pendingSpawnBus == null) {
+            return;
+        }
+        for (Tile tile : pendingBeachTiles) {
+            pendingSpawnContext.getWaveManager().spawnPostBeachZombies(pendingSpawnState, pendingSpawnBus, tile);
+        }
+        pendingBeachTiles.clear();
+        pendingSpawnContext = null;
+        pendingSpawnState = null;
+        pendingSpawnBus = null;
     }
 }

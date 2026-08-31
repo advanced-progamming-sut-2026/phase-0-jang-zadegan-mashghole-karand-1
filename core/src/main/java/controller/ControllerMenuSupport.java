@@ -161,6 +161,10 @@ final class ControllerMenuSupport {
                 if (manager.currentMenu == MenuType.MATCH_RESULT) {
                     yield manager.getSessionLifecycleController().returnToLevelSelect();
                 }
+                if (manager.isDialogueActive()) {
+                    manager.advanceDialogue();
+                    yield new CommandResult("Dialogue advanced.", true);
+                }
                 yield manager.getSessionLifecycleController().returnToLevelSelect();
             }
             default -> new CommandResult("Cannot exit this menu.", false);

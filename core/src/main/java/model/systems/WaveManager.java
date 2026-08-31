@@ -301,7 +301,8 @@ public class WaveManager {
         float inWave = 0f;
         if (totalZombiesInWave > 0) {
             int alive = 0;
-            for (Zombie z : state.getZombies()) {
+            List<Zombie> zombies = new ArrayList<>(state.getZombies());
+            for (Zombie z : zombies) {
                 if (z.isAlive && currentWaveZombieIds.contains(z.instanceId)) alive++;
             }
             int killed = Math.max(0, totalZombiesInWave - alive - pendingSpawns.size());

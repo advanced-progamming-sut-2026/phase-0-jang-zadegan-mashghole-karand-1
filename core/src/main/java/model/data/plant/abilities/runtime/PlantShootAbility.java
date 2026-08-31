@@ -16,6 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlantShootAbility implements PlantAbilityConfig {
+    /** Distance from plant center to the leading projectile along fire direction (game units). */
+    private static final float BULLET_LEAD_DISTANCE = 40f;
+    /** Longitudinal spacing between consecutive projectiles along fire direction (game units). */
+    private static final float BULLET_SPACING = 20f;
+
     public final int damage;
     public final float cooldownSeconds;
     public final ProjectileType projectileType;
@@ -236,12 +241,23 @@ public class PlantShootAbility implements PlantAbilityConfig {
     }
 
     private void spawnBullets(Plant plant, GameState state, int targetRow) {
-        for (int i = 0; i < shootPattern.getBulletCount(); i++) {
-            int xOffset = 40 - (i * 20);
-            float targetY = targetRow * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2;
-            Position bulletPosition = new Position(plant.getX() + xOffset, targetY);
+        Direction dir = shootPattern.getDir();
+        float dirX = dir.vx;
+        float dirY = dir.vy;
+        if (dir.vx != 0 && dir.vy != 0) {
+            float inv = 1f / (float) Math.sqrt(2);
+            dirX *= inv;
+            dirY *= inv;
+        }
+        float laneCenterY = targetRow * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f;
+        int bulletCount = shootPattern.getBulletCount();
+        for (int i = 0; i < bulletCount; i++) {
+            float distanceAlongDir = BULLET_LEAD_DISTANCE - i * BULLET_SPACING;
+            Position bulletPosition = new Position(
+                    plant.getX() + dirX * distanceAlongDir,
+                    laneCenterY + dirY * distanceAlongDir);
             Projectile p = createProjectile(plant, bulletPosition, targetRow);
-            p.setDirection(shootPattern.getDir());
+            p.setDirection(dir);
             state.projectiles.add(p);
         }
     }

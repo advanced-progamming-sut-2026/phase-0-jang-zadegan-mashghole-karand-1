@@ -13,10 +13,7 @@ import com.badlogic.gdx.utils.Disposable;
 import pvz.libpvz.pam.ClipRef;
 import pvz.libpvz.pam.PamPlayer;
 import pvz.libpvz.textures.TextureBank;
-import view.gdx.catalog.CompanionVisual;
-import view.gdx.catalog.PlantVisualDef;
-import view.gdx.catalog.VisualCatalog;
-import view.gdx.catalog.ZombieVisualDef;
+import view.gdx.catalog.*;
 
 public final class AssetContext implements Disposable {
     public static final String RESOLUTION = "768";
@@ -59,9 +56,21 @@ public final class AssetContext implements Disposable {
                 }
             }
         }
+        for (ProjectileVisualDef def : catalog.allProjectile()){
+            pamPaths.add(def.pamPath);
+        }
         if(catalog.barrel() != null) {
             catalog.barrel();
             pamPaths.add(catalog.barrel().pamPath);
+        }
+        for (SunVisualDef def : SunVisualDef.all()) {
+            pamPaths.add(def.pamPath);
+        }
+        for (MowerVisualDef def : MowerVisualDef.all()) {
+            pamPaths.add(def.pamPath);
+        }
+        for (GraveVisualDef def : GraveVisualDef.all()) {
+            pamPaths.add(def.pamPath);
         }
         pamPaths.add("768/FULL/BACKGROUNDS/FIRETILE/FIRETILE.PAM");
         pamPaths.add("768/INITIAL/EFFECTS/ZOMBOSS_MISSILE_EXPLOSION_EGYPT/ZOMBOSS_MISSILE_EXPLOSION_EGYPT.PAM");
@@ -69,6 +78,8 @@ public final class AssetContext implements Disposable {
         pamPaths.add("768/FULL/EFFECTS/ZOMBOSS_DARK_FIREBALL/ZOMBOSS_DARK_FIREBALL.PAM");
         pamPaths.add("768/FULL/EFFECTS/ZOMBOSS_MISSILE_EXPLOSION_ICEAGE/ZOMBOSS_MISSILE_EXPLOSION_ICEAGE.PAM");
         pamPaths.add("768/FULL/EFFECTS/FROSTBITE_CHILL_WIND/FROSTBITE_CHILL_WIND.PAM");
+        pamPaths.add("768/FULL/NPC/ZOMBOSS/ZOMBOSS.PAM");
+        pamPaths.add("768/INITIAL/CRAZYDAVE/CRAZYDAVE/CRAZYDAVE.PAM");
         for (String path : pamPaths) {
             player.loadSync(path);
         }

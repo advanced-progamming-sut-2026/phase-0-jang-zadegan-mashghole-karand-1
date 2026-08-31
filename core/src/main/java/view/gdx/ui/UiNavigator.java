@@ -45,6 +45,7 @@ public final class UiNavigator implements Disposable {
     private final Label toastLabel;
     private final GameLoop gameLoop;
     private final GlobalTopBar topBar;
+    private final GameAnnouncementOverlay announcementOverlay;
 
     private UiScreen activeScreen;
     private UiScreen activeOverlay;
@@ -54,6 +55,7 @@ public final class UiNavigator implements Disposable {
     public UiNavigator(GameLoop gameLoop) {
         this.gameLoop = gameLoop;
         this.topBar = new GlobalTopBar();
+        this.announcementOverlay = new GameAnnouncementOverlay();
         registerDefaults();
         toastStage = new Stage(new ScreenViewport());
         Table toastRoot = new Table();
@@ -98,6 +100,10 @@ public final class UiNavigator implements Disposable {
         overlays.put(MenuType.MATCH_RESULT, new MatchResultOverlayScreen());
     }
 
+    public GameAnnouncementOverlay announcementOverlay() {
+        return announcementOverlay;
+    }
+
     public void show(UiViewContext context) {
         lastContext = context;
         UiScreen next = screens.get(context.screen);
@@ -118,6 +124,7 @@ public final class UiNavigator implements Disposable {
             activeOverlay.resize(width, height);
         }
         toastStage.getViewport().update(width, height, true);
+        announcementOverlay.resize(width, height);
         topBar.bind(context);
         topBar.resize(width, height);
         updateInputProcessors();
@@ -135,7 +142,10 @@ public final class UiNavigator implements Disposable {
     }
 
     private void syncGameLoop(UiViewContext context) {
-        boolean playing = context.screen == ScreenType.GAME && !pausesGameplay(context.menu);
+        boolean dialogueActive = context.controller != null && context.controller.isDialogueActive();
+        boolean playing = context.screen == ScreenType.GAME
+                && !pausesGameplay(context.menu)
+                && !dialogueActive;
         if (playing) {
             if (!gameLoop.isAutoTickRunning()) {
                 gameLoop.startAutoTick();
@@ -161,7 +171,11 @@ public final class UiNavigator implements Disposable {
         if (activeScreen != null) {
             mux.addProcessor(activeScreen.stage());
         }
-        boolean blockWorld = lastContext != null && pausesGameplay(lastContext.menu);
+        boolean dialogueActive = lastContext != null
+                && lastContext.controller != null
+                && lastContext.controller.isDialogueActive();
+        boolean blockWorld = lastContext != null
+                && (pausesGameplay(lastContext.menu) || dialogueActive);
         if (gameWorldInput != null && isGameScreen() && !blockWorld) {
             mux.addProcessor(gameWorldInput);
         }
@@ -182,6 +196,7 @@ public final class UiNavigator implements Disposable {
             activeOverlay.act(deltaSeconds);
         }
         topBar.act(deltaSeconds);
+        announcementOverlay.act(deltaSeconds);
         toastStage.act(deltaSeconds);
     }
 
@@ -195,6 +210,7 @@ public final class UiNavigator implements Disposable {
             activeOverlay.stage().draw();
         }
         topBar.draw();
+        announcementOverlay.draw();
         toastStage.getViewport().apply();
         toastStage.draw();
     }
@@ -208,6 +224,7 @@ public final class UiNavigator implements Disposable {
         }
         topBar.resize(width, height);
         toastStage.getViewport().update(width, height, true);
+        announcementOverlay.resize(width, height);
     }
 
     public UiViewContext lastContext() {
@@ -253,6 +270,7 @@ public final class UiNavigator implements Disposable {
             }
         }
         topBar.dispose();
+        announcementOverlay.dispose();
         toastStage.dispose();
     }
 }

@@ -264,6 +264,10 @@ public class ModelManager {
         return sunSystem.collectSunAt(state, eventBus, row, col);
     }
 
+    public boolean collectSunAtPosition(float modelX, float modelY, float hitRadius) {
+        return sunSystem.collectSunAtPosition(state, eventBus, modelX, modelY, hitRadius);
+    }
+
     public Vase breakVase(int row, int col) {
         Vase vase = state.getVaseAt(row, col);
         if (vase == null) {

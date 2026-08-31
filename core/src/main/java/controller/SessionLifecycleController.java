@@ -205,8 +205,10 @@ public class SessionLifecycleController {
                 }
             }
             detail = "Nice work." + scoreNote;
+            controllerManager.startZombossEndDialogue(true);
         } else {
             detail = reason != null ? reason.message : "Better luck next time.";
+            controllerManager.startZombossEndDialogue(false);
         }
         return new MatchResultUi(title, detail, won, true, false, false);
     }
