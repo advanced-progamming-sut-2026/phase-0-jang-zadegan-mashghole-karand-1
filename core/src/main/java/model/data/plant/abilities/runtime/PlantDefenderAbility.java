@@ -192,7 +192,7 @@ public class PlantDefenderAbility implements PlantAbilityConfig {
 
     private List<Zombie> findNearTarget(GameState state, Plant plant) {
         List<Zombie> targets = state.zombies.stream()
-                .filter(z -> z.isAlive)
+                .filter(z -> z.isAlive && !z.type.isZomboss())
                 .filter(z -> (z.row == plant.row
                         + 1 || z.row == plant.row - 1) && (int) (z.position.x / GameState.CELL_WIDTH) == plant.col)
                 .collect(Collectors.toList());

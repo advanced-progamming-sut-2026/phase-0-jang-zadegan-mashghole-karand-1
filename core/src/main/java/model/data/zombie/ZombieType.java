@@ -70,7 +70,15 @@ public enum ZombieType {
         IMP_DRAGON("Imp Dragon", new ZombieBaseStats(190, 100, 0.185f, 150, 3500), null,
                         List.of(new ZombieImmunityAbility(ProjectileType.FIRE))),
         SUN_ZOMBIE("Sun Zombie", new ZombieBaseStats(190, 50, 0.12f, 0, 0), null,
-                        List.of(new ZombieSunProduceAbility()));
+                        List.of(new ZombieSunProduceAbility())),
+        ZOMBOT_SPHINX("Zombot Sphinx", new ZombieBaseStats(1000, 0, 0f, 0, 0), null,
+                        List.of(new ZombossAbility())),
+        ZOMBOT_DRAGON("Zombot Dragon", new ZombieBaseStats(1000, 0, 0f, 0, 0), null,
+                        List.of(new ZombossAbility())),
+        ZOMBOT_SHARK("Zombot Shark", new ZombieBaseStats(1000, 0, 0f, 0, 0), null,
+                        List.of(new ZombossAbility())),
+        ZOMBOT_MAMMOTH("Zombot Mammoth", new ZombieBaseStats(1000, 0, 0f, 0, 0), null,
+                        List.of(new ZombossAbility()));
 
         public final String name;
         public final ZombieBaseStats baseStats;
@@ -96,5 +104,10 @@ public enum ZombieType {
                         }
                 }
                 return null;
+        }
+
+        public boolean isZomboss() {
+                return this == ZOMBOT_SPHINX || this == ZOMBOT_DRAGON || this == ZOMBOT_SHARK
+                                || this == ZOMBOT_MAMMOTH;
         }
 }

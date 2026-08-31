@@ -47,6 +47,9 @@ public final class HudOverlayRenderer {
         if (hud.showWave){
             drawWave(batch,assets,progress, totalWaves,worldWidth,worldHeight);
         }
+        if (hud.mode == HudViewState.Mode.ZOMBOSS) {
+            drawBossHp(batch, assets, hud.timedWarProgress, hud.timedWarGoal, worldWidth, worldHeight);
+        }
         if (hud.showSun){
             if (zombieSunAmount >= 0) {
                 float leftX = Math.max(220f, worldWidth * 0.22f);
@@ -147,6 +150,46 @@ public final class HudOverlayRenderer {
             batch.setColor(Color.WHITE);
             batch.draw(head, headX, headY, headW, headH);
         }
+    }
+
+    private void drawBossHp(SpriteBatch batch, AssetContext assets, int hp, int total,
+            float worldWidth, float worldHeight) {
+        TextureRegion meter = assets.region("IMAGE_UI_HUD_INGAME_PROGRESS_METER");
+        TextureRegion fill = assets.region("IMAGE_UI_HUD_INGAME_PROGRESS_METER_FILL");
+        if (meter == null) {
+            return;
+        }
+
+        float meterH = 28f;
+        float meterW = 260f;
+        float meterX = worldWidth / 2f - meterW / 2f;
+        float meterY = worldHeight - meterH - 16f;
+
+        float padX = meterW * 0.06f;
+        float padY = meterH * 0.18f;
+        float trackX = meterX + padX;
+        float trackY = meterY + padY;
+        float trackW = meterW - padX * 2f + 5f;
+        float trackH = meterH - padY * 2f;
+
+        batch.setColor(Color.WHITE);
+        batch.draw(meter, meterX, meterY, meterW, meterH);
+
+        float p = total <= 0 ? 0f : Math.max(0f, Math.min(1f, hp / (float) total));
+        if (fill != null && p > 0f) {
+            batch.setColor(0.85f, 0.18f, 0.14f, 1f);
+            batch.draw(fill, trackX, trackY, trackW * p, trackH);
+            batch.setColor(Color.WHITE);
+        }
+
+        for (int i = 1; i <= 2; i++) {
+            float sx = trackX + trackW * (i / 3f);
+            if (fill != null) {
+                batch.setColor(0.95f, 0.9f, 0.7f, 1f);
+                batch.draw(fill, sx - 1.5f, trackY, 3f, trackH);
+            }
+        }
+        batch.setColor(Color.WHITE);
     }
 
     private static float trackEdgeX(float trackX, float trackW, float progress) {

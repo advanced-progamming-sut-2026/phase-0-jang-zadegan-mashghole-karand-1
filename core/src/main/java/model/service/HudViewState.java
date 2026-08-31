@@ -32,7 +32,8 @@ public class HudViewState {
         CONVEYOR,
         TIMED_WAR,
         DEADLINE,
-        SAVE_OUR_SEEDS
+        SAVE_OUR_SEEDS,
+        ZOMBOSS
     }
 
     public static final class TraySlot {
@@ -202,6 +203,9 @@ public class HudViewState {
         if (mini == MiniGameType.VASE_BREAKER) {
             return vaseBreakerHud(context, state);
         }
+        if (special == SpecialLevelType.ZOMBOSS) {
+            return zombossHud(context, state);
+        }
         if (mini == MiniGameType.WALLNUT_BOWLING
                 || special == SpecialLevelType.CONVEYOR_BELT
                 || context.isConveyorMode()) {
@@ -346,6 +350,41 @@ public class HudViewState {
                         "show plants status",
                         "zombies info",
                         "advance time -t <n> ticks",
+                        "menu exit"),
+                true);
+    }
+
+    private static HudViewState zombossHud(SessionContext context, ReadOnlyGameState state) {
+        int hp = 0;
+        int total = 1;
+        if (state != null) {
+            for (var z : state.getZombies()) {
+                if (z.type != null && z.type.isZomboss()) {
+                    hp = Math.max(0, z.hp);
+                    total = Math.max(1, z.totalHp);
+                    break;
+                }
+            }
+        }
+        int seconds = 0;
+        List<TraySlot> slots = new ArrayList<>();
+        ConveyorState conveyor = context.getConveyorState();
+        if (conveyor != null) {
+            seconds = conveyor.getSecondsUntilNextOffer();
+            for (PlantType type : conveyor.getBeltPlants()) {
+                slots.add(new TraySlot(type.name, 0, 0, true, false, 1));
+            }
+        }
+        return new HudViewState(
+                Mode.ZOMBOSS, "Zomboss", false, false, false,
+                null, conveyor != null ? conveyor.getBeltCount() : 0, seconds,
+                "HP", hp, total, 0,
+                -1, 0, 0, -1, 0,
+                slots,
+                List.of(
+                        "plant conveyor -l (r,c)",
+                        "pluck plant -l (r,c)",
+                        "feed plant -l (r,c)",
                         "menu exit"),
                 true);
     }

@@ -63,6 +63,12 @@ public final class AssetContext implements Disposable {
             catalog.barrel();
             pamPaths.add(catalog.barrel().pamPath);
         }
+        pamPaths.add("768/FULL/BACKGROUNDS/FIRETILE/FIRETILE.PAM");
+        pamPaths.add("768/INITIAL/EFFECTS/ZOMBOSS_MISSILE_EXPLOSION_EGYPT/ZOMBOSS_MISSILE_EXPLOSION_EGYPT.PAM");
+        pamPaths.add("768/FULL/EFFECTS/ZOMBOSS_TURBINE_WIND/ZOMBOSS_TURBINE_WIND.PAM");
+        pamPaths.add("768/FULL/EFFECTS/ZOMBOSS_DARK_FIREBALL/ZOMBOSS_DARK_FIREBALL.PAM");
+        pamPaths.add("768/FULL/EFFECTS/ZOMBOSS_MISSILE_EXPLOSION_ICEAGE/ZOMBOSS_MISSILE_EXPLOSION_ICEAGE.PAM");
+        pamPaths.add("768/FULL/EFFECTS/FROSTBITE_CHILL_WIND/FROSTBITE_CHILL_WIND.PAM");
         for (String path : pamPaths) {
             player.loadSync(path);
         }

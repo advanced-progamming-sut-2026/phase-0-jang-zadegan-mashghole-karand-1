@@ -97,6 +97,18 @@ public final class ZombieVisualDefs {
         zombies.put(ZombieType.KING, ZombieVisualDef.plain(KING, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.IMP_DRAGON, ZombieVisualDef.plain(IMP_DRAGON, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.SUN_ZOMBIE, ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die")); // temporary
+        zombies.put(ZombieType.ZOMBOT_SPHINX, ZombieVisualDef.plain(
+                "768/INITIAL/ZOMBIE/ZOMBIE_EGYPT_ZOMBOSS/ZOMBIE_EGYPT_ZOMBOSS.PAM",
+                "idle", "walk_forward", "idle", "die"));
+        zombies.put(ZombieType.ZOMBOT_DRAGON, ZombieVisualDef.plain(
+                "768/FULL/ZOMBIE/ZOMBIE_DARK_ZOMBOSS/ZOMBIE_DARK_ZOMBOSS.PAM",
+                "idle", "idle", "idle", "die"));
+        zombies.put(ZombieType.ZOMBOT_SHARK, ZombieVisualDef.plain(
+                "768/FULL/ZOMBIE/ZOMBIE_BEACH_ZOMBOSS/ZOMBIE_BEACH_ZOMBOSS.PAM",
+                "idle", "idle", "idle", "die"));
+        zombies.put(ZombieType.ZOMBOT_MAMMOTH, ZombieVisualDef.plain(
+                "768/FULL/ZOMBIE/ZOMBIE_ICEAGE_ZOMBOSS/ZOMBIE_ICEAGE_ZOMBOSS.PAM",
+                "idle", "idle", "idle", "die"));
 
         return Collections.unmodifiableMap(zombies);
     }

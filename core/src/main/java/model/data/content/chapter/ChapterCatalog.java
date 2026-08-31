@@ -51,7 +51,7 @@ public final class ChapterCatalog {
                 normalLevel(chapter, 2),
                 specialLevel(chapter, 3, SpecialLevelType.CONVEYOR_BELT),
                 specialLevel(chapter, 4, SpecialLevelType.SAVE_OUR_SEEDS),
-                timedWarLevel(chapter, 5, TimedWarConfig.kills(25, 150))));
+                zombossLevel(chapter, 5)));
     }
 
     private static ChapterDefinition frostbiteCaves() {
@@ -61,7 +61,7 @@ public final class ChapterCatalog {
                 normalLevel(chapter, 2),
                 specialLevel(chapter, 3, SpecialLevelType.LOVE_YOUR_PLANTS),
                 specialLevel(chapter, 4, SpecialLevelType.NIGHT_OPS),
-                timedWarLevel(chapter, 5, TimedWarConfig.sun(500, 180))));
+                zombossLevel(chapter, 5)));
     }
 
     private static ChapterDefinition bigWaveBeach() {
@@ -71,7 +71,7 @@ public final class ChapterCatalog {
                 normalLevel(chapter, 2),
                 specialLevel(chapter, 3, SpecialLevelType.DEAD_LINE),
                 plantWhatYouGetLevel(chapter, 4),
-                lockedPlantsLevel(chapter, 5, LockedPlantsConfig.onePerFamily())));
+                zombossLevel(chapter, 5)));
     }
 
     private static ChapterDefinition darkAges() {
@@ -81,7 +81,7 @@ public final class ChapterCatalog {
                 normalLevel(chapter, 2),
                 lockedPlantsLevel(chapter, 3, LockedPlantsConfig.preset()),
                 specialLevel(chapter, 4, SpecialLevelType.CONVEYOR_BELT),
-                specialLevel(chapter, 5, SpecialLevelType.SAVE_OUR_SEEDS)));
+                zombossLevel(chapter, 5)));
     }
 
     private static LevelConfig normalLevel(ChapterType chapter, int number) {
@@ -110,6 +110,15 @@ public final class ChapterCatalog {
                 .zombies(PLACEHOLDER_ZOMBIES)
                 .special(SpecialLevelType.TIMED_WAR)
                 .timedWar(config)
+                .build();
+    }
+
+    private static LevelConfig zombossLevel(ChapterType chapter, int number) {
+        return LevelConfig.builder(chapter, number)
+                .zombies(PLACEHOLDER_ZOMBIES)
+                .special(SpecialLevelType.ZOMBOSS)
+                .waves(0)
+                .startingSun(0)
                 .build();
     }
 

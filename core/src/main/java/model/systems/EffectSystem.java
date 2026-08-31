@@ -4,6 +4,7 @@ import model.core.GameState;
 import model.data.plant.Plant;
 import model.data.plant.PlantTag;
 import model.data.plant.stuns.CatStun;
+import model.data.vfx.LawnEffect;
 import model.data.zombie.Zombie;
 
 public class EffectSystem {
@@ -13,6 +14,8 @@ public class EffectSystem {
         updateZombieStatuses(state);
         clearDeadWizardStuns(state);
         applyFrostbiteFireDamage(state);
+        tickFireTiles(state);
+        tickLawnEffects(state);
     }
 
     private void updateZombieStatuses(GameState state) {
@@ -71,6 +74,27 @@ public class EffectSystem {
             }
         }
         return false;
+    }
+
+    private void tickFireTiles(GameState state) {
+        for (int r = 0; r < GameState.GRID_ROWS; r++) {
+            for (int c = 0; c < GameState.GRID_COLS; c++) {
+                var tile = state.getBoard().getTile(r, c);
+                if (tile != null) {
+                    tile.tickFire();
+                }
+            }
+        }
+    }
+
+    private void tickLawnEffects(GameState state) {
+        for (int i = state.lawnEffects.size() - 1; i >= 0; i--) {
+            LawnEffect effect = state.lawnEffects.get(i);
+            effect.ticksRemaining--;
+            if (effect.ticksRemaining <= 0) {
+                state.lawnEffects.remove(i);
+            }
+        }
     }
 
 }

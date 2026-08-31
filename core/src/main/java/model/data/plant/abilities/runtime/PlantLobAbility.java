@@ -94,7 +94,7 @@ public class PlantLobAbility implements PlantAbilityConfig {
         }
         int targetRow = plant.row + shootPattern.getRow();
         return state.zombies.stream()
-                .filter(z -> z.row == targetRow && z.isAlive)
+                .filter(z -> z.occupiesRow(targetRow) && z.isAlive)
                 .collect(Collectors.toList());
     }
 

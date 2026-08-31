@@ -101,19 +101,28 @@ public class PlantExplodeAbility implements PlantAbilityConfig {
     }
     private boolean isInShape(Zombie z, Plant plant, AreaShape shape) {
         int zombieCol = (int) (z.position.x / GameState.CELL_WIDTH);
+        if (z.type != null && z.type.isZomboss()) {
+            return switch (shape) {
+                case ROW -> z.occupiesRow(plant.row);
+                case RADIUS_3x3 -> z.occupiesNearbyRow(plant.row, 1)
+                        && Math.abs(zombieCol - plant.col) <= 1;
+                case FULL_BOARD -> true;
+                default -> false;
+            };
+        }
 
         switch (shape) {
             case SINGLE_TILE:
-                return z.row == plant.row && zombieCol == plant.col;
+                return z.occupiesRow(plant.row) && zombieCol == plant.col;
             case ADJACENT:
-                return z.row == plant.row && zombieCol == plant.col + 1;
+                return z.occupiesRow(plant.row) && zombieCol == plant.col + 1;
             case ROW:
-                return z.row == plant.row;
+                return z.occupiesRow(plant.row);
             case RADIUS_3x3:
-                return Math.abs(z.row - plant.row) <= 1
+                return z.occupiesNearbyRow(plant.row, 1)
                         && Math.abs(zombieCol - plant.col) <= 1;
             case RIGHT_LEFT_FRONT:
-                return zombieCol == plant.col &&  (Math.abs(plant.row - z.row) <=1);
+                return zombieCol == plant.col && z.occupiesNearbyRow(plant.row, 1);
             case FULL_BOARD:
                 return true;
             default:
@@ -142,9 +151,11 @@ public class PlantExplodeAbility implements PlantAbilityConfig {
         for (Zombie z : state.zombies){
             if (!z.isAlive)
                 continue;
-            if (z.row != plant.row)
+            if (z.type != null && z.type.isZomboss())
                 continue;
-           int zombieCol = (int) z.position.x / GameState.CELL_WIDTH;
+            if (!z.occupiesRow(plant.row))
+                continue;
+           int zombieCol = (int) (z.position.x / GameState.CELL_WIDTH);
            if (zombieCol == plant.col)
                return true;
         }
@@ -153,8 +164,9 @@ public class PlantExplodeAbility implements PlantAbilityConfig {
     private boolean hasAdjacentZombie(Plant plant , GameState state){
         for (Zombie z : state.zombies){
             if (!z.isAlive) continue;
-            if (z.row != plant.row ) continue;
-            int zombieCol = (int) z.position.x / GameState.CELL_WIDTH;
+            if (z.type != null && z.type.isZomboss()) continue;
+            if (!z.occupiesRow(plant.row)) continue;
+            int zombieCol = (int) (z.position.x / GameState.CELL_WIDTH);
             if (zombieCol == plant.col + 1)
                 return true;
         }

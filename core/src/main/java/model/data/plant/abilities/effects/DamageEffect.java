@@ -18,6 +18,9 @@ public class DamageEffect implements HitEffect {
             zombie.lastHitBy = sourceType;
         }
         zombie.takeDamage(amount);
+        if (state != null && !zombie.isAlive) {
+            zombie.kill(state);
+        }
     }
 
     public int getAmount() {

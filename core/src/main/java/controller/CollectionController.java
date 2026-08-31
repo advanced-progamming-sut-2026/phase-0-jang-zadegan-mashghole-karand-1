@@ -302,6 +302,9 @@ public class CollectionController {
                 }
             } else {
                 for (ZombieType zombie : ZombieType.values()) {
+                    if (zombie.isZomboss()) {
+                        continue;
+                    }
                     entries.add(new Entry(zombie.name, storage.isZombieUnlocked(zombie)));
                 }
             }

@@ -16,6 +16,7 @@ import model.board.GameBoard;
 import model.board.Tile;
 import model.data.Grave.Grave;
 import model.data.vase.Vase;
+import model.data.vfx.LawnEffect;
 import model.event.events.GameOverReason;
 
 public class GameState implements ReadOnlyGameState {
@@ -28,6 +29,7 @@ public class GameState implements ReadOnlyGameState {
     public List<PlantSeedDrop> seedDrops = new ArrayList<>();
     public List<Barrel> barrels = new ArrayList<>();
     public List<Brain> brains = new ArrayList<>();
+    public List<LawnEffect> lawnEffects = new ArrayList<>();
     public boolean brainsMode = false;
     public boolean dualSunMode = false;
     /** When true, dual-sun totals come from the server; local sun picks are visual-only. */
@@ -93,6 +95,17 @@ public class GameState implements ReadOnlyGameState {
     @Override
     public List<Brain> getBrains() {
         return Collections.unmodifiableList(brains);
+    }
+
+    @Override
+    public List<LawnEffect> getLawnEffects() {
+        return Collections.unmodifiableList(lawnEffects);
+    }
+
+    public void addLawnEffect(LawnEffect effect) {
+        if (effect != null) {
+            lawnEffects.add(effect);
+        }
     }
 
     @Override
@@ -272,6 +285,11 @@ public class GameState implements ReadOnlyGameState {
     }
 
     public void removeDeadZombies() {
+        for (Zombie z : List.copyOf(zombies)) {
+            if (z != null && (!z.isAlive || z.hp <= 0)) {
+                z.kill(this);
+            }
+        }
         zombies.removeIf(z -> z == null || !z.isAlive || z.hp <= 0);
     }
 
@@ -358,6 +376,7 @@ public class GameState implements ReadOnlyGameState {
         board.reset();
         barrels.clear();
         brains.clear();
+        lawnEffects.clear();
         brainsMode = false;
         dualSunMode = false;
         networkSunAuthority = false;

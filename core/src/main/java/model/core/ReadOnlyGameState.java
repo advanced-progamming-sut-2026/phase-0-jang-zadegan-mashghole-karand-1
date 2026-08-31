@@ -11,6 +11,7 @@ import model.data.projectile.Projectile;
 import model.data.seed.PlantSeedDrop;
 import model.data.sun.Sun;
 import model.data.vase.Vase;
+import model.data.vfx.LawnEffect;
 import model.data.zombie.Zombie;
 import model.event.events.GameOverReason;
 
@@ -45,6 +46,10 @@ public interface ReadOnlyGameState {
     List<PlantSeedDrop> getSeedDrops();
 
     List<Brain> getBrains();
+
+    default List<LawnEffect> getLawnEffects() {
+        return List.of();
+    }
 
     boolean isBrainsMode();
 

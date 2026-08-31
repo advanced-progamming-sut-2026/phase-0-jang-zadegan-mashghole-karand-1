@@ -9,7 +9,9 @@ import model.data.zombie.Zombie;
 public class HypnotizeEffect implements HitEffect{
     @Override
     public void apply(Zombie zombie, GameState state, EventBus event, PlantType sourceType) {
-        if (!zombie.isAlive || zombie == null) return;
+        if (zombie == null || !zombie.isAlive || !zombie.canBeHypnotized()) {
+            return;
+        }
         zombie.isHypnotized = true;
     }
 }
