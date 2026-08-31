@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Matrix4;
 import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
+import model.data.plant.PlantType;
 import model.data.projectile.Projectile;
 import model.data.zombie.Zombie;
 import pvz.libpvz.pam.ClipRef;
@@ -29,9 +30,9 @@ public final class LawnRenderer {
     private final LawnLayout layout;
     private final AnimStateStore animStates;
     private final VisibilityResolver visibilityResolver;
+    private final SunRenderer sunRenderer;
     private final Matrix4 savedTransform = new Matrix4();
     private final Matrix4 entityTransform = new Matrix4();
-    /** Scratch for projectile PAM centroid compensation (model-locked draw). */
     private final float[] projectileAnchorDelta = new float[2];
 
     public LawnRenderer(VisualCatalog catalog, LawnLayout layout, AnimStateStore animStates,
@@ -40,6 +41,7 @@ public final class LawnRenderer {
         this.layout = layout;
         this.animStates = animStates;
         this.visibilityResolver = visibilityResolver;
+        this.sunRenderer = new SunRenderer(layout, animStates);
     }
 
     public void render(SpriteBatch batch, AssetContext assets, ReadOnlyGameState state, float deltaSeconds) {
@@ -49,20 +51,28 @@ public final class LawnRenderer {
         animStates.advanceAll(deltaSeconds);
         PamPlayer player = assets.pamPlayer();
 
-        for (Plant plant : state.getPlants()) {
-            drawPlant(batch, assets, player, plant);
+        for (Plant plant : new ArrayList<>(state.getPlants())) {
+            if (plant.type != PlantType.Pumpkin) {
+                drawPlant(batch, assets, player, plant);
+            }
+        }
+        for (Plant plant : new ArrayList<>(state.getPlants())) {
+            if (plant.type == PlantType.Pumpkin) {
+                drawPlant(batch, assets, player, plant);
+            }
         }
         for (Projectile p : new ArrayList<>(state.getProjectiles())) {
             drawProjectile(batch, assets, player, p);
         }
         if (RENDER_ZOMBIES) {
-            for (Zombie zombie : state.getZombies()) {
+            for (Zombie zombie : new ArrayList<>(state.getZombies())) {
                 drawZombie(batch, assets, player, zombie);
             }
         }
-        for (Barrel barrel : state.getBarrels()) {
+        for (Barrel barrel :new ArrayList<>(state.getBarrels())) {
             drawBarrel(batch, assets, player, barrel);
         }
+        sunRenderer.render(batch, assets, state);
     }
 
     private float entityScale() {

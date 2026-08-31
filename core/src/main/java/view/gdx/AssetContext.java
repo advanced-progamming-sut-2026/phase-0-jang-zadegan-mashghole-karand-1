@@ -63,6 +63,9 @@ public final class AssetContext implements Disposable {
             catalog.barrel();
             pamPaths.add(catalog.barrel().pamPath);
         }
+        for (SunVisualDef def : SunVisualDef.all()) {
+            pamPaths.add(def.pamPath);
+        }
         for (String path : pamPaths) {
             player.loadSync(path);
         }

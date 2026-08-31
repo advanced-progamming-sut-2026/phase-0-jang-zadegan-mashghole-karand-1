@@ -88,6 +88,21 @@ public class GameMechanismController {
         return failure("No collectible sun at (" + row + ", " + col + ").");
     }
 
+    public CommandResult collectSunAtPosition(float modelX, float modelY, float hitRadius) {
+        CommandResult screenCheck = requireGameScreen();
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        CommandResult activeCheck = requireSessionActive();
+        if (activeCheck != null) {
+            return activeCheck;
+        }
+        if (model.collectSunAtPosition(modelX, modelY, hitRadius)) {
+            return success("Collected sun.");
+        }
+        return failure("No sun at that position.");
+    }
+
     public CommandResult collectSeed(int row, int col) {
         CommandResult screenCheck = requireGameScreen();
         if (screenCheck != null) {

@@ -1,16 +1,21 @@
 package model.data.sun;
 
+import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
 
 public class Sun {
+    public static final int GROUND_TTL_SECONDS = 8;
+    public static final int GROUND_TTL_TICKS = GROUND_TTL_SECONDS * GameLoop.TICKS_PER_SECOND;
+
     public final int id;
     public final int row;
     public Position position;
     public int amount;
     public SunType type;
     public int age = 0;
+    public int groundAge = 0;
     public boolean isFalling = true;
     public float targetY;
     public Plant generatorPlant;
@@ -40,5 +45,9 @@ public class Sun {
 
     public boolean isAtPosition(int x, int y) {
         return (int) (position.x) == x && (int) (position.y) == y;
+    }
+
+    public boolean isExpired() {
+        return !isFalling && groundAge >= GROUND_TTL_TICKS;
     }
 }

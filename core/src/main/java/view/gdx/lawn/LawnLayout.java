@@ -72,6 +72,19 @@ public final class LawnLayout {
         return originY + (ReadOnlyGameState.SCREEN_HEIGHT - position.y) * scaleY;
     }
 
+    public float modelX(float worldX) {
+        return (worldX - originX) / scaleX;
+    }
+
+    public float modelY(float worldY) {
+        return ReadOnlyGameState.SCREEN_HEIGHT - (worldY - originY) / scaleY;
+    }
+
+    public float modelHitRadius(float modelRadius) {
+        float scale = Math.max(scaleX, scaleY);
+        return modelRadius * scale;
+    }
+
     public boolean worldToCell(float worldX, float worldY, int[] outRowCol) {
         float localX = worldX - originX;
         float localY = worldY - originY;
