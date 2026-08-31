@@ -62,7 +62,7 @@ public final class NetworkAuthBridge {
                 return response != null && response.error != null ? response.error : "LOGIN_FAILED";
             }
             ensureLocalFromProfile(response.user, password);
-            if (!local.forceLogin(username, stayLoggedIn)) {
+            if (!local.forceLogin(username, stayLoggedIn, response.token)) {
                 return "LOGIN_FAILED";
             }
             applyProfileStats(response.user);
@@ -70,6 +70,31 @@ public final class NetworkAuthBridge {
             return null;
         } catch (Exception e) {
             return "SERVER_UNAVAILABLE";
+        }
+    }
+
+    public void restoreSession() {
+        if (!local.isLoggedIn()) {
+            return;
+        }
+        String token = local.loadPersistedAuthToken();
+        if (token == null || token.isBlank()) {
+            return;
+        }
+        try {
+            if (session.authApi().healthOk()) {
+                var me = session.authApi().me(token);
+                if (me.isEmpty()) {
+                    local.logout();
+                    return;
+                }
+                applyProfileStats(me.get());
+                session.onLoginSuccess(token, me.get());
+                return;
+            }
+            session.onLoginSuccess(token, profileFromLocal());
+        } catch (Exception e) {
+            session.onLoginSuccess(token, profileFromLocal());
         }
     }
 
@@ -117,6 +142,11 @@ public final class NetworkAuthBridge {
             session.authApi().saveProfile(session.token(), json);
         } catch (Exception ignored) {
         }
+    }
+
+    private UserProfileDto profileFromLocal() {
+        User user = local.getCurrentUser();
+        return user == null ? new UserProfileDto() : userProfileSnapshot(user);
     }
 
     private UserProfileDto userProfileSnapshot(User user) {

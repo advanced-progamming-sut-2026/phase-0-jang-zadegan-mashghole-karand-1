@@ -71,6 +71,7 @@ final class SqlSchemaInitializer {
                     id INTEGER PRIMARY KEY CHECK (id = 1),
                     username TEXT,
                     stay_logged_in INTEGER NOT NULL DEFAULT 0,
+                    auth_token TEXT,
                     FOREIGN KEY (username) REFERENCES users(username) ON DELETE SET NULL
                 )
                 """);
@@ -132,6 +133,7 @@ final class SqlSchemaInitializer {
         tryAlterTable(statement, "ALTER TABLE users ADD COLUMN game_speed INTEGER NOT NULL DEFAULT 2");
         tryAlterTable(statement, "ALTER TABLE users ADD COLUMN show_ground_webbing INTEGER NOT NULL DEFAULT 0");
         tryAlterTable(statement, "ALTER TABLE users ADD COLUMN debug_mode INTEGER NOT NULL DEFAULT 0");
+        tryAlterTable(statement, "ALTER TABLE app_session ADD COLUMN auth_token TEXT");
     }
 
     private static void tryAlterTable(Statement statement, String sql) {

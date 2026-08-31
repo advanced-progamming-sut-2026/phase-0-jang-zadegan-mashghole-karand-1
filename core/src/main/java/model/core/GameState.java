@@ -32,7 +32,6 @@ public class GameState implements ReadOnlyGameState {
     public List<LawnEffect> lawnEffects = new ArrayList<>();
     public boolean brainsMode = false;
     public boolean dualSunMode = false;
-    /** When true, dual-sun totals come from the server; local sun picks are visual-only. */
     public boolean networkSunAuthority = false;
     public int plantSun = 0;
     public int zombieSun = 0;
@@ -50,7 +49,6 @@ public class GameState implements ReadOnlyGameState {
     public int sessionScore = 0;
     public boolean hasSessionScore = false;
     public boolean sessionScoreNewRecord = false;
-    /** Optional UI blurb set by rules before SessionEnd (e.g. couch I-Zombie). */
     public String sessionEndTitle = null;
     public String sessionEndDetail = null;
 
@@ -70,7 +68,9 @@ public class GameState implements ReadOnlyGameState {
     }
 
     @Override
-    public List<Barrel> getBarrels() {return  Collections.unmodifiableList(barrels);}
+    public List<Barrel> getBarrels() {
+        return Collections.unmodifiableList(barrels);
+    }
 
     @Override
     public List<Projectile> getProjectiles() {
@@ -221,7 +221,7 @@ public class GameState implements ReadOnlyGameState {
     public Plant getPlantAt(int row, int col) {
         Tile tile = board.getTile(row, col);
         if (tile != null) {
-            if (tile.getPumpkin() != null){
+            if (tile.getPumpkin() != null) {
                 return tile.getPumpkin();
             }
             if (tile.getPlant() != null) {
@@ -305,6 +305,7 @@ public class GameState implements ReadOnlyGameState {
             tile.setGrave(grave);
         }
     }
+
     public float getGlowingChance() {
         float chance = 0.05f;
         for (Plant p : plants) {
@@ -314,6 +315,7 @@ public class GameState implements ReadOnlyGameState {
         }
         return chance;
     }
+
     public void removeGrave(Grave grave) {
         if (grave == null) {
             return;
@@ -332,7 +334,7 @@ public class GameState implements ReadOnlyGameState {
         }
         if (plant.type == PlantType.Lily_Pad) {
             tile.setLilyPad(plant);
-        }else if (plant.type == PlantType.Pumpkin) {
+        } else if (plant.type == PlantType.Pumpkin) {
             tile.setPumpkin(plant);
         } else {
             tile.setPlant(plant);

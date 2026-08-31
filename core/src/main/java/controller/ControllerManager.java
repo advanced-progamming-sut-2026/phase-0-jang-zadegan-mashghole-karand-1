@@ -113,8 +113,9 @@ public class ControllerManager {
     }
 
     public void start() {
-        if (networkAuth == null) {
-            storage.loadProgress();
+        storage.loadProgress();
+        if (networkAuth != null) {
+            networkAuth.restoreSession();
         }
         initShopForCurrentUser();
         initQuestsForCurrentUser();

@@ -80,13 +80,17 @@ public class SqlStorageManager implements StorageManager {
 
             currentUser = user;
             sessionToken = UUID.randomUUID().toString();
-            accountManager.persistSession(stayLoggedIn ? username : null, stayLoggedIn);
+            accountManager.persistSession(stayLoggedIn ? username : null, stayLoggedIn, null);
             return true;
         }
     }
 
     @Override
     public boolean forceLogin(String username, boolean stayLoggedIn) {
+        return forceLogin(username, stayLoggedIn, null);
+    }
+
+    public boolean forceLogin(String username, boolean stayLoggedIn, String authToken) {
         if (username == null) {
             return false;
         }
@@ -97,8 +101,17 @@ public class SqlStorageManager implements StorageManager {
             }
             currentUser = user;
             sessionToken = UUID.randomUUID().toString();
-            accountManager.persistSession(stayLoggedIn ? username : null, stayLoggedIn);
+            accountManager.persistSession(
+                    stayLoggedIn ? username : null,
+                    stayLoggedIn,
+                    stayLoggedIn ? authToken : null);
             return true;
+        }
+    }
+
+    public String loadPersistedAuthToken() {
+        synchronized (lock) {
+            return accountManager.loadPersistedAuthToken();
         }
     }
 

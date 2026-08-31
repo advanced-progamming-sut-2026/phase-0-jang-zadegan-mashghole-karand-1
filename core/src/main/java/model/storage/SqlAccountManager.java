@@ -182,22 +182,46 @@ final class SqlAccountManager {
         }
     }
 
+    String loadPersistedAuthToken() {
+        try (Connection connection = SqlConnections.open(databasePath);
+                PreparedStatement statement = connection.prepareStatement(
+                        "SELECT auth_token, stay_logged_in FROM app_session WHERE id = ?")) {
+            statement.setInt(1, SESSION_ROW_ID);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next() && resultSet.getBoolean("stay_logged_in")) {
+                    String token = resultSet.getString("auth_token");
+                    return (token != null && !token.isBlank()) ? token : null;
+                }
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to load auth token", e);
+        }
+    }
+
     void persistSession(String username, boolean stayLoggedIn) {
+        persistSession(username, stayLoggedIn, null);
+    }
+
+    void persistSession(String username, boolean stayLoggedIn, String authToken) {
         try (Connection connection = SqlConnections.open(databasePath);
                 PreparedStatement statement = connection.prepareStatement("""
-                        INSERT INTO app_session (id, username, stay_logged_in)
-                        VALUES (?, ?, ?)
+                        INSERT INTO app_session (id, username, stay_logged_in, auth_token)
+                        VALUES (?, ?, ?, ?)
                         ON CONFLICT(id) DO UPDATE SET
                             username = excluded.username,
-                            stay_logged_in = excluded.stay_logged_in
+                            stay_logged_in = excluded.stay_logged_in,
+                            auth_token = excluded.auth_token
                         """)) {
             statement.setInt(1, SESSION_ROW_ID);
             if (stayLoggedIn && username != null) {
                 statement.setString(2, username);
                 statement.setBoolean(3, true);
+                statement.setString(4, authToken);
             } else {
                 statement.setString(2, null);
                 statement.setBoolean(3, false);
+                statement.setString(4, null);
             }
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -206,6 +230,6 @@ final class SqlAccountManager {
     }
 
     void clearPersistedSession() {
-        persistSession(null, false);
+        persistSession(null, false, null);
     }
 }

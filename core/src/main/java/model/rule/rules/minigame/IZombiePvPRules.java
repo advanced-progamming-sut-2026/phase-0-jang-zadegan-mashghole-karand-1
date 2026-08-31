@@ -126,7 +126,6 @@ public class IZombiePvPRules implements LevelRule {
             return;
         }
 
-        // Online matches are server-authoritative for end conditions.
         IZombiePlayMode mode = context.getConfig().iZombiePlayMode;
         if (mode == IZombiePlayMode.ONLINE_RANDOM || mode == IZombiePlayMode.ONLINE_INVITE) {
             return;

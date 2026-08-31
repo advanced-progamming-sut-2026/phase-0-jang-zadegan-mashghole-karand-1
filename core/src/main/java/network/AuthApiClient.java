@@ -82,6 +82,26 @@ public final class AuthApiClient {
         return json.has("error") ? json.get("error").getAsString() : "RESET_FAILED";
     }
 
+    public Optional<UserProfileDto> me(String token) throws IOException, InterruptedException {
+        if (token == null || token.isBlank()) {
+            return Optional.empty();
+        }
+        HttpResponse<String> res = send(HttpRequest.newBuilder()
+                .uri(URI.create(config.baseUrl() + "/api/auth/me"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build());
+        if (res.statusCode() != 200) {
+            return Optional.empty();
+        }
+        JsonObject json = JsonParser.parseString(res.body()).getAsJsonObject();
+        if (!json.has("ok") || !json.get("ok").getAsBoolean() || !json.has("user")) {
+            return Optional.empty();
+        }
+        return Optional.of(Protocol.GSON.fromJson(json.get("user"), UserProfileDto.class));
+    }
+
     public void logout(String token) {
         try {
             postJson("/api/auth/logout", "{}", token);
