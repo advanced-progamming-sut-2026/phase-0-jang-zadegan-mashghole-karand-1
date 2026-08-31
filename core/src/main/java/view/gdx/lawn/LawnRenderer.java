@@ -8,11 +8,12 @@ import com.badlogic.gdx.math.Matrix4;
 import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
+import model.data.projectile.LobbedProjectile;
 import model.data.projectile.Projectile;
-import model.data.projectile.ProjectileType;
 import model.data.zombie.Zombie;
 import pvz.libpvz.pam.ClipRef;
 import pvz.libpvz.pam.PamPlayer;
+import pvz.libpvz.pam.ProjectilePamAnchor;
 import view.gdx.AssetContext;
 import view.gdx.VisibilityResolver;
 import view.gdx.anim.AnimStateStore;
@@ -30,6 +31,8 @@ public final class LawnRenderer {
     private final VisibilityResolver visibilityResolver;
     private final Matrix4 savedTransform = new Matrix4();
     private final Matrix4 entityTransform = new Matrix4();
+    /** Scratch for projectile PAM centroid compensation (model-locked draw). */
+    private final float[] projectileAnchorDelta = new float[2];
 
     public LawnRenderer(VisualCatalog catalog, LawnLayout layout, AnimStateStore animStates,
             VisibilityResolver visibilityResolver) {
@@ -165,20 +168,35 @@ public final class LawnRenderer {
         float y = layout.cellCenterY(barrel.row);
         drawPam(batch, player, clip, animState.stateTime, x, y, true, null);
     }
-    private void drawProjectile(SpriteBatch batch, AssetContext assets, PamPlayer player, Projectile p){
+    private void drawProjectile(SpriteBatch batch, AssetContext assets, PamPlayer player, Projectile p) {
         ProjectileVisualDef visual = catalog.projectile(p.type);
-        if (visual == null){
+        if (visual == null) {
             return;
         }
         String visualClip = visual.clipName;
         EntityAnimState anim = animStates.getOrCreate(
                 animKey(5, System.identityHashCode(p)), visualClip);
         ClipRef clip = assets.clip(visual.pamPath, visualClip);
-        if (clip == null) return;
-        float x = layout.worldX(p.position);
-        float y = layout.worldYForRow(p.row,p.position);
-        drawPam(batch, player, clip, anim.stateTime, x, y, true, null);
+        if (clip == null) {
+            return;
+        }
 
+        float x = layout.worldX(p.position);
+        float y = (p instanceof LobbedProjectile || p.direction.vx != 0 && p.direction.vy != 0)
+                ? layout.worldY(p.position)
+                : layout.worldYForRow(p.row, p.position);
+        float drawX = x;
+        float drawY = y;
+        if (ProjectilePamAnchor.drawOriginDelta(clip, anim.stateTime, true, projectileAnchorDelta)) {
+            drawX += projectileAnchorDelta[0];
+            drawY += projectileAnchorDelta[1];
+        }
+        beginEntityScale(batch, x, y);
+        try {
+            player.draw(batch, clip, anim.stateTime, drawX, drawY, true);
+        } finally {
+            endEntityScale(batch);
+        }
     }
     private void drawPam(SpriteBatch batch, PamPlayer player, ClipRef clip, float time,
             float x, float y, boolean loop, Map<String, Boolean> visibility) {

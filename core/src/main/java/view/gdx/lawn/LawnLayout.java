@@ -68,6 +68,10 @@ public final class LawnLayout {
         return cellCenterY(row);
     }
 
+    public float worldY(Position position) {
+        return originY + (ReadOnlyGameState.SCREEN_HEIGHT - position.y) * scaleY;
+    }
+
     public boolean worldToCell(float worldX, float worldY, int[] outRowCol) {
         float localX = worldX - originX;
         float localY = worldY - originY;
