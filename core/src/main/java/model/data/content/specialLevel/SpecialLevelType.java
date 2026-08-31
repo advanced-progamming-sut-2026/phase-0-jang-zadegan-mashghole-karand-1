@@ -8,5 +8,6 @@ public enum SpecialLevelType {
     NIGHT_OPS,
     DEAD_LINE,
     LOVE_YOUR_PLANTS,
-    PLANT_WHAT_YOU_GET
+    PLANT_WHAT_YOU_GET,
+    ZOMBOSS
 }

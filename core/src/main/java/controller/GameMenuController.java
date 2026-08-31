@@ -292,7 +292,8 @@ public class GameMenuController {
 
     private CommandResult startSessionSkippingPlantSelection(SpecialLevelType special) {
         List<PlantType> plants = List.of();
-        if (special == SpecialLevelType.CONVEYOR_BELT) {
+        if (special == SpecialLevelType.CONVEYOR_BELT
+                || special == SpecialLevelType.ZOMBOSS) {
             plants = storage.getUnlockedPlants().stream()
                     .filter(p -> !p.isBowlingExclusive())
                     .toList();
@@ -321,6 +322,9 @@ public class GameMenuController {
         controllerManager.setScreen(ScreenType.GAME);
         if (special == SpecialLevelType.CONVEYOR_BELT) {
             return success("Conveyor Belt started! Plants will be offered every 12 seconds.");
+        }
+        if (special == SpecialLevelType.ZOMBOSS) {
+            return success("Zomboss battle! Plants arrive on the conveyor.");
         }
         if (special == SpecialLevelType.LOCKED_PLANTS) {
             if (plants.isEmpty()) {

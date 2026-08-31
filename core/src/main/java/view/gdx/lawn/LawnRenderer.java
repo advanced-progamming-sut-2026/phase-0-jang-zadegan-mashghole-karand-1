@@ -2,12 +2,17 @@ package view.gdx.lawn;
 
 import java.util.Map;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Matrix4;
 
+import model.board.Tile;
+import model.board.TileType;
 import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
+import model.data.vfx.LawnEffect;
 import model.data.zombie.Zombie;
 import pvz.libpvz.pam.ClipRef;
 import pvz.libpvz.pam.PamPlayer;
@@ -21,6 +26,7 @@ public final class LawnRenderer {
     private static final boolean RENDER_ZOMBIES = true;
     private static final float PAM_CANVAS = 390f;
     private static final float ENTITY_HEIGHT_IN_CELLS = 2f;
+    private static final String FIRE_TILE_PAM = "768/FULL/BACKGROUNDS/FIRETILE/FIRETILE.PAM";
 
     private final VisualCatalog catalog;
     private final LawnLayout layout;
@@ -44,17 +50,29 @@ public final class LawnRenderer {
         animStates.advanceAll(deltaSeconds);
         PamPlayer player = assets.pamPlayer();
 
+        drawFireTiles(batch, assets, player, state);
+
+        if (RENDER_ZOMBIES) {
+            for (Zombie zombie : state.getZombies()) {
+                if (zombie.type != null && zombie.type.isZomboss()) {
+                    drawZombie(batch, assets, player, zombie);
+                }
+            }
+        }
         for (Plant plant : state.getPlants()) {
             drawPlant(batch, assets, player, plant);
         }
         if (RENDER_ZOMBIES) {
             for (Zombie zombie : state.getZombies()) {
-                drawZombie(batch, assets, player, zombie);
+                if (zombie.type == null || !zombie.type.isZomboss()) {
+                    drawZombie(batch, assets, player, zombie);
+                }
             }
         }
         for (Barrel barrel : state.getBarrels()) {
             drawBarrel(batch, assets, player, barrel);
         }
+        drawLawnEffects(batch, assets, player, state);
     }
 
     private float entityScale() {
@@ -99,7 +117,22 @@ public final class LawnRenderer {
         if (visual == null) {
             return;
         }
-        String defaultClip = zombie.isEating ? visual.eatClip : visual.walkClip;
+        String defaultClip;
+        boolean loop = true;
+        if (zombie.animClip != null) {
+            defaultClip = zombie.animClip;
+            loop = zombie.animClipLoop;
+        } else if (zombie.stunned) {
+            defaultClip = visual.idleClip;
+        } else if (zombie.forceWalkAnim) {
+            defaultClip = visual.walkClip;
+        } else if (zombie.type != null && zombie.type.isZomboss()) {
+            defaultClip = visual.idleClip;
+        } else if (zombie.isEating) {
+            defaultClip = visual.eatClip;
+        } else {
+            defaultClip = visual.walkClip;
+        }
         if (defaultClip == null) {
             defaultClip = visual.idleClip;
         }
@@ -114,6 +147,10 @@ public final class LawnRenderer {
         }
         float x = layout.worldX(zombie.position);
         float y = layout.worldYForRow(zombie.row, zombie.position);
+        if (zombie.rowSpan() > 1) {
+            y = (layout.cellCenterY(zombie.row)
+                    + layout.cellCenterY(zombie.row + zombie.rowSpan() - 1)) * 0.5f;
+        }
         Map<String, Boolean> visibility = visibilityResolver.forZombie(zombie, visual);
         beginEntityScale(batch, x, y);
         try {
@@ -133,9 +170,9 @@ public final class LawnRenderer {
                 }
             }
             if (visibility.isEmpty()) {
-                player.draw(batch, clip, anim.stateTime, x, y, true);
+                player.draw(batch, clip, anim.stateTime, x, y, loop);
             } else {
-                player.draw(batch, clip, anim.stateTime, x, y, true, visibility);
+                player.draw(batch, clip, anim.stateTime, x, y, loop, visibility);
             }
         } finally {
             endEntityScale(batch);
@@ -159,6 +196,49 @@ public final class LawnRenderer {
         float x = layout.cellCenterX(barrel.col);
         float y = layout.cellCenterY(barrel.row);
         drawPam(batch, player, clip, animState.stateTime, x, y, true, null);
+    }
+
+    private void drawFireTiles(SpriteBatch batch, AssetContext assets, PamPlayer player,
+            ReadOnlyGameState state) {
+        ClipRef fireClip = assets.clip(FIRE_TILE_PAM, "firetile_up");
+        TextureRegion fill = assets.region("IMAGE_UI_HUD_INGAME_PROGRESS_METER_FILL");
+        for (int r = 0; r < ReadOnlyGameState.GRID_ROWS; r++) {
+            for (int c = 0; c < ReadOnlyGameState.GRID_COLS; c++) {
+                Tile tile = state.getBoard().getTile(r, c);
+                if (tile == null || tile.getType() != TileType.FIRE) {
+                    continue;
+                }
+                float x = layout.cellCenterX(c);
+                float y = layout.cellCenterY(r);
+                if (fireClip != null) {
+                    EntityAnimState anim = animStates.getOrCreate(animKey(8, r * 16 + c), "firetile_up");
+                    drawPam(batch, player, fireClip, anim.stateTime, x, y, true, null);
+                } else if (fill != null) {
+                    batch.setColor(1f, 0.35f, 0.05f, 0.45f);
+                    batch.draw(fill, layout.cellLeft(c), layout.cellBottom(r),
+                            layout.cellWidth(), layout.cellHeight());
+                    batch.setColor(Color.WHITE);
+                }
+            }
+        }
+    }
+
+    private void drawLawnEffects(SpriteBatch batch, AssetContext assets, PamPlayer player,
+            ReadOnlyGameState state) {
+        for (LawnEffect effect : state.getLawnEffects()) {
+            ClipRef clip = assets.clip(effect.pamPath, effect.clipName);
+            if (clip == null) {
+                continue;
+            }
+            EntityAnimState anim = animStates.getOrCreate(animKey(9, effect.id), effect.clipName);
+            if (!effect.clipName.equals(anim.clipName)) {
+                anim.clipName = effect.clipName;
+                anim.stateTime = 0f;
+            }
+            float x = layout.cellCenterX(effect.col);
+            float y = layout.cellCenterY(effect.row);
+            drawPam(batch, player, clip, anim.stateTime, x, y, effect.loop, null);
+        }
     }
 
     private void drawPam(SpriteBatch batch, PamPlayer player, ClipRef clip, float time,

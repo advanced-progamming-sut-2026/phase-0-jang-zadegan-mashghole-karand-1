@@ -86,16 +86,25 @@ public class PlantExplodeEffect implements PlantEffectConfig{
     }
     private boolean isInShape(Zombie z, Plant plant, AreaShape shape) {
         int zombieCol = (int) (z.position.x / GameState.CELL_WIDTH);
+        if (z.type != null && z.type.isZomboss()) {
+            return switch (shape) {
+                case ROW -> z.occupiesRow(plant.row);
+                case RADIUS_3x3 -> z.occupiesNearbyRow(plant.row, 1)
+                        && Math.abs(zombieCol - plant.col) <= 1;
+                case FULL_BOARD -> true;
+                default -> false;
+            };
+        }
 
         switch (shape) {
             case SINGLE_TILE:
-                return z.row == plant.row && zombieCol == plant.col;
+                return z.occupiesRow(plant.row) && zombieCol == plant.col;
             case ADJACENT:
-                return z.row == plant.row && zombieCol == plant.col + 1;
+                return z.occupiesRow(plant.row) && zombieCol == plant.col + 1;
             case ROW:
-                return z.row == plant.row;
+                return z.occupiesRow(plant.row);
             case RADIUS_3x3:
-                return Math.abs(z.row - plant.row) <= 1
+                return z.occupiesNearbyRow(plant.row, 1)
                         && Math.abs(zombieCol - plant.col) <= 1;
             case FULL_BOARD:
                 return true;

@@ -71,6 +71,8 @@ public class MovementSystem {
         for (Zombie z : new ArrayList<>(state.zombies)) {
             if (!z.isAlive || z.isHypnotized)
                 continue;
+            if (z.type.isZomboss())
+                continue;
             if (z.position.x > 0)
                 continue;
             if (rowHandled[z.row])

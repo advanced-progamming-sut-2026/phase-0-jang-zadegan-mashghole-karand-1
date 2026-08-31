@@ -51,10 +51,37 @@ public class CombatSystem {
 
     private boolean handleZombieTargetedProjectile(GameState state, EventBus eventBus,
             boolean freezeProjectilesEnabled, Iterator<Projectile> projIter, Projectile p) {
+        if (handleZombossProjectileHit(state, eventBus, freezeProjectilesEnabled, projIter, p)) {
+            return true;
+        }
         if (handleZombieProjectileObstacles(state, eventBus, projIter, p)) {
             return true;
         }
         handleZombieProjectileZombieCollision(state, eventBus, freezeProjectilesEnabled, projIter, p);
+        return false;
+    }
+
+    private boolean handleZombossProjectileHit(GameState state, EventBus eventBus,
+            boolean freezeProjectilesEnabled, Iterator<Projectile> projIter, Projectile p) {
+        for (Zombie z : state.zombies) {
+            if (z.type == null || !z.type.isZomboss() || !z.isHitByProjectile(p)) {
+                continue;
+            }
+            if (p instanceof PiercingProjectile piercing && piercing.hitZombies.contains(z)) {
+                continue;
+            }
+            if (p instanceof BouncingProjectile bouncing && bouncing.hitZombies.contains(z)) {
+                continue;
+            }
+            if (p instanceof PiercingProjectile piercing) {
+                piercing.hitZombies.add(z);
+            }
+            if (p instanceof BouncingProjectile bouncing) {
+                bouncing.hitZombies.add(z);
+            }
+            applyZombieProjectileHit(state, eventBus, freezeProjectilesEnabled, projIter, p, null, z);
+            return true;
+        }
         return false;
     }
 
@@ -111,7 +138,7 @@ public class CombatSystem {
         while (zombieIter.hasNext()) {
             Zombie z = zombieIter.next();
 
-            if (z.row == p.row && Math.abs(z.position.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+            if (z.isHitByProjectile(p)) {
                 boolean blocked = z.abilities.stream().anyMatch(a -> a.blocksProjectiles(z, p));
                 if (blocked) {
                     projIter.remove();
@@ -184,10 +211,12 @@ public class CombatSystem {
             projIter.remove();
         }
 
-        if (!z.isAlive) {
+        if (z != null && !z.isAlive) {
             z.lastHitBy = p.sourcePlant;
             z.kill(state);
-            zombieIter.remove();
+            if (zombieIter != null) {
+                zombieIter.remove();
+            }
         }
     }
 
@@ -259,6 +288,9 @@ public class CombatSystem {
         while (zombieIter.hasNext()) {
             Zombie z = zombieIter.next();
             if (!z.isAlive) {
+                continue;
+            }
+            if (z.type.isZomboss()) {
                 continue;
             }
             if (z.stunned)
@@ -336,7 +368,7 @@ public class CombatSystem {
                 if (!freezeProjectilesEnabled)
                     break;
                 for (Zombie z : state.zombies) {
-                    if (z.row == projectile.row) {
+                    if (z.occupiesRow(projectile.row)) {
                         new FreezeEffect(30).apply(z, state, eventBus, projectile.sourcePlant);
                     }
                 }

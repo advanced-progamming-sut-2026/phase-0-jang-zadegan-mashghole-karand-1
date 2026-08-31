@@ -13,7 +13,6 @@ import model.data.projectile.HomingProjectile;
 import model.data.projectile.Projectile;
 import model.data.projectile.ProjectileTarget;
 import model.data.zombie.Zombie;
-import model.event.events.ZombieDiedEvent;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -66,9 +65,16 @@ public class PlantHomingAbility implements PlantAbilityConfig {
                     .min((z1, z2) -> Float.compare(plant.getX() - z1.position.x, plant.getX() - z2.position.x))
                     .orElse(null);
         } else if (this.strategy == TargetStrategy.RANDOM) {
-            target = aliveZombies.get(new Random().nextInt(aliveZombies.size()));
-            if (plant.type == PlantType.Caulipower || plant.type == PlantType.Electric_Blueberry) {
+            List<Zombie> instakillable = aliveZombies.stream()
+                    .filter(Zombie::canBeInstakilled)
+                    .toList();
+            boolean instakill = plant.type == PlantType.Caulipower
+                    || plant.type == PlantType.Electric_Blueberry;
+            if (instakill && !instakillable.isEmpty()) {
+                target = instakillable.get(new Random().nextInt(instakillable.size()));
                 target.kill(state);
+            } else {
+                target = aliveZombies.get(new Random().nextInt(aliveZombies.size()));
             }
         }
         if (target != null) {

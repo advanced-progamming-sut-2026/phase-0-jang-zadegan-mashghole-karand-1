@@ -6,6 +6,7 @@ import model.data.plant.Plant;
 import model.data.plant.PlantTag;
 import model.data.plant.PlantType;
 import model.data.vase.Vase;
+import model.data.zombie.Zombie;
 
 public class Tile {
     private final int row;
@@ -14,6 +15,8 @@ public class Tile {
     private GameState state;
 
     private IceDirection direction; // for ice tiles
+    private TileType typeBeforeFire = TileType.NORMAL;
+    private int fireTicksRemaining = 0;
     private boolean hasBeachPost;
     private Plant plant;
     private Plant lilyPad;
@@ -102,7 +105,28 @@ public class Tile {
             return false;
         if (hasBeachPost())
             return false;
+        if (occupiedByZomboss())
+            return false;
         return true;
+    }
+
+    private boolean occupiedByZomboss() {
+        if (state == null || state.zombies == null) {
+            return false;
+        }
+        for (Zombie z : state.zombies) {
+            if (z == null || !z.isAlive || z.type == null || !z.type.isZomboss()) {
+                continue;
+            }
+            if (!z.occupiesRow(row)) {
+                continue;
+            }
+            int bossCol = (int) (z.position.x / GameState.CELL_WIDTH);
+            if (col >= bossCol - 1) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void setGrave(Grave grave) {
@@ -144,6 +168,9 @@ public class Tile {
     }
 
     public boolean isPlantable(PlantType plantType) {
+        if (type == TileType.FIRE) {
+            return false;
+        }
         boolean isWatery = plantType.tags != null
                 && plantType.tags.contains(PlantTag.WATER)
                 && plantType != PlantType.Lily_Pad;
@@ -202,6 +229,29 @@ public class Tile {
 
     public boolean isNecromancy() {
         return type == TileType.NECROMANCY;
+    }
+
+    public boolean isFire() {
+        return type == TileType.FIRE;
+    }
+
+    public void ignite(int ticks) {
+        if (type != TileType.FIRE) {
+            typeBeforeFire = type;
+        }
+        this.type = TileType.FIRE;
+        this.fireTicksRemaining = Math.max(1, ticks);
+    }
+
+    public void tickFire() {
+        if (type != TileType.FIRE) {
+            return;
+        }
+        fireTicksRemaining--;
+        if (fireTicksRemaining <= 0) {
+            type = typeBeforeFire != null ? typeBeforeFire : TileType.NORMAL;
+            fireTicksRemaining = 0;
+        }
     }
 
     public int getRow() {

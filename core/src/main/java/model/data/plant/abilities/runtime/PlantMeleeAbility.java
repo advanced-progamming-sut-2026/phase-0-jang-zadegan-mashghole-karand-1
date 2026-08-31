@@ -88,24 +88,27 @@ public class PlantMeleeAbility implements PlantAbilityConfig {
         return targets.subList(0, maxTargets);
     }
     private boolean isInShape(Zombie z, Plant plant, AreaShape shape) {
+        if (z.type != null && z.type.isZomboss()) {
+            return false;
+        }
         int zombieCol = (int) (z.position.x / GameState.CELL_WIDTH);
 
         switch (shape) {
             case SINGLE_TILE:
-                return z.row == plant.row && zombieCol == plant.col;
+                return z.occupiesRow(plant.row) && zombieCol == plant.col;
             case ADJACENT:
-                return z.row == plant.row && zombieCol == plant.col + 1;
+                return z.occupiesRow(plant.row) && zombieCol == plant.col + 1;
             case ROW:
-                return z.row == plant.row;
+                return z.occupiesRow(plant.row);
             case RADIUS_3x3:
-                return Math.abs(z.row - plant.row) <= 1
+                return z.occupiesNearbyRow(plant.row, 1)
                         && Math.abs(zombieCol - plant.col) <= 1;
             case FULL_BOARD:
                 return true;
             case FRONT_OR_BACK:
                 int dist = Math.abs(zombieCol - plant.col);
                 int maxDist = 1 + plant.upgradeState.rangeBonus;
-                return z.row == plant.row && ( dist >=1 && dist <= maxDist );
+                return z.occupiesRow(plant.row) && ( dist >=1 && dist <= maxDist );
             default:
                 return false;
         }

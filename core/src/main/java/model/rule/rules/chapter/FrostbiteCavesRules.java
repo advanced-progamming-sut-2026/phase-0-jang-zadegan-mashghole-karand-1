@@ -9,8 +9,8 @@ import model.board.Tile;
 import model.board.TileType;
 import model.core.EventBus;
 import model.core.GameState;
+import model.data.content.specialLevel.SpecialLevelType;
 import model.data.plant.Plant;
-import model.data.plant.PlantTag;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 
@@ -32,7 +32,9 @@ public class FrostbiteCavesRules implements LevelRule {
     @Override
     public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
         placeIceTiles(state);
-        spawnFrozenZombies(state, bus, context);
+        if (context.getConfig().specialLevelType != SpecialLevelType.ZOMBOSS) {
+            spawnFrozenZombies(state, bus, context);
+        }
     }
 
     private void placeIceTiles(GameState state) {
@@ -96,10 +98,15 @@ public class FrostbiteCavesRules implements LevelRule {
             }
         }
 
+        applyIceWind(state, affectedRows);
+    }
+
+    public static void applyIceWind(GameState state, List<Integer> rows) {
+        if (state == null || rows == null || rows.isEmpty()) {
+            return;
+        }
         for (Plant plant : state.plants) {
-            if (affectedRows.contains(plant.row)) {
-                if (plant.hasTag(PlantTag.FIRE))
-                    continue;
+            if (plant != null && plant.isAlive && rows.contains(plant.row)) {
                 plant.increaseFrostbiteFreezeLevel();
             }
         }

@@ -138,7 +138,7 @@ public class PlantShootAbility implements PlantAbilityConfig {
         }
         if (plant.type == PlantType.BowlingBulb) {
             boolean zombieInLane = state.zombies.stream()
-                    .anyMatch(z -> z.isAlive && z.row == plant.row);
+                    .anyMatch(z -> z.isAlive && z.occupiesRow(plant.row));
             if (zombieInLane) {
                 chargeTicks++;
             }
@@ -165,10 +165,10 @@ public class PlantShootAbility implements PlantAbilityConfig {
                     .anyMatch(z -> z.isAlive && canHitZombie(plant, z, shootPattern.getDir()));
         } else if (plant.type == PlantType.Threepeater) {
             hasZombie = state.zombies.stream()
-                    .anyMatch(z -> z.isAlive && Math.abs(z.row - plant.row) <= 1);
+                    .anyMatch(z -> z.isAlive && z.occupiesNearbyRow(plant.row, 1));
         } else {
             hasZombie = state.zombies.stream()
-                    .anyMatch(z -> z.isAlive && z.row == targetRow);
+                    .anyMatch(z -> z.isAlive && z.occupiesRow(targetRow));
         }
         if (plant.type == PlantType.BowlingBulb && hasZombie) {
             chargeTicks++;
@@ -200,10 +200,10 @@ public class PlantShootAbility implements PlantAbilityConfig {
 
         switch (dir) {
             case FORWARD:
-                return z.row == plant.row && dx > 0;
+                return z.occupiesRow(plant.row) && dx > 0;
 
             case BACK:
-                return z.row == plant.row && dx < 0;
+                return z.occupiesRow(plant.row) && dx < 0;
 
             case UP:
                 return z.row < plant.row && Math.abs(dx) <= GameState.CELL_WIDTH / 2f;

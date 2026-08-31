@@ -4,5 +4,6 @@ public enum TileType {
     NORMAL,
     WATER,
     ICE,
-    NECROMANCY;
+    NECROMANCY,
+    FIRE
 }

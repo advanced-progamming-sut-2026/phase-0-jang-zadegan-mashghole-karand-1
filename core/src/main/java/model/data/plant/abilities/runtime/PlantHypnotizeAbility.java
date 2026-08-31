@@ -23,19 +23,20 @@ public class PlantHypnotizeAbility implements PlantAbilityConfig {
     }
     @Override
     public void onDeath(Plant plant, Zombie killer, GameState state,EventBus event) {
-        if (killer != null && killer.isAlive) {
-            if (this.transformToGargantuar) {
-                killer.kill(state);
-                Zombie garg = new Zombie(ZombieType.GARGANTUAR, killer.row, killer.col,
-                        new Position(killer.position.x, killer.position.y), event);
-                garg.isHypnotized = true;
-                applyBuffs(garg,plant);
-                state.zombies.add(garg);
-                event.publish(new ZombieSpawnedEvent(garg));
-            } else {
-                killer.isHypnotized = true;
-                applyBuffs(killer,plant);
-            }
+        if (killer == null || !killer.isAlive || !killer.canBeHypnotized()) {
+            return;
+        }
+        if (this.transformToGargantuar) {
+            killer.kill(state);
+            Zombie garg = new Zombie(ZombieType.GARGANTUAR, killer.row, killer.col,
+                    new Position(killer.position.x, killer.position.y), event);
+            garg.isHypnotized = true;
+            applyBuffs(garg,plant);
+            state.zombies.add(garg);
+            event.publish(new ZombieSpawnedEvent(garg));
+        } else {
+            killer.isHypnotized = true;
+            applyBuffs(killer,plant);
         }
     }
     private void applyBuffs(Zombie z, Plant plant) {

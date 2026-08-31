@@ -28,6 +28,40 @@ public final class UserRepository {
         }
     }
 
+    public void upsertAdmin(String username, String passwordHash, String email, String nickname,
+            String gender, String safetyQuestion, String safetyAnswerHash, int coins, int gems) {
+        String sql = """
+                INSERT INTO users (username, password_hash, email, nickname, gender,
+                    safety_question, safety_answer_hash, coins, gems, highest_score,
+                    games_played, izombie_wins, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?)
+                ON CONFLICT(username) DO UPDATE SET
+                    password_hash = excluded.password_hash,
+                    email = excluded.email,
+                    nickname = excluded.nickname,
+                    gender = excluded.gender,
+                    safety_question = excluded.safety_question,
+                    safety_answer_hash = excluded.safety_answer_hash,
+                    coins = excluded.coins,
+                    gems = excluded.gems
+                """;
+        try (Connection c = database.open(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ps.setString(2, passwordHash);
+            ps.setString(3, email);
+            ps.setString(4, nickname);
+            ps.setString(5, gender);
+            ps.setString(6, safetyQuestion);
+            ps.setString(7, safetyAnswerHash);
+            ps.setInt(8, coins);
+            ps.setInt(9, gems);
+            ps.setLong(10, System.currentTimeMillis());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void insertUser(String username, String passwordHash, String email, String nickname,
             String gender, String safetyQuestion, String safetyAnswerHash) {
         String sql = """

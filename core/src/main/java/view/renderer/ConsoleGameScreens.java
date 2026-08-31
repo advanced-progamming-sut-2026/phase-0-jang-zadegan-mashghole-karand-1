@@ -100,6 +100,7 @@ final class ConsoleGameScreens {
             case TIMED_WAR -> buildTimedWarTitle(state, hud, status);
             case DEADLINE -> buildDeadlineTitle(state, hud, status, seconds);
             case SAVE_OUR_SEEDS -> buildSaveOurSeedsTitle(state, hud, status, seconds);
+            case ZOMBOSS -> buildZombossTitle(state, hud, status);
             default -> buildDefaultTitle(state, hud, status, seconds);
         });
 
@@ -129,6 +130,14 @@ final class ConsoleGameScreens {
         return String.format("%s⏳ : %-2ds  %s🌊 : %-3d  %s🧟 : %-3d  %s%s%s",
                 YELLOW, hud.conveyorSecondsUntilNext,
                 CYAN, state.getCurrentWave(),
+                RED, state.getZombies().size(),
+                CYAN, status, RESET);
+    }
+
+    private String buildZombossTitle(ReadOnlyGameState state, HudViewState hud, String status) {
+        return String.format("%s⏳ : %-2ds  %s❤ %d/%d  %s🧟 : %-3d  %s%s%s",
+                YELLOW, hud.conveyorSecondsUntilNext,
+                RED, hud.timedWarProgress, hud.timedWarGoal,
                 RED, state.getZombies().size(),
                 CYAN, status, RESET);
     }
@@ -196,7 +205,7 @@ final class ConsoleGameScreens {
     private String getPlantTray(HudViewState hud) {
         StringBuilder sb = new StringBuilder();
         String trayTitle = switch (hud.mode) {
-            case CONVEYOR -> "Conveyor";
+            case CONVEYOR, ZOMBOSS -> "Conveyor";
             case BRAINS -> "Zombies";
             case VASE_BREAKER -> "Held Seeds";
             default -> "Plants";

@@ -18,7 +18,10 @@ public class LawnMower {
             return;
         active = false;
         for (Zombie z : gameState.getZombies()) {
-            if (z.isAlive && z.row == row) {
+            if (!z.isAlive || z.type.isZomboss()) {
+                continue;
+            }
+            if (z.row == row || z.occupiesRow(row)) {
                 z.killedByLawnMower = true;
                 z.lastHitBy = null;
                 z.kill(gameState);

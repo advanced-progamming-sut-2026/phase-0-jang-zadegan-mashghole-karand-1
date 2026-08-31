@@ -6,6 +6,7 @@ import model.core.EventBus;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.PlantType;
+import model.data.projectile.Projectile;
 import model.data.zombie.abilities.config.ZombieAbilityConfig;
 import model.data.zombie.armor.runtime.ZombieArmor;
 import model.event.events.GlowingZombieDiedEvent;
@@ -40,6 +41,9 @@ public class Zombie {
 
     public boolean stunned = false;
     public int stunTicks = 0;
+    public boolean forceWalkAnim = false;
+    public String animClip;
+    public boolean animClipLoop;
 
     private int iceHP = 0;
     private boolean isIced = false;
@@ -83,11 +87,14 @@ public class Zombie {
 
         isGlowing = randomizer.nextFloat() < glowChance  ;
 
-        canBeFrozen = !(type == ZombieType.DODO_RIDER_ZOMBIE || type == ZombieType.HUNTER
+        canBeFrozen = !(type.isZomboss()
+                || type == ZombieType.DODO_RIDER_ZOMBIE
+                || type == ZombieType.HUNTER
                 || type == ZombieType.TROGLOBITE);
     }
 
     public void takeDamage(int damage) {
+        int hpBefore = this.hp;
         if (armor != null && armor.isIntact()) {
             damage = armor.absorbDamage(damage);
         }
@@ -97,6 +104,7 @@ public class Zombie {
         if (this.hp <= 0) {
             this.isAlive = false;
         }
+        applyZombossPhaseStun(hpBefore);
     }
 
     public void takeDamage(int damage, boolean poisonous) {
@@ -104,11 +112,27 @@ public class Zombie {
             takeDamage(damage);
             return;
         }
+        int hpBefore = this.hp;
         this.hp -= damage;
 
         if (this.hp <= 0) {
             this.isAlive = false;
             isEating = false;
+        }
+        applyZombossPhaseStun(hpBefore);
+    }
+
+    private void applyZombossPhaseStun(int hpBefore) {
+        if (!type.isZomboss() || totalHp <= 0 || hp <= 0) {
+            return;
+        }
+        int[] cuts = { totalHp * 2 / 3, totalHp / 3 };
+        for (int cut : cuts) {
+            if (hpBefore > cut && hp <= cut) {
+                stunned = true;
+                stunTicks = 50;
+                return;
+            }
         }
     }
 
@@ -134,7 +158,7 @@ public class Zombie {
             eventBus.publish(new ZombieDiedEvent(this, lastHitBy));
         }
 
-        boolean drop = randomizer.nextInt(10) == 0;
+        boolean drop = !type.isZomboss() && randomizer.nextInt(10) == 0;
         if (drop) {
             ZombieLootType lootType = ZombieLootType.values()[randomizer.nextInt(ZombieLootType.values().length)];
             if (Objects.requireNonNull(lootType) == ZombieLootType.COIN) {
@@ -203,8 +227,69 @@ public class Zombie {
         return activeSandstorm;
     }
 
+    public boolean canBeInstakilled() {
+        return !type.isZomboss();
+    }
+
+    public boolean canBeHypnotized() {
+        return type != null && !type.isZomboss();
+    }
+
     public boolean canMove() {
+        if (type.isZomboss()) {
+            return false;
+        }
         return isAlive && !isEating;
+    }
+
+    public int rowSpan() {
+        return type.isZomboss() ? 2 : 1;
+    }
+
+    public boolean occupiesRow(int r) {
+        return r >= row && r < row + rowSpan();
+    }
+
+    public boolean isHitByProjectile(Projectile p) {
+        if (!isAlive || p == null || p.position == null || position == null) {
+            return false;
+        }
+        if (!occupiesRow(p.row)) {
+            return false;
+        }
+        if (type != null && type.isZomboss()) {
+            float left = position.x - GameState.CELL_WIDTH * 1.6f;
+            float right = position.x + GameState.CELL_WIDTH * 0.45f;
+            return p.position.x >= left && p.position.x <= right;
+        }
+        return Math.abs(position.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS;
+    }
+
+    public boolean occupiesNearbyRow(int r, int dist) {
+        for (int i = 0; i < rowSpan(); i++) {
+            if (Math.abs((row + i) - r) <= dist) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void playAnim(String clip, boolean loop) {
+        this.animClip = clip;
+        this.animClipLoop = loop;
+    }
+
+    public void clearAnim() {
+        this.animClip = null;
+        this.animClipLoop = false;
+    }
+
+    public void syncY() {
+        if (position == null) {
+            return;
+        }
+        float mid = row + (rowSpan() - 1) * 0.5f;
+        position.y = GameState.CELL_HEIGHT * mid + GameState.CELL_HEIGHT / 2f;
     }
 
     public float getDPS() {

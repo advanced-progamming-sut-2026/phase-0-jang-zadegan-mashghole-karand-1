@@ -14,6 +14,7 @@ import model.rule.rules.specialLevel.NightOpsRules;
 import model.rule.rules.specialLevel.PlantWhatYouGetRules;
 import model.rule.rules.specialLevel.SaveOurSeedsRules;
 import model.rule.rules.specialLevel.TimedWarRules;
+import model.rule.rules.specialLevel.ZombossRules;
 
 public class SpecialLevelRules {
 
@@ -49,6 +50,10 @@ public class SpecialLevelRules {
                 break;
             case PLANT_WHAT_YOU_GET:
                 rules.add(new PlantWhatYouGetRules());
+                break;
+            case ZOMBOSS:
+                rules.add(new ConveyorBeltRules());
+                rules.add(new ZombossRules());
                 break;
             default:
                 break;
