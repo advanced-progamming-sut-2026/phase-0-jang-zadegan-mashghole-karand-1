@@ -144,9 +144,7 @@ public class ControllerManager {
         }
         if (screen == ScreenType.GAME) {
             sessionLifecycleController.onSessionStart();
-            clearDialogue();
-            showAnnouncement("Get ready to defend your lawn!");
-            startLevelDialogueIfNeeded();
+            startLevelIntro();
         } else {
             clearDialogue();
         }
@@ -306,6 +304,38 @@ public class ControllerManager {
             return false;
         }
         return view.scrollMessages(olderDelta);
+    }
+
+    public List<String> currentLevelObjectives() {
+        SessionContext context = model.getPlayContext();
+        if (context == null) {
+            return List.of();
+        }
+        return LevelObjectives.from(context.getConfig());
+    }
+
+    public boolean hasLevelObjectives() {
+        return !currentLevelObjectives().isEmpty();
+    }
+
+    public void startLevelIntro() {
+        clearDialogue();
+        showAnnouncement("Get ready to defend your lawn!");
+        if (hasLevelObjectives()) {
+            currentMenu = MenuType.LEVEL_OBJECTIVES;
+        } else {
+            startLevelDialogueIfNeeded();
+        }
+    }
+
+    public CommandResult dismissLevelObjectives() {
+        if (currentMenu != MenuType.LEVEL_OBJECTIVES) {
+            return new CommandResult("Level objectives are not open.", false);
+        }
+        currentMenu = MenuType.NONE;
+        startLevelDialogueIfNeeded();
+        refreshView();
+        return new CommandResult("Objectives confirmed.", true);
     }
 
     public boolean isDialogueActive() {
