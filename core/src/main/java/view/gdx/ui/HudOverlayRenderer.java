@@ -2,19 +2,32 @@ package view.gdx.ui;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import model.service.HudViewState;
 import view.gdx.AssetContext;
 
 public final class HudOverlayRenderer {
-    private static final String PF_BANK = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BANK";
-    private static final String PF_SLOT = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BANK_FILLED_SLOT";
-    private static final String PF_BUTTON = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BUTTON";
+    public static final String PF_BANK = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BANK";
+    public static final String PF_LEAF = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BANK_FILLED_SLOT";
+    public static final String PF_BUTTON = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BUTTON";
+    public static final String PF_BUTTON_DOWN = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BUTTON_DOWN";
 
     private static final int PF_MAX_SLOTS = 3;
+    private static final float HUD_TOP_INSET = 25f;
+    private static final float SUN_BG_H = 30f;
+    private static final float PF_BANK_H = 30f;
+    private static final float PF_SLOT_GAP_RATIO = 0.02f;
 
     private final BitmapFont font = new BitmapFont();
+    private final GlyphLayout glyphLayout = new GlyphLayout();
+    private boolean plantFoodMode;
+
+    public void setPlantFoodMode(boolean plantFoodMode) {
+        this.plantFoodMode = plantFoodMode;
+    }
+
     public void render(
             SpriteBatch batch,
             AssetContext assets,
@@ -41,16 +54,16 @@ public final class HudOverlayRenderer {
             float worldWidth,
             float worldHeight) {
         if (hud == null) return;
-        if ( hud.showPlantFood){
-            drawPlantFood(batch,assets,plantFoodAmount,worldWidth,worldHeight);
+        if (hud.showPlantFood) {
+            drawPlantFood(batch, assets, plantFoodAmount, worldWidth, worldHeight);
         }
-        if (hud.showWave){
-            drawWave(batch,assets,progress, totalWaves,worldWidth,worldHeight);
+        if (hud.showWave) {
+            drawWave(batch, assets, progress, totalWaves, worldWidth, worldHeight);
         }
         if (hud.mode == HudViewState.Mode.ZOMBOSS) {
             drawBossHp(batch, assets, hud.timedWarProgress, hud.timedWarGoal, worldWidth, worldHeight);
         }
-        if (hud.showSun){
+        if (hud.showSun) {
             if (zombieSunAmount >= 0) {
                 float leftX = Math.max(220f, worldWidth * 0.22f);
                 float rightX = leftX + 110f;
@@ -62,42 +75,84 @@ public final class HudOverlayRenderer {
             }
         }
     }
+
+    public boolean hitTestPlantFoodButton(AssetContext assets, float worldX, float worldY,
+            float worldWidth, float worldHeight) {
+        PlantFoodHudLayout layout = layoutPlantFood(assets, worldWidth, worldHeight);
+        if (layout == null) {
+            return false;
+        }
+        return worldX >= layout.buttonX && worldX <= layout.buttonX + layout.buttonW
+                && worldY >= layout.buttonY && worldY <= layout.buttonY + layout.buttonH;
+    }
+
+    public static PlantFoodHudLayout layoutPlantFood(AssetContext assets, float worldWidth, float worldHeight) {
+        if (assets == null) {
+            return null;
+        }
+        TextureRegion bank = assets.region(PF_BANK);
+        TextureRegion button = assets.region(PF_BUTTON);
+        if (bank == null || button == null || bank.getRegionHeight() <= 0 || button.getRegionHeight() <= 0) {
+            return null;
+        }
+
+        float bankH = PF_BANK_H;
+        float bankW = bankH * (bank.getRegionWidth() / (float) bank.getRegionHeight());
+        float x = 120f;
+        float y = worldHeight - bankH - HUD_TOP_INSET;
+
+        float btnH = bankH * 1.15f;
+        float btnW = btnH * (button.getRegionWidth() / (float) button.getRegionHeight());
+        float buttonX = x + bankW - btnW * 0.28f;
+        float buttonY = y + (bankH - btnH) * 0.5f;
+
+        float slotH = bankH * 0.72f;
+        TextureRegion leaf = assets.region(PF_LEAF);
+        float slotW = leaf != null && leaf.getRegionHeight() > 0
+                ? slotH * (leaf.getRegionWidth() / (float) leaf.getRegionHeight())
+                : slotH;
+        float slotGap = -8f;
+        float slotStartX = x + bankW * 0.16f + 7f;
+        float slotY = y + (bankH - slotH) * 0.5f;
+
+        return new PlantFoodHudLayout(
+                x, y, bankW, bankH,
+                buttonX, buttonY, btnW, btnH,
+                slotStartX, slotY, slotW, slotH, slotGap);
+    }
+
     private void drawPlantFood(SpriteBatch batch, AssetContext assets,
                                int plantFoodAmount, float worldWidth, float worldHeight) {
+        PlantFoodHudLayout layout = layoutPlantFood(assets, worldWidth, worldHeight);
         TextureRegion bank = assets.region(PF_BANK);
-        if (bank == null) {
+        if (layout == null || bank == null) {
             return;
         }
 
-        float bankH = Math.min(50f, worldHeight * 0.1f);
-        float bankW = bankH * (bank.getRegionWidth() / (float) bank.getRegionHeight());
-        float x = 120f;
-        float y = worldHeight - bankH - 16f;
-
         batch.setColor(Color.WHITE);
-        batch.draw(bank, x, y, bankW, bankH);
+        batch.draw(bank, layout.bankX, layout.bankY, layout.bankW, layout.bankH);
 
-        TextureRegion slot = assets.region(PF_SLOT);
-        if (slot != null) {
+        TextureRegion leaf = assets.region(PF_LEAF);
+        if (leaf != null) {
             int filled = Math.max(0, Math.min(PF_MAX_SLOTS, plantFoodAmount));
-            float slotH = bankH * 0.42f;
-            float slotW = slotH * (slot.getRegionWidth() / (float) slot.getRegionHeight());
-            float gap = slotW * 0.35f;
-            float startX = x + bankW * 0.18f;
-            float slotY = y + (bankH - slotH) * 0.55f;
-
             for (int i = 0; i < filled; i++) {
-                batch.draw(slot, startX + i * (slotW + gap), slotY, slotW, slotH);
+                batch.draw(leaf,
+                        layout.slotStartX + i * (layout.slotW + layout.slotGap),
+                        layout.slotY,
+                        layout.slotW,
+                        layout.slotH);
             }
         }
 
-        TextureRegion button = assets.region(PF_BUTTON);
+        TextureRegion button = assets.region(plantFoodMode ? PF_BUTTON_DOWN : PF_BUTTON);
+        if (button == null) {
+            button = assets.region(PF_BUTTON);
+        }
         if (button != null) {
-            float btnH = bankH * 0.85f;
-            float btnW = btnH * (button.getRegionWidth() / (float) button.getRegionHeight());
-            batch.draw(button, x + bankW - btnW * 0.35f, y + (bankH - btnH) * 0.5f, btnW, btnH);
+            batch.draw(button, layout.buttonX, layout.buttonY, layout.buttonW, layout.buttonH);
         }
     }
+
     private void drawWave(SpriteBatch batch, AssetContext assets,
                           float progress, int totalWaves, float worldWidth, float worldHeight) {
         TextureRegion meter = assets.region("IMAGE_UI_HUD_INGAME_PROGRESS_METER");
@@ -223,9 +278,9 @@ public final class HudOverlayRenderer {
         if (backGround == null) {
             return;
         }
-        float backGroundH = 30f;
+        float backGroundH = SUN_BG_H;
         float backGroundW = sideLabel != null ? 95f : 85f;
-        float y = worldHeight - backGroundH - 25f;
+        float y = worldHeight - backGroundH - HUD_TOP_INSET;
         batch.setColor(Color.WHITE);
         batch.draw(backGround, x, y, backGroundW, backGroundH);
 
@@ -243,6 +298,44 @@ public final class HudOverlayRenderer {
         String text = sideLabel != null
                 ? sideLabel + " " + sunAmount
                 : String.valueOf(sunAmount);
-        font.draw(batch, text, x + 28f, y + 21f);
+        glyphLayout.setText(font, text);
+        float textX = x + 28f;
+        float textY = y + (backGroundH + glyphLayout.height) * 0.5f;
+        font.draw(batch, glyphLayout, textX, textY);
+    }
+
+    public static final class PlantFoodHudLayout {
+        public final float bankX;
+        public final float bankY;
+        public final float bankW;
+        public final float bankH;
+        public final float buttonX;
+        public final float buttonY;
+        public final float buttonW;
+        public final float buttonH;
+        public final float slotStartX;
+        public final float slotY;
+        public final float slotW;
+        public final float slotH;
+        public final float slotGap;
+
+        public PlantFoodHudLayout(
+                float bankX, float bankY, float bankW, float bankH,
+                float buttonX, float buttonY, float buttonW, float buttonH,
+                float slotStartX, float slotY, float slotW, float slotH, float slotGap) {
+            this.bankX = bankX;
+            this.bankY = bankY;
+            this.bankW = bankW;
+            this.bankH = bankH;
+            this.buttonX = buttonX;
+            this.buttonY = buttonY;
+            this.buttonW = buttonW;
+            this.buttonH = buttonH;
+            this.slotStartX = slotStartX;
+            this.slotY = slotY;
+            this.slotW = slotW;
+            this.slotH = slotH;
+            this.slotGap = slotGap;
+        }
     }
 }

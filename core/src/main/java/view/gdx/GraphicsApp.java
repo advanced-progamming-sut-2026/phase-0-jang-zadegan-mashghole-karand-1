@@ -5,11 +5,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import app.DesktopApp;
 import model.data.content.chapter.ChapterType;
+import model.data.plant.PlantType;
 import model.rule.SessionContext;
 import model.service.HudViewState;
 import view.MenuType;
@@ -22,6 +24,7 @@ import view.gdx.lawn.LawnGridDebugOverlay;
 import view.gdx.lawn.LawnLayout;
 import view.gdx.lawn.LawnPlantInput;
 import view.gdx.lawn.LawnRenderer;
+import view.gdx.lawn.PlantPlacementFeedbackRenderer;
 import view.gdx.lawn.SeedTrayRenderer;
 import view.gdx.ui.HudOverlayRenderer;
 import view.gdx.ui.MenuBackdrop;
@@ -41,6 +44,7 @@ public final class GraphicsApp extends ApplicationAdapter {
     private LawnLayout lawnLayout;
     private LawnBackgroundRenderer lawnBackground;
     private LawnRenderer lawnRenderer;
+    private PlantPlacementFeedbackRenderer placementFeedback;
     private SeedTrayRenderer seedTray;
     private ConveyorTrayAnimator conveyorAnimator;
     private LawnPlantInput plantInput;
@@ -69,12 +73,13 @@ public final class GraphicsApp extends ApplicationAdapter {
         animStates = new AnimStateStore();
         visibilityResolver = new VisibilityResolver();
         lawnRenderer = new LawnRenderer(catalog, lawnLayout, animStates, visibilityResolver);
+        placementFeedback = new PlantPlacementFeedbackRenderer(catalog, lawnLayout, animStates);
         seedTray = new SeedTrayRenderer();
         conveyorAnimator = new ConveyorTrayAnimator();
-        plantInput = new LawnPlantInput(worldViewport, lawnLayout, seedTray);
+        hudOverlay = new HudOverlayRenderer();
+        plantInput = new LawnPlantInput(worldViewport, lawnLayout, seedTray, hudOverlay);
         lawnGridDebug = new LawnGridDebugOverlay();
 
-        hudOverlay = new HudOverlayRenderer();
         ui.setGameWorldInput(plantInput);
 
         Gdx.app.log("GraphicsApp", "ready assets=" + assets.status()
@@ -140,6 +145,8 @@ public final class GraphicsApp extends ApplicationAdapter {
             }
             plantInput.bind(app.controller(), assets, hud, leftSun, rightSun, worldWidth,
                     worldViewport::getWorldHeight, conveyorAnimator, hudTopReserve);
+            plantInput.refreshHoverFromPointer();
+            renderPlacementFeedback(batch);
             seedTray.render(batch, assets, hud, chapter, leftSun, rightSun, worldHeight, worldWidth,
                     plantInput.selectedPlantName(), plantInput.selectedConveyorIndex(),
                     conveyorAnimator, hudTopReserve,
@@ -155,12 +162,16 @@ public final class GraphicsApp extends ApplicationAdapter {
                     progress = session.getWaveManager().getLevelProgress(app.model().getState());
                 }
             }
+            hudOverlay.setPlantFoodMode(plantInput.isPlantFoodMode());
             hudOverlay.render(batch, assets, hud, plantSun, dualSun ? zombieSun : -1, pf, progress,
                     totalWaves, worldWidth, worldHeight);
+            renderPlantFoodCursor(batch);
             batch.end();
             lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
         } else {
             plantInput.clearSelection();
+            plantInput.clearPlantFoodMode();
+            plantInput.clearHover();
             conveyorAnimator.reset();
             menuBackdrop.render(batch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
@@ -172,6 +183,45 @@ public final class GraphicsApp extends ApplicationAdapter {
     public void resize(int width, int height) {
         worldViewport.update(width, height, true);
         ui.resize(width, height);
+    }
+
+    private void renderPlacementFeedback(SpriteBatch batch) {
+        if (placementFeedback == null || plantInput == null) {
+            return;
+        }
+        if (plantInput.isPlantFoodMode()) {
+            if (plantInput.hoverPlantFoodTargetValid()) {
+                placementFeedback.renderPlantFoodTarget(
+                        batch, assets, plantInput.hoverRow(), plantInput.hoverCol());
+            }
+            return;
+        }
+        String selected = plantInput.selectedPlantName();
+        if (selected == null || !plantInput.hasHoverCell()) {
+            return;
+        }
+        PlantType plantType = PlantType.fromName(selected);
+        if (plantType == null) {
+            return;
+        }
+        placementFeedback.render(batch, assets, plantType, plantInput.hoverRow(), plantInput.hoverCol());
+    }
+
+    private void renderPlantFoodCursor(SpriteBatch batch) {
+        if (plantInput == null || !plantInput.isPlantFoodMode() || !plantInput.hasPointerWorld()) {
+            return;
+        }
+        TextureRegion leaf = assets.region(HudOverlayRenderer.PF_LEAF);
+        if (leaf == null || leaf.getRegionHeight() <= 0) {
+            return;
+        }
+        float size = 36f;
+        float w = size * (leaf.getRegionWidth() / (float) leaf.getRegionHeight());
+        float x = plantInput.pointerWorldX() - w * 0.5f;
+        float y = plantInput.pointerWorldY() - size * 0.5f;
+        batch.setColor(1f, 1f, 1f, 0.95f);
+        batch.draw(leaf, x, y, w, size);
+        batch.setColor(1f, 1f, 1f, 1f);
     }
 
     private ChapterType resolveChapter() {

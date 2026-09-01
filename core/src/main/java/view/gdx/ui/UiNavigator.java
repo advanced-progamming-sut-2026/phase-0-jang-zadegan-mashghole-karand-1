@@ -241,8 +241,7 @@ public final class UiNavigator implements Disposable {
     }
 
     private boolean shouldDrawScreenLayer() {
-        return activeScreen != null && lastContext != null;
-    }
+        return activeScreen != null && lastContext != null;    }
 
     private static String prettyName(ScreenType type) {
         return switch (type) {
