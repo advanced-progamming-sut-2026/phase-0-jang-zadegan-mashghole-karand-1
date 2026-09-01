@@ -377,10 +377,12 @@ final class ConsoleOverlayScreens {
         sb.append("  " + CYAN + "2." + RESET + " Critical: " + GREEN + "travel log page critical" + RESET + "\n");
         sb.append("  " + CYAN + "3." + RESET + " High: " + GREEN + "travel log page high" + RESET + "\n");
         sb.append("  " + CYAN + "4." + RESET + " Daily: " + GREEN + "travel log page daily" + RESET + "\n");
-        sb.append("  " + CYAN + "5." + RESET + " Active: " + GREEN + "travel log page active" + RESET + "\n");
-        sb.append("  " + CYAN + "6." + RESET + " Completed: " + GREEN + "travel log page completed" + RESET + "\n");
-        sb.append("  " + CYAN + "7." + RESET + " Minigames: " + GREEN + "menu enter minigames" + RESET + "\n");
-        sb.append("  " + CYAN + "8." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
+        sb.append("  " + CYAN + "5." + RESET + " Main: " + GREEN + "travel log page main" + RESET + "\n");
+        sb.append("  " + CYAN + "6." + RESET + " Epic: " + GREEN + "travel log page epic" + RESET + "\n");
+        sb.append("  " + CYAN + "7." + RESET + " Active: " + GREEN + "travel log page active" + RESET + "\n");
+        sb.append("  " + CYAN + "8." + RESET + " Completed: " + GREEN + "travel log page completed" + RESET + "\n");
+        sb.append("  " + CYAN + "9." + RESET + " Minigames: " + GREEN + "menu enter minigames" + RESET + "\n");
+        sb.append("  " + CYAN + "10." + RESET + " Back: " + GREEN + "menu exit" + RESET + "\n");
         sb.append("\n");
         sb.append(engine.getMessages());
         return sb.toString();
