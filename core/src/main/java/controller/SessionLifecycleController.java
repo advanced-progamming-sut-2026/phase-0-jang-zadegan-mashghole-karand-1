@@ -131,6 +131,7 @@ public class SessionLifecycleController {
         matchResultUi = null;
         model.startSession(config);
         onSessionStart();
+        controllerManager.startLevelIntro();
         controllerManager.refreshView();
         return new CommandResult("Level restarted", true);
     }

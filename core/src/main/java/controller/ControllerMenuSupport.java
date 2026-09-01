@@ -164,6 +164,9 @@ final class ControllerMenuSupport {
                 if (manager.currentMenu == MenuType.MATCH_RESULT) {
                     yield manager.getSessionLifecycleController().returnToLevelSelect();
                 }
+                if (manager.currentMenu == MenuType.LEVEL_OBJECTIVES) {
+                    yield manager.dismissLevelObjectives();
+                }
                 if (manager.isDialogueActive()) {
                     manager.advanceDialogue();
                     yield new CommandResult("Dialogue advanced.", true);

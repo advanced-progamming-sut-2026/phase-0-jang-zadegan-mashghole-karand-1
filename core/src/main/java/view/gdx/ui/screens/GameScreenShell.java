@@ -152,8 +152,8 @@ public final class GameScreenShell implements UiScreen {
             cheatRow.setVisible(false);
             stage.setKeyboardFocus(null);
         }
-        dialogueRoot.setVisible(dialogueActive);
-        if (dialogueActive) {
+        dialogueRoot.setVisible(dialogueActive && menuClear);
+        if (dialogueActive && menuClear) {
             ensureCharacterActors();
             refreshDialogue();
         }

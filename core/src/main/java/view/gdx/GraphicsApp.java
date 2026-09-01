@@ -280,7 +280,8 @@ public final class GraphicsApp extends ApplicationAdapter {
                 || menu == MenuType.MATCH_RESTART
                 || menu == MenuType.MATCH_RESTART_WAIT
                 || menu == MenuType.MATCH_RESULT
-                || menu == MenuType.QUICK_MESSAGES;
+                || menu == MenuType.QUICK_MESSAGES
+                || menu == MenuType.LEVEL_OBJECTIVES;
     }
 
     @Override
