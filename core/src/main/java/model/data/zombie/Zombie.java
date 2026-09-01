@@ -239,6 +239,9 @@ public class Zombie {
         if (type.isZomboss()) {
             return false;
         }
+        if (isHypnotized) {
+            return isAlive;
+        }
         return isAlive && !isEating;
     }
 

@@ -226,7 +226,7 @@ public final class LawnRenderer {
                     animKey(24, zombie.instanceId), x, y, true);
         }
         Map<String, Boolean> visibility = visibilityResolver.forZombie(zombie, visual);
-        beginEntityScale(batch, x, y);
+        beginEntityScale(batch, x, y, zombie.isHypnotized);
         try {
             if (!(visual.companions == null || visual.companions.isEmpty())) {
                 for (int i = 0; i < visual.companions.size(); i++) {
@@ -382,10 +382,15 @@ public final class LawnRenderer {
     }
 
     private void beginEntityScale(SpriteBatch batch, float x, float y) {
+        beginEntityScale(batch, x, y, false);
+    }
+
+    private void beginEntityScale(SpriteBatch batch, float x, float y, boolean flipX) {
         float s = entityScale();
+        float sx = flipX ? -s : s;
         savedTransform.set(batch.getTransformMatrix());
         entityTransform.set(savedTransform);
-        entityTransform.translate(x, y, 0f).scale(s, s, 1f).translate(-x, -y, 0f);
+        entityTransform.translate(x, y, 0f).scale(sx, s, 1f).translate(-x, -y, 0f);
         batch.setTransformMatrix(entityTransform);
     }
 

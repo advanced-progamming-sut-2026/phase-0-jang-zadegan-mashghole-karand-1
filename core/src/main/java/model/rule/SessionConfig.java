@@ -1,6 +1,7 @@
 package model.rule;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -119,7 +120,7 @@ public class SessionConfig {
         }
 
         public Builder boostedPlant(Set<PlantType> boostedPlants) {
-            this.boostedPlants = boostedPlants;
+            this.boostedPlants = boostedPlants == null ? Set.of() : new HashSet<>(boostedPlants);
             return this;
         }
 

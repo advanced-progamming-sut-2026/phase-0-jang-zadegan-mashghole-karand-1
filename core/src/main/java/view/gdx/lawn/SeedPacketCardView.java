@@ -75,6 +75,6 @@ public final class SeedPacketCardView {
                 affordable,
                 false,
                 false,
-                boosted);
+                false);
     }
 }

@@ -39,15 +39,15 @@ public class AncientEgyptRules implements LevelRule {
 
     @Override
     public void onZombieSpawned(Zombie zombie, SessionContext context, GameState state) {
-        if (context.getConfig().levelConfig.totalWaves == state.currentWave) {
-            if (RANDOM.nextDouble() < SANDSTORM_CHANCE) {
-                int tilesToAdvance = MIN_TILES_ADVANCE + RANDOM.nextInt(MAX_TILES_ADVANCE - MIN_TILES_ADVANCE + 1);
-                float advanceLength = tilesToAdvance * GameState.CELL_WIDTH;
-
-                float targetX = zombie.position.x - advanceLength;
-
-                zombie.setSandstorm(targetX);
-            }
+        if (!context.getWaveManager().isFinalWave()) {
+            return;
+        }
+        if (RANDOM.nextDouble() < SANDSTORM_CHANCE) {
+            int tilesToAdvance = MIN_TILES_ADVANCE
+                    + RANDOM.nextInt(MAX_TILES_ADVANCE - MIN_TILES_ADVANCE + 1);
+            float normalEntryX = zombie.col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f;
+            float targetX = normalEntryX - tilesToAdvance * GameState.CELL_WIDTH;
+            zombie.setSandstorm(targetX);
         }
     }
 }

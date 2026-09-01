@@ -6,10 +6,12 @@ import model.core.ReadOnlyGameState;
 import model.data.Barrel.Barrel;
 import model.data.Grave.Grave;
 import model.data.plant.Plant;
+import model.data.plant.PlantType;
 import model.data.plant.abilities.config.Direction;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.effects.DamageEffect;
 import model.data.plant.abilities.effects.FreezeEffect;
+import model.data.plant.abilities.effects.HypnotizeEffect;
 import model.data.plant.abilities.runtime.PlantDefenderAbility;
 import model.data.plant.stuns.BlockingStun;
 import model.data.plant.stuns.CatStun;
@@ -101,13 +103,17 @@ public class CombatSystem {
 
     private boolean handleZombieProjectileObstacles(GameState state, EventBus eventBus,
             Iterator<Projectile> projIter, Projectile p) {
-        Grave graveAhead = state.graves.stream().filter(g -> g.row == p.row && g.col >= p.col)
-                .min(Comparator.comparingInt(g -> g.col)).orElse(null);
-        if (graveAhead != null) {
-            if (Math.abs(graveAhead.pos.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
-                graveAhead.takeDamage(p.damage, state, eventBus);
-                projIter.remove();
-                return true;
+        if (p.type != ProjectileType.SPIKE) {
+            Grave graveAhead = state.graves.stream()
+                    .filter(g -> g.row == p.row && g.col >= p.col)
+                    .min(Comparator.comparingInt(g -> g.col))
+                    .orElse(null);
+            if (graveAhead != null) {
+                if (Math.abs(graveAhead.pos.x - p.position.x) < GameState.PROJECTILE_HIT_RADIUS) {
+                    graveAhead.takeDamage(p.damage, state, eventBus);
+                    projIter.remove();
+                    return true;
+                }
             }
         }
         Plant blocker = state.plants.stream()
@@ -186,6 +192,12 @@ public class CombatSystem {
     private void applyZombieProjectileHit(GameState state, EventBus eventBus, boolean freezeProjectilesEnabled,
             Iterator<Projectile> projIter, Projectile p, Iterator<Zombie> zombieIter, Zombie z) {
         z.abilities.forEach(a -> a.onProjectileHit(z, p));
+
+        if (p.sourcePlant == PlantType.Caulipower) {
+            new HypnotizeEffect().apply(z, state, eventBus, p.sourcePlant);
+            projIter.remove();
+            return;
+        }
 
         applyProjectileEffects(state, p, z, freezeProjectilesEnabled);
         if (p instanceof LobbedProjectile lob) {
