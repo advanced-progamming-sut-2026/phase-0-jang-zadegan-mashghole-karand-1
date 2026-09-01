@@ -262,6 +262,28 @@ public final class LawnRenderer {
             drawOverlayPam(batch, assets, player, SANDSTORM_TOP_PAM, "loop",
                     animKey(25, zombie.instanceId), x, y, true);
         }
+        drawFlyingArm(batch, player, visual, zombie, y);
+    }
+
+    private void drawFlyingArm(SpriteBatch batch, PamPlayer player, ZombieVisualDef visual, Zombie zombie,
+            float rowY) {
+        if (zombie.armDropTicks <= 0 || visual.arm == null || visual.arm.flyingPart == null) {
+            return;
+        }
+        String clipName = visual.walkClip != null ? visual.walkClip : visual.idleClip;
+        if (clipName == null) {
+            return;
+        }
+        float t = 1f - (zombie.armDropTicks / (float) Zombie.ARM_DROP_TICKS);
+        float spawnX = layout.originX + zombie.armDropX * layout.scaleX;
+        float flyX = spawnX + layout.cellWidth() * 0.7f * t;
+        float flyY = rowY + layout.cellHeight() * (0.85f * t - 1.7f * t * t);
+        beginEntityScale(batch, flyX, flyY);
+        try {
+            player.drawPart(batch, visual.pamPath, clipName, 0f, flyX, flyY, visual.arm.flyingPart);
+        } finally {
+            endEntityScale(batch);
+        }
     }
 
     private static String desiredZombieClip(Zombie zombie, ZombieVisualDef visual) {

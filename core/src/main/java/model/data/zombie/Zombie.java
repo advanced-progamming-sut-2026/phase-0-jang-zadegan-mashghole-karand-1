@@ -21,6 +21,7 @@ public class Zombie {
     public static final String DIE_CLIP = "die";
     private static final int HIT_FLASH_TICKS = 3;
     private static final int DEATH_ANIM_TICKS = 3 * GameLoop.TICKS_PER_SECOND;
+    public static final int ARM_DROP_TICKS = 15;
 
     public final int instanceId;
     public final ZombieType type;
@@ -52,6 +53,10 @@ public class Zombie {
     public boolean animClipLoop;
     public int hitFlashTicks = 0;
     public int deathAnimTicks = 0;
+    public boolean lostArm = false;
+    public int armDropTicks = 0;
+    public float armDropX;
+    public float armDropY;
 
     private int iceHP = 0;
     private boolean isIced = false;
@@ -139,6 +144,25 @@ public class Zombie {
         boolean armorLost = armorHealth() < armorBefore;
         if (hpLost || armorLost) {
             triggerHitReaction();
+            maybeLoseArm();
+        }
+    }
+
+    private void maybeLoseArm() {
+        if (lostArm || !isAlive) {
+            return;
+        }
+        if (type == null || type.isZomboss() || type == ZombieType.IMP || type == ZombieType.IMP_DRAGON) {
+            return;
+        }
+        if (totalHp <= 0 || hp > totalHp / 2) {
+            return;
+        }
+        lostArm = true;
+        armDropTicks = ARM_DROP_TICKS;
+        if (position != null) {
+            armDropX = position.x;
+            armDropY = position.y;
         }
     }
 
@@ -158,6 +182,9 @@ public class Zombie {
         }
         if (!isAlive && deathAnimTicks > 0) {
             deathAnimTicks--;
+        }
+        if (armDropTicks > 0) {
+            armDropTicks--;
         }
     }
 
