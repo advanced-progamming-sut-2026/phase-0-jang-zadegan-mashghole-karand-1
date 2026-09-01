@@ -95,7 +95,7 @@ public class CombatSystem {
             if (p instanceof BouncingProjectile bouncing) {
                 bouncing.hitZombies.add(z);
             }
-            applyZombieProjectileHit(state, eventBus, freezeProjectilesEnabled, projIter, p, null, z);
+            applyZombieProjectileHit(state, eventBus, freezeProjectilesEnabled, projIter, p, z);
             return true;
         }
         return false;
@@ -154,10 +154,7 @@ public class CombatSystem {
 
     private boolean handleZombieProjectileZombieCollision(GameState state, EventBus eventBus,
             boolean freezeProjectilesEnabled, Iterator<Projectile> projIter, Projectile p) {
-        Iterator<Zombie> zombieIter = state.zombies.iterator();
-        while (zombieIter.hasNext()) {
-            Zombie z = zombieIter.next();
-
+        for (Zombie z : state.zombies) {
             if (z.isHitByProjectile(p)) {
                 boolean blocked = z.abilities.stream().anyMatch(a -> a.blocksProjectiles(z, p));
                 if (blocked) {
@@ -182,7 +179,7 @@ public class CombatSystem {
                     bouncingProjectile.hitZombies.add(z);
                 }
 
-                applyZombieProjectileHit(state, eventBus, freezeProjectilesEnabled, projIter, p, zombieIter, z);
+                applyZombieProjectileHit(state, eventBus, freezeProjectilesEnabled, projIter, p, z);
                 return true;
             }
         }
@@ -190,7 +187,7 @@ public class CombatSystem {
     }
 
     private void applyZombieProjectileHit(GameState state, EventBus eventBus, boolean freezeProjectilesEnabled,
-            Iterator<Projectile> projIter, Projectile p, Iterator<Zombie> zombieIter, Zombie z) {
+            Iterator<Projectile> projIter, Projectile p, Zombie z) {
         z.abilities.forEach(a -> a.onProjectileHit(z, p));
 
         if (p.sourcePlant == PlantType.Caulipower) {
@@ -212,7 +209,7 @@ public class CombatSystem {
             applyLobSplash(state, eventBus, freezeProjectilesEnabled, lob, z);
         }
         removeOrContinueProjectile(projIter, p);
-        handleZombieDeathAfterHit(state, zombieIter, p, z);
+        handleZombieDeathAfterHit(state, p, z);
     }
 
     private void removeOrContinueProjectile(Iterator<Projectile> projIter, Projectile p) {
@@ -244,13 +241,10 @@ public class CombatSystem {
         projIter.remove();
     }
 
-    private void handleZombieDeathAfterHit(GameState state, Iterator<Zombie> zombieIter, Projectile p, Zombie z) {
+    private void handleZombieDeathAfterHit(GameState state, Projectile p, Zombie z) {
         if (z != null && !z.isAlive) {
             z.lastHitBy = p.sourcePlant;
             z.kill(state);
-            if (zombieIter != null) {
-                zombieIter.remove();
-            }
         }
     }
 

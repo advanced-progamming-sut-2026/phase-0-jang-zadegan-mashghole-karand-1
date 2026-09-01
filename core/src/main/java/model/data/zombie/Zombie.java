@@ -3,6 +3,7 @@ package model.data.zombie;
 import java.util.*;
 
 import model.core.EventBus;
+import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.PlantType;
@@ -16,6 +17,11 @@ import model.event.events.ZombieDroppedLootEvent;
 public class Zombie {
     private static final int ICE_HP = 600;
     private static int SPEED_MULTIPLIER = 4;
+    public static final String HIT_CLIP = "hit";
+    public static final String DIE_CLIP = "die";
+    private static final int HIT_FLASH_TICKS = 3;
+    private static final int DEATH_ANIM_TICKS = 3 * GameLoop.TICKS_PER_SECOND;
+    public static final int ARM_DROP_TICKS = 15;
 
     public final int instanceId;
     public final ZombieType type;
@@ -45,6 +51,12 @@ public class Zombie {
     public boolean forceWalkAnim = false;
     public String animClip;
     public boolean animClipLoop;
+    public int hitFlashTicks = 0;
+    public int deathAnimTicks = 0;
+    public boolean lostArm = false;
+    public int armDropTicks = 0;
+    public float armDropX;
+    public float armDropY;
 
     private int iceHP = 0;
     private boolean isIced = false;
@@ -96,15 +108,13 @@ public class Zombie {
 
     public void takeDamage(int damage) {
         int hpBefore = this.hp;
+        int armorBefore = armorHealth();
         if (armor != null && armor.isIntact()) {
             damage = armor.absorbDamage(damage);
         }
 
         this.hp -= damage;
-
-        if (this.hp <= 0) {
-            this.isAlive = false;
-        }
+        onDamaged(hpBefore, armorBefore);
         applyZombossPhaseStun(hpBefore);
     }
 
@@ -114,13 +124,76 @@ public class Zombie {
             return;
         }
         int hpBefore = this.hp;
+        int armorBefore = armorHealth();
         this.hp -= damage;
+        onDamaged(hpBefore, armorBefore);
+        applyZombossPhaseStun(hpBefore);
+    }
 
+    private int armorHealth() {
+        return armor != null && armor.isIntact() ? armor.currentHealth : 0;
+    }
+
+    private void onDamaged(int hpBefore, int armorBefore) {
         if (this.hp <= 0) {
             this.isAlive = false;
-            isEating = false;
+            this.isEating = false;
+            return;
         }
-        applyZombossPhaseStun(hpBefore);
+        boolean hpLost = this.hp < hpBefore;
+        boolean armorLost = armorHealth() < armorBefore;
+        if (hpLost || armorLost) {
+            triggerHitReaction();
+            maybeLoseArm();
+        }
+    }
+
+    private void maybeLoseArm() {
+        if (lostArm || !isAlive) {
+            return;
+        }
+        if (type == null || type.isZomboss() || type == ZombieType.IMP || type == ZombieType.IMP_DRAGON) {
+            return;
+        }
+        if (totalHp <= 0 || hp > totalHp / 2) {
+            return;
+        }
+        lostArm = true;
+        armDropTicks = ARM_DROP_TICKS;
+        if (position != null) {
+            armDropX = position.x;
+            armDropY = position.y;
+        }
+    }
+
+    private void triggerHitReaction() {
+        hitFlashTicks = HIT_FLASH_TICKS;
+        if (type != null && type.isZomboss()) {
+            return;
+        }
+        if (animClip == null) {
+            playAnim(HIT_CLIP, false);
+        }
+    }
+
+    public void tickAnimTimers() {
+        if (hitFlashTicks > 0) {
+            hitFlashTicks--;
+        }
+        if (!isAlive && deathAnimTicks > 0) {
+            deathAnimTicks--;
+        }
+        if (armDropTicks > 0) {
+            armDropTicks--;
+        }
+    }
+
+    public boolean shouldRemove() {
+        return !isAlive && deathAnimTicks <= 0;
+    }
+
+    public void finishDeathAnim() {
+        deathAnimTicks = 0;
     }
 
     private void applyZombossPhaseStun(int hpBefore) {
@@ -145,6 +218,9 @@ public class Zombie {
         this.hp = 0;
         this.isAlive = false;
         this.isEating = false;
+        this.hitFlashTicks = 0;
+        this.deathAnimTicks = DEATH_ANIM_TICKS;
+        playAnim(DIE_CLIP, false);
 
         if (state == null) {
             return;

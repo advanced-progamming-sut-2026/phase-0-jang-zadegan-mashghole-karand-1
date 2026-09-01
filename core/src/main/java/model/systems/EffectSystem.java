@@ -32,6 +32,7 @@ public class EffectSystem {
                     zombie.stunned = false;
                 }
             }
+            zombie.tickAnimTimers();
         }
     }
 

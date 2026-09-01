@@ -93,49 +93,72 @@ public final class ZombieVisualDefs {
     private static void registerBasicZombies(Map<ZombieType, ZombieVisualDef> zombies,
             ArmorVisualRecipe cone, ArmorVisualRecipe brick, ArmorVisualRecipe knight,
             ArmorVisualRecipe bucket, ArmorVisualRecipe newspaper) {
-        zombies.put(ZombieType.BASIC, ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die"));
+        zombies.put(ZombieType.BASIC, ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.darkBasic()));
         zombies.put(ZombieType.CONE_HEAD,
-                new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", cone, Collections.emptyList()));
+                new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", cone, Collections.emptyList())
+                        .withArm(ArmVisualRecipe.darkBasic()));
         zombies.put(ZombieType.BUCKET_HEAD,
-                new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", bucket, Collections.emptyList()));
+                new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", bucket, Collections.emptyList())
+                        .withArm(ArmVisualRecipe.darkBasic()));
         zombies.put(ZombieType.BRICK_HEAD,
-                new ZombieVisualDef(EGYPT_BASIC, "idle", "walk", "eat", "die", brick, Collections.emptyList()));
+                new ZombieVisualDef(EGYPT_BASIC, "idle", "walk", "eat", "die", brick, Collections.emptyList())
+                        .withArm(ArmVisualRecipe.egyptBasic()));
         zombies.put(ZombieType.KNIGHT,
-                new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", knight, Collections.emptyList()));
-        zombies.put(ZombieType.GARGANTUAR, ZombieVisualDef.plain(DEFAULT_GARGANTUAR, "idle", "walk", "eat", "die"));
+                new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", knight, Collections.emptyList())
+                        .withArm(ArmVisualRecipe.darkBasic()));
+        zombies.put(ZombieType.GARGANTUAR, ZombieVisualDef.plain(DEFAULT_GARGANTUAR, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.gargantuar()));
         zombies.put(ZombieType.IMP, ZombieVisualDef.plain(IMP_BITCH, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.ALL_STAR, ZombieVisualDef.plain(ALL_STAR, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.ARCADE_ZOMBIE, new ZombieVisualDef(ARCADE, "idle", "walk", "eat", "die",null,
-                List.of(new CompanionVisual("768/FULL/EFFECTS/80S_ARCADE_CABINET/80S_ARCADE_CABINET.PAM"
-                        ,"idle", -100,0,true))));
-        zombies.put(ZombieType.PARASOL_ZOMBIE, ZombieVisualDef.plain(PARASOL, "idle", "walk", "eat", "die"));
+        zombies.put(ZombieType.ALL_STAR, ZombieVisualDef.plain(ALL_STAR, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.allStar()));
+        zombies.put(ZombieType.ARCADE_ZOMBIE, new ZombieVisualDef(ARCADE, "idle", "walk", "eat", "die", null,
+                List.of(new CompanionVisual("768/FULL/EFFECTS/80S_ARCADE_CABINET/80S_ARCADE_CABINET.PAM",
+                        "idle", -100, 0, true)))
+                .withArm(ArmVisualRecipe.arcade()));
+        zombies.put(ZombieType.PARASOL_ZOMBIE, ZombieVisualDef.plain(PARASOL, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.parasol()));
         zombies.put(ZombieType.TURQUOISE_ZOMBIE, ZombieVisualDef.plain(TURQUOISE, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.PROSPECTOR_ZOMBIE, ZombieVisualDef.plain(PROSPECTOR, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.PIANIST,new ZombieVisualDef(PIANO,"idle","play", "idle","die", null, List.of(
-                new CompanionVisual("768/FULL/ZOMBIE/PIANO/PIANO.PAM", "play",-70,0,false))));
+        zombies.put(ZombieType.PROSPECTOR_ZOMBIE, ZombieVisualDef.plain(PROSPECTOR, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.prospector()));
+        // piano PAM has no walk/eat clips
+        zombies.put(ZombieType.PIANIST, new ZombieVisualDef(PIANO, "idle", "play", "idle", "die", null, List.of(
+                new CompanionVisual("768/FULL/ZOMBIE/PIANO/PIANO.PAM", "play", -70, 0, false))));
         zombies.put(ZombieType.NEWSPAPER_ZOMBIE,
-                new ZombieVisualDef(
-                        NEWSPAPER, "idle_newspaper", "walk_newspaper", "eat_newspaper", "die",
-                        newspaper, Collections.emptyList()));
-        zombies.put(ZombieType.BARREL_ROLLER, ZombieVisualDef.plain(BARREL_ROLLER, "idle", "walk", "eat", "die"));
+                new ZombieVisualDef(NEWSPAPER, "idle_newspaper", "walk_newspaper", "eat_newspaper", "die",
+                        newspaper, Collections.emptyList())
+                        .withArm(ArmVisualRecipe.newspaper()));
+        zombies.put(ZombieType.BARREL_ROLLER, ZombieVisualDef.plain(BARREL_ROLLER, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.barrel()));
     }
 
     private static void registerSpecialZombies(Map<ZombieType, ZombieVisualDef> zombies) {
-        zombies.put(ZombieType.RA_ZOMBIE, ZombieVisualDef.plain(RA, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.EXPLORER_ZOMBIE, ZombieVisualDef.plain(EXPLORER, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.TOMB_RAISER, ZombieVisualDef.plain(TOMBRAISER, "idle", "walk", "eat", "die"));
+        zombies.put(ZombieType.RA_ZOMBIE, ZombieVisualDef.plain(RA, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.ra()));
+        zombies.put(ZombieType.EXPLORER_ZOMBIE, ZombieVisualDef.plain(EXPLORER, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.explorer()));
+        zombies.put(ZombieType.TOMB_RAISER, ZombieVisualDef.plain(TOMBRAISER, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.tombRaiser()));
         zombies.put(ZombieType.DODO_RIDER_ZOMBIE, ZombieVisualDef.plain(DODO_RIDER, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.HUNTER, ZombieVisualDef.plain(HUNTER, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.TROGLOBITE, ZombieVisualDef.plain(TROGLOBITE, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.FISHERMAN_ZOMBIE, ZombieVisualDef.plain(FISHERMAN, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.SNORKEL_ZOMBIE, ZombieVisualDef.plain(SNORKEL, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.OCTOPUS_ZOMBIE, ZombieVisualDef.plain(OCTOPUS, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.JESTER_ZOMBIE, ZombieVisualDef.plain(JESTER, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.WIZARD_ZOMBIE, ZombieVisualDef.plain(WIZARD, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.KING, ZombieVisualDef.plain(KING, "idle", "walk", "eat", "die"));
+        zombies.put(ZombieType.HUNTER, ZombieVisualDef.plain(HUNTER, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.hunter()));
+        zombies.put(ZombieType.TROGLOBITE, ZombieVisualDef.plain(TROGLOBITE, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.troglobite()));
+        zombies.put(ZombieType.FISHERMAN_ZOMBIE, ZombieVisualDef.plain(FISHERMAN, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.raincoat()));
+        zombies.put(ZombieType.SNORKEL_ZOMBIE, ZombieVisualDef.plain(SNORKEL, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.snorkel()));
+        zombies.put(ZombieType.OCTOPUS_ZOMBIE, ZombieVisualDef.plain(OCTOPUS, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.octopus()));
+        zombies.put(ZombieType.JESTER_ZOMBIE, ZombieVisualDef.plain(JESTER, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.jester()));
+        zombies.put(ZombieType.WIZARD_ZOMBIE, ZombieVisualDef.plain(WIZARD, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.wizard()));
+        zombies.put(ZombieType.KING, ZombieVisualDef.plain(KING, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.king()));
         zombies.put(ZombieType.IMP_DRAGON, ZombieVisualDef.plain(IMP_DRAGON, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.SUN_ZOMBIE,
-                ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die")); // temporary
+        zombies.put(ZombieType.SUN_ZOMBIE, ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.darkBasic())); // temporary
     }
 
     private static void registerZombossZombies(Map<ZombieType, ZombieVisualDef> zombies) {
