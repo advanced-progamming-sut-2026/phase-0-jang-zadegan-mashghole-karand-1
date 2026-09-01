@@ -382,11 +382,17 @@ public class ZombossAbility implements ZombieAbilityConfig {
             };
             case ZOMBOT_DRAGON -> new ZombieType[] {
                     ZombieType.BASIC, ZombieType.KNIGHT, ZombieType.JESTER_ZOMBIE,
-                    ZombieType.WIZARD_ZOMBIE, ZombieType.CONE_HEAD
+                    ZombieType.WIZARD_ZOMBIE, ZombieType.CONE_HEAD, ZombieType.IMP_DRAGON,
+                    ZombieType.BUCKET_HEAD, ZombieType.KING
             };
             case ZOMBOT_SHARK -> new ZombieType[] {
                     ZombieType.BASIC, ZombieType.SNORKEL_ZOMBIE, ZombieType.OCTOPUS_ZOMBIE,
-                    ZombieType.IMP, ZombieType.CONE_HEAD, ZombieType.BUCKET_HEAD
+                    ZombieType.IMP, ZombieType.CONE_HEAD, ZombieType.BUCKET_HEAD,
+                    ZombieType.FISHERMAN_ZOMBIE, ZombieType.BARREL_ROLLER
+            };
+            case ZOMBOT_MAMMOTH -> new ZombieType[] {
+                    ZombieType.BASIC, ZombieType.CONE_HEAD, ZombieType.BUCKET_HEAD,
+                    ZombieType.HUNTER, ZombieType.TROGLOBITE, ZombieType.DODO_RIDER_ZOMBIE
             };
             default -> new ZombieType[] { ZombieType.BASIC, ZombieType.CONE_HEAD };
         };

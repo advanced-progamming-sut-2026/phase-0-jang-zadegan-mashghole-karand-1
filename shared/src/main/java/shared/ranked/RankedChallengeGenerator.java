@@ -19,7 +19,12 @@ public final class RankedChallengeGenerator {
     };
 
     private static final String[] POOL = {
-            "BASIC", "CONE_HEAD", "BUCKET_HEAD", "IMP", "RA_ZOMBIE", "EXPLORER_ZOMBIE"
+            "BASIC", "CONE_HEAD", "BUCKET_HEAD", "BRICK_HEAD", "KNIGHT",
+            "IMP", "RA_ZOMBIE", "EXPLORER_ZOMBIE", "TOMB_RAISER",
+            "SNORKEL_ZOMBIE", "OCTOPUS_ZOMBIE", "HUNTER", "TROGLOBITE",
+            "DODO_RIDER_ZOMBIE", "JESTER_ZOMBIE", "IMP_DRAGON",
+            "NEWSPAPER_ZOMBIE", "BARREL_ROLLER", "WIZARD_ZOMBIE",
+            "FISHERMAN_ZOMBIE", "ALL_STAR", "GARGANTUAR"
     };
 
     private static final int BASE_WAVE_POINTS = 1000;
@@ -45,9 +50,8 @@ public final class RankedChallengeGenerator {
         dto.totalWaves = 4 + rng.nextInt(3);
         dto.startingSun = 50 + rng.nextInt(6) * 25;
 
-        int poolSize = 3 + rng.nextInt(3);
+        int poolSize = 5 + rng.nextInt(4);
         List<String> pool = new ArrayList<>();
-        pool.add("BASIC");
         while (pool.size() < poolSize) {
             String z = POOL[rng.nextInt(POOL.length)];
             if (!pool.contains(z)) {
@@ -137,9 +141,14 @@ public final class RankedChallengeGenerator {
             return 100;
         }
         return switch (type) {
-            case "BASIC", "IMP", "RA_ZOMBIE" -> 100;
-            case "CONE_HEAD", "EXPLORER_ZOMBIE" -> 200;
-            case "BUCKET_HEAD" -> 400;
+            case "BASIC", "IMP", "RA_ZOMBIE", "IMP_DRAGON" -> 100;
+            case "CONE_HEAD", "EXPLORER_ZOMBIE", "SNORKEL_ZOMBIE", "BARREL_ROLLER" -> 200;
+            case "TOMB_RAISER", "NEWSPAPER_ZOMBIE" -> 300;
+            case "BUCKET_HEAD", "JESTER_ZOMBIE", "HUNTER" -> 400;
+            case "KNIGHT", "TROGLOBITE", "DODO_RIDER_ZOMBIE" -> 550;
+            case "BRICK_HEAD", "WIZARD_ZOMBIE", "FISHERMAN_ZOMBIE", "OCTOPUS_ZOMBIE" -> 700;
+            case "ALL_STAR" -> 1000;
+            case "GARGANTUAR" -> 1500;
             default -> 100;
         };
     }

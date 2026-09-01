@@ -69,7 +69,7 @@ public class WaveManager {
         this.difficultyLevel = difficultyLevel;
         this.totalWaves = config.totalWaves;
         this.zombiePool = config.availableZombies.isEmpty()
-                ? ZombiePool.forChapter(config.chapterType)
+                ? ZombiePool.forChapter(config.chapterType, config.levelNumber)
                 : ZombiePool.fromTypes(config.availableZombies);
         this.waveActive = false;
         this.finalWaveComplete = false;
@@ -235,26 +235,27 @@ public class WaveManager {
     private ZombieWave buildWaveFromBudget(int budget) {
         List<ZombieSpawn> spawns = new ArrayList<>();
         int remainingBudget = budget;
+        ZombieType lastType = null;
+        int guard = 0;
 
-        while (remainingBudget >= 0) {
-            ZombieType type = zombiePool.getRandomZombie(remainingBudget);
+        while (remainingBudget > 0 && guard++ < 64) {
+            ZombieType type = zombiePool.getRandomZombie(remainingBudget, lastType);
 
             if (type == null) {
-                ZombieType cheapest = zombiePool.getCheapestZombie();
-                if (cheapest != null) {
-                    spawns.add(new ZombieSpawn(cheapest, 1));
-                    remainingBudget = 0;
-                }
                 break;
             }
 
             int cost = zombiePool.getCost(type);
+            if (cost <= 0) {
+                break;
+            }
 
-            int maxCount = Math.min(3, remainingBudget / cost);
-            int count = 1 + (int) (Math.random() * Math.min(2, maxCount));
+            int maxCount = Math.min(2, remainingBudget / cost);
+            int count = Math.max(1, 1 + (int) (Math.random() * Math.min(2, maxCount)));
 
             spawns.add(new ZombieSpawn(type, count));
             remainingBudget -= cost * count;
+            lastType = type;
         }
 
         if (spawns.isEmpty() && !zombiePool.isEmpty()) {

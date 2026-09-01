@@ -8,15 +8,13 @@ import java.util.Map;
 import model.data.content.specialLevel.LockedPlantsConfig;
 import model.data.content.specialLevel.SpecialLevelType;
 import model.data.content.specialLevel.TimedWarConfig;
+import model.data.pool.ZombiePool;
 import model.data.wave.LevelConfig;
 import model.data.zombie.ZombieType;
 
 public final class ChapterCatalog {
 
     public static final int LEVELS_PER_CHAPTER = 5;
-
-    private static final List<ZombieType> PLACEHOLDER_ZOMBIES = List.of(
-            ZombieType.BASIC, ZombieType.CONE_HEAD);
 
     private static final Map<ChapterType, ChapterDefinition> CHAPTERS = buildChapters();
 
@@ -86,20 +84,20 @@ public final class ChapterCatalog {
 
     private static LevelConfig normalLevel(ChapterType chapter, int number) {
         return LevelConfig.builder(chapter, number)
-                .zombies(PLACEHOLDER_ZOMBIES)
+                .zombies(zombiesFor(chapter, number))
                 .build();
     }
 
     private static LevelConfig specialLevel(ChapterType chapter, int number, SpecialLevelType special) {
         return LevelConfig.builder(chapter, number)
-                .zombies(PLACEHOLDER_ZOMBIES)
+                .zombies(zombiesFor(chapter, number))
                 .special(special)
                 .build();
     }
 
     private static LevelConfig plantWhatYouGetLevel(ChapterType chapter, int number) {
         return LevelConfig.builder(chapter, number)
-                .zombies(PLACEHOLDER_ZOMBIES)
+                .zombies(zombiesFor(chapter, number))
                 .special(SpecialLevelType.PLANT_WHAT_YOU_GET)
                 .startingSun(800)
                 .build();
@@ -107,7 +105,7 @@ public final class ChapterCatalog {
 
     private static LevelConfig timedWarLevel(ChapterType chapter, int number, TimedWarConfig config) {
         return LevelConfig.builder(chapter, number)
-                .zombies(PLACEHOLDER_ZOMBIES)
+                .zombies(zombiesFor(chapter, number))
                 .special(SpecialLevelType.TIMED_WAR)
                 .timedWar(config)
                 .build();
@@ -115,7 +113,7 @@ public final class ChapterCatalog {
 
     private static LevelConfig zombossLevel(ChapterType chapter, int number) {
         return LevelConfig.builder(chapter, number)
-                .zombies(PLACEHOLDER_ZOMBIES)
+                .zombies(zombiesFor(chapter, number))
                 .special(SpecialLevelType.ZOMBOSS)
                 .waves(0)
                 .startingSun(0)
@@ -124,9 +122,13 @@ public final class ChapterCatalog {
 
     private static LevelConfig lockedPlantsLevel(ChapterType chapter, int number, LockedPlantsConfig config) {
         return LevelConfig.builder(chapter, number)
-                .zombies(PLACEHOLDER_ZOMBIES)
+                .zombies(zombiesFor(chapter, number))
                 .special(SpecialLevelType.LOCKED_PLANTS)
                 .lockedPlants(config)
                 .build();
+    }
+
+    private static List<ZombieType> zombiesFor(ChapterType chapter, int number) {
+        return ZombiePool.rosterFor(chapter, number);
     }
 }
