@@ -11,10 +11,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import controller.ControllerManager;
+import controller.InputHandler;
 import view.MenuType;
 import view.gdx.AssetContext;
 import view.gdx.ui.UiScreen;
@@ -28,9 +30,13 @@ public final class GameScreenShell implements UiScreen {
     private static final String ZOMBOSS_CLIP = "zomboss_talk";
     private static final String CRAZY_DAVE_PAM = "768/INITIAL/CRAZYDAVE/CRAZYDAVE/CRAZYDAVE.PAM";
     private static final String CRAZY_DAVE_CLIP = "anim_mediumtalk";
+    private static final int DEBUG_SUN_GRANT = 50;
 
     private final Stage stage = new Stage(new ScreenViewport());
     private final ImageButton pause;
+    private final Table debugBar;
+    private final Table cheatRow;
+    private final TextField cheatField;
     private final Table dialogueRoot;
     private final Label speakerLabel;
     private final Label dialogueLabel;
@@ -41,6 +47,7 @@ public final class GameScreenShell implements UiScreen {
     private PamPreviewActor davePreview;
     private ControllerManager controller;
     private AssetContext assets;
+    private InputHandler inputHandler;
 
     public GameScreenShell() {
         pause = new ImageButton(new ImageButton.ImageButtonStyle());
@@ -49,6 +56,44 @@ public final class GameScreenShell implements UiScreen {
                 UiWidgets.apply(controller, controller.enterMenu("pause"));
             }
         });
+
+        TextButton addSun = UiWidgets.secondary("+Sun");
+        TextButton addFood = UiWidgets.secondary("+Food");
+        TextButton cheatsToggle = UiWidgets.plain("Cheats");
+        TextButton runCheat = UiWidgets.primary("Run");
+        cheatField = UiWidgets.field("cheat add -n 50 suns", false);
+        cheatRow = new Table();
+        cheatRow.add(cheatField).width(280f).height(36f).padRight(6f);
+        cheatRow.add(runCheat).width(72f).height(36f);
+        cheatRow.setVisible(false);
+
+        UiWidgets.onChange(addSun, () -> {
+            if (controller != null) {
+                UiWidgets.apply(controller, controller.getGameMechanismController().addSun(DEBUG_SUN_GRANT));
+            }
+        });
+        UiWidgets.onChange(addFood, () -> {
+            if (controller != null) {
+                UiWidgets.apply(controller, controller.getGameMechanismController().addPlantFood());
+            }
+        });
+        UiWidgets.onChange(cheatsToggle, this::toggleCheatRow);
+        UiWidgets.onChange(runCheat, this::submitCheat);
+        cheatField.setTextFieldListener((field, c) -> {
+            if (c == '\n' || c == '\r') {
+                submitCheat();
+            }
+        });
+
+        Table debugButtons = new Table();
+        debugButtons.add(addSun).width(80f).height(36f).padRight(4f);
+        debugButtons.add(addFood).width(80f).height(36f).padRight(4f);
+        debugButtons.add(cheatsToggle).width(88f).height(36f);
+
+        debugBar = new Table();
+        debugBar.setVisible(false);
+        debugBar.add(debugButtons).right().row();
+        debugBar.add(cheatRow).right().padTop(6f);
 
         panelTexture = solid(new Color(0.75f, 0.55f, 0.30f, 1f), 1, 1);
         speakerLabel = new Label("", UiSkin.get(), "big");
@@ -83,7 +128,8 @@ public final class GameScreenShell implements UiScreen {
         root.setFillParent(true);
         root.setTouchable(Touchable.childrenOnly);
         root.top().right().pad(10f);
-        root.add(pause).width(120f).height(44f);
+        root.add(pause).width(120f).height(44f).row();
+        root.add(debugBar).right().padTop(8f);
 
         stage.addActor(root);
         stage.addActor(dialogueRoot);
@@ -93,14 +139,46 @@ public final class GameScreenShell implements UiScreen {
     public void show(UiViewContext context) {
         controller = context.controller;
         assets = context.assets;
+        if (controller != null) {
+            inputHandler = new InputHandler(controller);
+        }
         boolean dialogueActive = controller != null && controller.isDialogueActive();
         boolean menuClear = context.menu == null || context.menu == MenuType.NONE;
-        pause.setVisible(menuClear && !dialogueActive);
+        boolean hudVisible = menuClear && !dialogueActive;
+        boolean debug = context.settings != null && context.settings.debugMode;
+        pause.setVisible(hudVisible);
+        debugBar.setVisible(hudVisible && debug);
+        if (!debug) {
+            cheatRow.setVisible(false);
+            stage.setKeyboardFocus(null);
+        }
         dialogueRoot.setVisible(dialogueActive);
         if (dialogueActive) {
             ensureCharacterActors();
             refreshDialogue();
         }
+    }
+
+    private void toggleCheatRow() {
+        cheatRow.setVisible(!cheatRow.isVisible());
+        if (cheatRow.isVisible()) {
+            stage.setKeyboardFocus(cheatField);
+        } else {
+            stage.setKeyboardFocus(null);
+        }
+    }
+
+    private void submitCheat() {
+        if (controller == null || inputHandler == null) {
+            return;
+        }
+        String command = UiWidgets.text(cheatField);
+        if (command.isEmpty()) {
+            return;
+        }
+        inputHandler.handleInput(command);
+        cheatField.setText("");
+        stage.setKeyboardFocus(null);
     }
 
     @Override

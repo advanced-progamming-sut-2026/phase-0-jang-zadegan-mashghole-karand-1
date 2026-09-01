@@ -5,10 +5,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import controller.ControllerManager;
+import controller.InputHandler;
+import view.MenuType;
 import view.gdx.AssetContext;
 import view.gdx.ui.UiScreen;
 import view.gdx.ui.UiViewContext;
@@ -23,9 +26,13 @@ public final class MainScreen implements UiScreen {
     private final ImageButton profile;
     private final TextButton logout;
     private final TextButton quit;
+    private final Table debugBar;
+    private final Table cheatRow;
+    private final TextField cheatField;
 
     private ControllerManager controller;
     private AssetContext assets;
+    private InputHandler inputHandler;
 
     public MainScreen() {
         this.stage = new Stage(new ScreenViewport());
@@ -44,9 +51,30 @@ public final class MainScreen implements UiScreen {
         UiWidgets.onChange(logout, () -> UiWidgets.apply(controller, controller.getMainMenuController().logout()));
         UiWidgets.onChange(quit, () -> controller.quit());
 
+        TextButton cheatsToggle = UiWidgets.plain("Cheats");
+        TextButton runCheat = UiWidgets.primary("Run");
+        cheatField = UiWidgets.field("menu cheat add 1000 coin", false);
+        cheatRow = new Table();
+        cheatRow.add(cheatField).width(280f).height(36f).padRight(6f);
+        cheatRow.add(runCheat).width(72f).height(36f);
+        cheatRow.setVisible(false);
+        UiWidgets.onChange(cheatsToggle, this::toggleCheatRow);
+        UiWidgets.onChange(runCheat, this::submitCheat);
+        cheatField.setTextFieldListener((field, c) -> {
+            if (c == '\n' || c == '\r') {
+                submitCheat();
+            }
+        });
+
+        debugBar = new Table();
+        debugBar.setVisible(false);
+        debugBar.add(cheatsToggle).left().width(88f).height(36f).row();
+        debugBar.add(cheatRow).left().padTop(6f);
+
         Table topLeft = new Table();
         topLeft.add(logout).padRight(8f);
-        topLeft.add(quit);
+        topLeft.add(quit).row();
+        topLeft.add(debugBar).left().colspan(2).padTop(8f);
 
         Table root = new Table();
         root.setFillParent(true);
@@ -73,6 +101,38 @@ public final class MainScreen implements UiScreen {
     public void show(UiViewContext context) {
         this.controller = context.controller;
         this.assets = context.assets;
+        if (controller != null) {
+            inputHandler = new InputHandler(controller);
+        }
+        boolean debug = context.settings != null && context.settings.debugMode;
+        boolean menuClear = context.menu == null || context.menu == MenuType.NONE;
+        debugBar.setVisible(debug && menuClear);
+        if (!debug || !menuClear) {
+            cheatRow.setVisible(false);
+            stage.setKeyboardFocus(null);
+        }
+    }
+
+    private void toggleCheatRow() {
+        cheatRow.setVisible(!cheatRow.isVisible());
+        if (cheatRow.isVisible()) {
+            stage.setKeyboardFocus(cheatField);
+        } else {
+            stage.setKeyboardFocus(null);
+        }
+    }
+
+    private void submitCheat() {
+        if (controller == null || inputHandler == null) {
+            return;
+        }
+        String command = UiWidgets.text(cheatField);
+        if (command.isEmpty()) {
+            return;
+        }
+        inputHandler.handleInput(command);
+        cheatField.setText("");
+        stage.setKeyboardFocus(null);
     }
 
     @Override
