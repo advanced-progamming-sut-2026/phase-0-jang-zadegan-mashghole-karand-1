@@ -32,6 +32,9 @@ public class GameSetting {
     }
 
     public void setGameSpeed(int gameSpeed) {
+        if (gameSpeed < MIN_GAME_SPEED || gameSpeed > MAX_GAME_SPEED) {
+            return;
+        }
         this.gameSpeed = gameSpeed;
     }
 
