@@ -10,11 +10,14 @@ import com.badlogic.gdx.math.Matrix4;
 
 import model.board.Tile;
 import model.board.TileType;
+import model.core.Position;
 import model.core.ReadOnlyGameState;
 import model.data.content.chapter.ChapterType;
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
+import model.data.plant.PlantTag;
 import model.data.plant.PlantType;
+import model.data.plant.abilities.runtime.BowlingMotionView;
 import model.data.projectile.Projectile;
 import model.data.vfx.LawnEffect;
 import model.data.zombie.Zombie;
@@ -54,6 +57,9 @@ public final class LawnRenderer {
     private final SunRenderer sunRenderer;
     private final MowerRenderer mowerRenderer;
     private final GraveRenderer graveRenderer;
+    private final BrainRenderer brainRenderer;
+    private final VaseRenderer vaseRenderer;
+    private final SeedDropRenderer seedDropRenderer;
     private final ChapterTerrainRenderer chapterTerrainRenderer;
     private final Matrix4 savedTransform = new Matrix4();
     private final Matrix4 entityTransform = new Matrix4();
@@ -68,6 +74,9 @@ public final class LawnRenderer {
         this.sunRenderer = new SunRenderer(layout, animStates);
         this.mowerRenderer = new MowerRenderer(layout, animStates);
         this.graveRenderer = new GraveRenderer(layout, animStates);
+        this.brainRenderer = new BrainRenderer(layout);
+        this.vaseRenderer = new VaseRenderer(layout, animStates);
+        this.seedDropRenderer = new SeedDropRenderer(layout);
         this.chapterTerrainRenderer = new ChapterTerrainRenderer(layout, animStates);
     }
 
@@ -82,7 +91,10 @@ public final class LawnRenderer {
         drawFireTiles(batch, assets, player, state);
         chapterTerrainRenderer.render(batch, assets, state, chapter);
         mowerRenderer.render(batch, assets, state, chapter);
+        brainRenderer.render(batch, assets, state);
         graveRenderer.render(batch, assets, state, chapter);
+        vaseRenderer.render(batch, assets, state);
+        seedDropRenderer.render(batch, assets, state);
 
         if (RENDER_ZOMBIES) {
             for (Zombie zombie : new ArrayList<>(state.getZombies())) {
@@ -146,15 +158,25 @@ public final class LawnRenderer {
         if (clip == null) {
             return;
         }
-        float x = layout.cellCenterX(plant.col);
-        float y = layout.cellCenterY(plant.row);
+        BowlingMotionView motion = BowlingMotionView.of(plant);
+        float x;
+        float y;
+        float rotation = 0f;
+        if (motion != null && plant.type != null && plant.type.hasTag(PlantTag.BOWLING)) {
+            x = layout.worldX(new Position(motion.modelX(), motion.modelY()));
+            y = layout.worldY(new Position(motion.modelX(), motion.modelY()));
+            rotation = motion.rotationRadians();
+        } else {
+            x = layout.cellCenterX(plant.col);
+            y = layout.cellCenterY(plant.row);
+        }
         boolean frozen = plant.isFrostbiteFreezeActive();
         int chillLevel = plant.getFrostbiteFreezeLevel();
         if (frozen) {
             drawOverlayPam(batch, assets, player, ICE_BLOCK_PLANT_BEHIND_PAM, "idle",
                     animKey(20, plant.instanceId), x, y, true);
         }
-        drawPam(batch, player, clip, anim.stateTime, x, y, true, null);
+        drawPam(batch, player, clip, anim.stateTime, x, y, true, null, rotation);
         if (frozen) {
             drawOverlayPam(batch, assets, player, ICE_BLOCK_PLANT_PAM, "freeze_idle",
                     animKey(21, plant.instanceId), x, y, true);
@@ -369,7 +391,12 @@ public final class LawnRenderer {
 
     private void drawPam(SpriteBatch batch, PamPlayer player, ClipRef clip, float time,
             float x, float y, boolean loop, Map<String, Boolean> visibility) {
-        beginEntityScale(batch, x, y);
+        drawPam(batch, player, clip, time, x, y, loop, visibility, 0f);
+    }
+
+    private void drawPam(SpriteBatch batch, PamPlayer player, ClipRef clip, float time,
+            float x, float y, boolean loop, Map<String, Boolean> visibility, float rotationRadians) {
+        beginEntityScale(batch, x, y, rotationRadians);
         try {
             if (visibility == null) {
                 player.draw(batch, clip, time, x, y, loop);
@@ -382,15 +409,28 @@ public final class LawnRenderer {
     }
 
     private void beginEntityScale(SpriteBatch batch, float x, float y) {
-        beginEntityScale(batch, x, y, false);
+        beginEntityScale(batch, x, y, false, 0f);
     }
 
     private void beginEntityScale(SpriteBatch batch, float x, float y, boolean flipX) {
+        beginEntityScale(batch, x, y, flipX, 0f);
+    }
+
+    private void beginEntityScale(SpriteBatch batch, float x, float y, float rotationRadians) {
+        beginEntityScale(batch, x, y, false, rotationRadians);
+    }
+
+    private void beginEntityScale(SpriteBatch batch, float x, float y, boolean flipX,
+            float rotationRadians) {
         float s = entityScale();
         float sx = flipX ? -s : s;
         savedTransform.set(batch.getTransformMatrix());
         entityTransform.set(savedTransform);
-        entityTransform.translate(x, y, 0f).scale(sx, s, 1f).translate(-x, -y, 0f);
+        entityTransform.translate(x, y, 0f);
+        if (rotationRadians != 0f) {
+            entityTransform.rotate(0f, 0f, 1f, (float) Math.toDegrees(rotationRadians));
+        }
+        entityTransform.scale(sx, s, 1f).translate(-x, -y, 0f);
         batch.setTransformMatrix(entityTransform);
     }
 

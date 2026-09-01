@@ -76,6 +76,15 @@ public final class PlantVisualDefs {
                 "768/FULL/PLANT/BOWLINGBULB/BOWLINGBULB.PAM","idle","special3",
                 "plantfood3"
         ));
+        plants.put(PlantType.Bowling_Wall_nut, new PlantVisualDef(
+                "768/INITIAL/PLANT/WALLNUT/WALLNUT.PAM", "idle", "idle", "plantfood"
+        ));
+        plants.put(PlantType.Bowling_Explode_o_nut, new PlantVisualDef(
+                "768/INITIAL/PLANT/EXPLODEONUT/EXPLODEONUT.PAM", "idle", "idle", "plantfood"
+        ));
+        plants.put(PlantType.Giant_Bowling_Wall_nut, new PlantVisualDef(
+                "768/INITIAL/PLANT/WALLNUT/WALLNUT.PAM", "idle", "idle", "plantfood"
+        ));
 //*************************
         //lobber
         plants.put(PlantType.Kernel_pult, new PlantVisualDef(

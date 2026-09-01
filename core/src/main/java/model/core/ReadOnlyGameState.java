@@ -81,6 +81,10 @@ public interface ReadOnlyGameState {
 
     int getTotalTicks();
 
+    int getIZombieSessionStartTick();
+
+    int getCollectedBrainCount();
+
     int getSessionScore();
 
     boolean hasSessionScore();

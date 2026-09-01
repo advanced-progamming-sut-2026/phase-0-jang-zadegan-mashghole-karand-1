@@ -1,13 +1,17 @@
 package controller;
 
 import model.core.EventBus;
+import model.core.ReadOnlyGameState;
 import model.data.content.chapter.ChapterType;
 import model.data.content.minigame.MiniGameType;
 import model.data.plant.PlantType;
+import model.data.sun.Sun;
 import model.data.zombie.Zombie;
 import model.event.events.*;
+import model.rule.SessionConfig;
 import model.rule.SessionContext;
 import model.storage.StorageManager;
+import shared.izombie.IZombiePlayMode;
 
 public class AppEventHandler {
 
@@ -103,16 +107,44 @@ public class AppEventHandler {
     }
 
     private void onSunDropped(SunDroppedEvent event) {
-        if (event == null || event.sun == null)
+        if (event == null || event.sun == null) {
             return;
+        }
+        if (!event.sun.isFalling) {
+            autoCollectZombieSunInCouch(event.sun);
+        }
         controller.sendMessage("New " + event.sun.type.name() + " sun is dropping at position (" + event.sun.position.x
                 + ", " + event.sun.targetY + ")");
     }
 
     private void onSunLanded(SunLandedEvent event) {
-        if (event == null || event.sun == null)
+        if (event == null || event.sun == null) {
             return;
+        }
+        autoCollectZombieSunInCouch(event.sun);
         controller.sendMessage(
                 "Sun reached the ground at position (" + event.sun.position.x + ", " + event.sun.targetY + ")");
+    }
+
+    private void autoCollectZombieSunInCouch(Sun sun) {
+        if (sun.generatorPlant != null) {
+            return;
+        }
+        ReadOnlyGameState state = controller.getModel().getState();
+        SessionContext context = controller.getModel().getPlayContext();
+        if (state == null || context == null || context.getConfig() == null) {
+            return;
+        }
+        SessionConfig config = context.getConfig();
+        if (config.iZombiePlayMode != IZombiePlayMode.COUCH) {
+            return;
+        }
+        if (!state.isDualSunMode()) {
+            return;
+        }
+        int index = state.getSunDrops().indexOf(sun);
+        if (index >= 0) {
+            controller.getModel().collectSun(index);
+        }
     }
 }

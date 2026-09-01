@@ -18,6 +18,7 @@ import model.rule.rules.specialLevel.DeadlineRules;
 import model.rule.rules.specialLevel.SaveOurSeedsRules;
 import model.rule.rules.specialLevel.TimedWarRules;
 import model.storage.user.User;
+import shared.protocol.Protocol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -185,7 +186,7 @@ public class HudViewState {
     public static HudViewState fromSession(SessionContext context, ReadOnlyGameState state, User user) {
         if (context == null || context.getConfig() == null) {
             if (state != null && state.isBrainsMode()) {
-                return brainsHud();
+                return brainsHud(state);
             }
             return empty();
         }
@@ -198,7 +199,7 @@ public class HudViewState {
             if (config.isIZombiePvP()) {
                 return iZombiePvPHud(config, state);
             }
-            return brainsHud();
+            return brainsHud(state);
         }
         if (mini == MiniGameType.VASE_BREAKER) {
             return vaseBreakerHud(context, state);
@@ -224,16 +225,17 @@ public class HudViewState {
         return normalHud(context, specialLabel(special), user, special);
     }
 
-    private static HudViewState brainsHud() {
+    private static HudViewState brainsHud(ReadOnlyGameState state) {
         List<TraySlot> slots = new ArrayList<>();
         for (Map.Entry<ZombieType, Integer> entry : IZombieShop.getCosts().entrySet()) {
             slots.add(new TraySlot(entry.getKey().name, entry.getValue(), 0, true, false, 1));
         }
+        int collected = state != null ? state.getCollectedBrainCount() : 0;
         return new HudViewState(
                 Mode.BRAINS, "I, Zombie", true, false, false,
                 null, 0, 0,
                 "", 0, 0, 0,
-                -1, 0, 0, -1, 0,
+                -1, collected, ReadOnlyGameState.GRID_ROWS, -1, 0,
                 slots,
                 List.of(
                         "place zombie -t <type> -l (r,c)",
@@ -242,6 +244,19 @@ public class HudViewState {
                         "advance time -t <n> ticks",
                         "menu exit"),
                 false);
+    }
+
+    private static int iZombieSecondsRemaining(ReadOnlyGameState state) {
+        if (state == null || state.getIZombieSessionStartTick() < 0) {
+            return 0;
+        }
+        int elapsedTicks = state.getTotalTicks() - state.getIZombieSessionStartTick();
+        int elapsedSeconds = elapsedTicks / GameLoop.TICKS_PER_SECOND;
+        return Math.max(0, Protocol.IZOMBIE_SURVIVAL_SECONDS - elapsedSeconds);
+    }
+
+    private static HudViewState brainsHud() {
+        return brainsHud(null);
     }
 
     private static HudViewState iZombiePvPHud(SessionConfig config, ReadOnlyGameState state) {
@@ -280,11 +295,13 @@ public class HudViewState {
         if (state != null && state.isDualSunMode()) {
             label = "P " + state.getPlantSun() + " / Z " + state.getZombieSun();
         }
+        int collected = state != null ? state.getCollectedBrainCount() : 0;
+        int secondsLeft = iZombieSecondsRemaining(state);
         return new HudViewState(
                 Mode.BRAINS, label, true, false, false,
                 null, 0, 0,
-                "", 0, 0, 0,
-                -1, 0, 0, -1, 0,
+                "", 0, 0, secondsLeft,
+                -1, collected, ReadOnlyGameState.GRID_ROWS, -1, 0,
                 left,
                 List.of(
                         "Mouse plants (left) | zombie tray (right) or Keys 1-5 + Arrows + Enter/Space",

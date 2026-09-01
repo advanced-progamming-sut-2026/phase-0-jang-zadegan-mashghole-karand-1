@@ -94,12 +94,15 @@ public final class UiNavigator implements Disposable {
         overlays.put(MenuType.I_ZOMBIE_MODE, new IZombieModeOverlayScreen());
         overlays.put(MenuType.I_ZOMBIE_QUEUE, new IZombieQueueOverlayScreen());
         overlays.put(MenuType.I_ZOMBIE_INVITE, new IZombieInviteOverlayScreen());
-        overlays.put(MenuType.QUICK_MESSAGES, new QuickMessageOverlayScreen());
         MatchRestartOverlayScreen restartOverlay = new MatchRestartOverlayScreen();
         overlays.put(MenuType.MATCH_RESTART, restartOverlay);
         overlays.put(MenuType.MATCH_RESTART_WAIT, restartOverlay);
         overlays.put(MenuType.MATCH_RESULT, new MatchResultOverlayScreen());
         overlays.put(MenuType.LEVEL_OBJECTIVES, new LevelObjectivesOverlayScreen());
+    }
+
+    public void bindQuickMessageHud(view.gdx.lawn.QuickMessageHud hud) {
+        overlays.put(MenuType.QUICK_MESSAGES, new QuickMessageOverlayScreen(hud));
     }
 
     public GameAnnouncementOverlay announcementOverlay() {
@@ -145,8 +148,10 @@ public final class UiNavigator implements Disposable {
 
     private void syncGameLoop(UiViewContext context) {
         boolean dialogueActive = context.controller != null && context.controller.isDialogueActive();
+        boolean onlineMatch = context.controller != null
+                && context.controller.getSessionLifecycleController().isOnlineMatch();
         boolean playing = context.screen == ScreenType.GAME
-                && !pausesGameplay(context.menu)
+                && !pausesGameplay(context.menu, onlineMatch)
                 && !dialogueActive;
         if (playing) {
             if (!gameLoop.isAutoTickRunning()) {
@@ -157,13 +162,24 @@ public final class UiNavigator implements Disposable {
         }
     }
 
-    private static boolean pausesGameplay(MenuType menu) {
+    private static boolean pausesGameplay(MenuType menu, boolean onlineMatch) {
+        if (onlineMatch && (menu == MenuType.PAUSE || menu == MenuType.QUICK_MESSAGES)) {
+            return false;
+        }
         return menu == MenuType.PAUSE
                 || menu == MenuType.MATCH_RESTART
                 || menu == MenuType.MATCH_RESTART_WAIT
                 || menu == MenuType.MATCH_RESULT
                 || menu == MenuType.QUICK_MESSAGES
                 || menu == MenuType.LEVEL_OBJECTIVES;
+    }
+
+    private static boolean blocksWorldInput(MenuType menu) {
+        return menu == MenuType.PAUSE
+                || menu == MenuType.QUICK_MESSAGES
+                || menu == MenuType.MATCH_RESTART
+                || menu == MenuType.MATCH_RESTART_WAIT
+                || menu == MenuType.MATCH_RESULT;
     }
 
     private void updateInputProcessors() {
@@ -178,7 +194,7 @@ public final class UiNavigator implements Disposable {
                 && lastContext.controller != null
                 && lastContext.controller.isDialogueActive();
         boolean blockWorld = lastContext != null
-                && (pausesGameplay(lastContext.menu) || dialogueActive);
+                && (blocksWorldInput(lastContext.menu) || dialogueActive);
         if (gameWorldInput != null && isGameScreen() && !blockWorld) {
             mux.addProcessor(gameWorldInput);
         }

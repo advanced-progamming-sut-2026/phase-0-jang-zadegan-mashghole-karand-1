@@ -95,6 +95,13 @@ public final class AssetContext implements Disposable {
         pamPaths.add("768/FULL/BACKGROUNDS/BACKGROUND_DARK_BRAZIER_TOP/BACKGROUND_DARK_BRAZIER_TOP.PAM");
         pamPaths.add("768/FULL/NPC/ZOMBOSS/ZOMBOSS.PAM");
         pamPaths.add("768/INITIAL/CRAZYDAVE/CRAZYDAVE/CRAZYDAVE.PAM");
+        pamPaths.add("768/FULL/VASEBREAKER/VASE_BROWN/VASE_BROWN.PAM");
+        pamPaths.add("768/FULL/VASEBREAKER/VASE_GREEN/VASE_GREEN.PAM");
+        pamPaths.add("768/FULL/VASEBREAKER/VASE_GARGANTUAR/VASE_GARGANTUAR.PAM");
+        pamPaths.add("768/FULL/EFFECTS/BRAIN_EFFECT/BRAIN_EFFECT.PAM");
+        pamPaths.add("768/FULL/UI/PENNY_PURSUITS/ZOMBOSS/CLOCK_ICON/CLOCK_ICON.PAM");
+        pamPaths.add("768/DEV/UI/QUESTS/DIFFICULTY_METER/DIFFICULTY_METER.PAM");
+        pamPaths.add("768/FULL/UI/LEVELOFTHEDAY/LOTD_PRESENTS_SUPER/LOTD_PRESENTS_SUPER.PAM");
         for (String path : pamPaths) {
             player.loadSync(path);
         }

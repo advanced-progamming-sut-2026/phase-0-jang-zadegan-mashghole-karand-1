@@ -27,12 +27,20 @@ public final class MiniGameCatalog {
             return null;
         }
         return switch (type) {
-            case WALLNUT_BOWLING -> LevelConfig.builder(ChapterType.ANCIENT_EGYPT, 1)
+            case I_ZOMBIE -> LevelConfig.builder(ChapterType.DARK_AGES, 1)
+                    .waves(1)
+                    .startingSun(150)
+                    .build();
+            case VASE_BREAKER -> LevelConfig.builder(ChapterType.ANCIENT_EGYPT, 1)
+                    .waves(1)
+                    .startingSun(150)
+                    .build();
+            case WALLNUT_BOWLING -> LevelConfig.builder(ChapterType.FROSTBITE_CAVES, 1)
                     .zombies(BOWLING_ZOMBIES)
                     .waves(5)
                     .startingSun(0)
                     .build();
-            case VASE_BREAKER, I_ZOMBIE, BEGHOULED, ZOMBOTANY -> LevelConfig.builder(ChapterType.ANCIENT_EGYPT, 1)
+            case BEGHOULED, ZOMBOTANY -> LevelConfig.builder(ChapterType.BIG_WAVE_BEACH, 1)
                     .waves(1)
                     .startingSun(150)
                     .build();

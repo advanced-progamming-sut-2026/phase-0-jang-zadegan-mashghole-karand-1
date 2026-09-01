@@ -117,6 +117,7 @@ public class IZombiePvPRules implements LevelRule {
         }
         spawnSunZombies(state, bus);
         startTick = state.totalTicks;
+        state.iZombieSessionStartTick = state.totalTicks;
         sessionReady = true;
     }
 

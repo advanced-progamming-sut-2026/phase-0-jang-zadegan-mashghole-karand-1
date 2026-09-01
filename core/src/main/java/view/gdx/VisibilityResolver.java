@@ -32,6 +32,21 @@ public final class VisibilityResolver {
         return map;
     }
 
+    public Map<String, Boolean> intactArmor(ZombieVisualDef visual) {
+        if (visual == null || visual.armor == null) {
+            return Collections.emptyMap();
+        }
+        ArmorVisualRecipe recipe = visual.armor;
+        Map<String, Boolean> map = new HashMap<>();
+        if (recipe.groupPart != null) {
+            map.put(recipe.groupPart, true);
+        }
+        if (recipe.intactPart != null) {
+            map.put(recipe.intactPart, true);
+        }
+        return map;
+    }
+
     private static String pickStage(ArmorVisualRecipe recipe, ZombieArmor armor) {
         float ratio = armor.type.hp <= 0 ? 0f : (float) armor.currentHealth / armor.type.hp;
         if (ratio > 0.66f) {

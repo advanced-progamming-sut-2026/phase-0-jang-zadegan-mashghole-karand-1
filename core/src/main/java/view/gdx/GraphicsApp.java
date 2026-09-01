@@ -28,6 +28,7 @@ import view.gdx.lawn.LawnLayout;
 import view.gdx.lawn.LawnPlantInput;
 import view.gdx.lawn.LawnRenderer;
 import view.gdx.lawn.PlantPlacementFeedbackRenderer;
+import view.gdx.lawn.QuickMessageHud;
 import view.gdx.lawn.SeedTrayRenderer;
 import view.gdx.ui.HudOverlayRenderer;
 import view.gdx.ui.MenuBackdrop;
@@ -57,6 +58,7 @@ public final class GraphicsApp extends ApplicationAdapter {
     private VisibilityResolver visibilityResolver;
     private HudOverlayRenderer hudOverlay;
     private PlantFoodCollectFeedback plantFoodFeedback;
+    private QuickMessageHud quickMessageHud;
 
     @Override
     public void create() {
@@ -70,6 +72,7 @@ public final class GraphicsApp extends ApplicationAdapter {
 
         app = DesktopApp.create(assets);
         ui = app.navigator();
+        quickMessageHud = app.quickMessageHud();
 
         menuBackdrop.bind(assets, app.controller().getCurrentScreen());
 
@@ -101,6 +104,9 @@ public final class GraphicsApp extends ApplicationAdapter {
         assets.update();
         menuBackdrop.bind(assets, app.controller().getCurrentScreen());
         ui.act(dt);
+        if (quickMessageHud != null) {
+            quickMessageHud.update(dt);
+        }
 
         Gdx.gl.glClearColor(0.08f, 0.1f, 0.14f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -119,7 +125,8 @@ public final class GraphicsApp extends ApplicationAdapter {
             batch.begin();
             lawnBackground.render(batch);
 
-            boolean paused = pausesWorld(app.controller().getCurrentMenu())
+            boolean onlineMatch = isOnlineMatch();
+            boolean paused = pausesWorld(app.controller().getCurrentMenu(), onlineMatch)
                     || app.controller().isDialogueActive();
             float worldDt = paused ? 0f : dt;
             SessionContext session = app.model().getPlayContext();
@@ -175,6 +182,9 @@ public final class GraphicsApp extends ApplicationAdapter {
             hudOverlay.render(batch, assets, hud, plantSun, dualSun ? zombieSun : -1, pf, progress,
                     totalWaves, worldWidth, worldHeight);
             plantFoodFeedback.render(batch, assets);
+            if (dualSun && quickMessageHud != null) {
+                quickMessageHud.render(batch, assets, worldWidth, worldHeight, hudTopReserve);
+            }
             renderPlantFoodCursor(batch);
             batch.end();
             lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
@@ -184,6 +194,9 @@ public final class GraphicsApp extends ApplicationAdapter {
             plantInput.clearHover();
             conveyorAnimator.reset();
             plantFoodFeedback.reset();
+            if (quickMessageHud != null) {
+                quickMessageHud.clear();
+            }
             menuBackdrop.render(batch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
 
@@ -218,6 +231,11 @@ public final class GraphicsApp extends ApplicationAdapter {
                 placementFeedback.renderPlantFoodTarget(
                         batch, assets, plantInput.hoverRow(), plantInput.hoverCol());
             }
+            return;
+        }
+        if (plantInput.hasZombieCursor()) {
+            placementFeedback.renderZombieTarget(batch, assets, plantInput.selectedZombie(),
+                    plantInput.zombieCursorRow(), plantInput.zombieCursorCol());
             return;
         }
         String selected = plantInput.selectedPlantName();
@@ -275,7 +293,14 @@ public final class GraphicsApp extends ApplicationAdapter {
         return app.gameState().getSunAmount();
     }
 
-    private static boolean pausesWorld(MenuType menu) {
+    private boolean isOnlineMatch() {
+        return app.controller().getSessionLifecycleController().isOnlineMatch();
+    }
+
+    private static boolean pausesWorld(MenuType menu, boolean onlineMatch) {
+        if (onlineMatch && (menu == MenuType.PAUSE || menu == MenuType.QUICK_MESSAGES)) {
+            return false;
+        }
         return menu == MenuType.PAUSE
                 || menu == MenuType.MATCH_RESTART
                 || menu == MenuType.MATCH_RESTART_WAIT

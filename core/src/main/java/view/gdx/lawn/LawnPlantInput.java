@@ -112,6 +112,25 @@ public final class LawnPlantInput extends InputAdapter {
     public void clearSelection() {
         selectedPlantName = null;
         selectedConveyorIndex = -1;
+        selectedZombie = null;
+    }
+
+    public ZombieType selectedZombie() {
+        return selectedZombie;
+    }
+
+    public int zombieCursorRow() {
+        return zombieCursorRow;
+    }
+
+    public int zombieCursorCol() {
+        return zombieCursorCol;
+    }
+
+    public boolean hasZombieCursor() {
+        return selectedZombie != null && (isCouch()
+                || (isOnline() && localRole() == MatchRole.ZOMBIES)
+                || (hud != null && hud.mode == HudViewState.Mode.BRAINS && !isCouch() && !isOnline()));
     }
 
     public boolean isPlantFoodMode() {
@@ -151,7 +170,6 @@ public final class LawnPlantInput extends InputAdapter {
         pointerWorldValid = false;
     }
 
-    /** Refresh hover from the current pointer; useful when Stage may consume mouseMoved. */
     public void refreshHoverFromPointer() {
         updateHoverFromScreen(Gdx.input.getX(), Gdx.input.getY());
     }
@@ -281,7 +299,8 @@ public final class LawnPlantInput extends InputAdapter {
     @Override
     public boolean keyDown(int keycode) {
         if (keycode == Input.Keys.ESCAPE
-                && (selectedPlantName != null || selectedConveyorIndex >= 0 || plantFoodMode)) {
+                && (selectedPlantName != null || selectedConveyorIndex >= 0
+                        || selectedZombie != null || plantFoodMode)) {
             clearSelection();
             clearPlantFoodMode();
             return true;
@@ -303,11 +322,11 @@ public final class LawnPlantInput extends InputAdapter {
                 }
             }
             if (keycode == Input.Keys.UP) {
-                zombieCursorRow = Math.min(4, zombieCursorRow + 1);
+                zombieCursorRow = Math.max(0, zombieCursorRow - 1);
                 return true;
             }
             if (keycode == Input.Keys.DOWN) {
-                zombieCursorRow = Math.max(0, zombieCursorRow - 1);
+                zombieCursorRow = Math.min(4, zombieCursorRow + 1);
                 return true;
             }
             if (keycode == Input.Keys.LEFT) {
@@ -319,7 +338,7 @@ public final class LawnPlantInput extends InputAdapter {
                 return true;
             }
             if ((keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) && selectedZombie != null) {
-                placeZombie(zombieCursorRow, zombieCursorCol, selectedZombie);
+                placeZombie(zombieCursorRow, zombieCursorCol, selectedZombie, true);
                 return true;
             }
         }
@@ -377,13 +396,16 @@ public final class LawnPlantInput extends InputAdapter {
                 if (packet.isEmpty()) {
                     return true;
                 }
+                if (isCouch() && isRightTrayPacket(packet)) {
+                    return true;
+                }
                 clearPlantFoodMode();
                 if (packet.equals(selectedPlantName)) {
                     clearSelection();
                 } else {
                     selectedPlantName = packet;
                     ZombieType zt = ZombieType.fromName(packet);
-                    if (zt != null && IZombieShop.isPurchasable(zt)) {
+                    if (zt != null && IZombieShop.isPurchasable(zt) && !isCouch()) {
                         selectedZombie = zt;
                     }
                 }
@@ -419,6 +441,20 @@ public final class LawnPlantInput extends InputAdapter {
                 return true;
             }
 
+            if (hud.mode == HudViewState.Mode.VASE_BREAKER) {
+                ReadOnlyGameState gs = gameState();
+                if (gs != null && gs.getVaseAt(row, col) != null) {
+                    CommandResult vaseResult = game.breakVase(row, col);
+                    controller.handleCommandResult(vaseResult);
+                    return true;
+                }
+                if (gs != null && gs.getSeedDropAt(row, col) != null) {
+                    CommandResult seedResult = game.collectSeed(row, col);
+                    controller.handleCommandResult(seedResult);
+                    return true;
+                }
+            }
+
             CommandResult result;
 
             if (hud.trayIsConveyorRow) {
@@ -441,6 +477,9 @@ public final class LawnPlantInput extends InputAdapter {
             PlantType plantType = PlantType.fromName(selectedPlantName);
 
             if (zombieType != null && IZombieShop.isPurchasable(zombieType)) {
+                if (isCouch()) {
+                    return false;
+                }
                 if (isOnline() && localRole() != MatchRole.ZOMBIES) {
                     return false;
                 }
@@ -467,7 +506,23 @@ public final class LawnPlantInput extends InputAdapter {
         return false;
     }
 
+    private boolean isRightTrayPacket(String packetName) {
+        if (hud == null || hud.rightTraySlots == null || packetName == null) {
+            return false;
+        }
+        for (HudViewState.TraySlot slot : hud.rightTraySlots) {
+            if (packetName.equals(slot.name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void placeZombie(int row, int col, ZombieType type) {
+        placeZombie(row, col, type, false);
+    }
+
+    private void placeZombie(int row, int col, ZombieType type, boolean keepZombieSelection) {
         GameMechanismController game = controller.getGameMechanismController();
         CommandResult result = game.placeZombie(row, col, type);
         if (isOnline() && result != null && result.isSuccess()
@@ -476,7 +531,12 @@ public final class LawnPlantInput extends InputAdapter {
         }
         controller.handleCommandResult(result);
         if (result != null && result.isSuccess()) {
-            clearSelection();
+            if (keepZombieSelection) {
+                selectedPlantName = null;
+                selectedConveyorIndex = -1;
+            } else {
+                clearSelection();
+            }
         }
     }
 }

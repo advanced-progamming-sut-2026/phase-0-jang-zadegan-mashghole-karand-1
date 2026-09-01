@@ -14,6 +14,7 @@ import network.NetworkEventRouter;
 import network.NetworkSession;
 import view.ScreenType;
 import view.gdx.AssetContext;
+import view.gdx.lawn.QuickMessageHud;
 import view.gdx.ui.DesktopViewFacade;
 import view.gdx.ui.UiNavigator;
 
@@ -24,15 +25,18 @@ public final class DesktopApp {
     private final SqlStorageManager storage;
     private final UiNavigator navigator;
     private final DesktopViewFacade viewFacade;
+    private final QuickMessageHud quickMessageHud;
 
     private DesktopApp(ModelManager model, ControllerManager controller, GameLoop gameLoop,
-            SqlStorageManager storage, UiNavigator navigator, DesktopViewFacade viewFacade) {
+            SqlStorageManager storage, UiNavigator navigator, DesktopViewFacade viewFacade,
+            QuickMessageHud quickMessageHud) {
         this.model = model;
         this.controller = controller;
         this.gameLoop = gameLoop;
         this.storage = storage;
         this.navigator = navigator;
         this.viewFacade = viewFacade;
+        this.quickMessageHud = quickMessageHud;
     }
 
     public static DesktopApp create(AssetContext assets) {
@@ -47,15 +51,17 @@ public final class DesktopApp {
         controller.setNetworkAuth(networkAuth);
 
         UiNavigator navigator = new UiNavigator(gameLoop);
+        QuickMessageHud quickMessageHud = new QuickMessageHud();
+        navigator.bindQuickMessageHud(quickMessageHud);
         DesktopViewFacade viewFacade = new DesktopViewFacade(navigator, assets);
         controller.setView(viewFacade);
         viewFacade.initialize();
         controller.start();
 
-        new NetworkEventRouter(controller, model, navigator, networkSession);
+        new NetworkEventRouter(controller, model, navigator, networkSession, quickMessageHud);
 
         Gdx.app.log("DesktopApp", "started screen=" + controller.getCurrentScreen());
-        return new DesktopApp(model, controller, gameLoop, storage, navigator, viewFacade);
+        return new DesktopApp(model, controller, gameLoop, storage, navigator, viewFacade, quickMessageHud);
     }
 
     public ModelManager model() {
@@ -82,6 +88,10 @@ public final class DesktopApp {
         return controller.getCurrentScreen() == ScreenType.GAME;
     }
 
+    public QuickMessageHud quickMessageHud() {
+        return quickMessageHud;
+    }
+
     public void dispose() {
         gameLoop.stopAutoTick();
         try {
@@ -101,5 +111,8 @@ public final class DesktopApp {
             Gdx.app.error("DesktopApp", "Failed to save progress", e);
         }
         navigator.dispose();
+        if (quickMessageHud != null) {
+            quickMessageHud.dispose();
+        }
     }
 }

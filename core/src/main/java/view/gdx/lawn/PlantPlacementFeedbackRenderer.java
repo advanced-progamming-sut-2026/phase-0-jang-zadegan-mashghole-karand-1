@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Matrix4;
 
 import model.core.ReadOnlyGameState;
 import model.data.plant.PlantType;
+import model.data.zombie.ZombieType;
 import pvz.libpvz.pam.ClipRef;
 import pvz.libpvz.pam.PamPlayer;
 import view.gdx.AssetContext;
@@ -14,18 +15,18 @@ import view.gdx.anim.AnimStateStore;
 import view.gdx.anim.EntityAnimState;
 import view.gdx.catalog.PlantVisualDef;
 import view.gdx.catalog.VisualCatalog;
+import view.gdx.catalog.ZombieVisualDef;
 
-/**
- * View-only placement feedback: target cell highlight and selected-plant idle preview.
- * Does not create Plant gameplay objects or consult placement rules.
- */
 public final class PlantPlacementFeedbackRenderer {
     private static final float PAM_CANVAS = 390f;
     private static final float ENTITY_HEIGHT_IN_CELLS = 2f;
     private static final long PREVIEW_ANIM_KEY = Long.MIN_VALUE + 17L;
+    private static final long ZOMBIE_PREVIEW_ANIM_KEY = Long.MIN_VALUE + 18L;
     private static final Color ROW_COL_TINT = new Color(1f, 1f, 1f, 0.18f);
     private static final Color CELL_TINT = new Color(1f, 1f, 1f, 0.42f);
     private static final Color PREVIEW_TINT = new Color(1f, 1f, 1f, 0.75f);
+    private static final Color ZOMBIE_ROW_COL_TINT = new Color(0.95f, 0.35f, 0.55f, 0.18f);
+    private static final Color ZOMBIE_CELL_TINT = new Color(0.95f, 0.35f, 0.55f, 0.42f);
 
     private final VisualCatalog catalog;
     private final LawnLayout layout;
@@ -53,7 +54,6 @@ public final class PlantPlacementFeedbackRenderer {
         }
     }
 
-    /** Cell highlight for Plant Food targeting (same visual language as planting). */
     public void renderPlantFoodTarget(SpriteBatch batch, AssetContext assets, int row, int col) {
         if (batch == null || assets == null || layout == null) {
             return;
@@ -65,7 +65,30 @@ public final class PlantPlacementFeedbackRenderer {
         drawTargetHighlight(batch, assets, row, col);
     }
 
+    public void renderZombieTarget(SpriteBatch batch, AssetContext assets, ZombieType zombieType, int row, int col) {
+        if (batch == null || assets == null || layout == null) {
+            return;
+        }
+        if (row < 0 || row >= ReadOnlyGameState.GRID_ROWS
+                || col < 0 || col >= ReadOnlyGameState.GRID_COLS) {
+            return;
+        }
+        drawZombieTargetHighlight(batch, assets, row, col);
+        if (zombieType != null) {
+            drawZombiePreview(batch, assets, zombieType, row, col);
+        }
+    }
+
     private void drawTargetHighlight(SpriteBatch batch, AssetContext assets, int row, int col) {
+        drawTargetHighlight(batch, assets, row, col, ROW_COL_TINT, CELL_TINT);
+    }
+
+    private void drawZombieTargetHighlight(SpriteBatch batch, AssetContext assets, int row, int col) {
+        drawTargetHighlight(batch, assets, row, col, ZOMBIE_ROW_COL_TINT, ZOMBIE_CELL_TINT);
+    }
+
+    private void drawTargetHighlight(SpriteBatch batch, AssetContext assets, int row, int col,
+            Color rowColTint, Color cellTint) {
         TextureRegion fill = assets.region("IMAGE_UI_HUD_INGAME_PROGRESS_METER_FILL");
         if (fill == null) {
             return;
@@ -73,7 +96,7 @@ public final class PlantPlacementFeedbackRenderer {
         float cw = layout.cellWidth();
         float ch = layout.cellHeight();
         Color previous = batch.getColor();
-        batch.setColor(ROW_COL_TINT);
+        batch.setColor(rowColTint);
         for (int c = 0; c < ReadOnlyGameState.GRID_COLS; c++) {
             if (c == col) {
                 continue;
@@ -86,9 +109,40 @@ public final class PlantPlacementFeedbackRenderer {
             }
             batch.draw(fill, layout.cellLeft(col), layout.cellBottom(r), cw, ch);
         }
-        batch.setColor(CELL_TINT);
+        batch.setColor(cellTint);
         batch.draw(fill, layout.cellLeft(col), layout.cellBottom(row), cw, ch);
         batch.setColor(previous);
+    }
+
+    private void drawZombiePreview(SpriteBatch batch, AssetContext assets, ZombieType zombieType, int row, int col) {
+        PamPlayer player = assets.pamPlayer();
+        if (player == null) {
+            return;
+        }
+        ZombieVisualDef visual = catalog.zombie(zombieType);
+        if (visual == null || visual.idleClip == null) {
+            return;
+        }
+        EntityAnimState anim = animStates.getOrCreate(ZOMBIE_PREVIEW_ANIM_KEY, visual.idleClip);
+        if (!visual.idleClip.equals(anim.clipName)) {
+            anim.clipName = visual.idleClip;
+            anim.stateTime = 0f;
+        }
+        ClipRef clip = assets.clip(visual.pamPath, anim.clipName);
+        if (clip == null) {
+            return;
+        }
+        float x = layout.cellCenterX(col);
+        float y = layout.cellCenterY(row);
+        Color previous = batch.getColor();
+        batch.setColor(PREVIEW_TINT);
+        beginEntityScale(batch, x, y);
+        try {
+            player.draw(batch, clip, anim.stateTime, x, y, true);
+        } finally {
+            endEntityScale(batch);
+            batch.setColor(previous);
+        }
     }
 
     private void drawPlantPreview(SpriteBatch batch, AssetContext assets, PlantType plantType, int row, int col) {

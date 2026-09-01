@@ -13,9 +13,13 @@ import model.data.zombie.Zombie;
 import model.data.zombie.ZombieType;
 import model.rule.SessionContext;
 import model.service.MatchResultUi;
+import shared.dto.MatchStartPayload;
 import shared.dto.MatchStatePayload;
+import shared.izombie.MatchRole;
+import shared.message.QuickMessageId;
 import view.MenuType;
 import view.ScreenType;
+import view.gdx.lawn.QuickMessageHud;
 import view.gdx.ui.UiNavigator;
 
 public final class NetworkEventRouter {
@@ -23,13 +27,15 @@ public final class NetworkEventRouter {
     private final ModelManager model;
     private final UiNavigator navigator;
     private final NetworkSession session;
+    private final QuickMessageHud quickMessageHud;
 
     public NetworkEventRouter(ControllerManager controller, ModelManager model, UiNavigator navigator,
-            NetworkSession session) {
+            NetworkSession session, QuickMessageHud quickMessageHud) {
         this.controller = controller;
         this.model = model;
         this.navigator = navigator;
         this.session = session;
+        this.quickMessageHud = quickMessageHud;
         session.addListener(event -> Gdx.app.postRunnable(() -> handle(event)));
         model.getEventBus().subscribe(model.event.events.BrainCollectedEvent.class, e -> {
             if (session.activeMatch() != null) {
@@ -74,6 +80,9 @@ public final class NetworkEventRouter {
             case MATCH_STATE -> applyMatchState(event.matchState);
             case MATCH_END -> {
                 session.clearActiveMatch();
+                if (quickMessageHud != null) {
+                    quickMessageHud.clear();
+                }
                 if (controller.getCurrentScreen() == ScreenType.GAME) {
                     MatchResultUi ui = onlineMatchResult(event.a, event.b, model.getPlayContext());
                     controller.getSessionLifecycleController().showMatchResult(ui);
@@ -102,8 +111,7 @@ public final class NetworkEventRouter {
                     controller.refreshView();
                 }
             }
-            case QUICK_MSG -> navigator.showToast(
-                    (event.a == null ? "Opponent" : event.a) + ": " + (event.c == null ? event.b : event.c));
+            case QUICK_MSG -> handleQuickMessage(event);
             case LOOKUP_RESULT -> {
                 if (!event.flag1) {
                     navigator.showToast("Username not found");
@@ -125,6 +133,37 @@ public final class NetworkEventRouter {
             default -> {
             }
         }
+    }
+
+    private void handleQuickMessage(NetworkSession.NetworkEvent event) {
+        if (quickMessageHud == null || controller.getCurrentScreen() != ScreenType.GAME) {
+            return;
+        }
+        QuickMessageId id = QuickMessageId.fromName(event.b);
+        if (id == null) {
+            return;
+        }
+        MatchRole role = opponentRole();
+        if (role == null) {
+            return;
+        }
+        String name = event.a == null || event.a.isBlank() ? "Opponent" : event.a;
+        quickMessageHud.show(role, name, id);
+    }
+
+    private MatchRole opponentRole() {
+        MatchStartPayload match = session.activeMatch();
+        SessionContext ctx = model.getPlayContext();
+        MatchRole local = ctx != null && ctx.getConfig() != null
+                ? ctx.getConfig().localMatchRole
+                : null;
+        if (local == null && match != null) {
+            local = match.yourRole;
+        }
+        if (local == null) {
+            return null;
+        }
+        return local == MatchRole.PLANTS ? MatchRole.ZOMBIES : MatchRole.PLANTS;
     }
 
     private void applyMatchState(MatchStatePayload state) {

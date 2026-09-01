@@ -47,6 +47,7 @@ public class GameState implements ReadOnlyGameState {
     public boolean levelComplete = false;
     public GameOverReason gameOverReason = null;
     public int totalTicks = 0;
+    public int iZombieSessionStartTick = -1;
     public int sessionScore = 0;
     public boolean hasSessionScore = false;
     public boolean sessionScoreNewRecord = false;
@@ -133,6 +134,7 @@ public class GameState implements ReadOnlyGameState {
         return brains.stream().filter(b -> b.row == row).findFirst().orElse(null);
     }
 
+    @Override
     public int getCollectedBrainCount() {
         int count = 0;
         for (Brain brain : brains) {
@@ -197,6 +199,11 @@ public class GameState implements ReadOnlyGameState {
     @Override
     public int getTotalTicks() {
         return totalTicks;
+    }
+
+    @Override
+    public int getIZombieSessionStartTick() {
+        return iZombieSessionStartTick;
     }
 
     @Override
@@ -401,6 +408,7 @@ public class GameState implements ReadOnlyGameState {
         levelComplete = false;
         gameOverReason = null;
         totalTicks = 0;
+        iZombieSessionStartTick = -1;
         sessionEndTitle = null;
         sessionEndDetail = null;
         clearSessionScore();

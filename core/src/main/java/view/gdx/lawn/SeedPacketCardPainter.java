@@ -5,14 +5,21 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
 import model.data.content.chapter.ChapterType;
-import model.data.plant.PlantType;
+import model.data.content.minigame.IZombieShop;
+import model.data.zombie.ZombieType;
+import pvz.libpvz.pam.ClipRef;
+import pvz.libpvz.pam.PamPlayer;
 import view.gdx.AssetContext;
+import view.gdx.VisibilityResolver;
+import view.gdx.catalog.DefaultVisualCatalog;
+import view.gdx.catalog.VisualCatalog;
+import view.gdx.catalog.ZombieVisualDef;
 import view.gdx.ui.UiSkin;
-
 
 public final class SeedPacketCardPainter {
     public static final String BOOST_FRAME = "IMAGE_UI_PACKETS_READY_PREMIUM";
@@ -31,8 +38,13 @@ public final class SeedPacketCardPainter {
     private static final float TEXT_OUTLINE = 1f;
     private static final float LEVEL_SCALE = 0.8f;
     private static final float FALLBACK_PACKET_ASPECT = 119f / 75f;
+    private static final float ZOMBIE_ICON_PAM_SCALE = 0.34f;
+    private static final VisualCatalog ZOMBIE_VISUALS = new DefaultVisualCatalog();
+    private static final VisibilityResolver ZOMBIE_VISIBILITY = new VisibilityResolver();
 
     private final GlyphLayout glyphLayout = new GlyphLayout();
+    private final Matrix4 savedTransform = new Matrix4();
+    private final Matrix4 iconTransform = new Matrix4();
     private BitmapFont costFont;
     private BitmapFont levelFont;
 
@@ -82,13 +94,55 @@ public final class SeedPacketCardPainter {
         }
 
         String packetId = SeedPacketDefs.packetId(card.plantName);
-        TextureRegion plant = assets.region(packetId);
+        TextureRegion plant = packetId != null ? assets.region(packetId) : null;
         if (plant != null) {
             Color plantTint = card.locked ? new Color(0.65f, 0.65f, 0.65f, 1f) : tint;
             drawPlantIcon(batch, plant, x, y, packetW, packetH, plantTint);
+        } else {
+            ZombieType zombieType = ZombieType.fromName(card.plantName);
+            if (zombieType != null && IZombieShop.isPurchasable(zombieType)) {
+                Color zombieTint = card.locked ? new Color(0.65f, 0.65f, 0.65f, 1f) : tint;
+                drawZombiePamIcon(batch, assets, zombieType, x, y, packetW, packetH, zombieTint);
+            }
         }
 
         drawDecorations(batch, assets, card, x, y, packetW, packetH);
+    }
+
+    private void drawZombiePamIcon(SpriteBatch batch, AssetContext assets, ZombieType zombieType,
+            float x, float y, float packetW, float packetH, Color tint) {
+        PamPlayer player = assets.pamPlayer();
+        if (player == null) {
+            return;
+        }
+        ZombieVisualDef visual = ZOMBIE_VISUALS.zombie(zombieType);
+        if (visual == null || visual.idleClip == null) {
+            return;
+        }
+        ClipRef clip = assets.clip(visual.pamPath, visual.idleClip);
+        if (clip == null) {
+            return;
+        }
+        java.util.Map<String, Boolean> visibility = ZOMBIE_VISIBILITY.intactArmor(visual);
+        float centerX = x + packetW * 0.5f;
+        float centerY = y + packetH * 0.52f;
+        float scale = ZOMBIE_ICON_PAM_SCALE * (packetH / 68f);
+        Color previous = batch.getColor();
+        batch.setColor(tint);
+        savedTransform.set(batch.getTransformMatrix());
+        iconTransform.set(savedTransform);
+        iconTransform.translate(centerX, centerY, 0f).scale(scale, scale, 1f).translate(-centerX, -centerY, 0f);
+        batch.setTransformMatrix(iconTransform);
+        try {
+            if (visibility.isEmpty()) {
+                player.draw(batch, clip, 0f, centerX, centerY, false);
+            } else {
+                player.draw(batch, clip, 0f, centerX, centerY, false, visibility);
+            }
+        } finally {
+            batch.setTransformMatrix(savedTransform);
+            batch.setColor(previous);
+        }
     }
 
     public void drawDecorations(SpriteBatch batch, AssetContext assets, SeedPacketCardView card,
@@ -129,6 +183,10 @@ public final class SeedPacketCardPainter {
         }
 
         drawLevel(batch, card.level, x, y, packetW, packetH);
+
+        if (card.stackCount > 1) {
+            drawStackCount(batch, card.stackCount, x, y, packetW, packetH);
+        }
 
         if (card.showCost) {
             TextureRegion priceTab = assets.region(SeedPacketDefs.PRICE_TAB);
@@ -209,6 +267,18 @@ public final class SeedPacketCardPainter {
         float textY = Math.round(y + PRICE_TAB_PAD + glyphLayout.height + COST_TEXT_NUDGE_Y);
         drawOutlined(batch, costFont, text, textX, textY,
                 usable ? COST_COLOR : COST_UNAVAILABLE);
+    }
+
+    private void drawStackCount(SpriteBatch batch, int count, float x, float y,
+            float packetW, float packetH) {
+        if (costFont == null || count <= 1) {
+            return;
+        }
+        String text = "x" + count;
+        glyphLayout.setText(costFont, text);
+        float textX = Math.round(x + packetW - glyphLayout.width - PRICE_TAB_PAD);
+        float textY = Math.round(y + PRICE_TAB_PAD + glyphLayout.height);
+        drawOutlined(batch, costFont, text, textX, textY, COST_COLOR);
     }
 
     private void drawLevel(SpriteBatch batch, int level, float x, float y,

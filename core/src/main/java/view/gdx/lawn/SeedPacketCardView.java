@@ -17,18 +17,19 @@ public final class SeedPacketCardView {
     public final boolean locked;
     public final boolean showFamilyIcon;
     public final boolean showReadyBar;
+    public final int stackCount;
 
     public SeedPacketCardView(String plantName, int cost, int level, boolean showCost,
             boolean ready, float cooldownFraction, boolean highlighted, boolean selected,
             boolean boosted, boolean hasStoredBoost, boolean affordable) {
         this(plantName, cost, level, showCost, ready, cooldownFraction, highlighted, selected,
-                boosted, hasStoredBoost, affordable, false, false, false);
+                boosted, hasStoredBoost, affordable, false, false, false, 1);
     }
 
     public SeedPacketCardView(String plantName, int cost, int level, boolean showCost,
             boolean ready, float cooldownFraction, boolean highlighted, boolean selected,
             boolean boosted, boolean hasStoredBoost, boolean affordable,
-            boolean locked, boolean showFamilyIcon, boolean showReadyBar) {
+            boolean locked, boolean showFamilyIcon, boolean showReadyBar, int stackCount) {
         this.plantName = plantName;
         this.cost = cost;
         this.level = level;
@@ -43,6 +44,15 @@ public final class SeedPacketCardView {
         this.locked = locked;
         this.showFamilyIcon = showFamilyIcon;
         this.showReadyBar = showReadyBar;
+        this.stackCount = Math.max(1, stackCount);
+    }
+
+    public SeedPacketCardView(String plantName, int cost, int level, boolean showCost,
+            boolean ready, float cooldownFraction, boolean highlighted, boolean selected,
+            boolean boosted, boolean hasStoredBoost, boolean affordable,
+            boolean locked, boolean showFamilyIcon, boolean showReadyBar) {
+        this(plantName, cost, level, showCost, ready, cooldownFraction, highlighted, selected,
+                boosted, hasStoredBoost, affordable, locked, showFamilyIcon, showReadyBar, 1);
     }
 
     public boolean isEmpty() {
@@ -75,6 +85,7 @@ public final class SeedPacketCardView {
                 affordable,
                 false,
                 false,
-                false);
+                false,
+                slot.count);
     }
 }

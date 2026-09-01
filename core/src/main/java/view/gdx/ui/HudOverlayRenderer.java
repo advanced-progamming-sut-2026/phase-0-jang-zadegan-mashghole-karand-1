@@ -68,6 +68,13 @@ public final class HudOverlayRenderer {
         if (hud.mode == HudViewState.Mode.ZOMBOSS) {
             drawBossHp(batch, assets, hud.timedWarProgress, hud.timedWarGoal, worldWidth, worldHeight);
         }
+        if (hud.mode == HudViewState.Mode.BRAINS) {
+            drawBrainsHud(batch, worldWidth, worldHeight, hud.protectedAlive, hud.protectedTotal,
+                    hud.timedWarSecondsLeft);
+        }
+        if (hud.mode == HudViewState.Mode.VASE_BREAKER) {
+            drawVaseCount(batch, assets, hud.conveyorRemaining, worldWidth, worldHeight);
+        }
         if (hud.showSun) {
             if (zombieSunAmount >= 0) {
                 float leftX = Math.max(220f, worldWidth * 0.22f);
@@ -314,6 +321,43 @@ public final class HudOverlayRenderer {
                 : String.valueOf(sunAmount);
         glyphLayout.setText(font, text);
         float textX = x + 28f;
+        float textY = y + (backGroundH + glyphLayout.height) * 0.5f;
+        font.draw(batch, glyphLayout, textX, textY);
+    }
+
+    private void drawBrainsHud(SpriteBatch batch, float worldWidth, float worldHeight,
+            int collected, int total, int secondsLeft) {
+        font.setColor(Color.WHITE);
+        String brainsText = "Brains " + collected + "/" + total;
+        glyphLayout.setText(font, brainsText);
+        float x = worldWidth * 0.5f - glyphLayout.width * 0.5f;
+        float y = worldHeight - HUD_TOP_INSET - 8f;
+        font.draw(batch, glyphLayout, x, y);
+        if (secondsLeft > 0) {
+            String timerText = secondsLeft + "s";
+            glyphLayout.setText(font, timerText);
+            float timerX = worldWidth * 0.5f - glyphLayout.width * 0.5f;
+            float timerY = y - glyphLayout.height - 4f;
+            font.draw(batch, glyphLayout, timerX, timerY);
+        }
+    }
+
+    private void drawVaseCount(SpriteBatch batch, AssetContext assets, int vaseCount,
+            float worldWidth, float worldHeight) {
+        TextureRegion backGround = assets.region("IMAGE_UI_HUD_INGAME_BACKGROUND_3SLICE");
+        if (backGround == null) {
+            return;
+        }
+        float backGroundH = SUN_BG_H;
+        float backGroundW = 85f;
+        float x = worldWidth * 0.5f - backGroundW * 0.5f;
+        float y = worldHeight - backGroundH - HUD_TOP_INSET;
+        batch.setColor(Color.WHITE);
+        batch.draw(backGround, x, y, backGroundW, backGroundH);
+        font.setColor(Color.WHITE);
+        String text = "Vases " + vaseCount;
+        glyphLayout.setText(font, text);
+        float textX = x + (backGroundW - glyphLayout.width) * 0.5f;
         float textY = y + (backGroundH + glyphLayout.height) * 0.5f;
         font.draw(batch, glyphLayout, textX, textY);
     }

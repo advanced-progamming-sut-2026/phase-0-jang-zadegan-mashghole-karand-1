@@ -11,8 +11,9 @@ import model.data.plant.Plant;
 import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.zombie.Zombie;
 
-public class PlantBowlAbility implements PlantAbilityConfig {
-    private static final float SPEED = 8f;
+public class PlantBowlAbility implements PlantAbilityConfig, BowlingMotionView {
+    private static final float SPEED = 16f;
+    private static final float ROLL_RATE = 0.12f;
     private static final float HIT_RADIUS = 35f;
     private static final int HIT_DAMAGE = 1800;
     private static final int EXPLODE_DAMAGE = 1800;
@@ -26,6 +27,7 @@ public class PlantBowlAbility implements PlantAbilityConfig {
     private float vx;
     private float vy;
     private int hitCount;
+    private float rollAngle;
     private final Set<Integer> hitZombieIds = new HashSet<>();
 
     public PlantBowlAbility(BowlingNutMode mode) {
@@ -48,6 +50,7 @@ public class PlantBowlAbility implements PlantAbilityConfig {
 
         x += vx;
         y += vy;
+        rollAngle += Math.hypot(vx, vy) * ROLL_RATE;
         syncGrid(plant, state);
 
         if (handleEdgeBounce(plant, state, event)) {
@@ -214,5 +217,23 @@ public class PlantBowlAbility implements PlantAbilityConfig {
 
     private void finish(Plant plant, GameState state, EventBus event) {
         plant.kill(state, event);
+    }
+
+    @Override
+    public float modelX() {
+        return x;
+    }
+
+    @Override
+    public float modelY() {
+        return y;
+    }
+
+    @Override
+    public float rotationRadians() {
+        if (!initialized) {
+            return 0f;
+        }
+        return rollAngle;
     }
 }
