@@ -27,6 +27,7 @@ import view.gdx.ui.screens.main.MainScreen;
 import view.gdx.ui.screens.auth.RegisterScreen;
 import view.gdx.ui.screens.Garden.GardenScreen;
 import view.gdx.ui.screens.GlobalTopBar;
+import view.gdx.ui.screens.menus.LevelObjectivesOverlayScreen;
 import view.gdx.ui.screens.menus.NewsOverlayScreen;
 import view.gdx.ui.screens.menus.PauseOverlayScreen;
 import view.gdx.ui.screens.menus.ProfileOverlayScreen;
@@ -98,6 +99,7 @@ public final class UiNavigator implements Disposable {
         overlays.put(MenuType.MATCH_RESTART, restartOverlay);
         overlays.put(MenuType.MATCH_RESTART_WAIT, restartOverlay);
         overlays.put(MenuType.MATCH_RESULT, new MatchResultOverlayScreen());
+        overlays.put(MenuType.LEVEL_OBJECTIVES, new LevelObjectivesOverlayScreen());
     }
 
     public GameAnnouncementOverlay announcementOverlay() {
@@ -160,7 +162,8 @@ public final class UiNavigator implements Disposable {
                 || menu == MenuType.MATCH_RESTART
                 || menu == MenuType.MATCH_RESTART_WAIT
                 || menu == MenuType.MATCH_RESULT
-                || menu == MenuType.QUICK_MESSAGES;
+                || menu == MenuType.QUICK_MESSAGES
+                || menu == MenuType.LEVEL_OBJECTIVES;
     }
 
     private void updateInputProcessors() {
