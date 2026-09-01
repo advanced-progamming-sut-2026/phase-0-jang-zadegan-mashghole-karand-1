@@ -19,6 +19,7 @@ import model.data.projectile.Projectile;
 import model.data.vfx.LawnEffect;
 import model.data.zombie.Zombie;
 import pvz.libpvz.pam.ClipRef;
+import pvz.libpvz.pam.PamClipTiming;
 import pvz.libpvz.pam.PamPlayer;
 import pvz.libpvz.pam.ProjectilePamAnchor;
 import view.gdx.AssetContext;
@@ -180,7 +181,7 @@ public final class LawnRenderer {
         }
 
         // Phase 1 iced zombies: ice block only (no zombie sprite inside).
-        if (zombie.isIced()) {
+        if (zombie.isIced() && zombie.isAlive) {
             drawOverlayPam(batch, assets, player, ICE_BLOCK_ZOMBIE_BEHIND_PAM, "idle",
                     animKey(22, zombie.instanceId), x, y, true);
             drawOverlayPam(batch, assets, player, ICE_BLOCK_ZOMBIE_PAM, "idle",
@@ -192,33 +193,25 @@ public final class LawnRenderer {
         if (visual == null) {
             return;
         }
-        String defaultClip;
-        boolean loop = true;
-        if (zombie.animClip != null) {
-            defaultClip = zombie.animClip;
-            loop = zombie.animClipLoop;
-        } else if (zombie.stunned) {
-            defaultClip = visual.idleClip;
-        } else if (zombie.forceWalkAnim) {
-            defaultClip = visual.walkClip;
-        } else if (zombie.type != null && zombie.type.isZomboss()) {
-            defaultClip = visual.idleClip;
-        } else if (zombie.isEating) {
-            defaultClip = visual.eatClip;
-        } else {
-            defaultClip = visual.walkClip;
+        String defaultClip = desiredZombieClip(zombie, visual);
+        boolean loop = zombieClipLoops(zombie);
+        ClipRef clip = assets.clip(visual.pamPath, defaultClip);
+        if (clip == null && zombie.animClip != null && zombie.isAlive) {
+            zombie.clearAnim();
+            defaultClip = desiredZombieClip(zombie, visual);
+            loop = true;
+            clip = assets.clip(visual.pamPath, defaultClip);
         }
-        if (defaultClip == null) {
-            defaultClip = visual.idleClip;
+        if (clip == null) {
+            if (!zombie.isAlive) {
+                zombie.finishDeathAnim();
+            }
+            return;
         }
         EntityAnimState anim = animStates.getOrCreate(animKey(2, zombie.instanceId), defaultClip);
         if (!defaultClip.equals(anim.clipName)) {
             anim.clipName = defaultClip;
             anim.stateTime = 0f;
-        }
-        ClipRef clip = assets.clip(visual.pamPath, anim.clipName);
-        if (clip == null) {
-            return;
         }
         boolean sandstorm = zombie.hasSandstorm();
         if (sandstorm) {
@@ -228,7 +221,7 @@ public final class LawnRenderer {
         Map<String, Boolean> visibility = visibilityResolver.forZombie(zombie, visual);
         beginEntityScale(batch, x, y, zombie.isHypnotized);
         try {
-            if (!(visual.companions == null || visual.companions.isEmpty())) {
+            if (zombie.isAlive && !(visual.companions == null || visual.companions.isEmpty())) {
                 for (int i = 0; i < visual.companions.size(); i++) {
                     CompanionVisual c = visual.companions.get(i);
                     if (c.onlyWhileArmored && (zombie.armor == null || !zombie.armor.isIntact)) {
@@ -243,7 +236,9 @@ public final class LawnRenderer {
                     player.draw(batch, prop, propAnim.stateTime, x + c.offsetX, y + c.offsetY, true);
                 }
             }
-            if (zombie.isGlowing) {
+            if (zombie.hitFlashTicks > 0) {
+                batch.setColor(1f, 0.45f, 0.45f, 1f);
+            } else if (zombie.isGlowing) {
                 float pulse = 0.7f + 0.3f * (float) Math.sin(anim.stateTime * 8f);
                 batch.setColor(0.45f, 1f, 0.35f, pulse); // lime, not Color.GREEN
             }
@@ -256,10 +251,59 @@ public final class LawnRenderer {
         } finally {
             endEntityScale(batch);
         }
+        if (!loop && anim.stateTime >= PamClipTiming.durationSeconds(clip)) {
+            if (!zombie.isAlive) {
+                zombie.finishDeathAnim();
+            } else if (Zombie.HIT_CLIP.equals(zombie.animClip)) {
+                zombie.clearAnim();
+            }
+        }
         if (sandstorm) {
             drawOverlayPam(batch, assets, player, SANDSTORM_TOP_PAM, "loop",
                     animKey(25, zombie.instanceId), x, y, true);
         }
+    }
+
+    private static String desiredZombieClip(Zombie zombie, ZombieVisualDef visual) {
+        String clip;
+        if (!zombie.isAlive) {
+            clip = visual.dieClip != null ? visual.dieClip : Zombie.DIE_CLIP;
+        } else if (zombie.animClip != null) {
+            clip = zombie.animClip;
+        } else if (zombie.stunned) {
+            clip = visual.idleClip;
+        } else if (zombie.forceWalkAnim) {
+            clip = visual.walkClip;
+        } else if (zombie.type != null && zombie.type.isZomboss()) {
+            clip = visual.idleClip;
+        } else if (zombie.isEating) {
+            clip = visual.eatClip;
+        } else {
+            clip = visual.walkClip;
+        }
+        if (clip == null) {
+            clip = visual.idleClip;
+        }
+        return locomotionClip(zombie, clip);
+    }
+
+    private static boolean zombieClipLoops(Zombie zombie) {
+        if (!zombie.isAlive) {
+            return false;
+        }
+        if (zombie.animClip != null) {
+            return zombie.animClipLoop;
+        }
+        return true;
+    }
+
+    private static String locomotionClip(Zombie zombie, String clip) {
+        if (clip != null && clip.endsWith("_newspaper")
+                && (zombie.armor == null || !zombie.armor.isIntact())) {
+            String stripped = clip.substring(0, clip.length() - "_newspaper".length());
+            return stripped.isEmpty() ? clip : stripped;
+        }
+        return clip;
     }
 
     private void drawOverlayPam(SpriteBatch batch, AssetContext assets, PamPlayer player,
