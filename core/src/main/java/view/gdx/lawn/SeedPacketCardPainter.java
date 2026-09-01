@@ -48,13 +48,6 @@ public final class SeedPacketCardPainter {
         if (boostFrame == null) {
             boostFrame = assets.region(BOOST_FRAME_FALLBACK);
         }
-        TextureRegion back = card.boosted
-                ? boostFrame
-                : assets.region(SeedPacketDefs.worldBack(chapter));
-        TextureRegion frame = back != null ? back : empty;
-
-        Color tint = !card.ready ? AFFORDABLE : (card.affordable ? AFFORDABLE : UNAFFORDABLE);
-
         if (card.isEmpty()) {
             if (empty != null) {
                 batch.setColor(Color.WHITE);
@@ -63,6 +56,25 @@ public final class SeedPacketCardPainter {
             batch.setColor(Color.WHITE);
             return;
         }
+
+        if (card.boosted && boostFrame != null) {
+            batch.setColor(Color.WHITE);
+            batch.draw(boostFrame, x, y, packetW, packetH);
+            String packetId = SeedPacketDefs.packetId(card.plantName);
+            TextureRegion plant = assets.region(packetId);
+            if (plant != null) {
+                Color plantTint = card.locked ? new Color(0.65f, 0.65f, 0.65f, 1f) : Color.WHITE;
+                drawPlantIcon(batch, plant, x, y, packetW, packetH, plantTint);
+            }
+            drawDecorations(batch, assets, card, x, y, packetW, packetH);
+            batch.setColor(Color.WHITE);
+            return;
+        }
+
+        TextureRegion back = assets.region(SeedPacketDefs.worldBack(chapter));
+        TextureRegion frame = back != null ? back : empty;
+
+        Color tint = !card.ready ? AFFORDABLE : (card.affordable ? AFFORDABLE : UNAFFORDABLE);
 
         if (frame != null) {
             batch.setColor(tint);

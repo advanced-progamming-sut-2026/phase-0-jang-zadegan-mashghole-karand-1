@@ -9,6 +9,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import app.DesktopApp;
 import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
@@ -28,6 +31,7 @@ import view.gdx.lawn.PlantPlacementFeedbackRenderer;
 import view.gdx.lawn.SeedTrayRenderer;
 import view.gdx.ui.HudOverlayRenderer;
 import view.gdx.ui.MenuBackdrop;
+import view.gdx.ui.PlantFoodCollectFeedback;
 import view.gdx.ui.UiNavigator;
 import view.gdx.ui.screens.GlobalTopBar;
 
@@ -52,6 +56,7 @@ public final class GraphicsApp extends ApplicationAdapter {
     private AnimStateStore animStates;
     private VisibilityResolver visibilityResolver;
     private HudOverlayRenderer hudOverlay;
+    private PlantFoodCollectFeedback plantFoodFeedback;
 
     @Override
     public void create() {
@@ -77,10 +82,13 @@ public final class GraphicsApp extends ApplicationAdapter {
         seedTray = new SeedTrayRenderer();
         conveyorAnimator = new ConveyorTrayAnimator();
         hudOverlay = new HudOverlayRenderer();
+        plantFoodFeedback = new PlantFoodCollectFeedback();
         plantInput = new LawnPlantInput(worldViewport, lawnLayout, seedTray, hudOverlay);
         lawnGridDebug = new LawnGridDebugOverlay();
 
         ui.setGameWorldInput(plantInput);
+
+        plantFoodFeedback.register(app.model().getEventBus());
 
         Gdx.app.log("GraphicsApp", "ready assets=" + assets.status()
                 + " backdrop=" + menuBackdrop.ready()
@@ -114,8 +122,8 @@ public final class GraphicsApp extends ApplicationAdapter {
             boolean paused = pausesWorld(app.controller().getCurrentMenu())
                     || app.controller().isDialogueActive();
             float worldDt = paused ? 0f : dt;
-            lawnRenderer.render(batch, assets, app.gameState(), worldDt, chapter);
             SessionContext session = app.model().getPlayContext();
+            lawnRenderer.render(batch, assets, app.gameState(), worldDt, chapter);
             HudViewState hud = HudViewState.fromSession(
                     session,
                     app.gameState(),
@@ -149,11 +157,11 @@ public final class GraphicsApp extends ApplicationAdapter {
             renderPlacementFeedback(batch);
             seedTray.render(batch, assets, hud, chapter, leftSun, rightSun, worldHeight, worldWidth,
                     plantInput.selectedPlantName(), plantInput.selectedConveyorIndex(),
-                    conveyorAnimator, hudTopReserve,
-                    session != null && session.getConfig() != null
-                            ? session.getConfig().boostedPlants
-                            : null);
+                    conveyorAnimator, hudTopReserve, boostedPlants(session));
             int pf = app.gameState() != null ? app.gameState().getPlantFoodAmount() : 0;
+            if (!paused) {
+                plantFoodFeedback.update(dt, pf, lawnLayout, assets, worldWidth, worldHeight);
+            }
             float progress = 0f;
             int totalWaves = 0;
             if (session != null && session.getWaveManager() != null) {
@@ -163,8 +171,10 @@ public final class GraphicsApp extends ApplicationAdapter {
                 }
             }
             hudOverlay.setPlantFoodMode(plantInput.isPlantFoodMode());
+            hudOverlay.setPlantFoodPulse(plantFoodFeedback.bankPulse());
             hudOverlay.render(batch, assets, hud, plantSun, dualSun ? zombieSun : -1, pf, progress,
                     totalWaves, worldWidth, worldHeight);
+            plantFoodFeedback.render(batch, assets);
             renderPlantFoodCursor(batch);
             batch.end();
             lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
@@ -173,6 +183,7 @@ public final class GraphicsApp extends ApplicationAdapter {
             plantInput.clearPlantFoodMode();
             plantInput.clearHover();
             conveyorAnimator.reset();
+            plantFoodFeedback.reset();
             menuBackdrop.render(batch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
 
@@ -183,6 +194,19 @@ public final class GraphicsApp extends ApplicationAdapter {
     public void resize(int width, int height) {
         worldViewport.update(width, height, true);
         ui.resize(width, height);
+    }
+
+    private static Set<PlantType> boostedPlants(SessionContext session) {
+        if (session == null || session.getConfig() == null || session.getConfig().selectedPlants == null) {
+            return null;
+        }
+        Set<PlantType> boosted = new HashSet<>();
+        for (PlantType type : session.getConfig().selectedPlants) {
+            if (session.isBoosted(type)) {
+                boosted.add(type);
+            }
+        }
+        return boosted.isEmpty() ? null : boosted;
     }
 
     private void renderPlacementFeedback(SpriteBatch batch) {

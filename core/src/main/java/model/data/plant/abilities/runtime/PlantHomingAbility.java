@@ -65,16 +65,24 @@ public class PlantHomingAbility implements PlantAbilityConfig {
                     .min((z1, z2) -> Float.compare(plant.getX() - z1.position.x, plant.getX() - z2.position.x))
                     .orElse(null);
         } else if (this.strategy == TargetStrategy.RANDOM) {
-            List<Zombie> instakillable = aliveZombies.stream()
-                    .filter(Zombie::canBeInstakilled)
-                    .toList();
-            boolean instakill = plant.type == PlantType.Caulipower
-                    || plant.type == PlantType.Electric_Blueberry;
-            if (instakill && !instakillable.isEmpty()) {
-                target = instakillable.get(new Random().nextInt(instakillable.size()));
-                target.kill(state);
+            if (plant.type == PlantType.Caulipower) {
+                List<Zombie> hypnotizable = aliveZombies.stream()
+                        .filter(z -> !z.isHypnotized && z.canBeHypnotized())
+                        .toList();
+                if (hypnotizable.isEmpty()) {
+                    return;
+                }
+                target = hypnotizable.get(new Random().nextInt(hypnotizable.size()));
             } else {
-                target = aliveZombies.get(new Random().nextInt(aliveZombies.size()));
+                List<Zombie> instakillable = aliveZombies.stream()
+                        .filter(Zombie::canBeInstakilled)
+                        .toList();
+                if (plant.type == PlantType.Electric_Blueberry && !instakillable.isEmpty()) {
+                    target = instakillable.get(new Random().nextInt(instakillable.size()));
+                    target.kill(state);
+                } else {
+                    target = aliveZombies.get(new Random().nextInt(aliveZombies.size()));
+                }
             }
         }
         if (target != null) {

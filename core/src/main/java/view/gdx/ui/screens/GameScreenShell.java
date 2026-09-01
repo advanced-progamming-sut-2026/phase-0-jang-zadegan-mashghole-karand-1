@@ -127,7 +127,7 @@ public final class GameScreenShell implements UiScreen {
         Table root = new Table();
         root.setFillParent(true);
         root.setTouchable(Touchable.childrenOnly);
-        root.top().right().pad(10f);
+        root.top().right().padTop(GlobalTopBar.reservedScreenHeight()).padRight(10f);
         root.add(pause).width(120f).height(44f).row();
         root.add(debugBar).right().padTop(8f);
 

@@ -14,7 +14,7 @@ public final class HudOverlayRenderer {
     public static final String PF_BUTTON = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BUTTON";
     public static final String PF_BUTTON_DOWN = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BUTTON_DOWN";
 
-    private static final int PF_MAX_SLOTS = 3;
+    public static final int PF_MAX_SLOTS = 3;
     private static final float HUD_TOP_INSET = 25f;
     private static final float SUN_BG_H = 30f;
     private static final float PF_BANK_H = 30f;
@@ -23,9 +23,14 @@ public final class HudOverlayRenderer {
     private final BitmapFont font = new BitmapFont();
     private final GlyphLayout glyphLayout = new GlyphLayout();
     private boolean plantFoodMode;
+    private float plantFoodPulse;
 
     public void setPlantFoodMode(boolean plantFoodMode) {
         this.plantFoodMode = plantFoodMode;
+    }
+
+    public void setPlantFoodPulse(float pulse) {
+        this.plantFoodPulse = Math.max(0f, Math.min(1f, pulse));
     }
 
     public void render(
@@ -131,6 +136,15 @@ public final class HudOverlayRenderer {
 
         batch.setColor(Color.WHITE);
         batch.draw(bank, layout.bankX, layout.bankY, layout.bankW, layout.bankH);
+
+        if (plantFoodPulse > 0f) {
+            float glow = 0.35f + 0.25f * plantFoodPulse;
+            batch.setColor(1f, 0.92f, 0.45f, glow);
+            float pad = 3f + plantFoodPulse * 2f;
+            batch.draw(bank, layout.bankX - pad, layout.bankY - pad,
+                    layout.bankW + pad * 2f, layout.bankH + pad * 2f);
+            batch.setColor(Color.WHITE);
+        }
 
         TextureRegion leaf = assets.region(PF_LEAF);
         if (leaf != null) {

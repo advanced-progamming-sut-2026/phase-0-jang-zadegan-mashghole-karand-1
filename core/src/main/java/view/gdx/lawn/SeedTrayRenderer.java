@@ -44,7 +44,7 @@ public final class SeedTrayRenderer {
 
         if (hud.trayIsConveyorRow) {
             drawConveyor(batch, assets, hud, conveyorAnimator, worldHeight, hudTopReserve,
-                    selectedConveyorIndex);
+                    selectedConveyorIndex, boostedPlants);
             return;
         }
 
@@ -218,7 +218,7 @@ public final class SeedTrayRenderer {
 
     private void drawConveyor(SpriteBatch batch, AssetContext assets, HudViewState hud,
             ConveyorTrayAnimator conveyorAnimator, float worldHeight, float hudTopReserve,
-            int selectedConveyorIndex) {
+            int selectedConveyorIndex, Set<PlantType> boostedPlants) {
         ConveyorTrayAnimator.ConveyorLayout layout = conveyorAnimator != null
                 ? conveyorAnimator.layout()
                 : ConveyorTrayAnimator.ConveyorLayout.compute(worldHeight, hudTopReserve);
@@ -248,7 +248,7 @@ public final class SeedTrayRenderer {
             for (int i = 0; i < hud.traySlots.size(); i++) {
                 HudViewState.TraySlot slot = hud.traySlots.get(i);
                 drawConveyorPacket(batch, assets, layout, slot.name, layout.slotY(i),
-                        slot.ready, selectedConveyorIndex == i, slot.level);
+                        slot.ready, selectedConveyorIndex == i, slot.level, boostedPlants);
             }
         } else {
             for (ConveyorTrayAnimator.AnimatedPacket packet : animated) {
@@ -256,7 +256,7 @@ public final class SeedTrayRenderer {
                     continue;
                 }
                 drawConveyorPacket(batch, assets, layout, packet.name, packet.y,
-                        packet.ready, selectedConveyorIndex == packet.slotIndex, packet.level);
+                        packet.ready, selectedConveyorIndex == packet.slotIndex, packet.level, boostedPlants);
             }
         }
         batch.setColor(Color.WHITE);
@@ -264,9 +264,12 @@ public final class SeedTrayRenderer {
 
     private void drawConveyorPacket(SpriteBatch batch, AssetContext assets,
             ConveyorTrayAnimator.ConveyorLayout layout, String plantName, float y,
-            boolean ready, boolean selected, int level) {
+            boolean ready, boolean selected, int level, Set<PlantType> boostedPlants) {
+        PlantType type = PlantType.fromName(plantName);
+        boolean boosted = boostedPlants != null && type != null && boostedPlants.contains(type);
         SeedPacketCardView card = new SeedPacketCardView(
-                plantName, 0, level, false, ready, 0f, false, selected, false, false, true);
+                plantName, 0, level, false, ready, 0f, false, selected, boosted, false, true,
+                false, false, false);
         painter.draw(batch, assets, card, null, layout.packetX, y, layout.packetW, layout.packetH);
     }
 

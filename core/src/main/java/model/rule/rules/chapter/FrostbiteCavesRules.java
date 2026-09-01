@@ -11,6 +11,7 @@ import model.core.EventBus;
 import model.core.GameState;
 import model.data.content.specialLevel.SpecialLevelType;
 import model.data.plant.Plant;
+import model.data.vfx.LawnEffect;
 import model.rule.LevelRule;
 import model.rule.SessionContext;
 
@@ -23,6 +24,10 @@ public class FrostbiteCavesRules implements LevelRule {
     private static final int MAX_ICE_WIND_ROWS = 4;
     private static final int MIN_FROZEN_ZOMBIES = 1;
     private static final int MAX_FROZEN_ZOMBIES = 5;
+    private static final int CHILL_WIND_TICKS = 26;
+    private static final int ICE_WIND_EFFECT_COL = 4;
+    private static final String CHILL_WIND_PAM =
+            "768/FULL/EFFECTS/FROSTBITE_CHILL_WIND/FROSTBITE_CHILL_WIND.PAM";
 
     @Override
     public boolean freezeProjectilesEnabled() {
@@ -98,6 +103,10 @@ public class FrostbiteCavesRules implements LevelRule {
             }
         }
 
+        for (int row : affectedRows) {
+            state.addLawnEffect(new LawnEffect(CHILL_WIND_PAM, "animation", row, ICE_WIND_EFFECT_COL,
+                    CHILL_WIND_TICKS, false));
+        }
         applyIceWind(state, affectedRows);
     }
 
