@@ -11,6 +11,7 @@ import model.storage.user.User;
 import network.NetworkSession;
 import shared.dto.RankedLeaderboardEntry;
 import shared.dto.RankedLeaderboardResponse;
+import view.MenuType;
 import view.ScreenType;
 
 public class LeaderboardMenuController {
@@ -25,9 +26,9 @@ public class LeaderboardMenuController {
     }
 
     public CommandResult sort(String sortClass, String sortType) {
-        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.LEADERBOARD);
-        if (screenCheck != null) {
-            return screenCheck;
+        CommandResult openCheck = requireLeaderboardOpen();
+        if (openCheck != null) {
+            return openCheck;
         }
         if (sortClass == null || sortType == null) {
             return failure("Usage: menu leaderboard sort -c <SCORE|LEVELS|MINIGAMES> -t <HTL|LTH>");
@@ -39,6 +40,44 @@ public class LeaderboardMenuController {
             return failure("Invalid sort options. Use -c SCORE|LEVELS|MINIGAMES and -t HTL|LTH.");
         }
         return success("Leaderboard sorted by " + column.name() + " (" + direction.name() + ").");
+    }
+
+    public CommandResult sortBy(LeaderboardViewState.SortColumn newColumn) {
+        CommandResult openCheck = requireLeaderboardOpen();
+        if (openCheck != null) {
+            return openCheck;
+        }
+        if (newColumn == column) {
+            direction = direction == LeaderboardViewState.SortDirection.HTL
+                    ? LeaderboardViewState.SortDirection.LTH
+                    : LeaderboardViewState.SortDirection.HTL;
+        } else {
+            column = newColumn;
+            direction = LeaderboardViewState.SortDirection.HTL;
+        }
+        return success("Leaderboard sorted by " + column.name() + " (" + direction.name() + ").");
+    }
+
+    public CommandResult toggleSortDirection() {
+        CommandResult openCheck = requireLeaderboardOpen();
+        if (openCheck != null) {
+            return openCheck;
+        }
+        direction = direction == LeaderboardViewState.SortDirection.HTL
+                ? LeaderboardViewState.SortDirection.LTH
+                : LeaderboardViewState.SortDirection.HTL;
+        return success("Leaderboard sorted by " + column.name() + " (" + direction.name() + ").");
+    }
+
+    private CommandResult requireLeaderboardOpen() {
+        CommandResult screenCheck = controllerManager.requireScreen(ScreenType.LEVEL_SELECTOR);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        if (controllerManager.currentMenu != MenuType.LEADERBOARD) {
+            return failure("Open the leaderboard first.");
+        }
+        return null;
     }
 
     public LeaderboardViewState getViewState() {

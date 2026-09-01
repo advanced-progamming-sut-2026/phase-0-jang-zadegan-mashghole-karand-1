@@ -232,6 +232,25 @@ public class ControllerManager {
         return new CommandResult("Opened travel log.", true);
     }
 
+    public CommandResult openLeaderboardMenu() {
+        CommandResult screenCheck = requireScreen(ScreenType.LEVEL_SELECTOR);
+        if (screenCheck != null) {
+            return screenCheck;
+        }
+        if (gameNavigation.phase != Phase.CHAPTER) {
+            return new CommandResult("Open the leaderboard from the game menu.", false);
+        }
+        CommandResult loggedInCheck = requireLoggedIn();
+        if (loggedInCheck != null) {
+            return loggedInCheck;
+        }
+        if (currentMenu != MenuType.NONE && currentMenu != MenuType.LEADERBOARD) {
+            return new CommandResult("Close the current menu first.", false);
+        }
+        currentMenu = MenuType.LEADERBOARD;
+        return new CommandResult("Opened leaderboard.", true);
+    }
+
     public void clearCurrentMenu() {
         currentMenu = MenuType.NONE;
     }

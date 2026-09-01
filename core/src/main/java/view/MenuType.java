@@ -7,6 +7,7 @@ public enum MenuType {
     PROFILE,
     NEWS,
     TRAVEL_LOG,
+    LEADERBOARD,
     PLANT_SELECTOR,
     SHOP,
     I_ZOMBIE_MODE,

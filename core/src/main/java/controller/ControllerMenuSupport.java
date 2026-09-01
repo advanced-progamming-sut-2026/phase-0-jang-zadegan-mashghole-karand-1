@@ -90,12 +90,7 @@ final class ControllerMenuSupport {
             return new CommandResult("Opened collection. Default tab: plants.", true);
         }
         if (name.equals("leaderboard")) {
-            CommandResult loggedInCheck = manager.requireLoggedIn();
-            if (loggedInCheck != null) {
-                return loggedInCheck;
-            }
-            manager.setScreen(ScreenType.LEADERBOARD);
-            return new CommandResult("Opened leaderboard.", true);
+            return manager.openLeaderboardMenu();
         }
         if (name.equals("greenhouse") || name.equals("green-house") || name.equals("green house")) {
             CommandResult loggedInCheck = manager.requireLoggedIn();

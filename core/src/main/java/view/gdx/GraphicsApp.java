@@ -15,6 +15,7 @@ import java.util.Set;
 import app.DesktopApp;
 import model.data.content.chapter.ChapterType;
 import model.data.plant.PlantType;
+import model.core.ReadOnlyGameState;
 import model.rule.SessionContext;
 import model.service.HudViewState;
 import view.MenuType;
@@ -167,8 +168,9 @@ public final class GraphicsApp extends ApplicationAdapter {
             conveyorAnimator.update(dt, hud, worldHeight, hudTopReserve);
         }
         int[] traySuns = resolveTraySuns(hud, dualSun, sun, plantSun, zombieSun);
+        float mapRightX = lawnLayout.originX + ReadOnlyGameState.GRID_COLS * lawnLayout.cellWidth();
         plantInput.bind(app.controller(), assets, hud, traySuns[0], traySuns[1], worldWidth,
-                worldViewport::getWorldHeight, conveyorAnimator, hudTopReserve);
+                worldViewport::getWorldHeight, conveyorAnimator, hudTopReserve, mapRightX);
         plantInput.refreshHoverFromPointer();
         renderPlacementFeedback(batch);
         seedTray.render(batch, assets, hud, chapter, traySuns[0], traySuns[1], worldHeight, worldWidth,
@@ -178,12 +180,13 @@ public final class GraphicsApp extends ApplicationAdapter {
         if (!paused) {
             plantFoodFeedback.update(dt, pf, lawnLayout, assets, worldWidth, worldHeight);
         }
-        renderHudOverlay(session, hud, plantSun, dualSun, zombieSun, pf, worldWidth, worldHeight);
+        renderHudOverlay(session, hud, plantSun, dualSun, zombieSun, pf, worldWidth, worldHeight, mapRightX);
         plantFoodFeedback.render(batch, assets);
         if (dualSun && quickMessageHud != null) {
             quickMessageHud.render(batch, assets, worldWidth, worldHeight, hudTopReserve);
         }
         renderPlantFoodCursor(batch);
+        renderShovelCursor(batch);
     }
 
     private int[] resolveTraySuns(HudViewState hud, boolean dualSun, int sun,
@@ -204,7 +207,7 @@ public final class GraphicsApp extends ApplicationAdapter {
     }
 
     private void renderHudOverlay(SessionContext session, HudViewState hud, int plantSun,
-            boolean dualSun, int zombieSun, int pf, float worldWidth, float worldHeight) {
+            boolean dualSun, int zombieSun, int pf, float worldWidth, float worldHeight, float mapRightX) {
         float progress = 0f;
         int totalWaves = 0;
         if (session != null && session.getWaveManager() != null) {
@@ -214,14 +217,16 @@ public final class GraphicsApp extends ApplicationAdapter {
             }
         }
         hudOverlay.setPlantFoodMode(plantInput.isPlantFoodMode());
+        hudOverlay.setShovelMode(plantInput.isShovelMode());
         hudOverlay.setPlantFoodPulse(plantFoodFeedback.bankPulse());
         hudOverlay.render(batch, assets, hud, plantSun, dualSun ? zombieSun : -1, pf, progress,
-                totalWaves, worldWidth, worldHeight);
+                totalWaves, worldWidth, worldHeight, mapRightX);
     }
 
     private void renderMenuScreen() {
         plantInput.clearSelection();
         plantInput.clearPlantFoodMode();
+        plantInput.clearShovelMode();
         plantInput.clearHover();
         conveyorAnimator.reset();
         plantFoodFeedback.reset();
@@ -261,6 +266,13 @@ public final class GraphicsApp extends ApplicationAdapter {
             }
             return;
         }
+        if (plantInput.isShovelMode()) {
+            if (plantInput.hoverShovelTargetValid()) {
+                placementFeedback.renderShovelTarget(
+                        batch, assets, plantInput.hoverRow(), plantInput.hoverCol());
+            }
+            return;
+        }
         if (plantInput.hasZombieCursor()) {
             placementFeedback.renderZombieTarget(batch, assets, plantInput.selectedZombie(),
                     plantInput.zombieCursorRow(), plantInput.zombieCursorCol());
@@ -291,6 +303,26 @@ public final class GraphicsApp extends ApplicationAdapter {
         float y = plantInput.pointerWorldY() - size * 0.5f;
         batch.setColor(1f, 1f, 1f, 0.95f);
         batch.draw(leaf, x, y, w, size);
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void renderShovelCursor(SpriteBatch batch) {
+        if (plantInput == null || !plantInput.isShovelMode() || !plantInput.hasPointerWorld()) {
+            return;
+        }
+        TextureRegion shovel = assets.region(HudOverlayRenderer.SHOVEL_ICON);
+        if (shovel == null || shovel.getRegionHeight() <= 0) {
+            shovel = assets.region(HudOverlayRenderer.SHOVEL_BUTTON);
+        }
+        if (shovel == null || shovel.getRegionHeight() <= 0) {
+            return;
+        }
+        float size = 40f;
+        float w = size * (shovel.getRegionWidth() / (float) shovel.getRegionHeight());
+        float x = plantInput.pointerWorldX() - w * 0.5f;
+        float y = plantInput.pointerWorldY() - size * 0.5f;
+        batch.setColor(1f, 1f, 1f, 0.95f);
+        batch.draw(shovel, x, y, w, size);
         batch.setColor(1f, 1f, 1f, 1f);
     }
 

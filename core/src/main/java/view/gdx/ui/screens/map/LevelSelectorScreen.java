@@ -1,7 +1,6 @@
 package view.gdx.ui.screens.map;
 
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -16,7 +15,6 @@ import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import view.gdx.AssetContext;
 import view.gdx.ui.UiScreen;
-import view.gdx.ui.UiSkin;
 import view.gdx.ui.UiViewContext;
 import view.gdx.ui.widgets.UiWidgets;
 
@@ -74,7 +72,7 @@ public final class LevelSelectorScreen implements UiScreen {
         map.bind(controller, assets, nav);
         activeMap = map;
 
-        ImageButton travelLog = new ImageButton(UiSkin.get(), "hud_quests");
+        TextButton travelLog = UiWidgets.plain("Travel Log");
         TextButton collection = UiWidgets.plain("Collection");
         TextButton greenhouse = UiWidgets.plain("Greenhouse");
         TextButton leaderboard = UiWidgets.plain("Leaderboard");
@@ -87,7 +85,7 @@ public final class LevelSelectorScreen implements UiScreen {
         UiWidgets.onChange(ranked, () -> UiWidgets.apply(controller, controller.enterMenu("ranked")));
 
         Table chrome = new Table();
-        chrome.add(travelLog).size(72f).padRight(8f);
+        chrome.add(travelLog).width(180f).height(40f).padRight(8f);
         chrome.add(collection).width(180f).height(40f).padRight(8f);
         chrome.add(greenhouse).width(180f).height(40f).padRight(8f);
         chrome.add(leaderboard).width(180f).height(40f).padRight(8f);

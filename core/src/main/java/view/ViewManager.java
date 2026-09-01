@@ -45,7 +45,8 @@ public class ViewManager implements ViewFacade {
                 hudViewState, controllerManager, hasUnreadNews);
 
         if (currentMenu != MenuType.NONE && currentScreen != ScreenType.MAIN
-                && !(currentScreen == ScreenType.LEVEL_SELECTOR && currentMenu == MenuType.TRAVEL_LOG)) {
+                && !(currentScreen == ScreenType.LEVEL_SELECTOR
+                        && (currentMenu == MenuType.TRAVEL_LOG || currentMenu == MenuType.LEADERBOARD))) {
             renderMenuOverlay(currentMenu, profileViewState, newsViewState, settingsViewState, leaderboardViewState,
                     questViewState);
         }
@@ -62,6 +63,9 @@ public class ViewManager implements ViewFacade {
                 screenKey += "-" + currentMenu.name();
                 if (currentMenu == MenuType.TRAVEL_LOG) {
                     screenKey += "-" + questViewState.filter + "-" + questViewState.totalCount();
+                } else if (currentMenu == MenuType.LEADERBOARD) {
+                    screenKey += "-" + leaderboardViewState.sortColumn.name()
+                            + "-" + leaderboardViewState.sortDirection.name();
                 }
             }
         } else if (currentScreen == ScreenType.MAIN && currentMenu != MenuType.NONE) {
@@ -109,6 +113,8 @@ public class ViewManager implements ViewFacade {
             case LEVEL_SELECTOR:
                 if (currentMenu == MenuType.TRAVEL_LOG) {
                     renderer.renderQuestsOverlay(questViewState);
+                } else if (currentMenu == MenuType.LEADERBOARD) {
+                    renderer.renderLeaderboardOverlay(leaderboardViewState);
                 } else {
                     renderer.renderLevelSelectionScreen(gameNavigation);
                 }
@@ -158,6 +164,9 @@ public class ViewManager implements ViewFacade {
                 break;
             case TRAVEL_LOG:
                 renderer.renderQuestsOverlay(questViewState);
+                break;
+            case LEADERBOARD:
+                renderer.renderLeaderboardOverlay(leaderboardViewState);
                 break;
             case PLANT_SELECTOR:
                 renderer.renderPlantSelectorOverlay();

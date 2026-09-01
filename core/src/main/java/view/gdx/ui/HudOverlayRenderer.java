@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import model.data.plant.PlantType;
 import model.service.HudViewState;
 import view.gdx.AssetContext;
 
@@ -13,23 +14,42 @@ public final class HudOverlayRenderer {
     public static final String PF_LEAF = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BANK_FILLED_SLOT";
     public static final String PF_BUTTON = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BUTTON";
     public static final String PF_BUTTON_DOWN = "IMAGE_UI_HUD_INGAME_PLANTFOOD_BUTTON_DOWN";
+    public static final String SHOVEL_BUTTON = "IMAGE_UI_HUD_INGAME_SHOVEL_BUTTON";
+    public static final String SHOVEL_BUTTON_DOWN = "IMAGE_UI_HUD_INGAME_SHOVEL_BUTTON_DOWN";
+    public static final String SHOVEL_ICON = "IMAGE_UI_HUD_INGAME_SHOVEL_ICON";
 
     public static final int PF_MAX_SLOTS = 3;
     private static final float HUD_TOP_INSET = 25f;
     private static final float SUN_BG_H = 30f;
     private static final float PF_BANK_H = 30f;
+    private static final float SHOVEL_BUTTON_H = 58f;
 
     private final BitmapFont font = new BitmapFont();
     private final GlyphLayout glyphLayout = new GlyphLayout();
     private boolean plantFoodMode;
+    private boolean shovelMode;
     private float plantFoodPulse;
 
     public void setPlantFoodMode(boolean plantFoodMode) {
         this.plantFoodMode = plantFoodMode;
     }
 
+    public void setShovelMode(boolean shovelMode) {
+        this.shovelMode = shovelMode;
+    }
+
     public void setPlantFoodPulse(float pulse) {
         this.plantFoodPulse = Math.max(0f, Math.min(1f, pulse));
+    }
+
+    public static boolean shouldShowShovel(HudViewState hud) {
+        if (hud == null) {
+            return false;
+        }
+        if (hud.mode == HudViewState.Mode.BRAINS) {
+            return hasPlantTraySlot(hud.traySlots) || hasPlantTraySlot(hud.rightTraySlots);
+        }
+        return true;
     }
 
     public void render(
@@ -43,7 +63,7 @@ public final class HudOverlayRenderer {
             float worldWidth,
             float worldHeight) {
         render(batch, assets, hud, sunAmount, -1, plantFoodAmount, progress, totalWaves,
-                worldWidth, worldHeight);
+                worldWidth, worldHeight, worldWidth);
     }
 
     public void render(
@@ -57,9 +77,28 @@ public final class HudOverlayRenderer {
             int totalWaves,
             float worldWidth,
             float worldHeight) {
+        render(batch, assets, hud, sunAmount, zombieSunAmount, plantFoodAmount, progress, totalWaves,
+                worldWidth, worldHeight, worldWidth);
+    }
+
+    public void render(
+            SpriteBatch batch,
+            AssetContext assets,
+            HudViewState hud,
+            int sunAmount,
+            int zombieSunAmount,
+            int plantFoodAmount,
+            float progress,
+            int totalWaves,
+            float worldWidth,
+            float worldHeight,
+            float mapRightX) {
         if (hud == null) return;
         if (hud.showPlantFood) {
             drawPlantFood(batch, assets, plantFoodAmount, worldWidth, worldHeight);
+        }
+        if (shouldShowShovel(hud)) {
+            drawShovel(batch, assets, mapRightX, worldHeight);
         }
         if (hud.showWave) {
             drawWave(batch, assets, progress, totalWaves, worldWidth, worldHeight);
@@ -90,6 +129,16 @@ public final class HudOverlayRenderer {
     public boolean hitTestPlantFoodButton(AssetContext assets, float worldX, float worldY,
             float worldWidth, float worldHeight) {
         PlantFoodHudLayout layout = layoutPlantFood(assets, worldWidth, worldHeight);
+        if (layout == null) {
+            return false;
+        }
+        return worldX >= layout.buttonX && worldX <= layout.buttonX + layout.buttonW
+                && worldY >= layout.buttonY && worldY <= layout.buttonY + layout.buttonH;
+    }
+
+    public boolean hitTestShovelButton(AssetContext assets, float worldX, float worldY,
+            float mapRightX, float worldHeight) {
+        ShovelHudLayout layout = layoutShovel(assets, mapRightX, worldHeight);
         if (layout == null) {
             return false;
         }
@@ -171,6 +220,49 @@ public final class HudOverlayRenderer {
         if (button != null) {
             batch.draw(button, layout.buttonX, layout.buttonY, layout.buttonW, layout.buttonH);
         }
+    }
+
+    public static ShovelHudLayout layoutShovel(AssetContext assets, float mapRightX, float worldHeight) {
+        if (assets == null) {
+            return null;
+        }
+        TextureRegion button = assets.region(SHOVEL_BUTTON);
+        if (button == null || button.getRegionHeight() <= 0) {
+            return null;
+        }
+        float buttonH = SHOVEL_BUTTON_H;
+        float buttonW = buttonH * (button.getRegionWidth() / (float) button.getRegionHeight());
+        float buttonX = mapRightX - buttonW + 6f;
+        float buttonY = 12f;
+        return new ShovelHudLayout(buttonX, buttonY, buttonW, buttonH);
+    }
+
+    private void drawShovel(SpriteBatch batch, AssetContext assets, float mapRightX, float worldHeight) {
+        ShovelHudLayout layout = layoutShovel(assets, mapRightX, worldHeight);
+        if (layout == null) {
+            return;
+        }
+        TextureRegion button = assets.region(shovelMode ? SHOVEL_BUTTON_DOWN : SHOVEL_BUTTON);
+        if (button == null) {
+            button = assets.region(SHOVEL_BUTTON);
+        }
+        if (button == null) {
+            return;
+        }
+        batch.setColor(Color.WHITE);
+        batch.draw(button, layout.buttonX, layout.buttonY, layout.buttonW, layout.buttonH);
+    }
+
+    private static boolean hasPlantTraySlot(java.util.List<HudViewState.TraySlot> slots) {
+        if (slots == null) {
+            return false;
+        }
+        for (HudViewState.TraySlot slot : slots) {
+            if (slot != null && PlantType.fromName(slot.name) != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void drawWave(SpriteBatch batch, AssetContext assets,
@@ -397,6 +489,20 @@ public final class HudOverlayRenderer {
         float textX = x + (backGroundW - glyphLayout.width) * 0.5f;
         float textY = y + (backGroundH + glyphLayout.height) * 0.5f;
         font.draw(batch, glyphLayout, textX, textY);
+    }
+
+    public static final class ShovelHudLayout {
+        public final float buttonX;
+        public final float buttonY;
+        public final float buttonW;
+        public final float buttonH;
+
+        public ShovelHudLayout(float buttonX, float buttonY, float buttonW, float buttonH) {
+            this.buttonX = buttonX;
+            this.buttonY = buttonY;
+            this.buttonW = buttonW;
+            this.buttonH = buttonH;
+        }
     }
 
     public static final class PlantFoodHudLayout {

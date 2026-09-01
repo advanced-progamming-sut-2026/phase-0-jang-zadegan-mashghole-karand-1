@@ -34,6 +34,7 @@ public final class LawnPlantInput extends InputAdapter {
     private AssetContext assets;
     private HudViewState hud;
     private ChapterWorldHeight worldHeightProvider;
+    private float mapRightX = 1280f;
     private ConveyorTrayAnimator conveyorAnimator;
     private float hudTopReserve;
     private int sunAmount;
@@ -42,6 +43,7 @@ public final class LawnPlantInput extends InputAdapter {
     private String selectedPlantName;
     private int selectedConveyorIndex = -1;
     private boolean plantFoodMode;
+    private boolean shovelMode;
     private boolean hoverCellValid;
     private int hoverRow;
     private int hoverCol;
@@ -70,13 +72,21 @@ public final class LawnPlantInput extends InputAdapter {
             HudViewState hud, int sunAmount, ChapterWorldHeight worldHeightProvider,
             ConveyorTrayAnimator conveyorAnimator, float hudTopReserve) {
         bind(controller, assets, hud, sunAmount, sunAmount, 1280f, worldHeightProvider,
-                conveyorAnimator, hudTopReserve);
+                conveyorAnimator, hudTopReserve, 1280f);
     }
 
     public void bind(ControllerManager controller, AssetContext assets,
             HudViewState hud, int leftSun, int rightSun, float worldWidth,
             ChapterWorldHeight worldHeightProvider, ConveyorTrayAnimator conveyorAnimator,
             float hudTopReserve) {
+        bind(controller, assets, hud, leftSun, rightSun, worldWidth, worldHeightProvider,
+                conveyorAnimator, hudTopReserve, worldWidth);
+    }
+
+    public void bind(ControllerManager controller, AssetContext assets,
+            HudViewState hud, int leftSun, int rightSun, float worldWidth,
+            ChapterWorldHeight worldHeightProvider, ConveyorTrayAnimator conveyorAnimator,
+            float hudTopReserve, float mapRightX) {
         this.controller = controller;
         this.assets = assets;
         this.hud = hud;
@@ -86,11 +96,16 @@ public final class LawnPlantInput extends InputAdapter {
         this.worldHeightProvider = worldHeightProvider;
         this.conveyorAnimator = conveyorAnimator;
         this.hudTopReserve = hudTopReserve;
+        this.mapRightX = mapRightX;
         if (hud != null && !hud.showPlantFood && plantFoodMode) {
             clearPlantFoodMode();
         }
         if (plantFoodMode && plantFoodAmount() <= 0) {
             clearPlantFoodMode();
+            clearShovelMode();
+        }
+        if (hud != null && !HudOverlayRenderer.shouldShowShovel(hud) && shovelMode) {
+            clearShovelMode();
         }
         if (hud != null && hud.trayIsConveyorRow) {
             if (selectedConveyorIndex >= 0 && !isConveyorIndexSelectable(selectedConveyorIndex)) {
@@ -137,8 +152,24 @@ public final class LawnPlantInput extends InputAdapter {
         return plantFoodMode;
     }
 
+    public boolean isShovelMode() {
+        return shovelMode;
+    }
+
     public void clearPlantFoodMode() {
         plantFoodMode = false;
+    }
+
+    public void clearShovelMode() {
+        shovelMode = false;
+    }
+
+    public boolean hoverShovelTargetValid() {
+        if (!shovelMode || !hoverCellValid) {
+            return false;
+        }
+        ReadOnlyGameState state = gameState();
+        return state != null && state.getPlantAt(hoverRow, hoverCol) != null;
     }
 
     public boolean hasHoverCell() {
@@ -221,6 +252,7 @@ public final class LawnPlantInput extends InputAdapter {
 
     private void enterPlantFoodMode() {
         clearSelection();
+        clearShovelMode();
         plantFoodMode = true;
     }
 
@@ -233,6 +265,20 @@ public final class LawnPlantInput extends InputAdapter {
             return;
         }
         enterPlantFoodMode();
+    }
+
+    private void enterShovelMode() {
+        clearSelection();
+        clearPlantFoodMode();
+        shovelMode = true;
+    }
+
+    private void toggleShovelMode() {
+        if (shovelMode) {
+            clearShovelMode();
+            return;
+        }
+        enterShovelMode();
     }
 
     @Override
@@ -300,9 +346,10 @@ public final class LawnPlantInput extends InputAdapter {
     public boolean keyDown(int keycode) {
         if (keycode == Input.Keys.ESCAPE
                 && (selectedPlantName != null || selectedConveyorIndex >= 0
-                        || selectedZombie != null || plantFoodMode)) {
+                        || selectedZombie != null || plantFoodMode || shovelMode)) {
             clearSelection();
             clearPlantFoodMode();
+            clearShovelMode();
             return true;
         }
         if (keycode == Input.Keys.M && isOnline()) {
@@ -318,6 +365,7 @@ public final class LawnPlantInput extends InputAdapter {
                 if (idx < shop.length) {
                     selectedZombie = shop[idx];
                     clearPlantFoodMode();
+                    clearShovelMode();
                     return true;
                 }
             }
@@ -365,6 +413,9 @@ public final class LawnPlantInput extends InputAdapter {
         if (handlePlantFoodButton(worldX, worldY, worldH)) {
             return true;
         }
+        if (handleShovelButton(worldX, worldY, worldH)) {
+            return true;
+        }
         if (handleTrayTouch(worldX, worldY, worldH)) {
             return true;
         }
@@ -378,9 +429,11 @@ public final class LawnPlantInput extends InputAdapter {
         if (button != Input.Buttons.RIGHT) {
             return false;
         }
-        if (selectedPlantName != null || selectedConveyorIndex >= 0 || plantFoodMode) {
+        if (selectedPlantName != null || selectedConveyorIndex >= 0 || plantFoodMode || shovelMode) {
             clearSelection();
             clearPlantFoodMode();
+            clearShovelMode();
+            clearShovelMode();
             return true;
         }
         return false;
@@ -394,6 +447,17 @@ public final class LawnPlantInput extends InputAdapter {
             return false;
         }
         togglePlantFoodMode();
+        return true;
+    }
+
+    private boolean handleShovelButton(float worldX, float worldY, float worldH) {
+        if (hud == null || hudOverlay == null || !HudOverlayRenderer.shouldShowShovel(hud)) {
+            return false;
+        }
+        if (!hudOverlay.hitTestShovelButton(assets, worldX, worldY, mapRightX, worldH)) {
+            return false;
+        }
+        toggleShovelMode();
         return true;
     }
 
@@ -412,6 +476,7 @@ public final class LawnPlantInput extends InputAdapter {
         }
         if (hit.isSlot()) {
             clearPlantFoodMode();
+            clearShovelMode();
             int index = hit.slotIndex();
             if (index == selectedConveyorIndex) {
                 clearSelection();
@@ -434,6 +499,7 @@ public final class LawnPlantInput extends InputAdapter {
                 return true;
             }
             clearPlantFoodMode();
+            clearShovelMode();
             if (packet.equals(selectedPlantName)) {
                 clearSelection();
             } else {
@@ -473,6 +539,9 @@ public final class LawnPlantInput extends InputAdapter {
         if (plantFoodMode) {
             return handlePlantFoodFeed(game, row, col);
         }
+        if (shovelMode) {
+            return handleShovelPluck(game, row, col);
+        }
         if (hud.mode == HudViewState.Mode.VASE_BREAKER) {
             if (handleVaseBreakerCell(game, row, col)) {
                 return true;
@@ -489,6 +558,16 @@ public final class LawnPlantInput extends InputAdapter {
         controller.handleCommandResult(feedResult);
         if (feedResult != null && feedResult.isSuccess()) {
             clearPlantFoodMode();
+            clearShovelMode();
+        }
+        return true;
+    }
+
+    private boolean handleShovelPluck(GameMechanismController game, int row, int col) {
+        CommandResult pluckResult = game.pluckPlant(row, col);
+        controller.handleCommandResult(pluckResult);
+        if (pluckResult != null && pluckResult.isSuccess()) {
+            clearShovelMode();
         }
         return true;
     }

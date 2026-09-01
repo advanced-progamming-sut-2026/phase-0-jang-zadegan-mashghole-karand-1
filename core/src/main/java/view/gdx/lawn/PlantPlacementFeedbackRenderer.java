@@ -27,6 +27,8 @@ public final class PlantPlacementFeedbackRenderer {
     private static final Color PREVIEW_TINT = new Color(1f, 1f, 1f, 0.75f);
     private static final Color ZOMBIE_ROW_COL_TINT = new Color(0.95f, 0.35f, 0.55f, 0.18f);
     private static final Color ZOMBIE_CELL_TINT = new Color(0.95f, 0.35f, 0.55f, 0.42f);
+    private static final Color SHOVEL_ROW_COL_TINT = new Color(0.95f, 0.55f, 0.25f, 0.18f);
+    private static final Color SHOVEL_CELL_TINT = new Color(0.95f, 0.55f, 0.25f, 0.42f);
 
     private final VisualCatalog catalog;
     private final LawnLayout layout;
@@ -65,6 +67,17 @@ public final class PlantPlacementFeedbackRenderer {
         drawTargetHighlight(batch, assets, row, col);
     }
 
+    public void renderShovelTarget(SpriteBatch batch, AssetContext assets, int row, int col) {
+        if (batch == null || assets == null || layout == null) {
+            return;
+        }
+        if (row < 0 || row >= ReadOnlyGameState.GRID_ROWS
+                || col < 0 || col >= ReadOnlyGameState.GRID_COLS) {
+            return;
+        }
+        drawShovelTargetHighlight(batch, assets, row, col);
+    }
+
     public void renderZombieTarget(SpriteBatch batch, AssetContext assets, ZombieType zombieType, int row, int col) {
         if (batch == null || assets == null || layout == null) {
             return;
@@ -85,6 +98,10 @@ public final class PlantPlacementFeedbackRenderer {
 
     private void drawZombieTargetHighlight(SpriteBatch batch, AssetContext assets, int row, int col) {
         drawTargetHighlight(batch, assets, row, col, ZOMBIE_ROW_COL_TINT, ZOMBIE_CELL_TINT);
+    }
+
+    private void drawShovelTargetHighlight(SpriteBatch batch, AssetContext assets, int row, int col) {
+        drawTargetHighlight(batch, assets, row, col, SHOVEL_ROW_COL_TINT, SHOVEL_CELL_TINT);
     }
 
     private void drawTargetHighlight(SpriteBatch batch, AssetContext assets, int row, int col,

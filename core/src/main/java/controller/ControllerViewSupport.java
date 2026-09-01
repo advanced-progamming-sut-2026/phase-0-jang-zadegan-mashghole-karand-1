@@ -46,7 +46,9 @@ final class ControllerViewSupport {
                 storage.getCurrentUser().gameProgress.getCompletedLevelIds());
         manager.profileViewState = ProfileViewState.fromUser(storage.getCurrentUser());
         manager.settingsViewState = SettingsViewState.fromUser(storage.getCurrentUser());
-        manager.leaderboardViewState = manager.getLeaderboardMenuController().getViewState();
+        manager.leaderboardViewState = manager.currentMenu == MenuType.LEADERBOARD
+                ? manager.getLeaderboardMenuController().getViewState()
+                : LeaderboardViewState.empty();
         manager.hasUnreadNews = storage.getCurrentUser().newsFeed.hasUnread();
         manager.newsViewState = manager.currentMenu == MenuType.NEWS
                 ? manager.getNewsMenuController().getViewState()
