@@ -1,5 +1,6 @@
 package view.gdx.lawn;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.math.Vector3;
@@ -10,6 +11,7 @@ import controller.ControllerManager;
 import controller.GameMechanismController;
 import model.core.ReadOnlyGameState;
 import model.data.content.minigame.IZombieShop;
+import model.data.plant.Plant;
 import model.data.plant.PlantType;
 import model.data.zombie.ZombieType;
 import model.rule.SessionConfig;
@@ -18,11 +20,13 @@ import shared.izombie.IZombiePlayMode;
 import shared.izombie.MatchRole;
 import view.MenuType;
 import view.gdx.AssetContext;
+import view.gdx.ui.HudOverlayRenderer;
 
 public final class LawnPlantInput extends InputAdapter {
     private final Viewport worldViewport;
     private final LawnLayout lawnLayout;
     private final SeedTrayRenderer seedTray;
+    private final HudOverlayRenderer hudOverlay;
     private final Vector3 touch = new Vector3();
     private final int[] cell = new int[2];
 
@@ -37,6 +41,13 @@ public final class LawnPlantInput extends InputAdapter {
     private float worldWidth;
     private String selectedPlantName;
     private int selectedConveyorIndex = -1;
+    private boolean plantFoodMode;
+    private boolean hoverCellValid;
+    private int hoverRow;
+    private int hoverCol;
+    private boolean pointerWorldValid;
+    private float pointerWorldX;
+    private float pointerWorldY;
 
     private ZombieType selectedZombie;
     private int zombieCursorRow = 2;
@@ -47,10 +58,12 @@ public final class LawnPlantInput extends InputAdapter {
         float worldHeight();
     }
 
-    public LawnPlantInput(Viewport worldViewport, LawnLayout lawnLayout, SeedTrayRenderer seedTray) {
+    public LawnPlantInput(Viewport worldViewport, LawnLayout lawnLayout, SeedTrayRenderer seedTray,
+            HudOverlayRenderer hudOverlay) {
         this.worldViewport = worldViewport;
         this.lawnLayout = lawnLayout;
         this.seedTray = seedTray;
+        this.hudOverlay = hudOverlay;
     }
 
     public void bind(ControllerManager controller, AssetContext assets,
@@ -73,6 +86,12 @@ public final class LawnPlantInput extends InputAdapter {
         this.worldHeightProvider = worldHeightProvider;
         this.conveyorAnimator = conveyorAnimator;
         this.hudTopReserve = hudTopReserve;
+        if (hud != null && !hud.showPlantFood && plantFoodMode) {
+            clearPlantFoodMode();
+        }
+        if (plantFoodMode && plantFoodAmount() <= 0) {
+            clearPlantFoodMode();
+        }
         if (hud != null && hud.trayIsConveyorRow) {
             if (selectedConveyorIndex >= 0 && !isConveyorIndexSelectable(selectedConveyorIndex)) {
                 clearSelection();
@@ -93,6 +112,121 @@ public final class LawnPlantInput extends InputAdapter {
     public void clearSelection() {
         selectedPlantName = null;
         selectedConveyorIndex = -1;
+    }
+
+    public boolean isPlantFoodMode() {
+        return plantFoodMode;
+    }
+
+    public void clearPlantFoodMode() {
+        plantFoodMode = false;
+    }
+
+    public boolean hasHoverCell() {
+        return hoverCellValid;
+    }
+
+    public int hoverRow() {
+        return hoverRow;
+    }
+
+    public int hoverCol() {
+        return hoverCol;
+    }
+
+    public boolean hasPointerWorld() {
+        return pointerWorldValid;
+    }
+
+    public float pointerWorldX() {
+        return pointerWorldX;
+    }
+
+    public float pointerWorldY() {
+        return pointerWorldY;
+    }
+
+    public void clearHover() {
+        hoverCellValid = false;
+        pointerWorldValid = false;
+    }
+
+    /** Refresh hover from the current pointer; useful when Stage may consume mouseMoved. */
+    public void refreshHoverFromPointer() {
+        updateHoverFromScreen(Gdx.input.getX(), Gdx.input.getY());
+    }
+
+    private void updateHoverFromScreen(int screenX, int screenY) {
+        touch.set(screenX, screenY, 0f);
+        worldViewport.unproject(touch);
+        pointerWorldValid = true;
+        pointerWorldX = touch.x;
+        pointerWorldY = touch.y;
+        if (lawnLayout.worldToCell(touch.x, touch.y, cell)) {
+            hoverCellValid = true;
+            hoverRow = cell[0];
+            hoverCol = cell[1];
+        } else {
+            hoverCellValid = false;
+        }
+    }
+
+    private int plantFoodAmount() {
+        if (controller == null || controller.getModel() == null || controller.getModel().getState() == null) {
+            return 0;
+        }
+        return controller.getModel().getState().getPlantFoodAmount();
+    }
+
+    private ReadOnlyGameState gameState() {
+        if (controller == null || controller.getModel() == null) {
+            return null;
+        }
+        return controller.getModel().getState();
+    }
+
+    /** UI-only feedability preview; gameplay still goes through feedPlant. */
+    public boolean hoverPlantFoodTargetValid() {
+        if (!plantFoodMode || !hoverCellValid || plantFoodAmount() <= 0) {
+            return false;
+        }
+        ReadOnlyGameState state = gameState();
+        if (state == null) {
+            return false;
+        }
+        Plant plant = state.getPlantAt(hoverRow, hoverCol);
+        return plant != null
+                && plant.plantFoodEffect != null
+                && !plant.isPlantFoodActive
+                && plant.canUseAbilities();
+    }
+
+    private void enterPlantFoodMode() {
+        clearSelection();
+        plantFoodMode = true;
+    }
+
+    private void togglePlantFoodMode() {
+        if (plantFoodMode) {
+            clearPlantFoodMode();
+            return;
+        }
+        if (plantFoodAmount() <= 0) {
+            return;
+        }
+        enterPlantFoodMode();
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        updateHoverFromScreen(screenX, screenY);
+        return false;
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        updateHoverFromScreen(screenX, screenY);
+        return false;
     }
 
     private boolean isStillSelectable(String plantName) {
@@ -146,8 +280,10 @@ public final class LawnPlantInput extends InputAdapter {
 
     @Override
     public boolean keyDown(int keycode) {
-        if (keycode == Input.Keys.ESCAPE && (selectedPlantName != null || selectedConveyorIndex >= 0)) {
+        if (keycode == Input.Keys.ESCAPE
+                && (selectedPlantName != null || selectedConveyorIndex >= 0 || plantFoodMode)) {
             clearSelection();
+            clearPlantFoodMode();
             return true;
         }
         if (keycode == Input.Keys.M && isOnline()) {
@@ -162,6 +298,7 @@ public final class LawnPlantInput extends InputAdapter {
                 int idx = keycode - Input.Keys.NUM_1;
                 if (idx < shop.length) {
                     selectedZombie = shop[idx];
+                    clearPlantFoodMode();
                     return true;
                 }
             }
@@ -194,9 +331,11 @@ public final class LawnPlantInput extends InputAdapter {
         if (controller == null || hud == null || worldHeightProvider == null) {
             return false;
         }
+        updateHoverFromScreen(screenX, screenY);
         if (button == Input.Buttons.RIGHT) {
-            if (selectedPlantName != null || selectedConveyorIndex >= 0) {
+            if (selectedPlantName != null || selectedConveyorIndex >= 0 || plantFoodMode) {
                 clearSelection();
+                clearPlantFoodMode();
                 return true;
             }
             return false;
@@ -205,17 +344,22 @@ public final class LawnPlantInput extends InputAdapter {
             return false;
         }
 
-        touch.set(screenX, screenY, 0f);
-        worldViewport.unproject(touch);
-        float worldX = touch.x;
-        float worldY = touch.y;
+        float worldX = pointerWorldX;
+        float worldY = pointerWorldY;
         float worldH = worldHeightProvider.worldHeight();
+
+        if (hud.showPlantFood && hudOverlay != null
+                && hudOverlay.hitTestPlantFoodButton(assets, worldX, worldY, worldWidth, worldH)) {
+            togglePlantFoodMode();
+            return true;
+        }
 
         if (hud.trayIsConveyorRow) {
             ConveyorTrayHit hit = seedTray.hitTestConveyor(hud, assets, worldX, worldY, worldH, sunAmount,
                     true, conveyorAnimator, hudTopReserve);
             if (hit.isHit()) {
                 if (hit.isSlot()) {
+                    clearPlantFoodMode();
                     int index = hit.slotIndex();
                     if (index == selectedConveyorIndex) {
                         clearSelection();
@@ -233,6 +377,7 @@ public final class LawnPlantInput extends InputAdapter {
                 if (packet.isEmpty()) {
                     return true;
                 }
+                clearPlantFoodMode();
                 if (packet.equals(selectedPlantName)) {
                     clearSelection();
                 } else {
@@ -264,6 +409,16 @@ public final class LawnPlantInput extends InputAdapter {
         if (lawnLayout.worldToCell(worldX, worldY, cell)) {
             int row = cell[0];
             int col = cell[1];
+
+            if (plantFoodMode) {
+                CommandResult feedResult = game.feedPlant(row, col);
+                controller.handleCommandResult(feedResult);
+                if (feedResult != null && feedResult.isSuccess()) {
+                    clearPlantFoodMode();
+                }
+                return true;
+            }
+
             CommandResult result;
 
             if (hud.trayIsConveyorRow) {

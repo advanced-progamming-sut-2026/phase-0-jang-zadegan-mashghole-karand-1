@@ -16,6 +16,7 @@ import model.shop.ShopItem;
 import model.shop.ShopItems;
 import pvz.skin.PvzSkin;
 import view.gdx.AssetContext;
+import view.gdx.ui.HudOverlayRenderer;
 import view.gdx.ui.UiScreen;
 import view.gdx.ui.UiSkin;
 import view.gdx.ui.UiViewContext;
@@ -611,7 +612,7 @@ public final class ShopOverlayScreen implements UiScreen {
     private String itemImageId(ShopItem item) {
         return switch (item.getId()) {
             case "pot" -> "IMAGE_ZEN_GARDEN_GROWING_PLANT_SLOT_GROWING_PLANT_SLOT_184X161";
-            case "plant food" -> "IMAGE_UI_ALMANAC_PLANT_FOOD_STAT_ICON";
+            case "plant food" -> HudOverlayRenderer.PF_LEAF;
             case "seed pack random", "seed pack selectable" -> "IMAGE_UI_STOREMULTI_SEEDPACKETICON";
             case "gem to coin" -> "IMAGE_UI_COINS_STACK_3";
             default -> null;

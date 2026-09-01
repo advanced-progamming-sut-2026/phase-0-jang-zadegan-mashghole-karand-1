@@ -37,7 +37,7 @@ public class MovementSystem {
             float nextX = zombie.position.x - currentSpeed;
 
             if (zombie.hasSandstorm() && nextX <= zombie.getSandstorm().finalX) {
-                zombie.position.x -= zombie.getSandstorm().finalX;
+                zombie.position.x = zombie.getSandstorm().finalX;
                 zombie.clearSandstorm();
             } else {
                 zombie.position.x = nextX;
