@@ -29,7 +29,7 @@ import shared.dto.RankedSpawnDto;
 import shared.dto.RankedWaveDto;
 
 public class WaveManager {
-    private static final int SPAWN_INTERVAL_TICKS = 30;
+    private static final int SPAWN_INTERVAL_TICKS = 100;
 
     private LevelConfig levelConfig;
     private MiniGameType miniGameType;

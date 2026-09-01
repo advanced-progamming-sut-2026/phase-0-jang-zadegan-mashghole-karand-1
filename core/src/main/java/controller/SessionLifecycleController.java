@@ -11,12 +11,14 @@ import model.data.wave.LevelConfig;
 import model.event.events.GameOverEvent;
 import model.event.events.GameOverReason;
 import model.event.events.LevelCompleteEvent;
+import model.gameSetting.GameSetting;
 import model.rule.SessionConfig;
 import model.rule.SessionContext;
 import model.service.GameNavigationState;
 import model.service.GameNavigationState.Phase;
 import model.service.MatchResultUi;
 import model.storage.StorageManager;
+import model.storage.user.User;
 import network.NetworkSession;
 import shared.izombie.IZombiePlayMode;
 import view.MenuType;
@@ -48,6 +50,19 @@ public class SessionLifecycleController {
     public void onSessionStart() {
         endHandled = false;
         matchResultUi = null;
+        applyGameSpeed();
+    }
+
+    private void applyGameSpeed() {
+        int speed = GameSetting.DEFAULT_GAME_SPEED;
+        StorageManager storage = controllerManager.getStorage();
+        if (storage != null && storage.isLoggedIn()) {
+            User user = storage.getCurrentUser();
+            if (user != null && user.preferredSetting != null) {
+                speed = user.preferredSetting.getGameSpeed();
+            }
+        }
+        gameLoop.setGameSpeed(speed);
     }
 
     public boolean hasEnded() {

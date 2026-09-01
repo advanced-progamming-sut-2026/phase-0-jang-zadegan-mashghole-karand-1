@@ -468,6 +468,10 @@ public class ControllerManager {
         return storage;
     }
 
+    public GameLoop getGameLoop() {
+        return gameLoop;
+    }
+
     public ModelManager getModel() {
         return model;
     }

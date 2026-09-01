@@ -52,6 +52,9 @@ public class SettingController {
         }
         storage.getCurrentUser().preferredSetting.setGameSpeed(gameSpeed);
         storage.saveProgress();
+        if (controllerManager.getGameLoop() != null) {
+            controllerManager.getGameLoop().setGameSpeed(gameSpeed);
+        }
         return success("Game speed changed to " + gameSpeed + ".");
     }
 

@@ -1,5 +1,7 @@
 package model.core;
 
+import model.gameSetting.GameSetting;
+
 public class GameLoop {
     public static final int TICKS_PER_SECOND = 10;
     public static final int TICK_INTERVAL_MS = 1000 / TICKS_PER_SECOND;
@@ -11,9 +13,23 @@ public class GameLoop {
 
     private int ticksPerformed = 0;
     private int totalTicks = 0;
+    private int gameSpeed = GameSetting.DEFAULT_GAME_SPEED;
 
     public void setOnTickHandler(Runnable onTick) {
         this.onTickHandler = onTick;
+    }
+
+    public void setGameSpeed(int gameSpeed) {
+        this.gameSpeed = Math.max(GameSetting.MIN_GAME_SPEED,
+                Math.min(gameSpeed, GameSetting.MAX_GAME_SPEED));
+    }
+
+    public int getGameSpeed() {
+        return gameSpeed;
+    }
+
+    public int getTickIntervalMs() {
+        return Math.max(1, TICK_INTERVAL_MS * GameSetting.DEFAULT_GAME_SPEED / gameSpeed);
     }
 
     public void tick() {
@@ -25,7 +41,7 @@ public class GameLoop {
             for (int i = 0; i < count; i++) {
                 performTick();
                 try {
-                    Thread.sleep(TICK_INTERVAL_MS);
+                    Thread.sleep(getTickIntervalMs());
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
@@ -101,7 +117,7 @@ public class GameLoop {
                 performTick();
 
                 long elapsed = System.currentTimeMillis() - startTime;
-                long sleepTime = TICK_INTERVAL_MS - elapsed;
+                long sleepTime = getTickIntervalMs() - elapsed;
 
                 if (sleepTime > 0) {
                     try {
