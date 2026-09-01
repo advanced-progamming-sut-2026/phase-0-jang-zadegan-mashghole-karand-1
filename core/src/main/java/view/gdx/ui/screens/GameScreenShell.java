@@ -35,8 +35,8 @@ public final class GameScreenShell implements UiScreen {
     private final Stage stage = new Stage(new ScreenViewport());
     private final ImageButton pause;
     private final Table debugBar;
-    private final Table cheatRow;
-    private final TextField cheatField;
+    private Table cheatRow;
+    private TextField cheatField;
     private final Table dialogueRoot;
     private final Label speakerLabel;
     private final Label dialogueLabel;
@@ -57,6 +57,20 @@ public final class GameScreenShell implements UiScreen {
             }
         });
 
+        panelTexture = solid(new Color(0.75f, 0.55f, 0.30f, 1f), 1, 1);
+        speakerLabel = new Label("", UiSkin.get(), "big");
+        dialogueLabel = new Label("", UiSkin.get(), "default");
+        dialogueLabel.setWrap(true);
+        characterStack = new Stack();
+        characterStack.setSize(220f, 220f);
+
+        debugBar = buildDebugBar();
+        dialogueRoot = buildDialogueRoot();
+        stage.addActor(buildHudRoot());
+        stage.addActor(dialogueRoot);
+    }
+
+    private Table buildDebugBar() {
         TextButton addSun = UiWidgets.secondary("+Sun");
         TextButton addFood = UiWidgets.secondary("+Food");
         TextButton cheatsToggle = UiWidgets.plain("Cheats");
@@ -90,18 +104,14 @@ public final class GameScreenShell implements UiScreen {
         debugButtons.add(addFood).width(80f).height(36f).padRight(4f);
         debugButtons.add(cheatsToggle).width(88f).height(36f);
 
-        debugBar = new Table();
-        debugBar.setVisible(false);
-        debugBar.add(debugButtons).right().row();
-        debugBar.add(cheatRow).right().padTop(6f);
+        Table bar = new Table();
+        bar.setVisible(false);
+        bar.add(debugButtons).right().row();
+        bar.add(cheatRow).right().padTop(6f);
+        return bar;
+    }
 
-        panelTexture = solid(new Color(0.75f, 0.55f, 0.30f, 1f), 1, 1);
-        speakerLabel = new Label("", UiSkin.get(), "big");
-        dialogueLabel = new Label("", UiSkin.get(), "default");
-        dialogueLabel.setWrap(true);
-        characterStack = new Stack();
-        characterStack.setSize(220f, 220f);
-
+    private Table buildDialogueRoot() {
         TextButton continueButton = UiWidgets.primary("Continue");
         UiWidgets.onChange(continueButton, () -> {
             if (controller != null) {
@@ -116,23 +126,24 @@ public final class GameScreenShell implements UiScreen {
         panel.add(dialogueLabel).width(420f).left().padBottom(12f).row();
         panel.add(continueButton).right().width(140f).height(40f);
 
-        dialogueRoot = new Table();
-        dialogueRoot.setFillParent(true);
-        dialogueRoot.setVisible(false);
-        dialogueRoot.setTouchable(Touchable.enabled);
-        dialogueRoot.center();
-        dialogueRoot.add(characterStack).size(220f).padRight(16f);
-        dialogueRoot.add(panel).width(460f);
+        Table root = new Table();
+        root.setFillParent(true);
+        root.setVisible(false);
+        root.setTouchable(Touchable.enabled);
+        root.center();
+        root.add(characterStack).size(220f).padRight(16f);
+        root.add(panel).width(460f);
+        return root;
+    }
 
+    private Table buildHudRoot() {
         Table root = new Table();
         root.setFillParent(true);
         root.setTouchable(Touchable.childrenOnly);
         root.top().right().padTop(GlobalTopBar.reservedScreenHeight()).padRight(10f);
         root.add(pause).width(120f).height(44f).row();
         root.add(debugBar).right().padTop(8f);
-
-        stage.addActor(root);
-        stage.addActor(dialogueRoot);
+        return root;
     }
 
     @Override

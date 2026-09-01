@@ -134,47 +134,14 @@ public class PlantShootAbility implements PlantAbilityConfig {
 
     @Override
     public void onTick(Plant plant, GameState state, EventBus event) {
-        if (lifeSpan > 0) {
-            lifeSpan--;
-            if (lifeSpan <= 0) {
-                plant.hp = 0;
-                plant.isAlive = false;
-            }
-        }
-        if (plant.type == PlantType.BowlingBulb) {
-            boolean zombieInLane = state.zombies.stream()
-                    .anyMatch(z -> z.isAlive && z.occupiesRow(plant.row));
-            if (zombieInLane) {
-                chargeTicks++;
-            }
-        }
+        tickLifeSpan(plant);
+        tickBowlingBulbCharge(plant, state);
         if (currentCooldown > 0) {
             currentCooldown--;
             return;
         }
         int targetRow = plant.row + shootPattern.getRow();
-        boolean hasZombie;
-        if (plant.isPlantFoodActive) {
-            hasZombie = state.zombies.stream().anyMatch(z -> z.isAlive);
-        } else if (plant.type == PlantType.Starfruit) {
-            hasZombie = state.zombies.stream().anyMatch(z ->
-                    z.isAlive && (
-                            canHitZombie(plant, z, Direction.BACK) ||
-                                    canHitZombie(plant, z, Direction.UP) ||
-                                    canHitZombie(plant, z, Direction.DOWN) ||
-                                    canHitZombie(plant, z, Direction.UP_RIGHT) ||
-                                    canHitZombie(plant, z, Direction.DOWN_RIGHT)
-                    ));
-        } else if (plant.type == PlantType.Rotobaga) {
-            hasZombie = state.zombies.stream()
-                    .anyMatch(z -> z.isAlive && canHitZombie(plant, z, shootPattern.getDir()));
-        } else if (plant.type == PlantType.Threepeater) {
-            hasZombie = state.zombies.stream()
-                    .anyMatch(z -> z.isAlive && z.occupiesNearbyRow(plant.row, 1));
-        } else {
-            hasZombie = state.zombies.stream()
-                    .anyMatch(z -> z.isAlive && z.occupiesRow(targetRow));
-        }
+        boolean hasZombie = hasTargetZombie(plant, state, targetRow);
         if (plant.type == PlantType.BowlingBulb && hasZombie) {
             chargeTicks++;
         }
@@ -189,6 +156,52 @@ public class PlantShootAbility implements PlantAbilityConfig {
             currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
             plant.startAttackAnim();
         }
+    }
+
+    private void tickLifeSpan(Plant plant) {
+        if (lifeSpan > 0) {
+            lifeSpan--;
+            if (lifeSpan <= 0) {
+                plant.hp = 0;
+                plant.isAlive = false;
+            }
+        }
+    }
+
+    private void tickBowlingBulbCharge(Plant plant, GameState state) {
+        if (plant.type == PlantType.BowlingBulb) {
+            boolean zombieInLane = state.zombies.stream()
+                    .anyMatch(z -> z.isAlive && z.occupiesRow(plant.row));
+            if (zombieInLane) {
+                chargeTicks++;
+            }
+        }
+    }
+
+    private boolean hasTargetZombie(Plant plant, GameState state, int targetRow) {
+        if (plant.isPlantFoodActive) {
+            return state.zombies.stream().anyMatch(z -> z.isAlive);
+        }
+        if (plant.type == PlantType.Starfruit) {
+            return state.zombies.stream().anyMatch(z ->
+                    z.isAlive && (
+                            canHitZombie(plant, z, Direction.BACK) ||
+                                    canHitZombie(plant, z, Direction.UP) ||
+                                    canHitZombie(plant, z, Direction.DOWN) ||
+                                    canHitZombie(plant, z, Direction.UP_RIGHT) ||
+                                    canHitZombie(plant, z, Direction.DOWN_RIGHT)
+                    ));
+        }
+        if (plant.type == PlantType.Rotobaga) {
+            return state.zombies.stream()
+                    .anyMatch(z -> z.isAlive && canHitZombie(plant, z, shootPattern.getDir()));
+        }
+        if (plant.type == PlantType.Threepeater) {
+            return state.zombies.stream()
+                    .anyMatch(z -> z.isAlive && z.occupiesNearbyRow(plant.row, 1));
+        }
+        return state.zombies.stream()
+                .anyMatch(z -> z.isAlive && z.occupiesRow(targetRow));
     }
 
     private boolean canHitZombie(Plant plant, model.data.zombie.Zombie z, Direction dir) {

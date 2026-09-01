@@ -18,7 +18,6 @@ public final class HudOverlayRenderer {
     private static final float HUD_TOP_INSET = 25f;
     private static final float SUN_BG_H = 30f;
     private static final float PF_BANK_H = 30f;
-    private static final float PF_SLOT_GAP_RATIO = 0.02f;
 
     private final BitmapFont font = new BitmapFont();
     private final GlyphLayout glyphLayout = new GlyphLayout();
@@ -185,46 +184,84 @@ public final class HudOverlayRenderer {
             return;
         }
 
+        WaveMeterLayout layout = layoutWaveMeter(worldWidth, worldHeight);
+        batch.setColor(Color.WHITE);
+        batch.draw(meter, layout.meterX, layout.meterY, layout.meterW, layout.meterH);
+
+        float p = Math.max(0f, Math.min(1f, progress));
+        float edgeX = trackEdgeX(layout.trackX, layout.trackW, p);
+        drawWaveFill(batch, fill, layout, p);
+        drawWaveFlags(batch, flag, pole, layout, totalWaves);
+        drawWaveHead(batch, head, layout, edgeX);
+    }
+
+    private static WaveMeterLayout layoutWaveMeter(float worldWidth, float worldHeight) {
         float meterH = 28f;
         float meterW = 220f;
         float meterX = worldWidth / 2f - meterW / 2f;
         float meterY = worldHeight - meterH - 16f;
-
         float padX = meterW * 0.06f;
         float padY = meterH * 0.18f;
         float trackX = meterX + padX;
         float trackY = meterY + padY;
         float trackW = meterW - padX * 2f + 5f;
         float trackH = meterH - padY * 2f;
+        return new WaveMeterLayout(meterX, meterY, meterW, meterH, trackX, trackY, trackW, trackH);
+    }
 
+    private void drawWaveFill(SpriteBatch batch, TextureRegion fill, WaveMeterLayout layout, float progress) {
+        if (fill == null || progress <= 0f) {
+            return;
+        }
+        float fillW = layout.trackW * progress;
+        float fillX = layout.trackX + layout.trackW - fillW;
+        batch.draw(fill, fillX, layout.trackY, fillW, layout.trackH);
+    }
+
+    private void drawWaveFlags(SpriteBatch batch, TextureRegion flag, TextureRegion pole,
+            WaveMeterLayout layout, int totalWaves) {
+        if (totalWaves <= 0) {
+            return;
+        }
+        for (int w = 2; w <= totalWaves; w++) {
+            float waveStartProgress = (w - 1) / (float) totalWaves;
+            float flagX = trackEdgeX(layout.trackX, layout.trackW, waveStartProgress);
+            drawFlag(batch, flag, pole, flagX, layout.trackY, layout.trackH, layout.trackW);
+        }
+    }
+
+    private void drawWaveHead(SpriteBatch batch, TextureRegion head, WaveMeterLayout layout, float edgeX) {
+        if (head == null) {
+            return;
+        }
+        float headH = layout.meterH * 1.5f;
+        float headW = headH * (head.getRegionWidth() / (float) head.getRegionHeight());
+        float headX = edgeX - headW * 0.5f;
+        float headY = layout.meterY + (layout.meterH - headH) * 0.5f;
         batch.setColor(Color.WHITE);
-        batch.draw(meter, meterX, meterY, meterW, meterH);
+        batch.draw(head, headX, headY, headW, headH);
+    }
 
-        float p = Math.max(0f, Math.min(1f, progress));
-        float edgeX = trackEdgeX(trackX, trackW, p);
+    private static final class WaveMeterLayout {
+        private final float meterX;
+        private final float meterY;
+        private final float meterW;
+        private final float meterH;
+        private final float trackX;
+        private final float trackY;
+        private final float trackW;
+        private final float trackH;
 
-        if (fill != null && p > 0f) {
-            float fillW = trackW * p;
-            float fillX = trackX + trackW - fillW;
-            batch.draw(fill, fillX, trackY, fillW, trackH);
-        }
-
-
-        if (totalWaves > 0) {
-            for (int w = 2; w <= totalWaves; w++) {
-                float waveStartProgress = (w - 1) / (float) totalWaves;
-                float flagX = trackEdgeX(trackX, trackW, waveStartProgress);
-                drawFlag(batch, flag, pole, flagX, trackY, trackH, trackW);
-            }
-        }
-
-        if (head != null) {
-            float headH = meterH * 1.5f;
-            float headW = headH * (head.getRegionWidth() / (float) head.getRegionHeight());
-            float headX = edgeX - headW * 0.5f;
-            float headY = meterY + (meterH - headH) * 0.5f;
-            batch.setColor(Color.WHITE);
-            batch.draw(head, headX, headY, headW, headH);
+        private WaveMeterLayout(float meterX, float meterY, float meterW, float meterH,
+                float trackX, float trackY, float trackW, float trackH) {
+            this.meterX = meterX;
+            this.meterY = meterY;
+            this.meterW = meterW;
+            this.meterH = meterH;
+            this.trackX = trackX;
+            this.trackY = trackY;
+            this.trackW = trackW;
+            this.trackH = trackH;
         }
     }
 

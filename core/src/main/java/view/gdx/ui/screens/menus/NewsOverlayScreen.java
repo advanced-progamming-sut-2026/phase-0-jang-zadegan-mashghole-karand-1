@@ -30,22 +30,16 @@ public final class NewsOverlayScreen implements UiScreen {
 
     public NewsOverlayScreen() {
         stage = new Stage(new ScreenViewport());
-
-        Pixmap brownPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        brownPixmap.setColor(new Color(0.36f, 0.18f, 0.07f, 1f)); // dark brown
-        brownPixmap.fill();
         brownTexture = makeRoundedRect(new Color(0.36f, 0.18f, 0.07f, 1f), 256, 256, 12);
-        brownPixmap.dispose();
-
-        Pixmap panelPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        panelPixmap.setColor(new Color(0.75f, 0.55f, 0.30f, 1f)); // warm tan
-        panelPixmap.fill();
         panelTexture = makeRoundedRect(new Color(0.75f, 0.55f, 0.30f, 1f), 256, 256, 8);
-        panelPixmap.dispose();
+        stage.addActor(buildRoot());
+    }
 
+    private Table buildRoot() {
         Label title = UiWidgets.title("News");
         newsTitleLabel = UiWidgets.body("");
         newsContentLabel = UiWidgets.body("");
+        newsContentLabel.setWrap(true);
         ScrollPane newsScrollPane = new ScrollPane(newsContentLabel);
         newsScrollPane.setFadeScrollBars(false);
         newsScrollPane.setScrollingDisabled(true, false);
@@ -59,23 +53,9 @@ public final class NewsOverlayScreen implements UiScreen {
             public void clicked(InputEvent event, float x, float y) {
                 toggleFilter();
             }
-        }); 
+        });
 
-        newsContentLabel.setWrap(true);
-
-        Table panel = new Table();
-        panel.setBackground(new TextureRegionDrawable(new TextureRegion(panelTexture)));
-        panel.pad(20f);
-
-        panel.add(title).padBottom(8f).row();
-        panel.add(filterButton).padBottom(8f).row();
-        panel.add(newsScrollPane)
-                .width(380f)
-                .height(200f)
-                .padBottom(8f)
-                .row();
-        panel.add(back).width(160f).height(40f);
-
+        Table panel = buildNewsPanel(title, newsScrollPane);
         Table brownOuter = new Table();
         brownOuter.setBackground(new TextureRegionDrawable(new TextureRegion(brownTexture)));
         brownOuter.setTouchable(Touchable.enabled);
@@ -86,8 +66,22 @@ public final class NewsOverlayScreen implements UiScreen {
         root.setFillParent(true);
         root.center();
         root.add(brownOuter);
+        return root;
+    }
 
-        stage.addActor(root);
+    private Table buildNewsPanel(Label title, ScrollPane newsScrollPane) {
+        Table panel = new Table();
+        panel.setBackground(new TextureRegionDrawable(new TextureRegion(panelTexture)));
+        panel.pad(20f);
+        panel.add(title).padBottom(8f).row();
+        panel.add(filterButton).padBottom(8f).row();
+        panel.add(newsScrollPane)
+                .width(380f)
+                .height(200f)
+                .padBottom(8f)
+                .row();
+        panel.add(back).width(160f).height(40f);
+        return panel;
     }
 
     @Override

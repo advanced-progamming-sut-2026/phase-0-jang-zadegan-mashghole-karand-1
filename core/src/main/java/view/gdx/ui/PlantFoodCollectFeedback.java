@@ -81,7 +81,8 @@ public final class PlantFoodCollectFeedback {
 
         if (prevPlantFoodAmount >= 0 && plantFoodAmount > prevPlantFoodAmount && !pendingSources.isEmpty()) {
             int targetSlot = Math.max(0, Math.min(HudOverlayRenderer.PF_MAX_SLOTS - 1, plantFoodAmount - 1));
-            HudOverlayRenderer.PlantFoodHudLayout hudLayout = HudOverlayRenderer.layoutPlantFood(assets, worldWidth, worldHeight);
+            HudOverlayRenderer.PlantFoodHudLayout hudLayout =
+                    HudOverlayRenderer.layoutPlantFood(assets, worldWidth, worldHeight);
             float endX = hudLayout != null
                     ? hudLayout.slotStartX + targetSlot * (hudLayout.slotW + hudLayout.slotGap) + hudLayout.slotW * 0.5f
                     : 160f;

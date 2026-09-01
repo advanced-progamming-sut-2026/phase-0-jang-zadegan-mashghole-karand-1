@@ -27,8 +27,8 @@ public final class MainScreen implements UiScreen {
     private final TextButton logout;
     private final TextButton quit;
     private final Table debugBar;
-    private final Table cheatRow;
-    private final TextField cheatField;
+    private Table cheatRow;
+    private TextField cheatField;
 
     private ControllerManager controller;
     private AssetContext assets;
@@ -51,6 +51,11 @@ public final class MainScreen implements UiScreen {
         UiWidgets.onChange(logout, () -> UiWidgets.apply(controller, controller.getMainMenuController().logout()));
         UiWidgets.onChange(quit, () -> controller.quit());
 
+        debugBar = buildDebugBar();
+        stage.addActor(buildRoot());
+    }
+
+    private Table buildDebugBar() {
         TextButton cheatsToggle = UiWidgets.plain("Cheats");
         TextButton runCheat = UiWidgets.primary("Run");
         cheatField = UiWidgets.field("menu cheat add 1000 coin", false);
@@ -66,11 +71,14 @@ public final class MainScreen implements UiScreen {
             }
         });
 
-        debugBar = new Table();
-        debugBar.setVisible(false);
-        debugBar.add(cheatsToggle).left().width(88f).height(36f).row();
-        debugBar.add(cheatRow).left().padTop(6f);
+        Table bar = new Table();
+        bar.setVisible(false);
+        bar.add(cheatsToggle).left().width(88f).height(36f).row();
+        bar.add(cheatRow).left().padTop(6f);
+        return bar;
+    }
 
+    private Table buildRoot() {
         Table topLeft = new Table();
         topLeft.add(logout).padRight(8f);
         topLeft.add(quit).row();
@@ -79,22 +87,18 @@ public final class MainScreen implements UiScreen {
         Table root = new Table();
         root.setFillParent(true);
         root.pad(16f);
-
         root.add(topLeft).left().top();
         root.add().expandX();
         root.add(profile).right().top();
         root.row();
-
         root.add();
         root.add(title).expand().center();
         root.add();
         root.row();
-
         root.add(news).size(72f).left().bottom();
         root.add(startGame).width(300f).height(48f).center().bottom().padBottom(8f);
         root.add(settings).right().bottom();
-
-        stage.addActor(root);
+        return root;
     }
 
     @Override

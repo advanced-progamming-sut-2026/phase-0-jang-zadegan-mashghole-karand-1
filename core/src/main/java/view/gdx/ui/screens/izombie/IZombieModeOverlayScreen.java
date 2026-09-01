@@ -29,13 +29,31 @@ public final class IZombieModeOverlayScreen implements UiScreen {
         stage = new Stage(new ScreenViewport());
         brownTexture = makeRoundedRect(new Color(0.36f, 0.18f, 0.07f, 1f), 256, 256, 12);
         panelTexture = makeRoundedRect(new Color(0.75f, 0.55f, 0.30f, 1f), 256, 256, 8);
+        stage.addActor(buildRoot());
+    }
 
+    private Table buildRoot() {
+        inviteField = new TextField("", UiWidgets.skin());
+        inviteField.setMessageText("opponent username");
+        Table panel = buildModePanel();
+        Table brownOuter = new Table();
+        brownOuter.setBackground(new TextureRegionDrawable(new TextureRegion(brownTexture)));
+        brownOuter.setTouchable(Touchable.enabled);
+        brownOuter.pad(16f);
+        brownOuter.add(panel);
+
+        Table root = new Table();
+        root.setFillParent(true);
+        root.center();
+        root.add(brownOuter);
+        return root;
+    }
+
+    private Table buildModePanel() {
         Label title = UiWidgets.title("I, Zombie");
         TextButton offline = UiWidgets.primary("Offline");
         TextButton couch = UiWidgets.primary("Couch Play");
         TextButton random = UiWidgets.primary("Online Random");
-        inviteField = new TextField("", UiWidgets.skin());
-        inviteField.setMessageText("opponent username");
         TextButton invite = UiWidgets.primary("Invite Player");
         TextButton back = UiWidgets.plain("Back");
 
@@ -63,18 +81,7 @@ public final class IZombieModeOverlayScreen implements UiScreen {
         panel.add(inviteField).width(280f).height(40f).padBottom(8f).row();
         panel.add(invite).width(280f).height(44f).padBottom(8f).row();
         panel.add(back).width(280f).height(40f);
-
-        Table brownOuter = new Table();
-        brownOuter.setBackground(new TextureRegionDrawable(new TextureRegion(brownTexture)));
-        brownOuter.setTouchable(Touchable.enabled);
-        brownOuter.pad(16f);
-        brownOuter.add(panel);
-
-        Table root = new Table();
-        root.setFillParent(true);
-        root.center();
-        root.add(brownOuter);
-        stage.addActor(root);
+        return panel;
     }
 
     @Override

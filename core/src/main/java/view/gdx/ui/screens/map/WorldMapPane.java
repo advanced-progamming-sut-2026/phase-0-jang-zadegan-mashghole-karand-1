@@ -149,20 +149,29 @@ abstract class WorldMapPane extends WidgetGroup {
             return null;
         }
         if (!art.isLayered()) {
-            Image image = addImageFitBox(art.layers[0], x, y, boxW, boxH, anchorY);
-            Group wrap = new Group();
-            wrap.setSize(image.getWidth(), image.getHeight());
-            wrap.setPosition(image.getX(), image.getY());
-            image.setPosition(0f, 0f);
-            content.removeActor(image);
-            wrap.addActor(image);
-            content.addActor(wrap);
-            return wrap;
+            return wrapSingleLayerIsland(art.layers[0], x, y, boxW, boxH, anchorY);
         }
         TextureRegion base = assets.region(art.layers[0]);
         if (base == null || base.getRegionWidth() <= 0 || base.getRegionHeight() <= 0) {
             return addIslandArt(WorldMapDefs.IslandArt.single(art.layers[0]), x, y, boxW, boxH, anchorY);
         }
+        return addLayeredIslandArt(art, x, y, boxW, boxH, anchorY, base);
+    }
+
+    private Group wrapSingleLayerIsland(String imageId, float x, float y, float boxW, float boxH, float anchorY) {
+        Image image = addImageFitBox(imageId, x, y, boxW, boxH, anchorY);
+        Group wrap = new Group();
+        wrap.setSize(image.getWidth(), image.getHeight());
+        wrap.setPosition(image.getX(), image.getY());
+        image.setPosition(0f, 0f);
+        content.removeActor(image);
+        wrap.addActor(image);
+        content.addActor(wrap);
+        return wrap;
+    }
+
+    private Group addLayeredIslandArt(WorldMapDefs.IslandArt art, float x, float y, float boxW, float boxH,
+            float anchorY, TextureRegion base) {
         float scale = Math.min(boxW / base.getRegionWidth(), boxH / base.getRegionHeight());
         float baseW = base.getRegionWidth() * scale;
         float baseH = base.getRegionHeight() * scale;
@@ -172,29 +181,27 @@ abstract class WorldMapPane extends WidgetGroup {
         island.setSize(baseW, baseH);
         island.setPosition(0f, 0f);
         group.addActor(island);
-        if (art.layers.length > 1) {
-            TextureRegion houseRegion = assets.region(art.layers[1]);
-            if (houseRegion != null) {
-                float houseScale = scale * 0.92f;
-                Image house = new Image(new TextureRegionDrawable(houseRegion));
-                house.setSize(houseRegion.getRegionWidth() * houseScale, houseRegion.getRegionHeight() * houseScale);
-                house.setPosition((baseW - house.getWidth()) * 0.5f, baseH * 0.42f);
-                group.addActor(house);
-            }
-        }
-        if (art.layers.length > 2) {
-            TextureRegion roofRegion = assets.region(art.layers[2]);
-            if (roofRegion != null) {
-                float roofScale = scale * 0.92f;
-                Image roof = new Image(new TextureRegionDrawable(roofRegion));
-                roof.setSize(roofRegion.getRegionWidth() * roofScale, roofRegion.getRegionHeight() * roofScale);
-                roof.setPosition((baseW - roof.getWidth()) * 0.5f, baseH * 0.72f);
-                group.addActor(roof);
-            }
-        }
+        addIslandLayer(group, art, 1, scale, baseW, baseH, 0.42f);
+        addIslandLayer(group, art, 2, scale, baseW, baseH, 0.72f);
         group.setPosition(x - group.getWidth() * 0.5f, y - baseH * anchorY);
         content.addActor(group);
         return group;
+    }
+
+    private void addIslandLayer(Group group, WorldMapDefs.IslandArt art, int layerIndex, float scale,
+            float baseW, float baseH, float yFactor) {
+        if (art.layers.length <= layerIndex) {
+            return;
+        }
+        TextureRegion region = assets.region(art.layers[layerIndex]);
+        if (region == null) {
+            return;
+        }
+        float layerScale = scale * 0.92f;
+        Image image = new Image(new TextureRegionDrawable(region));
+        image.setSize(region.getRegionWidth() * layerScale, region.getRegionHeight() * layerScale);
+        image.setPosition((baseW - image.getWidth()) * 0.5f, baseH * yFactor);
+        group.addActor(image);
     }
 
     protected Image addDimOverlay(float width, float height) {

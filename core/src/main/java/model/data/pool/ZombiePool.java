@@ -27,74 +27,82 @@ public class ZombiePool {
         }
 
         switch (chapterType) {
-            case ANCIENT_EGYPT -> {
-                roster.add(ZombieType.RA_ZOMBIE);
-                roster.add(ZombieType.EXPLORER_ZOMBIE);
-                if (level >= 2) {
-                    roster.add(ZombieType.BUCKET_HEAD);
-                    roster.add(ZombieType.TOMB_RAISER);
-                }
-                if (level >= 3) {
-                    roster.add(ZombieType.BRICK_HEAD);
-                    roster.add(ZombieType.NEWSPAPER_ZOMBIE);
-                }
-                if (level >= 4) {
-                    roster.add(ZombieType.GARGANTUAR);
-                    roster.add(ZombieType.PROSPECTOR_ZOMBIE);
-                }
-            }
-            case FROSTBITE_CAVES -> {
-                roster.add(ZombieType.HUNTER);
-                roster.add(ZombieType.TROGLOBITE);
-                if (level >= 2) {
-                    roster.add(ZombieType.BUCKET_HEAD);
-                    roster.add(ZombieType.DODO_RIDER_ZOMBIE);
-                }
-                if (level >= 3) {
-                    roster.add(ZombieType.BRICK_HEAD);
-                    roster.add(ZombieType.PARASOL_ZOMBIE);
-                }
-                if (level >= 4) {
-                    roster.add(ZombieType.GARGANTUAR);
-                    roster.add(ZombieType.ALL_STAR);
-                }
-            }
-            case BIG_WAVE_BEACH -> {
-                roster.add(ZombieType.SNORKEL_ZOMBIE);
-                roster.add(ZombieType.IMP);
-                if (level >= 2) {
-                    roster.add(ZombieType.BUCKET_HEAD);
-                    roster.add(ZombieType.OCTOPUS_ZOMBIE);
-                    roster.add(ZombieType.BARREL_ROLLER);
-                }
-                if (level >= 3) {
-                    roster.add(ZombieType.FISHERMAN_ZOMBIE);
-                    roster.add(ZombieType.ALL_STAR);
-                }
-                if (level >= 4) {
-                    roster.add(ZombieType.GARGANTUAR);
-                    roster.add(ZombieType.ARCADE_ZOMBIE);
-                }
-            }
-            case DARK_AGES -> {
-                roster.add(ZombieType.KNIGHT);
-                roster.add(ZombieType.IMP_DRAGON);
-                if (level >= 2) {
-                    roster.add(ZombieType.BUCKET_HEAD);
-                    roster.add(ZombieType.JESTER_ZOMBIE);
-                }
-                if (level >= 3) {
-                    roster.add(ZombieType.WIZARD_ZOMBIE);
-                    roster.add(ZombieType.KING);
-                    roster.add(ZombieType.PIANIST);
-                }
-                if (level >= 4) {
-                    roster.add(ZombieType.GARGANTUAR);
-                    roster.add(ZombieType.TURQUOISE_ZOMBIE);
-                }
-            }
+            case ANCIENT_EGYPT -> addAncientEgyptRoster(roster, level);
+            case FROSTBITE_CAVES -> addFrostbiteCavesRoster(roster, level);
+            case BIG_WAVE_BEACH -> addBigWaveBeachRoster(roster, level);
+            case DARK_AGES -> addDarkAgesRoster(roster, level);
         }
         return roster;
+    }
+
+    private static void addAncientEgyptRoster(List<ZombieType> roster, int level) {
+        roster.add(ZombieType.RA_ZOMBIE);
+        roster.add(ZombieType.EXPLORER_ZOMBIE);
+        if (level >= 2) {
+            roster.add(ZombieType.BUCKET_HEAD);
+            roster.add(ZombieType.TOMB_RAISER);
+        }
+        if (level >= 3) {
+            roster.add(ZombieType.BRICK_HEAD);
+            roster.add(ZombieType.NEWSPAPER_ZOMBIE);
+        }
+        if (level >= 4) {
+            roster.add(ZombieType.GARGANTUAR);
+            roster.add(ZombieType.PROSPECTOR_ZOMBIE);
+        }
+    }
+
+    private static void addFrostbiteCavesRoster(List<ZombieType> roster, int level) {
+        roster.add(ZombieType.HUNTER);
+        roster.add(ZombieType.TROGLOBITE);
+        if (level >= 2) {
+            roster.add(ZombieType.BUCKET_HEAD);
+            roster.add(ZombieType.DODO_RIDER_ZOMBIE);
+        }
+        if (level >= 3) {
+            roster.add(ZombieType.BRICK_HEAD);
+            roster.add(ZombieType.PARASOL_ZOMBIE);
+        }
+        if (level >= 4) {
+            roster.add(ZombieType.GARGANTUAR);
+            roster.add(ZombieType.ALL_STAR);
+        }
+    }
+
+    private static void addBigWaveBeachRoster(List<ZombieType> roster, int level) {
+        roster.add(ZombieType.SNORKEL_ZOMBIE);
+        roster.add(ZombieType.IMP);
+        if (level >= 2) {
+            roster.add(ZombieType.BUCKET_HEAD);
+            roster.add(ZombieType.OCTOPUS_ZOMBIE);
+            roster.add(ZombieType.BARREL_ROLLER);
+        }
+        if (level >= 3) {
+            roster.add(ZombieType.FISHERMAN_ZOMBIE);
+            roster.add(ZombieType.ALL_STAR);
+        }
+        if (level >= 4) {
+            roster.add(ZombieType.GARGANTUAR);
+            roster.add(ZombieType.ARCADE_ZOMBIE);
+        }
+    }
+
+    private static void addDarkAgesRoster(List<ZombieType> roster, int level) {
+        roster.add(ZombieType.KNIGHT);
+        roster.add(ZombieType.IMP_DRAGON);
+        if (level >= 2) {
+            roster.add(ZombieType.BUCKET_HEAD);
+            roster.add(ZombieType.JESTER_ZOMBIE);
+        }
+        if (level >= 3) {
+            roster.add(ZombieType.WIZARD_ZOMBIE);
+            roster.add(ZombieType.KING);
+            roster.add(ZombieType.PIANIST);
+        }
+        if (level >= 4) {
+            roster.add(ZombieType.GARGANTUAR);
+            roster.add(ZombieType.TURQUOISE_ZOMBIE);
+        }
     }
 
     public static ZombiePool forChapter(ChapterType chapterType) {

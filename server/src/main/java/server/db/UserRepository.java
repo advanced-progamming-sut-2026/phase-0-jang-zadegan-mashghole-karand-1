@@ -142,7 +142,8 @@ public final class UserRepository {
     public void recordIZombieWin(String username) {
         try (Connection c = database.open();
                 PreparedStatement ps = c.prepareStatement(
-                        "UPDATE users SET izombie_wins = izombie_wins + 1, games_played = games_played + 1 WHERE username = ?")) {
+                        "UPDATE users SET izombie_wins = izombie_wins + 1, "
+                                + "games_played = games_played + 1 WHERE username = ?")) {
             ps.setString(1, username);
             ps.executeUpdate();
         } catch (SQLException e) {

@@ -171,9 +171,20 @@ public class Tile {
         if (type == TileType.FIRE) {
             return false;
         }
-        boolean isWatery = plantType.tags != null
+        Boolean special = isSpecialPlantPlantable(plantType);
+        if (special != null) {
+            return special;
+        }
+        return isGeneralPlantable(plantType, isWateryPlant(plantType));
+    }
+
+    private boolean isWateryPlant(PlantType plantType) {
+        return plantType.tags != null
                 && plantType.tags.contains(PlantTag.WATER)
                 && plantType != PlantType.Lily_Pad;
+    }
+
+    private Boolean isSpecialPlantPlantable(PlantType plantType) {
         if (plantType == PlantType.Hot_Potato) {
             return type == TileType.ICE
                     && !hasVase()
@@ -194,11 +205,16 @@ public class Tile {
                     && !hasGrave() && !hasVase() && !hasBeachPost()
                     && (hasLilyPad() || type != TileType.WATER);
         }
-        if (hasPumpkin() && !hasPlant() &&plantType != PlantType.Pumpkin) {
+        if (hasPumpkin() && !hasPlant() && plantType != PlantType.Pumpkin) {
             return !hasGrave() && !hasVase() && !hasBeachPost();
         }
-        if (hasPlant())
+        return null;
+    }
+
+    private boolean isGeneralPlantable(PlantType plantType, boolean isWatery) {
+        if (hasPlant()) {
             return false;
+        }
         if (type == TileType.WATER) {
             if (plantType == PlantType.Lily_Pad && hasLilyPad()) {
                 return false;
@@ -210,12 +226,15 @@ public class Tile {
         if (isWatery && type != TileType.WATER) {
             return false;
         }
-        if (hasGrave())
+        if (hasGrave()) {
             return false;
-        if (hasVase())
+        }
+        if (hasVase()) {
             return false;
-        if (hasBeachPost())
+        }
+        if (hasBeachPost()) {
             return false;
+        }
         return true;
     }
 

@@ -2,8 +2,10 @@ package model.data.plant;
 
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
 
 import model.data.plant.abilities.config.Direction;
+import model.data.plant.abilities.config.PlantAbilityConfig;
 import model.data.plant.abilities.config.ShootPattern;
 import model.data.plant.abilities.runtime.PlantShootAbility;
 import model.data.plant.effects.config.EffectPhase;
@@ -56,55 +58,52 @@ final class PlantTypeShooterDefs {
         static PlantTypeSpec threepeater() {
                 return new PlantTypeSpec(8, "Threepeater", PlantCategory.SHOOTER, EnumSet.of(PlantTag.PEA),
                                 new PlantBaseStats(300, 300, 20, 1.5f, 5),
-                                Arrays.asList(
-                                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
-                                                                .projectile(ProjectileType.PEA)
-                                                                .pattern(new ShootPattern(Direction.FORWARD, 1, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
-                                                                .projectile(ProjectileType.PEA)
-                                                                .pattern(new ShootPattern(Direction.FORWARD, 0, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
-                                                                .projectile(ProjectileType.PEA)
-                                                                .pattern(new ShootPattern(Direction.FORWARD, -1, 1))
-                                                                .build()),
-                                new PlantRapidFireEffect(3, 0.1f,
-                                                Arrays.asList(
-                                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                                .projectile(ProjectileType.PEA)
-                                                                                .pattern(new ShootPattern(
-                                                                                                Direction.FORWARD, 2,
-                                                                                                1))
-                                                                                .build(),
-                                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                                .projectile(ProjectileType.PEA)
-                                                                                .pattern(new ShootPattern(
-                                                                                                Direction.FORWARD, 1,
-                                                                                                1))
-                                                                                .build(),
-                                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                                .projectile(ProjectileType.PEA)
-                                                                                .pattern(new ShootPattern(
-                                                                                                Direction.FORWARD, 0,
-                                                                                                1))
-                                                                                .build(),
-                                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                                .projectile(ProjectileType.PEA)
-                                                                                .pattern(new ShootPattern(
-                                                                                                Direction.FORWARD, -1,
-                                                                                                1))
-                                                                                .build(),
-                                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                                .projectile(ProjectileType.PEA)
-                                                                                .pattern(new ShootPattern(
-                                                                                                Direction.FORWARD, -2,
-                                                                                                1))
-                                                                                .build())),
+                                threepeaterAbilities(),
+                                new PlantRapidFireEffect(3, 0.1f, threepeaterRapidFireShootAbilities()),
                                 new PlantLevelUpgrades(
                                                 PlantLevelUpgrade.atLevel(2, PlantStatBonus.COST, -25),
                                                 PlantLevelUpgrade.atLevel(3, PlantStatBonus.DAMAGE, 10),
                                                 PlantLevelUpgrade.atLevel(4, PlantStatBonus.HP, 200)));
+        }
+
+        private static List<PlantAbilityConfig> threepeaterAbilities() {
+                return Arrays.asList(
+                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
+                                                .projectile(ProjectileType.PEA)
+                                                .pattern(new ShootPattern(Direction.FORWARD, 1, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
+                                                .projectile(ProjectileType.PEA)
+                                                .pattern(new ShootPattern(Direction.FORWARD, 0, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
+                                                .projectile(ProjectileType.PEA)
+                                                .pattern(new ShootPattern(Direction.FORWARD, -1, 1))
+                                                .build());
+        }
+
+        private static List<PlantShootAbility> threepeaterRapidFireShootAbilities() {
+                return Arrays.asList(
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.PEA)
+                                                .pattern(new ShootPattern(Direction.FORWARD, 2, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.PEA)
+                                                .pattern(new ShootPattern(Direction.FORWARD, 1, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.PEA)
+                                                .pattern(new ShootPattern(Direction.FORWARD, 0, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.PEA)
+                                                .pattern(new ShootPattern(Direction.FORWARD, -1, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.PEA)
+                                                .pattern(new ShootPattern(Direction.FORWARD, -2, 1))
+                                                .build());
         }
 
         static PlantTypeSpec snowPea() {
@@ -279,58 +278,66 @@ final class PlantTypeShooterDefs {
         static PlantTypeSpec starfruit() {
                 return new PlantTypeSpec(19, "Starfruit", PlantCategory.SHOOTER, null,
                                 new PlantBaseStats(150, 300, 20, 1.5f, 5),
-                                Arrays.asList(
-                                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.BACK, 0, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.UP, 0, 1)).build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.DOWN, 0, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.UP_RIGHT, 0, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.DOWN_RIGHT, 0, 1))
-                                                                .build()),
-                                new PlantRapidFireEffect(3, 0.1f, Arrays.asList(
-                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.BACK, 0, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.UP, 0, 1)).build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.DOWN, 0, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.UP_RIGHT, 0, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.DOWN_RIGHT, 0, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.DOWN_LEFT, 0, 1))
-                                                                .build(),
-                                                PlantShootAbility.builder().damage(20).cooldown(0f)
-                                                                .projectile(ProjectileType.STAR)
-                                                                .pattern(new ShootPattern(Direction.UP_LEFT, 0, 1))
-                                                                .build())),
+                                starfruitAbilities(),
+                                new PlantRapidFireEffect(3, 0.1f, starfruitRapidFireShootAbilities()),
                                 new PlantLevelUpgrades(
                                                 new PlantLevelUpgrade(2, PlantStatBonus.ATTACK_SPEED, 10),
                                                 new PlantLevelUpgrade(3, PlantStatBonus.DAMAGE, 10),
                                                 new PlantLevelUpgrade(4, PlantStatBonus.COST, -25)));
+        }
+
+        private static List<PlantAbilityConfig> starfruitAbilities() {
+                return Arrays.asList(
+                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.BACK, 0, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.UP, 0, 1)).build(),
+                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.DOWN, 0, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.UP_RIGHT, 0, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(1.5f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.DOWN_RIGHT, 0, 1))
+                                                .build());
+        }
+
+        private static List<PlantShootAbility> starfruitRapidFireShootAbilities() {
+                return Arrays.asList(
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.BACK, 0, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.UP, 0, 1)).build(),
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.DOWN, 0, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.UP_RIGHT, 0, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.DOWN_RIGHT, 0, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.DOWN_LEFT, 0, 1))
+                                                .build(),
+                                PlantShootAbility.builder().damage(20).cooldown(0f)
+                                                .projectile(ProjectileType.STAR)
+                                                .pattern(new ShootPattern(Direction.UP_LEFT, 0, 1))
+                                                .build());
         }
 
         static PlantTypeSpec gooPeashooter() {

@@ -38,7 +38,7 @@ public class GameState implements ReadOnlyGameState {
     private GameBoard board = new GameBoard(GameState.GRID_ROWS, GameState.GRID_COLS, this);
 
     public int sunAmount = INITIAL_SUN_AMOUNT;
-    public int MAX_PLANT_FOOD_AMOUNT = 5;
+    public static final int MAX_PLANT_FOOD_AMOUNT = 5;
     public int plantFoodAmount = 0;
 
     public int currentWave = 0;

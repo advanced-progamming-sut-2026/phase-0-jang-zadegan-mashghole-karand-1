@@ -12,15 +12,18 @@ public final class ZombieVisualDefs {
     private static final String ALL_STAR = "768/FULL/ZOMBIE/ZOMBIE_MODERN_ALLSTAR/ZOMBIE_MODERN_ALLSTAR.PAM";
     private static final String ARCADE = "768/FULL/ZOMBIE/ZOMBIE_80S_ARCADE/ZOMBIE_80S_ARCADE.PAM";
     private static final String PARASOL = "768/FULL/ZOMBIE/ZOMBIE_LOSTCITY_JANE/ZOMBIE_LOSTCITY_JANE.PAM";
-    private static final String TURQUOISE = "768/FULL/ZOMBIE/ZOMBIE_LOSTCITY_CRYSTALSKULL/ZOMBIE_LOSTCITY_CRYSTALSKULL.PAM";
+    private static final String TURQUOISE =
+            "768/FULL/ZOMBIE/ZOMBIE_LOSTCITY_CRYSTALSKULL/ZOMBIE_LOSTCITY_CRYSTALSKULL.PAM";
     private static final String PROSPECTOR = "768/FULL/ZOMBIE/ZOMBIE_PROSPECTOR/ZOMBIE_PROSPECTOR.PAM";
     private static final String PIANO = "768/FULL/ZOMBIE/ZOMBIE_PIANO/ZOMBIE_PIANO.PAM";
     private static final String NEWSPAPER = "768/FULL/ZOMBIE/ZOMBIE_MODERN_NEWSPAPER/ZOMBIE_MODERN_NEWSPAPER.PAM";
-    private static final String BARREL_ROLLER = "768/FULL/ZOMBIE/ZOMBIE_PIRATE_BARREL_PUSHER/ZOMBIE_PIRATE_BARREL_PUSHER.PAM";
+    private static final String BARREL_ROLLER =
+            "768/FULL/ZOMBIE/ZOMBIE_PIRATE_BARREL_PUSHER/ZOMBIE_PIRATE_BARREL_PUSHER.PAM";
     private static final String RA = "768/INITIAL/ZOMBIE/ZOMBIE_EGYPT_RA/ZOMBIE_EGYPT_RA.PAM";
     private static final String EXPLORER = "768/INITIAL/ZOMBIE/ZOMBIE_EXPLORER/ZOMBIE_EXPLORER.PAM";
     private static final String TOMBRAISER = "768/INITIAL/ZOMBIE/ZOMBIE_EGYPT_TOMBRAISER/ZOMBIE_EGYPT_TOMBRAISER.PAM";
-    private static final String DODO_RIDER = "768/FULL/ZOMBIE/ZOMBIE_STPATRICKS_DODORIDER/ZOMBIE_STPATRICKS_DODORIDER.PAM";
+    private static final String DODO_RIDER =
+            "768/FULL/ZOMBIE/ZOMBIE_STPATRICKS_DODORIDER/ZOMBIE_STPATRICKS_DODORIDER.PAM";
     private static final String HUNTER = "768/FULL/ZOMBIE/ZOMBIE_ICEAGE_HUNTER/ZOMBIE_ICEAGE_HUNTER.PAM";
     private static final String TROGLOBITE = "768/FULL/ZOMBIE/ZOMBIE_ICEAGE_TROGLOBITE/ZOMBIE_ICEAGE_TROGLOBITE.PAM";
     private static final String FISHERMAN = "768/FULL/ZOMBIE/ZOMBIE_RAINCOAT/ZOMBIE_RAINCOAT.PAM"; // temporary
@@ -36,38 +39,69 @@ public final class ZombieVisualDefs {
 
     public static Map<ZombieType, ZombieVisualDef> create() {
         Map<ZombieType, ZombieVisualDef> zombies = new EnumMap<>(ZombieType.class);
+        ArmorVisualRecipe cone = armorCone();
+        ArmorVisualRecipe brick = armorBrick();
+        ArmorVisualRecipe knight = armorKnight();
+        ArmorVisualRecipe bucket = armorBucket();
+        ArmorVisualRecipe newspaper = armorNewspaper();
+        registerBasicZombies(zombies, cone, brick, knight, bucket, newspaper);
+        registerSpecialZombies(zombies);
+        registerZombossZombies(zombies);
+        return Collections.unmodifiableMap(zombies);
+    }
 
-        ArmorVisualRecipe cone = new ArmorVisualRecipe(
+    private static ArmorVisualRecipe armorCone() {
+        return new ArmorVisualRecipe(
                 "_zombie_egypt_armor1_states",
                 "zombie_armor_cone_norm",
                 "zombie_armor_cone_damage_01",
                 "zombie_armor_cone_damage_02");
-        ArmorVisualRecipe brick = new ArmorVisualRecipe(
+    }
+
+    private static ArmorVisualRecipe armorBrick() {
+        return new ArmorVisualRecipe(
                 "_zombie_egypt_armor4_states",
                 "zombie_armor_brick_norm",
                 "zombie_armor_brick_damage_01",
                 "zombie_armor_brick_damage_02");
-        ArmorVisualRecipe knight = new ArmorVisualRecipe(
+    }
+
+    private static ArmorVisualRecipe armorKnight() {
+        return new ArmorVisualRecipe(
                 "_zombie_dark_armor3_states",
                 "zombie_armor_helmet_norm",
                 "zombie_armor_helmet_damage_01",
                 "zombie_armor_helmet_damage_02");
-        ArmorVisualRecipe bucket = new ArmorVisualRecipe(
+    }
+
+    private static ArmorVisualRecipe armorBucket() {
+        return new ArmorVisualRecipe(
                 "_zombie_egypt_armor2_states",
                 "zombie_armor_bucket_norm",
                 "zombie_armor_bucket_damage_01",
                 "zombie_armor_bucket_damage_02");
-        ArmorVisualRecipe newspaper = new ArmorVisualRecipe(
+    }
+
+    private static ArmorVisualRecipe armorNewspaper() {
+        return new ArmorVisualRecipe(
                 "_zombie_newspaper",
                 "_zombie_newspaper",
                 "_zombie_newspaper_dmg1",
                 "_zombie_newspaper_dmg2");
+    }
 
+    private static void registerBasicZombies(Map<ZombieType, ZombieVisualDef> zombies,
+            ArmorVisualRecipe cone, ArmorVisualRecipe brick, ArmorVisualRecipe knight,
+            ArmorVisualRecipe bucket, ArmorVisualRecipe newspaper) {
         zombies.put(ZombieType.BASIC, ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.CONE_HEAD, new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", cone, Collections.emptyList()));
-        zombies.put(ZombieType.BUCKET_HEAD, new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", bucket, Collections.emptyList()));
-        zombies.put(ZombieType.BRICK_HEAD, new ZombieVisualDef(EGYPT_BASIC, "idle", "walk", "eat", "die", brick, Collections.emptyList()));
-        zombies.put(ZombieType.KNIGHT, new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", knight, Collections.emptyList()));
+        zombies.put(ZombieType.CONE_HEAD,
+                new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", cone, Collections.emptyList()));
+        zombies.put(ZombieType.BUCKET_HEAD,
+                new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", bucket, Collections.emptyList()));
+        zombies.put(ZombieType.BRICK_HEAD,
+                new ZombieVisualDef(EGYPT_BASIC, "idle", "walk", "eat", "die", brick, Collections.emptyList()));
+        zombies.put(ZombieType.KNIGHT,
+                new ZombieVisualDef(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die", knight, Collections.emptyList()));
         zombies.put(ZombieType.GARGANTUAR, ZombieVisualDef.plain(DEFAULT_GARGANTUAR, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.IMP, ZombieVisualDef.plain(IMP_BITCH, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.ALL_STAR, ZombieVisualDef.plain(ALL_STAR, "idle", "walk", "eat", "die"));
@@ -77,12 +111,16 @@ public final class ZombieVisualDefs {
         zombies.put(ZombieType.PARASOL_ZOMBIE, ZombieVisualDef.plain(PARASOL, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.TURQUOISE_ZOMBIE, ZombieVisualDef.plain(TURQUOISE, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.PROSPECTOR_ZOMBIE, ZombieVisualDef.plain(PROSPECTOR, "idle", "walk", "eat", "die"));
-        // piano PAM has no walk/eat clips
         zombies.put(ZombieType.PIANIST,new ZombieVisualDef(PIANO,"idle","play", "idle","die", null, List.of(
                 new CompanionVisual("768/FULL/ZOMBIE/PIANO/PIANO.PAM", "play",-70,0,false))));
         zombies.put(ZombieType.NEWSPAPER_ZOMBIE,
-                new ZombieVisualDef(NEWSPAPER, "idle_newspaper", "walk_newspaper", "eat_newspaper", "die", newspaper, Collections.emptyList()));
+                new ZombieVisualDef(
+                        NEWSPAPER, "idle_newspaper", "walk_newspaper", "eat_newspaper", "die",
+                        newspaper, Collections.emptyList()));
         zombies.put(ZombieType.BARREL_ROLLER, ZombieVisualDef.plain(BARREL_ROLLER, "idle", "walk", "eat", "die"));
+    }
+
+    private static void registerSpecialZombies(Map<ZombieType, ZombieVisualDef> zombies) {
         zombies.put(ZombieType.RA_ZOMBIE, ZombieVisualDef.plain(RA, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.EXPLORER_ZOMBIE, ZombieVisualDef.plain(EXPLORER, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.TOMB_RAISER, ZombieVisualDef.plain(TOMBRAISER, "idle", "walk", "eat", "die"));
@@ -96,7 +134,11 @@ public final class ZombieVisualDefs {
         zombies.put(ZombieType.WIZARD_ZOMBIE, ZombieVisualDef.plain(WIZARD, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.KING, ZombieVisualDef.plain(KING, "idle", "walk", "eat", "die"));
         zombies.put(ZombieType.IMP_DRAGON, ZombieVisualDef.plain(IMP_DRAGON, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.SUN_ZOMBIE, ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die")); // temporary
+        zombies.put(ZombieType.SUN_ZOMBIE,
+                ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die")); // temporary
+    }
+
+    private static void registerZombossZombies(Map<ZombieType, ZombieVisualDef> zombies) {
         zombies.put(ZombieType.ZOMBOT_SPHINX, ZombieVisualDef.plain(
                 "768/INITIAL/ZOMBIE/ZOMBIE_EGYPT_ZOMBOSS/ZOMBIE_EGYPT_ZOMBOSS.PAM",
                 "idle", "walk_forward", "idle", "die"));
@@ -109,7 +151,5 @@ public final class ZombieVisualDefs {
         zombies.put(ZombieType.ZOMBOT_MAMMOTH, ZombieVisualDef.plain(
                 "768/FULL/ZOMBIE/ZOMBIE_ICEAGE_ZOMBOSS/ZOMBIE_ICEAGE_ZOMBOSS.PAM",
                 "idle", "idle", "idle", "die"));
-
-        return Collections.unmodifiableMap(zombies);
     }
 }

@@ -255,29 +255,58 @@ public class HudViewState {
         return Math.max(0, Protocol.IZOMBIE_SURVIVAL_SECONDS - elapsedSeconds);
     }
 
-    private static HudViewState brainsHud() {
-        return brainsHud(null);
-    }
-
     private static HudViewState iZombiePvPHud(SessionConfig config, ReadOnlyGameState state) {
-        List<TraySlot> plantSlots = new ArrayList<>();
-        List<TraySlot> zombieSlots = new ArrayList<>();
         boolean couch = config.iZombiePlayMode == shared.izombie.IZombiePlayMode.COUCH;
         boolean plantsSide = couch || config.localMatchRole == shared.izombie.MatchRole.PLANTS;
         boolean zombiesSide = couch || config.localMatchRole == shared.izombie.MatchRole.ZOMBIES;
+        List<TraySlot> plantSlots = buildIZombiePlantSlots(plantsSide);
+        List<TraySlot> zombieSlots = buildIZombieZombieSlots(zombiesSide);
+        List<TraySlot>[] trays = resolveIZombiePvPTrays(config, couch, plantSlots, zombieSlots);
 
+        String label = buildIZombiePvPLabel(state);
+        int collected = state != null ? state.getCollectedBrainCount() : 0;
+        int secondsLeft = iZombieSecondsRemaining(state);
+        return new HudViewState(
+                Mode.BRAINS, label, true, false, false,
+                null, 0, 0,
+                "", 0, 0, secondsLeft,
+                -1, collected, ReadOnlyGameState.GRID_ROWS, -1, 0,
+                trays[0],
+                List.of(
+                        "Mouse plants (left) | zombie tray (right) or Keys 1-5 + Arrows + Enter/Space",
+                        "M: quick messages (online)",
+                        "menu exit"),
+                false,
+                trays[1]);
+    }
+
+    private static List<TraySlot> buildIZombiePlantSlots(boolean plantsSide) {
+        List<TraySlot> plantSlots = new ArrayList<>();
         if (plantsSide) {
             for (PlantType type : model.rule.rules.minigame.IZombiePvPRules.plantShop()) {
                 int cost = PlantStats.forLevel(type, PlantStats.DEFAULT_LEVEL).cost;
                 plantSlots.add(new TraySlot(type.name, cost, 0, true, false, 1));
             }
         }
+        return plantSlots;
+    }
+
+    private static List<TraySlot> buildIZombieZombieSlots(boolean zombiesSide) {
+        List<TraySlot> zombieSlots = new ArrayList<>();
         if (zombiesSide) {
             for (Map.Entry<ZombieType, Integer> entry : IZombieShop.getCosts().entrySet()) {
                 zombieSlots.add(new TraySlot(entry.getKey().name, entry.getValue(), 0, true, false, 1));
             }
         }
+        return zombieSlots;
+    }
 
+    @SuppressWarnings("unchecked")
+    private static List<TraySlot>[] resolveIZombiePvPTrays(
+            SessionConfig config,
+            boolean couch,
+            List<TraySlot> plantSlots,
+            List<TraySlot> zombieSlots) {
         List<TraySlot> left;
         List<TraySlot> right;
         if (couch) {
@@ -290,25 +319,14 @@ public class HudViewState {
             left = zombieSlots;
             right = List.of();
         }
+        return new List[] { left, right };
+    }
 
-        String label = "I, Zombie PvP";
+    private static String buildIZombiePvPLabel(ReadOnlyGameState state) {
         if (state != null && state.isDualSunMode()) {
-            label = "P " + state.getPlantSun() + " / Z " + state.getZombieSun();
+            return "P " + state.getPlantSun() + " / Z " + state.getZombieSun();
         }
-        int collected = state != null ? state.getCollectedBrainCount() : 0;
-        int secondsLeft = iZombieSecondsRemaining(state);
-        return new HudViewState(
-                Mode.BRAINS, label, true, false, false,
-                null, 0, 0,
-                "", 0, 0, secondsLeft,
-                -1, collected, ReadOnlyGameState.GRID_ROWS, -1, 0,
-                left,
-                List.of(
-                        "Mouse plants (left) | zombie tray (right) or Keys 1-5 + Arrows + Enter/Space",
-                        "M: quick messages (online)",
-                        "menu exit"),
-                false,
-                right);
+        return "I, Zombie PvP";
     }
 
     private static HudViewState vaseBreakerHud(SessionContext context, ReadOnlyGameState state) {

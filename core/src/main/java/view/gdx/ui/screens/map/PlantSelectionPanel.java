@@ -126,7 +126,18 @@ final class PlantSelectionPanel {
 
         Table body = new Table();
         body.add(buildPreviewPane(assets, focused, nav)).width(200f).padRight(16f);
+        body.add(buildDetailInfo(controller, assets, nav, user, focused)).growX();
+        detail.add(body).left().padBottom(10f).row();
 
+        detail.add(UiWidgets.body("Selected loadout:")).left().padBottom(6f).row();
+        detail.add(buildLoadoutRow(controller, assets, nav, user, chapter, maxSlots, focused, focusSetter))
+                .left();
+
+        return detail;
+    }
+
+    private static Table buildDetailInfo(ControllerManager controller, AssetContext assets,
+            GameNavigationState nav, User user, PlantType focused) {
         Table info = new Table();
         info.top().left();
         if (focused != null) {
@@ -145,34 +156,32 @@ final class PlantSelectionPanel {
             info.add(UiWidgets.body("Family: " + focused.category.name().replace('_', ' ')
                     + "  |  HP: " + stats.hp + "  |  Sun: " + stats.cost))
                     .left().padBottom(10f).row();
-
-            Table actions = new Table();
-            if (level < PlantStats.MAX_LEVEL && !focused.isBowlingExclusive()) {
-                int coinCost = PlantUpgradeCosts.coinCostToReach(level + 1);
-                actions.add(icon(assets, COIN_ICON, 28f)).padRight(4f);
-                TextButton upgrade = UiWidgets.secondary("UPGRADE " + coinCost);
-                upgrade.setDisabled(true);
-                actions.add(upgrade).height(40f).padRight(12f);
-            }
-            if (inLoadout && !boosted) {
-                actions.add(icon(assets, GEM_ICON, 28f)).padRight(4f);
-                TextButton boost = UiWidgets.primary(storedBoost ? "BOOST (stored)" : "BOOST 2");
-                UiWidgets.onChange(boost, () -> UiWidgets.apply(controller,
-                        controller.getPickPlantsController().boostPlant(focused)));
-                actions.add(boost).height(40f);
-            }
-            info.add(actions).left().row();
+            info.add(buildDetailActions(controller, assets, focused, level, inLoadout, boosted, storedBoost))
+                    .left().row();
         } else {
             info.add(UiWidgets.body("Select a plant from the grid below.")).left();
         }
-        body.add(info).growX();
-        detail.add(body).left().padBottom(10f).row();
+        return info;
+    }
 
-        detail.add(UiWidgets.body("Selected loadout:")).left().padBottom(6f).row();
-        detail.add(buildLoadoutRow(controller, assets, nav, user, chapter, maxSlots, focused, focusSetter))
-                .left();
-
-        return detail;
+    private static Table buildDetailActions(ControllerManager controller, AssetContext assets, PlantType focused,
+            int level, boolean inLoadout, boolean boosted, boolean storedBoost) {
+        Table actions = new Table();
+        if (level < PlantStats.MAX_LEVEL && !focused.isBowlingExclusive()) {
+            int coinCost = PlantUpgradeCosts.coinCostToReach(level + 1);
+            actions.add(icon(assets, COIN_ICON, 28f)).padRight(4f);
+            TextButton upgrade = UiWidgets.secondary("UPGRADE " + coinCost);
+            upgrade.setDisabled(true);
+            actions.add(upgrade).height(40f).padRight(12f);
+        }
+        if (inLoadout && !boosted) {
+            actions.add(icon(assets, GEM_ICON, 28f)).padRight(4f);
+            TextButton boost = UiWidgets.primary(storedBoost ? "BOOST (stored)" : "BOOST 2");
+            UiWidgets.onChange(boost, () -> UiWidgets.apply(controller,
+                    controller.getPickPlantsController().boostPlant(focused)));
+            actions.add(boost).height(40f);
+        }
+        return actions;
     }
 
     private static Label statusLine(boolean inLoadout, boolean boosted, boolean storedBoost) {

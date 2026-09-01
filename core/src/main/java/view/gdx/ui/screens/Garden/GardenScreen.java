@@ -136,16 +136,8 @@ public class GardenScreen implements UiScreen {
             return;
         }
         Greenhouse greenhouse = user.greenhouse;
-
-        float imgW = 1750f;
-        float imgH = 774f;
-        float screenW = Gdx.graphics.getWidth();
-        float screenH = Gdx.graphics.getHeight();
-        float scale = Math.max(screenW / imgW, screenH / imgH);
-        float drawX = (screenW - imgW * scale) * 0.5f;
-        float drawY = (screenH - imgH * scale) * 0.5f;
-
-        float size = 90f * scale;
+        GardenLayout layout = computeGardenLayout();
+        float size = 90f * layout.scale;
 
         for (int row = 0; row < SLOT_ROW; row++) {
             for (int col = 0; col < SLOT_COL; col++) {
@@ -153,122 +145,161 @@ public class GardenScreen implements UiScreen {
                 if (pot == null || pot.isLocked()) {
                     continue;
                 }
-
-                float imgX = PLANT_X[row][col];
-                float imgY = PLANT_Y[row][col];
-                float screenX = drawX + imgX * scale;
-                float screenY = drawY + (imgH - imgY) * scale;
-
-                final Position pos = new Position(col + 1, row + 1);
-
+                float screenX = layout.screenX(PLANT_X[row][col]);
+                float screenY = layout.screenY(PLANT_Y[row][col]);
+                Position pos = new Position(col + 1, row + 1);
                 if (pot.isEmpty()) {
-                    TextureRegion region = assets.region(EMPTY_POT);
-                    if (region == null) continue;
-
-                    ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle();
-                    style.imageUp = new TextureRegionDrawable(region);
-                    ImageButton btn = new ImageButton(style);
-                    btn.setSize(size, size);
-                    btn.setPosition(screenX - size * 0.5f, screenY - size * 0.5f);
-
-                    UiWidgets.onChange(btn, () -> UiWidgets.apply(
-                            controller,
-                            controller.getGreenhouseController().plantPot(pos)));
-
-                    stage.addActor(btn);
-
+                    addEmptyPot(controller, pos, screenX, screenY, size);
                 } else if (!pot.isReady()) {
-                    String pamPath;
-                    String clipName;
-
-                    if (pot.getPlantType() != null) {
-                        PlantVisualDef visual = catalog.plant(pot.getPlantType());
-                        if (visual == null) continue;
-                        pamPath = visual.pamPath;
-                        clipName = visual.idleClip;
-                        if (clipName != null && clipName.endsWith("_stage")) {
-                            clipName = clipName + "1";
-                        }
-                    } else {
-                        pamPath = "768/INITIAL/PLANT/MARIGOLD/MARIGOLD.PAM";
-                        clipName = "idle";
-                    }
-
-                    stage.addActor(new GardenPamActor(assets, pamPath, clipName, screenX, screenY,0.4f));
-                    TextureRegion region = assets.region(GROW_BUTTON);
-                    if (region == null) continue;
-                    int gemCost = (int) pot.getRemainingHours();
-                    String timeText = pot.getRemainingTimeText();
-                    float btnW = 80f * scale;
-                    float btnH = 40f * scale;
-                    float groupH = btnH + 22f * scale;
-                    Group group = new Group();
-                    group.setSize(btnW, groupH);
-                    group.setPosition(screenX - btnW * 0.5f, screenY - groupH * 0.5f - 80f);
-                    Label time = new Label(timeText, UiSkin.get(), "default");
-                    time.setFontScale(0.75f);
-                    time.pack();
-                    time.setPosition(
-                            (btnW - time.getPrefWidth()) * 0.5f,
-                            btnH + 2f * scale);
-                    group.addActor(time);
-                    ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle();
-                    style.imageUp = new TextureRegionDrawable(region);
-                    ImageButton btn = new ImageButton(style);
-                    btn.setSize(btnW, btnH);
-                    btn.setPosition(0, 0);
-                    group.addActor(btn);
-                    Label cost = new Label(String.valueOf(gemCost), UiSkin.get(), "default");
-                    cost.setFontScale(0.85f);
-                    cost.pack();
-                    cost.setPosition(
-                            (btnW - cost.getPrefWidth()) * 0.5f,
-                            (btnH - cost.getPrefHeight()) * 0.5f);
-                    group.addActor(cost);
-                    UiWidgets.onChange(btn, () -> UiWidgets.apply(
-                            controller,
-                            controller.getGreenhouseController().grow(pos)));
-                    stage.addActor(group);
-                }else {
-                    float cardW = 100f * scale;
-                    float cardH = 70f * scale;
-                    float plantSize = 70f * scale;
-
-                    TextureRegion cardRegion = assets.region(READY_CARD);
-                    if (cardRegion == null) continue;
-
-                    Group group = new Group();
-                    group.setSize(cardW, cardH);
-                    group.setPosition(screenX - cardW * 0.5f, screenY - cardH * 0.5f);
-
-                    Image card = new Image(cardRegion);
-                    card.setSize(cardW, cardH);
-                    card.setPosition(0, 0);
-                    group.addActor(card);
-                    String packetId = packetImageId(pot.getPlantType());
-                    TextureRegion plantRegion = assets.region(packetId);
-                    if (plantRegion != null) {
-                        Image plant = new Image(plantRegion);
-                        plant.setSize(plantSize, plantSize);
-                        plant.setPosition(
-                                (cardW - plantSize) * 0.5f,
-                                (cardH - plantSize) * 0.5f);
-                        group.addActor(plant);
-                    }
-
-                    ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle();
-                    ImageButton btn = new ImageButton(style);
-                    btn.setSize(cardW, cardH);
-                    btn.setPosition(0, 0);
-                    group.addActor(btn);
-
-                    UiWidgets.onChange(btn, () -> UiWidgets.apply(
-                            controller,
-                            controller.getGreenhouseController().collect(pos)));
-
-                    stage.addActor(group);
+                    addGrowingPot(controller, pot, pos, screenX, screenY, layout.scale);
+                } else {
+                    addReadyPot(controller, pot, pos, screenX, screenY, layout.scale);
                 }
             }
+        }
+    }
+
+    private GardenLayout computeGardenLayout() {
+        float imgW = 1750f;
+        float imgH = 774f;
+        float screenW = Gdx.graphics.getWidth();
+        float screenH = Gdx.graphics.getHeight();
+        float scale = Math.max(screenW / imgW, screenH / imgH);
+        float drawX = (screenW - imgW * scale) * 0.5f;
+        float drawY = (screenH - imgH * scale) * 0.5f;
+        return new GardenLayout(imgH, scale, drawX, drawY);
+    }
+
+    private void addEmptyPot(ControllerManager controller, Position pos, float screenX, float screenY, float size) {
+        TextureRegion region = assets.region(EMPTY_POT);
+        if (region == null) {
+            return;
+        }
+        ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle();
+        style.imageUp = new TextureRegionDrawable(region);
+        ImageButton btn = new ImageButton(style);
+        btn.setSize(size, size);
+        btn.setPosition(screenX - size * 0.5f, screenY - size * 0.5f);
+        UiWidgets.onChange(btn, () -> UiWidgets.apply(
+                controller,
+                controller.getGreenhouseController().plantPot(pos)));
+        stage.addActor(btn);
+    }
+
+    private void addGrowingPot(ControllerManager controller, Pot pot, Position pos,
+            float screenX, float screenY, float scale) {
+        String pamPath;
+        String clipName;
+        if (pot.getPlantType() != null) {
+            PlantVisualDef visual = catalog.plant(pot.getPlantType());
+            if (visual == null) {
+                return;
+            }
+            pamPath = visual.pamPath;
+            clipName = visual.idleClip;
+            if (clipName != null && clipName.endsWith("_stage")) {
+                clipName = clipName + "1";
+            }
+        } else {
+            pamPath = "768/INITIAL/PLANT/MARIGOLD/MARIGOLD.PAM";
+            clipName = "idle";
+        }
+        stage.addActor(new GardenPamActor(assets, pamPath, clipName, screenX, screenY, 0.4f));
+        TextureRegion region = assets.region(GROW_BUTTON);
+        if (region == null) {
+            return;
+        }
+        stage.addActor(buildGrowButtonGroup(controller, pot, pos, screenX, screenY, scale, region));
+    }
+
+    private Group buildGrowButtonGroup(ControllerManager controller, Pot pot, Position pos,
+            float screenX, float screenY, float scale, TextureRegion region) {
+        int gemCost = (int) pot.getRemainingHours();
+        String timeText = pot.getRemainingTimeText();
+        float btnW = 80f * scale;
+        float btnH = 40f * scale;
+        float groupH = btnH + 22f * scale;
+        Group group = new Group();
+        group.setSize(btnW, groupH);
+        group.setPosition(screenX - btnW * 0.5f, screenY - groupH * 0.5f - 80f);
+        Label time = new Label(timeText, UiSkin.get(), "default");
+        time.setFontScale(0.75f);
+        time.pack();
+        time.setPosition((btnW - time.getPrefWidth()) * 0.5f, btnH + 2f * scale);
+        group.addActor(time);
+        ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle();
+        style.imageUp = new TextureRegionDrawable(region);
+        ImageButton btn = new ImageButton(style);
+        btn.setSize(btnW, btnH);
+        btn.setPosition(0, 0);
+        group.addActor(btn);
+        Label cost = new Label(String.valueOf(gemCost), UiSkin.get(), "default");
+        cost.setFontScale(0.85f);
+        cost.pack();
+        cost.setPosition(
+                (btnW - cost.getPrefWidth()) * 0.5f,
+                (btnH - cost.getPrefHeight()) * 0.5f);
+        group.addActor(cost);
+        UiWidgets.onChange(btn, () -> UiWidgets.apply(
+                controller,
+                controller.getGreenhouseController().grow(pos)));
+        return group;
+    }
+
+    private void addReadyPot(ControllerManager controller, Pot pot, Position pos,
+            float screenX, float screenY, float scale) {
+        float cardW = 100f * scale;
+        float cardH = 70f * scale;
+        float plantSize = 70f * scale;
+        TextureRegion cardRegion = assets.region(READY_CARD);
+        if (cardRegion == null) {
+            return;
+        }
+        Group group = new Group();
+        group.setSize(cardW, cardH);
+        group.setPosition(screenX - cardW * 0.5f, screenY - cardH * 0.5f);
+        Image card = new Image(cardRegion);
+        card.setSize(cardW, cardH);
+        card.setPosition(0, 0);
+        group.addActor(card);
+        String packetId = packetImageId(pot.getPlantType());
+        TextureRegion plantRegion = assets.region(packetId);
+        if (plantRegion != null) {
+            Image plant = new Image(plantRegion);
+            plant.setSize(plantSize, plantSize);
+            plant.setPosition((cardW - plantSize) * 0.5f, (cardH - plantSize) * 0.5f);
+            group.addActor(plant);
+        }
+        ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle();
+        ImageButton btn = new ImageButton(style);
+        btn.setSize(cardW, cardH);
+        btn.setPosition(0, 0);
+        group.addActor(btn);
+        UiWidgets.onChange(btn, () -> UiWidgets.apply(
+                controller,
+                controller.getGreenhouseController().collect(pos)));
+        stage.addActor(group);
+    }
+
+    private static final class GardenLayout {
+        private final float imgH;
+        private final float scale;
+        private final float drawX;
+        private final float drawY;
+
+        private GardenLayout(float imgH, float scale, float drawX, float drawY) {
+            this.imgH = imgH;
+            this.scale = scale;
+            this.drawX = drawX;
+            this.drawY = drawY;
+        }
+
+        private float screenX(float imgX) {
+            return drawX + imgX * scale;
+        }
+
+        private float screenY(float imgY) {
+            return drawY + (imgH - imgY) * scale;
         }
     }
     @Override

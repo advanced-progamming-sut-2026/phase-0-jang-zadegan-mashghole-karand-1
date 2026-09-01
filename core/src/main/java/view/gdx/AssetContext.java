@@ -42,7 +42,20 @@ public final class AssetContext implements Disposable {
     }
 
     private void preload(VisualCatalog catalog, PamPlayer player) {
+        Set<String> pamPaths = collectPamPaths(catalog);
+        for (String path : pamPaths) {
+            player.loadSync(path);
+        }
+    }
+
+    private static Set<String> collectPamPaths(VisualCatalog catalog) {
         Set<String> pamPaths = new HashSet<>();
+        collectCatalogPamPaths(catalog, pamPaths);
+        collectStaticPamPaths(pamPaths);
+        return pamPaths;
+    }
+
+    private static void collectCatalogPamPaths(VisualCatalog catalog, Set<String> pamPaths) {
         for (PlantVisualDef def : catalog.allPlants()) {
             pamPaths.add(def.pamPath);
         }
@@ -72,6 +85,9 @@ public final class AssetContext implements Disposable {
         for (GraveVisualDef def : GraveVisualDef.all()) {
             pamPaths.add(def.pamPath);
         }
+    }
+
+    private static void collectStaticPamPaths(Set<String> pamPaths) {
         pamPaths.add("768/FULL/BACKGROUNDS/FIRETILE/FIRETILE.PAM");
         pamPaths.add("768/INITIAL/EFFECTS/ZOMBOSS_MISSILE_EXPLOSION_EGYPT/ZOMBOSS_MISSILE_EXPLOSION_EGYPT.PAM");
         pamPaths.add("768/FULL/EFFECTS/ZOMBOSS_TURBINE_WIND/ZOMBOSS_TURBINE_WIND.PAM");
@@ -102,9 +118,6 @@ public final class AssetContext implements Disposable {
         pamPaths.add("768/FULL/UI/PENNY_PURSUITS/ZOMBOSS/CLOCK_ICON/CLOCK_ICON.PAM");
         pamPaths.add("768/DEV/UI/QUESTS/DIFFICULTY_METER/DIFFICULTY_METER.PAM");
         pamPaths.add("768/FULL/UI/LEVELOFTHEDAY/LOTD_PRESENTS_SUPER/LOTD_PRESENTS_SUPER.PAM");
-        for (String path : pamPaths) {
-            player.loadSync(path);
-        }
     }
 
     public void update() {

@@ -24,18 +24,16 @@ public final class DesktopApp {
     private final GameLoop gameLoop;
     private final SqlStorageManager storage;
     private final UiNavigator navigator;
-    private final DesktopViewFacade viewFacade;
     private final QuickMessageHud quickMessageHud;
 
     private DesktopApp(ModelManager model, ControllerManager controller, GameLoop gameLoop,
-            SqlStorageManager storage, UiNavigator navigator, DesktopViewFacade viewFacade,
+            SqlStorageManager storage, UiNavigator navigator,
             QuickMessageHud quickMessageHud) {
         this.model = model;
         this.controller = controller;
         this.gameLoop = gameLoop;
         this.storage = storage;
         this.navigator = navigator;
-        this.viewFacade = viewFacade;
         this.quickMessageHud = quickMessageHud;
     }
 
@@ -61,7 +59,7 @@ public final class DesktopApp {
         new NetworkEventRouter(controller, model, navigator, networkSession, quickMessageHud);
 
         Gdx.app.log("DesktopApp", "started screen=" + controller.getCurrentScreen());
-        return new DesktopApp(model, controller, gameLoop, storage, navigator, viewFacade, quickMessageHud);
+        return new DesktopApp(model, controller, gameLoop, storage, navigator, quickMessageHud);
     }
 
     public ModelManager model() {

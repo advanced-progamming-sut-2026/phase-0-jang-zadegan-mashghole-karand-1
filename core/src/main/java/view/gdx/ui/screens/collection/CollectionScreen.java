@@ -227,45 +227,62 @@ public final class CollectionScreen implements UiScreen {
         Table card = new Table();
         card.setTouchable(com.badlogic.gdx.scenes.scene2d.Touchable.enabled);
 
+        card.add(buildPlantCardImage(entry, type)).size(80f).padBottom(4f).row();
+        card.add(UiWidgets.body(entry.name)).width(140f).align(Align.center).row();
+        addPlantCardStatus(card, entry, type, user);
+        addPlantCardClickListener(card, entry);
+        return card;
+    }
+
+    private Stack buildPlantCardImage(Entry entry, PlantType type) {
         Stack imageStack = new Stack();
         Image packet = image(PlantPacketImages.packetId(type), 72f, 72f);
         imageStack.add(packet);
-
         if (!entry.unlocked) {
             Image lock = image(LOCK_ICON, 36f, 36f);
             imageStack.add(lock);
         }
-        card.add(imageStack).size(80f).padBottom(4f).row();
+        return imageStack;
+    }
 
-        card.add(UiWidgets.body(entry.name)).width(140f).align(Align.center).row();
-
+    private void addPlantCardStatus(Table card, Entry entry, PlantType type, User user) {
         if (entry.unlocked && user != null && type != null) {
-            int level = user.getPlantLevel(type);
-            int owned = user.getSeedPackets(type);
-            int required = CollectionUiSupport.seedPacketsRequired(type, user);
-            int remaining = CollectionUiSupport.seedPacketsRemaining(type, user);
-            card.add(UiWidgets.body("Lv " + level)).align(Align.center).row();
-            card.add(UiWidgets.body("Packets: " + owned)).align(Align.center).row();
-            if (required > 0) {
-                card.add(UiWidgets.body("Need: " + required + " (" + remaining + " left)"))
-                        .align(Align.center).row();
-            } else {
-                card.add(UiWidgets.body("Max level")).align(Align.center).row();
-            }
+            addUnlockedPlantCardStatus(card, type, user);
         } else if (!entry.unlocked) {
-            card.add(UiWidgets.body("Locked")).align(Align.center).row();
-            TextButton buy = UiWidgets.secondary("Buy (2000)");
-            buy.addListener(new ClickListener() {
-                @Override
-                public void clicked(InputEvent event, float x, float y) {
-                    event.stop();
-                    UiWidgets.apply(controller,
-                            controller.getCollectionController().purchasePlant(entry.name));
-                }
-            });
-            card.add(buy).width(120f).height(32f).padTop(4f).row();
+            addLockedPlantCardStatus(card, entry);
         }
+    }
 
+    private void addUnlockedPlantCardStatus(Table card, PlantType type, User user) {
+        int level = user.getPlantLevel(type);
+        int owned = user.getSeedPackets(type);
+        int required = CollectionUiSupport.seedPacketsRequired(type, user);
+        int remaining = CollectionUiSupport.seedPacketsRemaining(type, user);
+        card.add(UiWidgets.body("Lv " + level)).align(Align.center).row();
+        card.add(UiWidgets.body("Packets: " + owned)).align(Align.center).row();
+        if (required > 0) {
+            card.add(UiWidgets.body("Need: " + required + " (" + remaining + " left)"))
+                    .align(Align.center).row();
+        } else {
+            card.add(UiWidgets.body("Max level")).align(Align.center).row();
+        }
+    }
+
+    private void addLockedPlantCardStatus(Table card, Entry entry) {
+        card.add(UiWidgets.body("Locked")).align(Align.center).row();
+        TextButton buy = UiWidgets.secondary("Buy (2000)");
+        buy.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                event.stop();
+                UiWidgets.apply(controller,
+                        controller.getCollectionController().purchasePlant(entry.name));
+            }
+        });
+        card.add(buy).width(120f).height(32f).padTop(4f).row();
+    }
+
+    private void addPlantCardClickListener(Table card, Entry entry) {
         card.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -276,7 +293,6 @@ public final class CollectionScreen implements UiScreen {
                 }
             }
         });
-        return card;
     }
 
     private Actor buildZombieCard(Entry entry) {
@@ -287,7 +303,8 @@ public final class CollectionScreen implements UiScreen {
         if (entry.unlocked && type != null) {
             ZombieVisualDef visual = catalog.zombie(type);
             if (visual != null) {
-                PamPreviewActor preview = new PamPreviewActor(assets, visual.pamPath, visual.idleClip, 0.45f, intactArmorVisibility(visual));
+                PamPreviewActor preview = new PamPreviewActor(
+                        assets, visual.pamPath, visual.idleClip, 0.45f, intactArmorVisibility(visual));
                 preview.setSize(90f, 90f);
                 card.add(preview).size(90f).padBottom(4f).row();
             } else {
@@ -330,62 +347,87 @@ public final class CollectionScreen implements UiScreen {
     private void buildPlantDetail(Table detail, String title, CollectionViewState collection) {
         PlantType type = PlantType.fromName(title);
         User user = currentUser();
-        if (type != null) {
-            PlantVisualDef visual = catalog.plant(type);
-            if (visual != null) {
-                PamPreviewActor preview = new PamPreviewActor(assets, visual.pamPath, visual.idleClip, 0.7f);
-                preview.setSize(180f, 180f);
-                detail.add(preview).size(180f).padBottom(8f).row();
-            }
-        }
-
+        addPlantDetailPreview(detail, type);
         detail.add(UiWidgets.title(title)).padBottom(6f).row();
 
         if (type != null) {
-            int level = user != null ? user.getPlantLevel(type) : PlantStats.DEFAULT_LEVEL;
-            PlantStats stats = PlantStats.forLevel(type, level);
-            detail.add(UiWidgets.body("Family: " + type.category.name())).left().row();
-            String tags = type.tags == null || type.tags.isEmpty()
-                    ? "-"
-                    : type.tags.stream().map(PlantTag::name).collect(Collectors.joining(", "));
-            detail.add(UiWidgets.body("Tags: " + tags)).left().padBottom(4f).row();
-            detail.add(UiWidgets.body("HP: " + stats.hp)).left().row();
-            detail.add(UiWidgets.body("Cost: " + stats.cost)).left().row();
-            detail.add(UiWidgets.body("Damage: " + stats.damage)).left().row();
-            if (user != null) {
-                detail.add(UiWidgets.body("Level: " + stats.level + "/" + PlantStats.MAX_LEVEL)).left().row();
-                detail.add(UiWidgets.body("Seed Packets: " + user.getSeedPackets(type))).left().padBottom(6f).row();
-            }
+            addPlantDetailStats(detail, type, user);
         }
 
         for (String line : collection.detailLines) {
             detail.add(UiWidgets.body(line)).left().row();
         }
 
-        if (type != null && user != null && controller.getStorage().isPlantUnlocked(type)) {
-            if (!type.isBowlingExclusive() && user.getPlantLevel(type) < PlantStats.MAX_LEVEL) {
-                int next = user.getPlantLevel(type) + 1;
-                int coinCost = PlantUpgradeCosts.coinCostToReach(next);
-                int seedCost = PlantUpgradeCosts.seedPacketCostToReach(next);
-                Table upgradeRow = new Table();
-                Image coin = image(COIN_ICON, 24f, 24f);
-                upgradeRow.add(coin).size(24f).padRight(4f);
-                TextButton upgrade = UiWidgets.primary("Upgrade (" + coinCost + " + " + seedCost + " pkts)");
-                UiWidgets.onChange(upgrade, () -> UiWidgets.apply(controller,
-                        controller.getCollectionController().upgradePlant(type.name)));
-                upgradeRow.add(upgrade);
-                detail.add(upgradeRow).padTop(8f).row();
-            }
-        } else if (type != null && !controller.getStorage().isPlantUnlocked(type) && !type.isBowlingExclusive()) {
-            Table purchaseRow = new Table();
-            Image coin = image(COIN_ICON, 24f, 24f);
-            purchaseRow.add(coin).size(24f).padRight(4f);
-            TextButton purchase = UiWidgets.primary("Purchase (" + CollectionUiSupport.PLANT_PURCHASE_COST + ")");
-            UiWidgets.onChange(purchase, () -> UiWidgets.apply(controller,
-                    controller.getCollectionController().purchasePlant(type.name)));
-            purchaseRow.add(purchase);
-            detail.add(purchaseRow).padTop(8f).row();
+        addPlantDetailActions(detail, type, user);
+    }
+
+    private void addPlantDetailPreview(Table detail, PlantType type) {
+        if (type == null) {
+            return;
         }
+        PlantVisualDef visual = catalog.plant(type);
+        if (visual == null) {
+            return;
+        }
+        PamPreviewActor preview = new PamPreviewActor(assets, visual.pamPath, visual.idleClip, 0.7f);
+        preview.setSize(180f, 180f);
+        detail.add(preview).size(180f).padBottom(8f).row();
+    }
+
+    private void addPlantDetailStats(Table detail, PlantType type, User user) {
+        int level = user != null ? user.getPlantLevel(type) : PlantStats.DEFAULT_LEVEL;
+        PlantStats stats = PlantStats.forLevel(type, level);
+        detail.add(UiWidgets.body("Family: " + type.category.name())).left().row();
+        String tags = type.tags == null || type.tags.isEmpty()
+                ? "-"
+                : type.tags.stream().map(PlantTag::name).collect(Collectors.joining(", "));
+        detail.add(UiWidgets.body("Tags: " + tags)).left().padBottom(4f).row();
+        detail.add(UiWidgets.body("HP: " + stats.hp)).left().row();
+        detail.add(UiWidgets.body("Cost: " + stats.cost)).left().row();
+        detail.add(UiWidgets.body("Damage: " + stats.damage)).left().row();
+        if (user != null) {
+            detail.add(UiWidgets.body("Level: " + stats.level + "/" + PlantStats.MAX_LEVEL)).left().row();
+            detail.add(UiWidgets.body("Seed Packets: " + user.getSeedPackets(type))).left().padBottom(6f).row();
+        }
+    }
+
+    private void addPlantDetailActions(Table detail, PlantType type, User user) {
+        if (type == null || user == null) {
+            return;
+        }
+        if (controller.getStorage().isPlantUnlocked(type)) {
+            addPlantUpgradeAction(detail, type, user);
+        } else if (!type.isBowlingExclusive()) {
+            addPlantPurchaseAction(detail, type);
+        }
+    }
+
+    private void addPlantUpgradeAction(Table detail, PlantType type, User user) {
+        if (type.isBowlingExclusive() || user.getPlantLevel(type) >= PlantStats.MAX_LEVEL) {
+            return;
+        }
+        int next = user.getPlantLevel(type) + 1;
+        int coinCost = PlantUpgradeCosts.coinCostToReach(next);
+        int seedCost = PlantUpgradeCosts.seedPacketCostToReach(next);
+        Table upgradeRow = new Table();
+        Image coin = image(COIN_ICON, 24f, 24f);
+        upgradeRow.add(coin).size(24f).padRight(4f);
+        TextButton upgrade = UiWidgets.primary("Upgrade (" + coinCost + " + " + seedCost + " pkts)");
+        UiWidgets.onChange(upgrade, () -> UiWidgets.apply(controller,
+                controller.getCollectionController().upgradePlant(type.name)));
+        upgradeRow.add(upgrade);
+        detail.add(upgradeRow).padTop(8f).row();
+    }
+
+    private void addPlantPurchaseAction(Table detail, PlantType type) {
+        Table purchaseRow = new Table();
+        Image coin = image(COIN_ICON, 24f, 24f);
+        purchaseRow.add(coin).size(24f).padRight(4f);
+        TextButton purchase = UiWidgets.primary("Purchase (" + CollectionUiSupport.PLANT_PURCHASE_COST + ")");
+        UiWidgets.onChange(purchase, () -> UiWidgets.apply(controller,
+                controller.getCollectionController().purchasePlant(type.name)));
+        purchaseRow.add(purchase);
+        detail.add(purchaseRow).padTop(8f).row();
     }
 
     private void buildZombieDetail(Table detail, String title, CollectionViewState collection) {
@@ -393,7 +435,8 @@ public final class CollectionScreen implements UiScreen {
         if (type != null) {
             ZombieVisualDef visual = catalog.zombie(type);
             if (visual != null) {
-                PamPreviewActor preview = new PamPreviewActor(assets, visual.pamPath, visual.idleClip, 0.7f, intactArmorVisibility(visual));
+                PamPreviewActor preview = new PamPreviewActor(
+                        assets, visual.pamPath, visual.idleClip, 0.7f, intactArmorVisibility(visual));
                 preview.setSize(180f, 180f);
                 detail.add(preview).size(180f).padBottom(8f).row();
             }

@@ -139,16 +139,7 @@ public final class LawnRenderer {
         if (visual == null) {
             return;
         }
-        String desiredClip = visual.idleClip;
-        if (plant.isPlantFoodActive && visual.plantFoodClip != null) {
-            desiredClip = visual.plantFoodClip;
-        } else if (isPlayingAction(plant) && visual.attackClip != null) {
-            desiredClip = visual.attackClip;
-        }
-        if (desiredClip != null && desiredClip.endsWith("_stage")) {
-            desiredClip = desiredClip + plant.getGrowthStage();
-        }
-
+        String desiredClip = resolvePlantClip(plant, visual);
         EntityAnimState anim = animStates.getOrCreate(animKey(1, plant.instanceId), visual.idleClip);
         if (!desiredClip.equals(anim.clipName)) {
             anim.clipName = desiredClip;
@@ -158,6 +149,33 @@ public final class LawnRenderer {
         if (clip == null) {
             return;
         }
+        float[] position = resolvePlantPosition(plant);
+        float x = position[0];
+        float y = position[1];
+        float rotation = position[2];
+        boolean frozen = plant.isFrostbiteFreezeActive();
+        if (frozen) {
+            drawOverlayPam(batch, assets, player, ICE_BLOCK_PLANT_BEHIND_PAM, "idle",
+                    animKey(20, plant.instanceId), x, y, true);
+        }
+        drawPam(batch, player, clip, anim.stateTime, x, y, true, null, rotation);
+        drawPlantFrostbiteOverlay(batch, assets, player, plant, x, y, frozen);
+    }
+
+    private static String resolvePlantClip(Plant plant, PlantVisualDef visual) {
+        String desiredClip = visual.idleClip;
+        if (plant.isPlantFoodActive && visual.plantFoodClip != null) {
+            desiredClip = visual.plantFoodClip;
+        } else if (isPlayingAction(plant) && visual.attackClip != null) {
+            desiredClip = visual.attackClip;
+        }
+        if (desiredClip != null && desiredClip.endsWith("_stage")) {
+            desiredClip = desiredClip + plant.getGrowthStage();
+        }
+        return desiredClip;
+    }
+
+    private float[] resolvePlantPosition(Plant plant) {
         BowlingMotionView motion = BowlingMotionView.of(plant);
         float x;
         float y;
@@ -170,17 +188,18 @@ public final class LawnRenderer {
             x = layout.cellCenterX(plant.col);
             y = layout.cellCenterY(plant.row);
         }
-        boolean frozen = plant.isFrostbiteFreezeActive();
-        int chillLevel = plant.getFrostbiteFreezeLevel();
-        if (frozen) {
-            drawOverlayPam(batch, assets, player, ICE_BLOCK_PLANT_BEHIND_PAM, "idle",
-                    animKey(20, plant.instanceId), x, y, true);
-        }
-        drawPam(batch, player, clip, anim.stateTime, x, y, true, null, rotation);
+        return new float[] {x, y, rotation};
+    }
+
+    private void drawPlantFrostbiteOverlay(SpriteBatch batch, AssetContext assets, PamPlayer player,
+            Plant plant, float x, float y, boolean frozen) {
         if (frozen) {
             drawOverlayPam(batch, assets, player, ICE_BLOCK_PLANT_PAM, "freeze_idle",
                     animKey(21, plant.instanceId), x, y, true);
-        } else if (chillLevel == 1) {
+            return;
+        }
+        int chillLevel = plant.getFrostbiteFreezeLevel();
+        if (chillLevel == 1) {
             drawOverlayPam(batch, assets, player, CHILL_PLANT_PAM, "chill_stage1",
                     animKey(26, plant.instanceId), x, y, true);
         } else if (chillLevel >= 2) {
@@ -189,7 +208,7 @@ public final class LawnRenderer {
         }
     }
 
-    private boolean isPlayingAction(Plant plant) {
+    private static boolean isPlayingAction(Plant plant) {
         return plant.isAttacking();
     }
 
@@ -201,12 +220,8 @@ public final class LawnRenderer {
                     + layout.cellCenterY(zombie.row + zombie.rowSpan() - 1)) * 0.5f;
         }
 
-        // Phase 1 iced zombies: ice block only (no zombie sprite inside).
         if (zombie.isIced()) {
-            drawOverlayPam(batch, assets, player, ICE_BLOCK_ZOMBIE_BEHIND_PAM, "idle",
-                    animKey(22, zombie.instanceId), x, y, true);
-            drawOverlayPam(batch, assets, player, ICE_BLOCK_ZOMBIE_PAM, "idle",
-                    animKey(23, zombie.instanceId), x, y, true);
+            drawIcedZombie(batch, assets, player, zombie, x, y);
             return;
         }
 
@@ -214,6 +229,37 @@ public final class LawnRenderer {
         if (visual == null) {
             return;
         }
+        ZombieClipState clipState = resolveZombieClip(zombie, visual);
+        EntityAnimState anim = animStates.getOrCreate(animKey(2, zombie.instanceId), clipState.clipName);
+        if (!clipState.clipName.equals(anim.clipName)) {
+            anim.clipName = clipState.clipName;
+            anim.stateTime = 0f;
+        }
+        ClipRef clip = assets.clip(visual.pamPath, anim.clipName);
+        if (clip == null) {
+            return;
+        }
+        boolean sandstorm = zombie.hasSandstorm();
+        if (sandstorm) {
+            drawOverlayPam(batch, assets, player, SANDSTORM_REAR_PAM, "loop",
+                    animKey(24, zombie.instanceId), x, y, true);
+        }
+        drawZombieSprite(batch, assets, player, zombie, visual, clip, anim, x, y, clipState.loop);
+        if (sandstorm) {
+            drawOverlayPam(batch, assets, player, SANDSTORM_TOP_PAM, "loop",
+                    animKey(25, zombie.instanceId), x, y, true);
+        }
+    }
+
+    private void drawIcedZombie(SpriteBatch batch, AssetContext assets, PamPlayer player,
+            Zombie zombie, float x, float y) {
+        drawOverlayPam(batch, assets, player, ICE_BLOCK_ZOMBIE_BEHIND_PAM, "idle",
+                animKey(22, zombie.instanceId), x, y, true);
+        drawOverlayPam(batch, assets, player, ICE_BLOCK_ZOMBIE_PAM, "idle",
+                animKey(23, zombie.instanceId), x, y, true);
+    }
+
+    private static ZombieClipState resolveZombieClip(Zombie zombie, ZombieVisualDef visual) {
         String defaultClip;
         boolean loop = true;
         if (zombie.animClip != null) {
@@ -233,38 +279,16 @@ public final class LawnRenderer {
         if (defaultClip == null) {
             defaultClip = visual.idleClip;
         }
-        EntityAnimState anim = animStates.getOrCreate(animKey(2, zombie.instanceId), defaultClip);
-        if (!defaultClip.equals(anim.clipName)) {
-            anim.clipName = defaultClip;
-            anim.stateTime = 0f;
-        }
-        ClipRef clip = assets.clip(visual.pamPath, anim.clipName);
-        if (clip == null) {
-            return;
-        }
-        boolean sandstorm = zombie.hasSandstorm();
-        if (sandstorm) {
-            drawOverlayPam(batch, assets, player, SANDSTORM_REAR_PAM, "loop",
-                    animKey(24, zombie.instanceId), x, y, true);
-        }
+        return new ZombieClipState(defaultClip, loop);
+    }
+
+    private void drawZombieSprite(SpriteBatch batch, AssetContext assets, PamPlayer player, Zombie zombie,
+            ZombieVisualDef visual, ClipRef clip, EntityAnimState anim,
+            float x, float y, boolean loop) {
         Map<String, Boolean> visibility = visibilityResolver.forZombie(zombie, visual);
         beginEntityScale(batch, x, y, zombie.isHypnotized);
         try {
-            if (!(visual.companions == null || visual.companions.isEmpty())) {
-                for (int i = 0; i < visual.companions.size(); i++) {
-                    CompanionVisual c = visual.companions.get(i);
-                    if (c.onlyWhileArmored && (zombie.armor == null || !zombie.armor.isIntact)) {
-                        continue;
-                    }
-                    ClipRef prop = assets.clip(c.pamPath, c.clipName);
-                    if (prop == null) {
-                        continue;
-                    }
-                    long key = animKey(4 + i, zombie.instanceId);
-                    EntityAnimState propAnim = animStates.getOrCreate(key, c.clipName);
-                    player.draw(batch, prop, propAnim.stateTime, x + c.offsetX, y + c.offsetY, true);
-                }
-            }
+            drawZombieCompanions(batch, assets, player, zombie, visual, x, y);
             if (zombie.isGlowing) {
                 float pulse = 0.7f + 0.3f * (float) Math.sin(anim.stateTime * 8f);
                 batch.setColor(0.45f, 1f, 0.35f, pulse); // lime, not Color.GREEN
@@ -278,9 +302,35 @@ public final class LawnRenderer {
         } finally {
             endEntityScale(batch);
         }
-        if (sandstorm) {
-            drawOverlayPam(batch, assets, player, SANDSTORM_TOP_PAM, "loop",
-                    animKey(25, zombie.instanceId), x, y, true);
+    }
+
+    private void drawZombieCompanions(SpriteBatch batch, AssetContext assets, PamPlayer player, Zombie zombie,
+            ZombieVisualDef visual, float x, float y) {
+        if (visual.companions == null || visual.companions.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < visual.companions.size(); i++) {
+            CompanionVisual c = visual.companions.get(i);
+            if (c.onlyWhileArmored && (zombie.armor == null || !zombie.armor.isIntact)) {
+                continue;
+            }
+            ClipRef prop = assets.clip(c.pamPath, c.clipName);
+            if (prop == null) {
+                continue;
+            }
+            long key = animKey(4 + i, zombie.instanceId);
+            EntityAnimState propAnim = animStates.getOrCreate(key, c.clipName);
+            player.draw(batch, prop, propAnim.stateTime, x + c.offsetX, y + c.offsetY, true);
+        }
+    }
+
+    private static final class ZombieClipState {
+        private final String clipName;
+        private final boolean loop;
+
+        private ZombieClipState(String clipName, boolean loop) {
+            this.clipName = clipName;
+            this.loop = loop;
         }
     }
 

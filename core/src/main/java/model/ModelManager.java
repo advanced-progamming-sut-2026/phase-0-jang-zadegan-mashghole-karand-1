@@ -177,45 +177,66 @@ public class ModelManager {
 
     public boolean placePlant(int row, int col, PlantType plantType, int level, boolean chargeSun) {
         Tile tile = state.getBoard().getTile(row, col);
-        if (tile == null)
+        if (tile == null || !tile.isPlantable(plantType)) {
             return false;
-        if (!tile.isPlantable(plantType))
+        }
+        if (!ruleEngine.canPlant(plantType, row, col, state, sessionContext)) {
             return false;
-
-        if (!ruleEngine.canPlant(plantType, row, col, state, sessionContext))
-            return false;
-
+        }
         if (sessionContext != null && sessionContext.isPlantOnCooldown(plantType)
                 && !sessionContext.hasHeldSeed(plantType)) {
             return false;
         }
-        boolean shouldChargeSun = chargeSun && ruleEngine.usesSunCurrency();
 
+        boolean shouldChargeSun = chargeSun && ruleEngine.usesSunCurrency();
+        Plant plant = createPlantForPlacement(row, col, plantType, level);
+        if (plant == null) {
+            return false;
+        }
+        if (shouldChargeSun && !chargeSunForPlant(plant)) {
+            return false;
+        }
+
+        state.addPlant(plant);
+        if (shouldChargeSun) {
+            deductSunForPlant(plant);
+        }
+        applyPlantingCooldown(plantType, level, plant);
+        eventBus.publish(new PlantPlacedEvent(plant));
+        return true;
+    }
+
+    private Plant createPlantForPlacement(int row, int col, PlantType plantType, int level) {
+        if (plantType == PlantType.Imitater) {
+            if (imitatorTarget == null || imitatorTarget == PlantType.Imitater) {
+                return null;
+            }
+        }
         Plant plant = new Plant(plantType, row, col, level, eventBus);
         if (plantType == PlantType.Imitater) {
-            if (imitatorTarget == null || imitatorTarget == PlantType.Imitater)
-                return false;
             for (PlantAbilityConfig a : plant.abilities) {
                 if (a instanceof PlantTransformAbility) {
                     ((PlantTransformAbility) a).setTargetPlant(imitatorTarget);
                 }
             }
         }
-        if (shouldChargeSun) {
-            int available = state.dualSunMode ? state.plantSun : state.sunAmount;
-            if (available < plant.cost) {
-                return false;
-            }
-        }
+        return plant;
+    }
 
-        state.addPlant(plant);
-        if (shouldChargeSun) {
-            if (state.dualSunMode) {
-                state.plantSun -= plant.cost;
-            } else {
-                state.sunAmount -= plant.cost;
-            }
+    private boolean chargeSunForPlant(Plant plant) {
+        int available = state.dualSunMode ? state.plantSun : state.sunAmount;
+        return available >= plant.cost;
+    }
+
+    private void deductSunForPlant(Plant plant) {
+        if (state.dualSunMode) {
+            state.plantSun -= plant.cost;
+        } else {
+            state.sunAmount -= plant.cost;
         }
+    }
+
+    private void applyPlantingCooldown(PlantType plantType, int level, Plant plant) {
         boolean usedHeldSeed = false;
         if (sessionContext != null && sessionContext.hasHeldSeed(plantType)) {
             sessionContext.consumeHeldSeed(plantType);
@@ -229,8 +250,6 @@ public class ModelManager {
         if (sessionContext != null && sessionContext.isBoosted(plantType)) {
             plant.activatePlantFood(state, eventBus);
         }
-        eventBus.publish(new PlantPlacedEvent(plant));
-        return true;
     }
 
     public boolean placeConveyorPlant(int row, int col) {

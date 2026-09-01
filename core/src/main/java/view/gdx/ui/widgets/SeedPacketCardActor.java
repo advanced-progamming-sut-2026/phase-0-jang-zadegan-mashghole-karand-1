@@ -122,39 +122,60 @@ public final class SeedPacketCardActor extends Group {
         }
 
         if (card.isEmpty()) {
-            setDrawable(frameImage, assets.region(SeedPacketDefs.EMPTY));
-            frameImage.setSize(packetWidth, packetHeight);
-            frameImage.setPosition(0f, 0f);
-            frameImage.setVisible(true);
+            showEmptyCard();
             return;
         }
 
         String packetId = SeedPacketDefs.packetId(card.plantName);
         TextureRegion plantRegion = assets.region(packetId);
-        TextureRegion boostFrame = assets.region(SeedPacketCardPainter.BOOST_FRAME);
-        if (boostFrame == null) {
-            boostFrame = assets.region(SeedPacketCardPainter.BOOST_FRAME_FALLBACK);
-        }
+        TextureRegion boostFrame = resolveBoostFrame();
 
         if (card.boosted && boostFrame != null) {
-            setDrawable(frameImage, boostFrame);
-            frameImage.setSize(packetWidth, packetHeight);
-            frameImage.setPosition(0f, 0f);
-            frameImage.setVisible(true);
-            layoutPlantInset(plantRegion);
-            plantImage.setVisible(plantRegion != null);
+            showBoostedCard(boostFrame, plantRegion);
             return;
         }
 
         if (plantRegion != null) {
-            setDrawable(plantImage, plantRegion);
-            plantImage.setSize(packetWidth, packetHeight);
-            plantImage.setPosition(0f, 0f);
-            plantImage.setColor(card.locked ? new Color(0.65f, 0.65f, 0.65f, 1f) : Color.WHITE);
-            plantImage.setVisible(true);
+            showPlantOnlyCard(plantRegion);
             return;
         }
 
+        showFrameFallbackCard();
+    }
+
+    private TextureRegion resolveBoostFrame() {
+        TextureRegion boostFrame = assets.region(SeedPacketCardPainter.BOOST_FRAME);
+        if (boostFrame == null) {
+            boostFrame = assets.region(SeedPacketCardPainter.BOOST_FRAME_FALLBACK);
+        }
+        return boostFrame;
+    }
+
+    private void showEmptyCard() {
+        setDrawable(frameImage, assets.region(SeedPacketDefs.EMPTY));
+        frameImage.setSize(packetWidth, packetHeight);
+        frameImage.setPosition(0f, 0f);
+        frameImage.setVisible(true);
+    }
+
+    private void showBoostedCard(TextureRegion boostFrame, TextureRegion plantRegion) {
+        setDrawable(frameImage, boostFrame);
+        frameImage.setSize(packetWidth, packetHeight);
+        frameImage.setPosition(0f, 0f);
+        frameImage.setVisible(true);
+        layoutPlantInset(plantRegion);
+        plantImage.setVisible(plantRegion != null);
+    }
+
+    private void showPlantOnlyCard(TextureRegion plantRegion) {
+        setDrawable(plantImage, plantRegion);
+        plantImage.setSize(packetWidth, packetHeight);
+        plantImage.setPosition(0f, 0f);
+        plantImage.setColor(card.locked ? new Color(0.65f, 0.65f, 0.65f, 1f) : Color.WHITE);
+        plantImage.setVisible(true);
+    }
+
+    private void showFrameFallbackCard() {
         TextureRegion frame = assets.region(SeedPacketDefs.worldBack(chapter));
         if (frame == null) {
             frame = assets.region(SeedPacketDefs.EMPTY);

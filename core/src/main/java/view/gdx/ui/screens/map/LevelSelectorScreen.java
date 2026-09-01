@@ -2,7 +2,6 @@ package view.gdx.ui.screens.map;
 
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -128,12 +127,6 @@ public final class LevelSelectorScreen implements UiScreen {
 
 
         root.add(list).padBottom(12f).row();
-    }
-
-    private ScrollPane scroll(Table table) {
-        ScrollPane pane = new ScrollPane(table, UiSkin.get());
-        pane.setFadeScrollBars(false);
-        return pane;
     }
 
     @Override

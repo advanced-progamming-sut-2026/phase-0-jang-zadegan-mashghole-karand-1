@@ -112,95 +112,123 @@ public final class GraphicsApp extends ApplicationAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         if (app.isGameScreen()) {
-            worldViewport.apply();
-            ChapterType chapter = resolveChapter();
-            lawnBackground.bind(assets, chapter, worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
-            if (lawnBackground.ready()) {
-                lawnLayout.syncFromBackground(
-                        lawnBackground.drawX(), lawnBackground.drawY(),
-                        lawnBackground.leftW(), lawnBackground.centerW(), lawnBackground.stripH(),
-                        lawnBackground.scale());
-            }
-            batch.setProjectionMatrix(camera.combined);
-            batch.begin();
-            lawnBackground.render(batch);
-
-            boolean onlineMatch = isOnlineMatch();
-            boolean paused = pausesWorld(app.controller().getCurrentMenu(), onlineMatch)
-                    || app.controller().isDialogueActive();
-            float worldDt = paused ? 0f : dt;
-            SessionContext session = app.model().getPlayContext();
-            lawnRenderer.render(batch, assets, app.gameState(), worldDt, chapter);
-            HudViewState hud = HudViewState.fromSession(
-                    session,
-                    app.gameState(),
-                    app.controller().getStorage().getCurrentUser());
-            int sun = resolveTraySun(hud);
-            int plantSun = app.gameState() != null ? app.gameState().getPlantSun() : sun;
-            int zombieSun = app.gameState() != null ? app.gameState().getZombieSun() : sun;
-            boolean dualSun = app.gameState() != null && app.gameState().isDualSunMode();
-            float worldHeight = worldViewport.getWorldHeight();
-            float worldWidth = worldViewport.getWorldWidth();
-            float hudTopReserve = GlobalTopBar.reservedScreenHeight()
-                    * (worldHeight / Math.max(1, Gdx.graphics.getHeight()));
-            if (!paused) {
-                conveyorAnimator.update(dt, hud, worldHeight, hudTopReserve);
-            }
-            int leftSun = sun;
-            int rightSun = sun;
-            if (dualSun) {
-                boolean hasRightTray = hud.rightTraySlots != null && !hud.rightTraySlots.isEmpty();
-                if (hasRightTray) {
-                    leftSun = plantSun;
-                    rightSun = zombieSun;
-                } else {
-                    leftSun = resolveTraySun(hud);
-                    rightSun = leftSun;
-                }
-            }
-            plantInput.bind(app.controller(), assets, hud, leftSun, rightSun, worldWidth,
-                    worldViewport::getWorldHeight, conveyorAnimator, hudTopReserve);
-            plantInput.refreshHoverFromPointer();
-            renderPlacementFeedback(batch);
-            seedTray.render(batch, assets, hud, chapter, leftSun, rightSun, worldHeight, worldWidth,
-                    plantInput.selectedPlantName(), plantInput.selectedConveyorIndex(),
-                    conveyorAnimator, hudTopReserve, boostedPlants(session));
-            int pf = app.gameState() != null ? app.gameState().getPlantFoodAmount() : 0;
-            if (!paused) {
-                plantFoodFeedback.update(dt, pf, lawnLayout, assets, worldWidth, worldHeight);
-            }
-            float progress = 0f;
-            int totalWaves = 0;
-            if (session != null && session.getWaveManager() != null) {
-                totalWaves = session.getWaveManager().getTotalWaves();
-                if (app.gameState() != null) {
-                    progress = session.getWaveManager().getLevelProgress(app.model().getState());
-                }
-            }
-            hudOverlay.setPlantFoodMode(plantInput.isPlantFoodMode());
-            hudOverlay.setPlantFoodPulse(plantFoodFeedback.bankPulse());
-            hudOverlay.render(batch, assets, hud, plantSun, dualSun ? zombieSun : -1, pf, progress,
-                    totalWaves, worldWidth, worldHeight);
-            plantFoodFeedback.render(batch, assets);
-            if (dualSun && quickMessageHud != null) {
-                quickMessageHud.render(batch, assets, worldWidth, worldHeight, hudTopReserve);
-            }
-            renderPlantFoodCursor(batch);
-            batch.end();
-            lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
+            renderGameScreen(dt);
         } else {
-            plantInput.clearSelection();
-            plantInput.clearPlantFoodMode();
-            plantInput.clearHover();
-            conveyorAnimator.reset();
-            plantFoodFeedback.reset();
-            if (quickMessageHud != null) {
-                quickMessageHud.clear();
-            }
-            menuBackdrop.render(batch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            renderMenuScreen();
         }
 
         ui.draw();
+    }
+
+    private void renderGameScreen(float dt) {
+        worldViewport.apply();
+        ChapterType chapter = resolveChapter();
+        syncLawnLayout(chapter);
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        lawnBackground.render(batch);
+
+        boolean onlineMatch = isOnlineMatch();
+        boolean paused = pausesWorld(app.controller().getCurrentMenu(), onlineMatch)
+                || app.controller().isDialogueActive();
+        float worldDt = paused ? 0f : dt;
+        SessionContext session = app.model().getPlayContext();
+        lawnRenderer.render(batch, assets, app.gameState(), worldDt, chapter);
+        HudViewState hud = HudViewState.fromSession(
+                session,
+                app.gameState(),
+                app.controller().getStorage().getCurrentUser());
+        renderGameHud(dt, session, hud, chapter, paused);
+        batch.end();
+        lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
+    }
+
+    private void syncLawnLayout(ChapterType chapter) {
+        lawnBackground.bind(assets, chapter, worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
+        if (lawnBackground.ready()) {
+            lawnLayout.syncFromBackground(
+                    lawnBackground.drawX(), lawnBackground.drawY(),
+                    lawnBackground.leftW(), lawnBackground.centerW(), lawnBackground.stripH(),
+                    lawnBackground.scale());
+        }
+    }
+
+    private void renderGameHud(float dt, SessionContext session, HudViewState hud,
+            ChapterType chapter, boolean paused) {
+        int sun = resolveTraySun(hud);
+        int plantSun = app.gameState() != null ? app.gameState().getPlantSun() : sun;
+        int zombieSun = app.gameState() != null ? app.gameState().getZombieSun() : sun;
+        boolean dualSun = app.gameState() != null && app.gameState().isDualSunMode();
+        float worldHeight = worldViewport.getWorldHeight();
+        float worldWidth = worldViewport.getWorldWidth();
+        float hudTopReserve = GlobalTopBar.reservedScreenHeight()
+                * (worldHeight / Math.max(1, Gdx.graphics.getHeight()));
+        if (!paused) {
+            conveyorAnimator.update(dt, hud, worldHeight, hudTopReserve);
+        }
+        int[] traySuns = resolveTraySuns(hud, dualSun, sun, plantSun, zombieSun);
+        plantInput.bind(app.controller(), assets, hud, traySuns[0], traySuns[1], worldWidth,
+                worldViewport::getWorldHeight, conveyorAnimator, hudTopReserve);
+        plantInput.refreshHoverFromPointer();
+        renderPlacementFeedback(batch);
+        seedTray.render(batch, assets, hud, chapter, traySuns[0], traySuns[1], worldHeight, worldWidth,
+                plantInput.selectedPlantName(), plantInput.selectedConveyorIndex(),
+                conveyorAnimator, hudTopReserve, boostedPlants(session));
+        int pf = app.gameState() != null ? app.gameState().getPlantFoodAmount() : 0;
+        if (!paused) {
+            plantFoodFeedback.update(dt, pf, lawnLayout, assets, worldWidth, worldHeight);
+        }
+        renderHudOverlay(session, hud, plantSun, dualSun, zombieSun, pf, worldWidth, worldHeight);
+        plantFoodFeedback.render(batch, assets);
+        if (dualSun && quickMessageHud != null) {
+            quickMessageHud.render(batch, assets, worldWidth, worldHeight, hudTopReserve);
+        }
+        renderPlantFoodCursor(batch);
+    }
+
+    private int[] resolveTraySuns(HudViewState hud, boolean dualSun, int sun,
+            int plantSun, int zombieSun) {
+        int leftSun = sun;
+        int rightSun = sun;
+        if (dualSun) {
+            boolean hasRightTray = hud.rightTraySlots != null && !hud.rightTraySlots.isEmpty();
+            if (hasRightTray) {
+                leftSun = plantSun;
+                rightSun = zombieSun;
+            } else {
+                leftSun = resolveTraySun(hud);
+                rightSun = leftSun;
+            }
+        }
+        return new int[] {leftSun, rightSun};
+    }
+
+    private void renderHudOverlay(SessionContext session, HudViewState hud, int plantSun,
+            boolean dualSun, int zombieSun, int pf, float worldWidth, float worldHeight) {
+        float progress = 0f;
+        int totalWaves = 0;
+        if (session != null && session.getWaveManager() != null) {
+            totalWaves = session.getWaveManager().getTotalWaves();
+            if (app.gameState() != null) {
+                progress = session.getWaveManager().getLevelProgress(app.model().getState());
+            }
+        }
+        hudOverlay.setPlantFoodMode(plantInput.isPlantFoodMode());
+        hudOverlay.setPlantFoodPulse(plantFoodFeedback.bankPulse());
+        hudOverlay.render(batch, assets, hud, plantSun, dualSun ? zombieSun : -1, pf, progress,
+                totalWaves, worldWidth, worldHeight);
+    }
+
+    private void renderMenuScreen() {
+        plantInput.clearSelection();
+        plantInput.clearPlantFoodMode();
+        plantInput.clearHover();
+        conveyorAnimator.reset();
+        plantFoodFeedback.reset();
+        if (quickMessageHud != null) {
+            quickMessageHud.clear();
+        }
+        menuBackdrop.render(batch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
     @Override

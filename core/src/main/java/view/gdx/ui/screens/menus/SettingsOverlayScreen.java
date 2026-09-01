@@ -27,22 +27,12 @@ public final class SettingsOverlayScreen implements UiScreen {
 
     public SettingsOverlayScreen() {
         stage = new Stage(new ScreenViewport());
-
-        Pixmap brownPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        brownPixmap.setColor(new Color(0.36f, 0.18f, 0.07f, 1f));  // dark brown
-        brownPixmap.fill();
         brownTexture = makeRoundedRect(new Color(0.36f, 0.18f, 0.07f, 1f), 256, 256, 12);
-        brownPixmap.dispose();
-
-        Pixmap panelPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        panelPixmap.setColor(new Color(0.75f, 0.55f, 0.30f, 1f));  // warm tan
-        panelPixmap.fill();
         panelTexture = makeRoundedRect(new Color(0.75f, 0.55f, 0.30f, 1f), 256, 256, 8);
-        panelPixmap.dispose();
+        stage.addActor(buildRoot());
+    }
 
-
-
-        Label title = UiWidgets.title("Settings");
+    private Table buildRoot() {
         difficultyLabel = UiWidgets.body("3");
         gameSpeedLabel = UiWidgets.body("2");
         TextButton minusDif = UiWidgets.plain("-");
@@ -52,25 +42,48 @@ public final class SettingsOverlayScreen implements UiScreen {
         TextButton back = UiWidgets.plain("Back");
         groundWebbing = UiWidgets.checkBox("Ground Webbing");
         debugMode = UiWidgets.checkBox("Debug Mode");
+        wireSettingsListeners(minusDif, plusDif, minusSpeed, plusSpeed, back);
 
+        Table panel = buildSettingsPanel(minusDif, plusDif, minusSpeed, plusSpeed, back);
+        Table brownOuter = new Table();
+        brownOuter.setBackground(new TextureRegionDrawable(new TextureRegion(brownTexture)));
+        brownOuter.setTouchable(Touchable.enabled);
+        brownOuter.pad(16f);
+        brownOuter.add(panel);
+
+        Table root = new Table();
+        root.setFillParent(true);
+        root.center();
+        root.add(brownOuter);
+        return root;
+    }
+
+    private void wireSettingsListeners(TextButton minusDif, TextButton plusDif, TextButton minusSpeed,
+            TextButton plusSpeed, TextButton back) {
         UiWidgets.onChange(minusDif, this::decreaseDifficulty);
         UiWidgets.onChange(plusDif, this::increaseDifficulty);
         UiWidgets.onChange(minusSpeed, this::decreaseSpeed);
         UiWidgets.onChange(plusSpeed, this::increaseSpeed);
         UiWidgets.onChange(back, () -> UiWidgets.apply(controllerManager, controllerManager.exitMenu()));
         UiWidgets.onChange(groundWebbing, () -> {
-            if (syncing)
+            if (syncing) {
                 return;
+            }
             UiWidgets.apply(controllerManager,
                     controllerManager.getSettingController().setShowGroundWebbing(groundWebbing.isChecked()));
         });
         UiWidgets.onChange(debugMode, () -> {
-            if (syncing)
+            if (syncing) {
                 return;
+            }
             UiWidgets.apply(controllerManager,
                     controllerManager.getSettingController().setDebugMode(debugMode.isChecked()));
         });
+    }
 
+    private Table buildSettingsPanel(TextButton minusDif, TextButton plusDif, TextButton minusSpeed,
+            TextButton plusSpeed, TextButton back) {
+        Label title = UiWidgets.title("Settings");
         Table panel = new Table();
         panel.setBackground(new TextureRegionDrawable(new TextureRegion(panelTexture)));
         panel.pad(120f);
@@ -86,19 +99,7 @@ public final class SettingsOverlayScreen implements UiScreen {
         panel.add(groundWebbing).left().colspan(4).padTop(8f).row();
         panel.add(debugMode).left().colspan(4).padTop(4f).row();
         panel.add(back).colspan(4).growX().height(44f).padTop(16f);
-
-        Table brownOuter = new Table();
-        brownOuter.setBackground(new TextureRegionDrawable(new TextureRegion(brownTexture)));
-        brownOuter.setTouchable(Touchable.enabled);
-        brownOuter.pad(16f);
-        brownOuter.add(panel);
-
-        Table root = new Table();
-        root.setFillParent(true);
-        root.center();
-        root.add(brownOuter);
-
-        stage.addActor(root);
+        return panel;
     }
 
     @Override

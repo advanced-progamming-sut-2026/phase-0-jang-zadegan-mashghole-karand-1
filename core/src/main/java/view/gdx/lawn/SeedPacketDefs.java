@@ -46,11 +46,27 @@ public final class SeedPacketDefs {
 
     public static Map<PlantType, String> createPacketIds() {
         Map<PlantType, String> map = new EnumMap<>(PlantType.class);
+        putSunPacketIds(map);
+        putShooterPacketIds(map);
+        putLobberPacketIds(map);
+        putExplosivePacketIds(map);
+        putMeleePacketIds(map);
+        putDefenderPacketIds(map);
+        putUtilityPacketIds(map);
+        putMintPacketIds(map);
+        putBowlingPacketIds(map);
+        return map;
+    }
+
+    private static void putSunPacketIds(Map<PlantType, String> map) {
         map.put(PlantType.Sunflower, "IMAGE_UI_PACKETS_SUNFLOWER");
         map.put(PlantType.TwinSunflower, "IMAGE_UI_PACKETS_TWINSUNFLOWER");
         map.put(PlantType.SunShroom, "IMAGE_UI_PACKETS_SUNSHROOM");
         map.put(PlantType.PrimalSunflower, "IMAGE_UI_PACKETS_PRIMALSUNFLOWER");
         map.put(PlantType.GoldBloom, "IMAGE_UI_PACKETS_GOLDBLOOM");
+    }
+
+    private static void putShooterPacketIds(Map<PlantType, String> map) {
         map.put(PlantType.PeaShooter, "IMAGE_UI_PACKETS_PEASHOOTER");
         map.put(PlantType.Repeater, "IMAGE_UI_PACKETS_REPEATER");
         map.put(PlantType.Threepeater, "IMAGE_UI_PACKETS_THREEPEATER");
@@ -69,11 +85,17 @@ public final class SeedPacketDefs {
         map.put(PlantType.SeaShroom, "IMAGE_UI_PACKETS_SEASHROOM");
         map.put(PlantType.PuffShroom, "IMAGE_UI_PACKETS_PUFFSHROOM");
         map.put(PlantType.Fume_shroom, "IMAGE_UI_PACKETS_FUMESHROOM");
+    }
+
+    private static void putLobberPacketIds(Map<PlantType, String> map) {
         map.put(PlantType.Cabbage_pult, "IMAGE_UI_PACKETS_CABBAGEPULT");
         map.put(PlantType.Kernel_pult, "IMAGE_UI_PACKETS_KERNELPULT");
         map.put(PlantType.Melon_pult, "IMAGE_UI_PACKETS_MELONPULT");
         map.put(PlantType.Winter_Melon, "IMAGE_UI_PACKETS_WINTERMELON");
         map.put(PlantType.Pepper_pult, "IMAGE_UI_PACKETS_PEPPERPULT");
+    }
+
+    private static void putExplosivePacketIds(Map<PlantType, String> map) {
         map.put(PlantType.Potato_Mine, "IMAGE_UI_PACKETS_POTATOMINE");
         map.put(PlantType.Primal_Potato_Mine, "IMAGE_UI_PACKETS_PRIMALPOTATOMINE");
         map.put(PlantType.Cherry_Bomb, "IMAGE_UI_PACKETS_CHERRY_BOMB");
@@ -82,10 +104,16 @@ public final class SeedPacketDefs {
         map.put(PlantType.Doom_shroom, "IMAGE_UI_PACKETS_DOOMSHROOM");
         map.put(PlantType.Tangle_Kelp, "IMAGE_UI_PACKETS_TANGLEKELP");
         map.put(PlantType.Iceberg_Lettuce, "IMAGE_UI_PACKETS_ICEBURG");
+    }
+
+    private static void putMeleePacketIds(Map<PlantType, String> map) {
         map.put(PlantType.Bonk_Choy, "IMAGE_UI_PACKETS_BONKCHOY");
         map.put(PlantType.Phat_Beet, "IMAGE_UI_PACKETS_PHATBEET");
         map.put(PlantType.Chomper, "IMAGE_UI_PACKETS_CHOMPER");
         map.put(PlantType.Wasabi_Whip, "IMAGE_UI_PACKETS_WASABIWHIP");
+    }
+
+    private static void putDefenderPacketIds(Map<PlantType, String> map) {
         map.put(PlantType.Wall_nut, "IMAGE_UI_PACKETS_WALLNUT");
         map.put(PlantType.Tall_nut, "IMAGE_UI_PACKETS_TALLNUT");
         map.put(PlantType.Endurian, "IMAGE_UI_PACKETS_ENDURIAN");
@@ -94,6 +122,9 @@ public final class SeedPacketDefs {
         map.put(PlantType.Explode_o_nut, "IMAGE_UI_PACKETS_EXPLODEONUT");
         map.put(PlantType.Pumpkin, "IMAGE_UI_PACKETS_PUMPKIN");
         map.put(PlantType.Sun_Bean, "IMAGE_UI_PACKETS_SUNBEAN");
+    }
+
+    private static void putUtilityPacketIds(Map<PlantType, String> map) {
         map.put(PlantType.Torchwood, "IMAGE_UI_PACKETS_TORCHWOOD");
         map.put(PlantType.Magnet_shroom, "IMAGE_UI_PACKETS_MAGNETSHROOM");
         map.put(PlantType.Hypno_shroom, "IMAGE_UI_PACKETS_HYPNOSHROOM");
@@ -103,6 +134,9 @@ public final class SeedPacketDefs {
         map.put(PlantType.Lily_Pad, "IMAGE_UI_PACKETS_LILYPAD");
         map.put(PlantType.Hot_Potato, "IMAGE_UI_PACKETS_HOTPOTATO");
         map.put(PlantType.Grave_Buster, "IMAGE_UI_PACKETS_GRAVEBUSTER");
+    }
+
+    private static void putMintPacketIds(Map<PlantType, String> map) {
         map.put(PlantType.Enlighten_mint, "IMAGE_UI_PACKETS_ENLIGHTENMINT");
         map.put(PlantType.Appease_mint, "IMAGE_UI_PACKETS_APPEASEMINT");
         map.put(PlantType.Arma_mint, "IMAGE_UI_PACKETS_ARMAMINT");
@@ -112,9 +146,11 @@ public final class SeedPacketDefs {
         map.put(PlantType.Enchant_mint, "IMAGE_UI_PACKETS_CONTAINMINT");
         map.put(PlantType.Pierce_mint, "IMAGE_UI_PACKETS_PEPPERMINT");
         map.put(PlantType.catTail_mint, "IMAGE_UI_PACKETS_AILMINT");
+    }
+
+    private static void putBowlingPacketIds(Map<PlantType, String> map) {
         map.put(PlantType.Bowling_Wall_nut, "IMAGE_UI_PACKETS_WALLNUT");
         map.put(PlantType.Bowling_Explode_o_nut, "IMAGE_UI_PACKETS_EXPLODEONUT");
         map.put(PlantType.Giant_Bowling_Wall_nut, "IMAGE_UI_PACKETS_WALLNUT");
-        return map;
     }
 }

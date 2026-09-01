@@ -351,13 +351,8 @@ public final class LawnPlantInput extends InputAdapter {
             return false;
         }
         updateHoverFromScreen(screenX, screenY);
-        if (button == Input.Buttons.RIGHT) {
-            if (selectedPlantName != null || selectedConveyorIndex >= 0 || plantFoodMode) {
-                clearSelection();
-                clearPlantFoodMode();
-                return true;
-            }
-            return false;
+        if (handleRightClick(button)) {
+            return true;
         }
         if (button != Input.Buttons.LEFT) {
             return false;
@@ -367,141 +362,196 @@ public final class LawnPlantInput extends InputAdapter {
         float worldY = pointerWorldY;
         float worldH = worldHeightProvider.worldHeight();
 
-        if (hud.showPlantFood && hudOverlay != null
-                && hudOverlay.hitTestPlantFoodButton(assets, worldX, worldY, worldWidth, worldH)) {
-            togglePlantFoodMode();
+        if (handlePlantFoodButton(worldX, worldY, worldH)) {
             return true;
         }
+        if (handleTrayTouch(worldX, worldY, worldH)) {
+            return true;
+        }
+        if (handleSunCollection(worldX, worldY)) {
+            return true;
+        }
+        return handleCellTouch(worldX, worldY);
+    }
 
+    private boolean handleRightClick(int button) {
+        if (button != Input.Buttons.RIGHT) {
+            return false;
+        }
+        if (selectedPlantName != null || selectedConveyorIndex >= 0 || plantFoodMode) {
+            clearSelection();
+            clearPlantFoodMode();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handlePlantFoodButton(float worldX, float worldY, float worldH) {
+        if (!hud.showPlantFood || hudOverlay == null) {
+            return false;
+        }
+        if (!hudOverlay.hitTestPlantFoodButton(assets, worldX, worldY, worldWidth, worldH)) {
+            return false;
+        }
+        togglePlantFoodMode();
+        return true;
+    }
+
+    private boolean handleTrayTouch(float worldX, float worldY, float worldH) {
         if (hud.trayIsConveyorRow) {
-            ConveyorTrayHit hit = seedTray.hitTestConveyor(hud, assets, worldX, worldY, worldH, sunAmount,
-                    true, conveyorAnimator, hudTopReserve);
-            if (hit.isHit()) {
-                if (hit.isSlot()) {
-                    clearPlantFoodMode();
-                    int index = hit.slotIndex();
-                    if (index == selectedConveyorIndex) {
-                        clearSelection();
-                    } else {
-                        selectedConveyorIndex = index;
-                        selectedPlantName = hud.traySlots.get(index).name;
-                    }
-                }
-                return true;
-            }
-        } else {
-            String packet = seedTray.hitTest(hud, assets, worldX, worldY, worldH,
-                    sunAmount, rightSunAmount, worldWidth, true, conveyorAnimator, hudTopReserve);
-            if (packet != null) {
-                if (packet.isEmpty()) {
-                    return true;
-                }
-                if (isCouch() && isRightTrayPacket(packet)) {
-                    return true;
-                }
-                clearPlantFoodMode();
-                if (packet.equals(selectedPlantName)) {
-                    clearSelection();
-                } else {
-                    selectedPlantName = packet;
-                    ZombieType zt = ZombieType.fromName(packet);
-                    if (zt != null && IZombieShop.isPurchasable(zt) && !isCouch()) {
-                        selectedZombie = zt;
-                    }
-                }
-                return true;
-            }
+            return handleConveyorTrayTouch(worldX, worldY, worldH);
+        }
+        return handleSeedTrayTouch(worldX, worldY, worldH);
+    }
 
-            if (seedTray.hitTest(hud, assets, worldX, worldY, worldH,
-                    sunAmount, rightSunAmount, worldWidth, false, conveyorAnimator, hudTopReserve) != null) {
-                return true;
+    private boolean handleConveyorTrayTouch(float worldX, float worldY, float worldH) {
+        ConveyorTrayHit hit = seedTray.hitTestConveyor(hud, assets, worldX, worldY, worldH, sunAmount,
+                true, conveyorAnimator, hudTopReserve);
+        if (!hit.isHit()) {
+            return false;
+        }
+        if (hit.isSlot()) {
+            clearPlantFoodMode();
+            int index = hit.slotIndex();
+            if (index == selectedConveyorIndex) {
+                clearSelection();
+            } else {
+                selectedConveyorIndex = index;
+                selectedPlantName = hud.traySlots.get(index).name;
             }
         }
+        return true;
+    }
 
+    private boolean handleSeedTrayTouch(float worldX, float worldY, float worldH) {
+        String packet = seedTray.hitTest(hud, assets, worldX, worldY, worldH,
+                sunAmount, rightSunAmount, worldWidth, true, conveyorAnimator, hudTopReserve);
+        if (packet != null) {
+            if (packet.isEmpty()) {
+                return true;
+            }
+            if (isCouch() && isRightTrayPacket(packet)) {
+                return true;
+            }
+            clearPlantFoodMode();
+            if (packet.equals(selectedPlantName)) {
+                clearSelection();
+            } else {
+                selectedPlantName = packet;
+                ZombieType zt = ZombieType.fromName(packet);
+                if (zt != null && IZombieShop.isPurchasable(zt) && !isCouch()) {
+                    selectedZombie = zt;
+                }
+            }
+            return true;
+        }
+        return seedTray.hitTest(hud, assets, worldX, worldY, worldH,
+                sunAmount, rightSunAmount, worldWidth, false, conveyorAnimator, hudTopReserve) != null;
+    }
+
+    private boolean handleSunCollection(float worldX, float worldY) {
         GameMechanismController game = controller.getGameMechanismController();
         float modelX = lawnLayout.modelX(worldX);
         float modelY = lawnLayout.modelY(worldY);
         float hitRadius = ReadOnlyGameState.CELL_WIDTH * 0.45f;
         CommandResult sunResult = game.collectSunAtPosition(modelX, modelY, hitRadius);
-        if (sunResult.isSuccess()) {
-            controller.handleCommandResult(sunResult);
+        if (!sunResult.isSuccess()) {
+            return false;
+        }
+        controller.handleCommandResult(sunResult);
+        return true;
+    }
+
+    private boolean handleCellTouch(float worldX, float worldY) {
+        if (!lawnLayout.worldToCell(worldX, worldY, cell)) {
+            return false;
+        }
+        int row = cell[0];
+        int col = cell[1];
+        GameMechanismController game = controller.getGameMechanismController();
+
+        if (plantFoodMode) {
+            return handlePlantFoodFeed(game, row, col);
+        }
+        if (hud.mode == HudViewState.Mode.VASE_BREAKER) {
+            if (handleVaseBreakerCell(game, row, col)) {
+                return true;
+            }
+        }
+        if (hud.trayIsConveyorRow) {
+            return handleConveyorPlacement(game, row, col);
+        }
+        return handlePlantOrZombiePlacement(game, row, col);
+    }
+
+    private boolean handlePlantFoodFeed(GameMechanismController game, int row, int col) {
+        CommandResult feedResult = game.feedPlant(row, col);
+        controller.handleCommandResult(feedResult);
+        if (feedResult != null && feedResult.isSuccess()) {
+            clearPlantFoodMode();
+        }
+        return true;
+    }
+
+    private boolean handleVaseBreakerCell(GameMechanismController game, int row, int col) {
+        ReadOnlyGameState gs = gameState();
+        if (gs != null && gs.getVaseAt(row, col) != null) {
+            CommandResult vaseResult = game.breakVase(row, col);
+            controller.handleCommandResult(vaseResult);
+            return true;
+        }
+        if (gs != null && gs.getSeedDropAt(row, col) != null) {
+            CommandResult seedResult = game.collectSeed(row, col);
+            controller.handleCommandResult(seedResult);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handleConveyorPlacement(GameMechanismController game, int row, int col) {
+        if (selectedConveyorIndex < 0) {
+            return false;
+        }
+        CommandResult result = game.placeConveyorPlant(row, col, selectedConveyorIndex);
+        controller.handleCommandResult(result);
+        if (result.isSuccess()) {
+            clearSelection();
+        }
+        return true;
+    }
+
+    private boolean handlePlantOrZombiePlacement(GameMechanismController game, int row, int col) {
+        if (selectedPlantName == null) {
+            return false;
+        }
+        ZombieType zombieType = ZombieType.fromName(selectedPlantName);
+        PlantType plantType = PlantType.fromName(selectedPlantName);
+
+        if (zombieType != null && IZombieShop.isPurchasable(zombieType)) {
+            if (isCouch()) {
+                return false;
+            }
+            if (isOnline() && localRole() != MatchRole.ZOMBIES) {
+                return false;
+            }
+            placeZombie(row, col, zombieType);
             return true;
         }
 
-        if (lawnLayout.worldToCell(worldX, worldY, cell)) {
-            int row = cell[0];
-            int col = cell[1];
-
-            if (plantFoodMode) {
-                CommandResult feedResult = game.feedPlant(row, col);
-                controller.handleCommandResult(feedResult);
-                if (feedResult != null && feedResult.isSuccess()) {
-                    clearPlantFoodMode();
-                }
-                return true;
-            }
-
-            if (hud.mode == HudViewState.Mode.VASE_BREAKER) {
-                ReadOnlyGameState gs = gameState();
-                if (gs != null && gs.getVaseAt(row, col) != null) {
-                    CommandResult vaseResult = game.breakVase(row, col);
-                    controller.handleCommandResult(vaseResult);
-                    return true;
-                }
-                if (gs != null && gs.getSeedDropAt(row, col) != null) {
-                    CommandResult seedResult = game.collectSeed(row, col);
-                    controller.handleCommandResult(seedResult);
-                    return true;
-                }
-            }
-
-            CommandResult result;
-
-            if (hud.trayIsConveyorRow) {
-                if (selectedConveyorIndex < 0) {
-                    return false;
-                }
-                result = game.placeConveyorPlant(row, col, selectedConveyorIndex);
-                controller.handleCommandResult(result);
-                if (result.isSuccess()) {
-                    clearSelection();
-                }
-                return true;
-            }
-
-            if (selectedPlantName == null) {
+        if (plantType != null) {
+            if (isOnline() && localRole() != MatchRole.PLANTS) {
                 return false;
             }
-
-            ZombieType zombieType = ZombieType.fromName(selectedPlantName);
-            PlantType plantType = PlantType.fromName(selectedPlantName);
-
-            if (zombieType != null && IZombieShop.isPurchasable(zombieType)) {
-                if (isCouch()) {
-                    return false;
-                }
-                if (isOnline() && localRole() != MatchRole.ZOMBIES) {
-                    return false;
-                }
-                placeZombie(row, col, zombieType);
-                return true;
+            CommandResult result = game.plantPlant(row, col, plantType);
+            if (isOnline() && result != null && result.isSuccess()
+                    && controller.getNetworkSession() != null) {
+                controller.getNetworkSession().socket().placePlant(plantType.name(), row, col);
             }
-
-            if (plantType != null) {
-                if (isOnline() && localRole() != MatchRole.PLANTS) {
-                    return false;
-                }
-                result = game.plantPlant(row, col, plantType);
-                if (isOnline() && result != null && result.isSuccess()
-                        && controller.getNetworkSession() != null) {
-                    controller.getNetworkSession().socket().placePlant(plantType.name(), row, col);
-                }
-                controller.handleCommandResult(result);
-                if (result != null && result.isSuccess()) {
-                    clearSelection();
-                }
-                return true;
+            controller.handleCommandResult(result);
+            if (result != null && result.isSuccess()) {
+                clearSelection();
             }
+            return true;
         }
         return false;
     }

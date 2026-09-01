@@ -7,7 +7,6 @@ import java.util.Map;
 
 import model.data.content.specialLevel.LockedPlantsConfig;
 import model.data.content.specialLevel.SpecialLevelType;
-import model.data.content.specialLevel.TimedWarConfig;
 import model.data.pool.ZombiePool;
 import model.data.wave.LevelConfig;
 import model.data.zombie.ZombieType;
@@ -100,14 +99,6 @@ public final class ChapterCatalog {
                 .zombies(zombiesFor(chapter, number))
                 .special(SpecialLevelType.PLANT_WHAT_YOU_GET)
                 .startingSun(800)
-                .build();
-    }
-
-    private static LevelConfig timedWarLevel(ChapterType chapter, int number, TimedWarConfig config) {
-        return LevelConfig.builder(chapter, number)
-                .zombies(zombiesFor(chapter, number))
-                .special(SpecialLevelType.TIMED_WAR)
-                .timedWar(config)
                 .build();
     }
 

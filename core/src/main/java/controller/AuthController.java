@@ -141,21 +141,28 @@ public class AuthController {
         SafetyQuestion userQuestion = new SafetyQuestion(selectedQuestion.type, answer);
 
         if (networkAuth != null) {
-            String netError = networkAuth.register(
-                    pendingRegistration.username,
-                    pendingRegistration.password,
-                    pendingRegistration.email,
-                    pendingRegistration.nickname,
-                    pendingRegistration.gender,
-                    userQuestion);
-            pendingRegistration = null;
-            if (netError != null) {
-                return failure(mapNetworkError(netError));
-            }
-            controllerManager.setScreen(ScreenType.LOGIN);
-            return success("Account created successfully. Please log in.");
+            return completeNetworkRegistration(userQuestion);
         }
+        return completeLocalRegistration(userQuestion);
+    }
 
+    private CommandResult completeNetworkRegistration(SafetyQuestion userQuestion) {
+        String netError = networkAuth.register(
+                pendingRegistration.username,
+                pendingRegistration.password,
+                pendingRegistration.email,
+                pendingRegistration.nickname,
+                pendingRegistration.gender,
+                userQuestion);
+        pendingRegistration = null;
+        if (netError != null) {
+            return failure(mapNetworkError(netError));
+        }
+        controllerManager.setScreen(ScreenType.LOGIN);
+        return success("Account created successfully. Please log in.");
+    }
+
+    private CommandResult completeLocalRegistration(SafetyQuestion userQuestion) {
         boolean registered = storage.register(
                 pendingRegistration.username,
                 pendingRegistration.password,

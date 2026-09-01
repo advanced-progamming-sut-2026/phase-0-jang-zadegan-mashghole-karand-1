@@ -15,6 +15,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import java.util.function.Supplier;
+
+import controller.CommandResult.CommandResult;
 import controller.ControllerManager;
 import model.service.ProfileViewState;
 import view.gdx.AssetContext;
@@ -40,83 +43,80 @@ public class ProfileOverlayScreen implements UiScreen {
     private TextButton changePasswordButton;
     private Label gamesPlayed;
     private Label levelsCompleted;
-    private Label MaxMewPionts;
+    private Label maxMewPoints;
 
     private AssetContext assets;
 
     public ProfileOverlayScreen() {
         stage = new Stage(new ScreenViewport());
-
-        Pixmap brownPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        brownPixmap.setColor(new Color(0.36f, 0.18f, 0.07f, 1f)); // dark brown
-        brownPixmap.fill();
         brownTexture = makeRoundedRect(new Color(0.36f, 0.18f, 0.07f, 1f), 512, 512, 12);
-        brownPixmap.dispose();
-
-        Pixmap panelPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        panelPixmap.setColor(new Color(0.75f, 0.55f, 0.30f, 1f)); // warm tan
-        panelPixmap.fill();
         panelTexture = makeRoundedRect(new Color(0.75f, 0.55f, 0.30f, 1f), 512, 512, 8);
-        panelPixmap.dispose();
+        stage.addActor(buildRoot());
+    }
 
+    private Table buildRoot() {
         menuName = UiWidgets.title("Profile Menu");
-
         usernameLabel = UiWidgets.body("");
+        nickNameLabel = UiWidgets.body("");
+        emailLabel = UiWidgets.body("");
+        gamesPlayed = UiWidgets.body("");
+        levelsCompleted = UiWidgets.body("");
+        maxMewPoints = UiWidgets.body("");
+
         editUsernameButton = new ImageButton(new ImageButton.ImageButtonStyle());
         TextField usernameField = UiWidgets.field("new username", false);
         TextButton saveUsername = UiWidgets.primary("Save");
-        UiWidgets.onChange(editUsernameButton, () -> {
-            boolean open = !usernameField.isVisible();
-            usernameField.setVisible(open);
-            saveUsername.setVisible(open);
-            if (open) {
-                usernameField.setText("");
-            }
-        });
-        UiWidgets.onChange(saveUsername, () -> {
-            UiWidgets.apply(controllerManager,
-                    controllerManager.getProfileController().changeUsername(UiWidgets.text(usernameField)));
-        });
+        wireEditableField(editUsernameButton, usernameField, saveUsername,
+                () -> controllerManager.getProfileController().changeUsername(UiWidgets.text(usernameField)));
 
-        nickNameLabel = UiWidgets.body("");
         editNickNameButton = new ImageButton(new ImageButton.ImageButtonStyle());
         TextField nicknameField = UiWidgets.field("new nickname", false);
         TextButton saveNick = UiWidgets.primary("save");
-        UiWidgets.onChange(editNickNameButton, () -> {
-            boolean open = !nicknameField.isVisible();
-            nicknameField.setVisible(open);
-            saveNick.setVisible(open);
-            if (open) {
-                nicknameField.setText("");
-            }
-        });
-        UiWidgets.onChange(saveNick, () -> {
-            UiWidgets.apply(controllerManager,
-                    controllerManager.getProfileController().changeNickname(UiWidgets.text(nicknameField)));
-        });
+        wireEditableField(editNickNameButton, nicknameField, saveNick,
+                () -> controllerManager.getProfileController().changeNickname(UiWidgets.text(nicknameField)));
 
-        emailLabel = UiWidgets.body("");
         editEmailButton = new ImageButton(new ImageButton.ImageButtonStyle());
         TextField emailField = UiWidgets.field("new email", false);
         TextButton saveEmail = UiWidgets.primary("save");
-        UiWidgets.onChange(editEmailButton, () -> {
-            boolean open = !emailField.isVisible();
-            emailField.setVisible(open);
-            saveEmail.setVisible(open);
-            if (open) {
-                emailField.setText("");
-            }
-        });
-        UiWidgets.onChange(saveEmail, () -> {
-            UiWidgets.apply(controllerManager,
-                    controllerManager.getProfileController().changeEmail(UiWidgets.text(emailField)));
-        });
+        wireEditableField(editEmailButton, emailField, saveEmail,
+                () -> controllerManager.getProfileController().changeEmail(UiWidgets.text(emailField)));
 
         changePasswordButton = UiWidgets.plain("Change password");
         TextField oldPassword = UiWidgets.field("enter current password", true);
         TextField newPassword = UiWidgets.field("enter new password", true);
         TextButton savePass = UiWidgets.primary("save password");
+        wirePasswordFields(oldPassword, newPassword, savePass);
 
+        Table panel = layoutProfilePanel(usernameField, saveUsername, nicknameField, saveNick,
+                emailField, saveEmail, oldPassword, newPassword, savePass);
+
+        Table brownOuter = new Table();
+        brownOuter.setBackground(new TextureRegionDrawable(new TextureRegion(brownTexture)));
+        brownOuter.setTouchable(Touchable.enabled);
+        brownOuter.pad(8f);
+        brownOuter.add(panel);
+
+        Table root = new Table();
+        root.setFillParent(true);
+        root.center();
+        root.add(brownOuter);
+        return root;
+    }
+
+    private void wireEditableField(ImageButton editButton, TextField field, TextButton saveButton,
+            Supplier<CommandResult> onSave) {
+        UiWidgets.onChange(editButton, () -> {
+            boolean open = !field.isVisible();
+            field.setVisible(open);
+            saveButton.setVisible(open);
+            if (open) {
+                field.setText("");
+            }
+        });
+        UiWidgets.onChange(saveButton, () -> UiWidgets.apply(controllerManager, onSave.get()));
+    }
+
+    private void wirePasswordFields(TextField oldPassword, TextField newPassword, TextButton savePass) {
         UiWidgets.onChange(changePasswordButton, () -> {
             boolean open = !oldPassword.isVisible();
             oldPassword.setVisible(open);
@@ -127,19 +127,14 @@ public class ProfileOverlayScreen implements UiScreen {
                 newPassword.setText("");
             }
         });
-        UiWidgets.onChange(savePass, () -> {
-            UiWidgets.apply(controllerManager,
-                    controllerManager.getProfileController()
-                            .changePassword(UiWidgets.text(oldPassword), UiWidgets.text(newPassword)));
-        });
-        gamesPlayed = UiWidgets.body("");
-        levelsCompleted = UiWidgets.body("");
-        MaxMewPionts = UiWidgets.body("");
+        UiWidgets.onChange(savePass, () -> UiWidgets.apply(controllerManager,
+                controllerManager.getProfileController()
+                        .changePassword(UiWidgets.text(oldPassword), UiWidgets.text(newPassword))));
+    }
 
-        Table panel = new Table();
-        panel.setBackground(new TextureRegionDrawable(new TextureRegion(panelTexture)));
-        panel.pad(20f);
-
+    private Table layoutProfilePanel(TextField usernameField, TextButton saveUsername,
+            TextField nicknameField, TextButton saveNick, TextField emailField, TextButton saveEmail,
+            TextField oldPassword, TextField newPassword, TextButton savePass) {
         usernameField.setVisible(false);
         saveUsername.setVisible(false);
         nicknameField.setVisible(false);
@@ -150,6 +145,9 @@ public class ProfileOverlayScreen implements UiScreen {
         newPassword.setVisible(false);
         savePass.setVisible(false);
 
+        Table panel = new Table();
+        panel.setBackground(new TextureRegionDrawable(new TextureRegion(panelTexture)));
+        panel.pad(20f);
         panel.add(menuName).colspan(2).padBottom(12f).row();
 
         panel.add(usernameLabel).left().expandX();
@@ -174,24 +172,12 @@ public class ProfileOverlayScreen implements UiScreen {
 
         panel.add(gamesPlayed).colspan(2).left().padTop(8f).row();
         panel.add(levelsCompleted).colspan(2).left().padTop(8f).row();
-        panel.add(MaxMewPionts).colspan(2).left().row();
+        panel.add(maxMewPoints).colspan(2).left().row();
 
         TextButton back = UiWidgets.plain("Back");
         UiWidgets.onChange(back, () -> UiWidgets.apply(controllerManager, controllerManager.exitMenu()));
         panel.add(back).colspan(2).width(160f).height(40f).padTop(12f);
-
-        Table brownOuter = new Table();
-        brownOuter.setBackground(new TextureRegionDrawable(new TextureRegion(brownTexture)));
-        brownOuter.setTouchable(Touchable.enabled);
-        brownOuter.pad(8f);
-        brownOuter.add(panel);
-
-        Table root = new Table();
-        root.setFillParent(true);
-        root.center();
-        root.add(brownOuter);
-
-        stage.addActor(root);
+        return panel;
     }
 
     @Override
@@ -204,7 +190,7 @@ public class ProfileOverlayScreen implements UiScreen {
         nickNameLabel.setText("Nickname: " + p.nickname);
         gamesPlayed.setText("Games played:" + p.gamesPlayed);
         levelsCompleted.setText("Levels completed: " + p.completedLevels);
-        MaxMewPionts.setText("Highest MewPoints: " + p.highestScore);//for now shows highes score
+        maxMewPoints.setText("Highest MewPoints: " + p.highestScore);//for now shows highes score
 
         String email = controllerManager.getStorage().getCurrentUser().email;
         emailLabel.setText("Email: " + email);

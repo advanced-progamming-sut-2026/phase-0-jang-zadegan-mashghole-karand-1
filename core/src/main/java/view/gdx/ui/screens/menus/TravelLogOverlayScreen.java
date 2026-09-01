@@ -73,7 +73,6 @@ public final class TravelLogOverlayScreen implements UiScreen {
 
     public TravelLogOverlayScreen() {
         stage = new Stage(new ScreenViewport());
-
         cardTexture = solid(CARD_BG);
         trackTexture = solid(TRACK);
         fillTexture = solid(FILL);
@@ -85,7 +84,13 @@ public final class TravelLogOverlayScreen implements UiScreen {
 
         root = new Table();
         root.setFillParent(true);
+        questList = new Table();
+        questList.top().left();
+        root.add(buildPanel()).width(700f).height(780f).center().top();
+        stage.addActor(root);
+    }
 
+    private Table buildPanel() {
         Table panel = new Table();
         panel.setBackground(
                 PvzSkin.get().getDrawable("image_ui_quests_panel_edge_to_edge_ten")
@@ -94,7 +99,17 @@ public final class TravelLogOverlayScreen implements UiScreen {
         Label title = UiWidgets.title("Travel Log");
         title.setAlignment(Align.center);
         panel.add(title).growX().padTop(12f).padBottom(8f).row();
+        panel.add(buildTabScroll()).width(660f).height(48f).padBottom(8f).row();
 
+        ScrollPane questScroll = scroll(questList);
+        questScroll.setScrollingDisabled(true, false);
+        questScroll.setForceScroll(true, false);
+        panel.add(questScroll).width(660f).height(500f).pad(8f).row();
+        panel.add(buildFooter()).padTop(12f).padBottom(15f).row();
+        return panel;
+    }
+
+    private ScrollPane buildTabScroll() {
         Table tabRow = new Table();
         for (String[] tab : TABS) {
             String filterKey = tab[0];
@@ -108,21 +123,14 @@ public final class TravelLogOverlayScreen implements UiScreen {
             });
             tabRow.add(btn).minWidth(88f).height(36f).padRight(4f);
         }
-
         ScrollPane tabScroll = new ScrollPane(tabRow, UiSkin.get());
         tabScroll.setFadeScrollBars(false);
         tabScroll.setScrollingDisabled(false, true);
         tabScroll.setScrollbarsVisible(true);
-        panel.add(tabScroll).width(660f).height(48f).padBottom(8f).row();
+        return tabScroll;
+    }
 
-        questList = new Table();
-        questList.top().left();
-
-        ScrollPane questScroll = scroll(questList);
-        questScroll.setScrollingDisabled(true, false);
-        questScroll.setForceScroll(true, false);
-        panel.add(questScroll).width(660f).height(500f).pad(8f).row();
-
+    private Table buildFooter() {
         TextButton minigames = UiWidgets.secondary("Minigames");
         TextButton close = UiWidgets.plain("Close");
         UiWidgets.onChange(minigames, () -> {
@@ -135,14 +143,10 @@ public final class TravelLogOverlayScreen implements UiScreen {
                 UiWidgets.apply(controller, controller.exitMenu());
             }
         });
-
         Table footer = new Table();
         footer.add(minigames).width(160f).height(40f).padRight(12f);
         footer.add(close).width(160f).height(40f);
-        panel.add(footer).padTop(12f).padBottom(15f).row();
-
-        root.add(panel).width(700f).height(780f).center().top();
-        stage.addActor(root);
+        return footer;
     }
 
     @Override

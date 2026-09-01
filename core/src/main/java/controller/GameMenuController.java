@@ -181,10 +181,17 @@ public class GameMenuController {
         gameNavigation.selectedPlants.clear();
 
         if (type == MiniGameType.I_ZOMBIE) {
-            controllerManager.openMenu(MenuType.I_ZOMBIE_MODE);
-            return success("Choose I, Zombie play mode.");
+            return openIZombieModeMenu();
         }
+        return startStandardMinigame(type, levelConfig);
+    }
 
+    private CommandResult openIZombieModeMenu() {
+        controllerManager.openMenu(MenuType.I_ZOMBIE_MODE);
+        return success("Choose I, Zombie play mode.");
+    }
+
+    private CommandResult startStandardMinigame(MiniGameType type, LevelConfig levelConfig) {
         SessionConfig probe = SessionConfig.builder()
                 .miniGame(type)
                 .levelConfig(levelConfig)

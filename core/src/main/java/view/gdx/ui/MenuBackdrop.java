@@ -20,7 +20,9 @@ public final class MenuBackdrop {
             background = null;
             return;
         }
-        if (screenType == ScreenType.MAIN || screenType == ScreenType.LOGIN || screenType == ScreenType.LEVEL_SELECTOR) {
+        if (screenType == ScreenType.MAIN
+                || screenType == ScreenType.LOGIN
+                || screenType == ScreenType.LEVEL_SELECTOR) {
 
             background = assets.region(MAIN_MENU_BACKGROUND);
         } else if (screenType == ScreenType.GREEN_HOUSE) {

@@ -12,7 +12,19 @@ public final class PlantVisualDefs {
 
     public static Map<PlantType, PlantVisualDef> create() {
         Map<PlantType, PlantVisualDef> plants = new EnumMap<>(PlantType.class);
-        //sun
+        registerSunPlants(plants);
+        registerShooterPlants(plants);
+        registerLobberPlants(plants);
+        registerDefenderPlants(plants);
+        registerHomingPlants(plants);
+        registerMeleePlants(plants);
+        registerModifierPlants(plants);
+        registerExplosivePlants(plants);
+        registerMintPlants(plants);
+        return Collections.unmodifiableMap(plants);
+    }
+
+    private static void registerSunPlants(Map<PlantType, PlantVisualDef> plants) {
         plants.put(PlantType.Sunflower, new PlantVisualDef(
                 "768/INITIAL/PLANT/SUNFLOWER/SUNFLOWER.PAM", "idle", "special","plantfood"));
         plants.put(PlantType.TwinSunflower, new PlantVisualDef(
@@ -27,8 +39,15 @@ public final class PlantVisualDefs {
         plants.put(PlantType.SunShroom, new PlantVisualDef(
                 "768/FULL/PLANT/SUNSHROOM/SUNSHROOM.PAM","idle_stage1","special_stage1","plantfood_stage1"
         ));
-//*******************************
-        //shooter
+    }
+
+    private static void registerShooterPlants(Map<PlantType, PlantVisualDef> plants) {
+        registerBasicShooterPlants(plants);
+        registerShroomShooterPlants(plants);
+        registerBowlingShooterPlants(plants);
+    }
+
+    private static void registerBasicShooterPlants(Map<PlantType, PlantVisualDef> plants) {
         plants.put(PlantType.PeaShooter, new PlantVisualDef(
                 "768/INITIAL/PLANT/PEASHOOTER/PEASHOOTER.PAM", "idle", "attack","plantfood"));
         plants.put(PlantType.Threepeater, new PlantVisualDef(
@@ -60,6 +79,12 @@ public final class PlantVisualDefs {
         plants.put(PlantType.Starfruit,new PlantVisualDef(
                 "768/INITIAL/PLANT/STARFRUIT/STARFRUIT.PAM","idle","attack","plantfood"
         ));
+        plants.put(PlantType.Citron,new PlantVisualDef(
+                "768/FULL/PLANT/CITRON/CITRON.PAM","idle","attack","plantfood"
+        ));
+    }
+
+    private static void registerShroomShooterPlants(Map<PlantType, PlantVisualDef> plants) {
         plants.put(PlantType.SeaShroom,new PlantVisualDef(
                 "768/FULL/PLANT/SEASHROOM/SEASHROOM.PAM","idle","attack","plantfood"
         ));
@@ -69,9 +94,9 @@ public final class PlantVisualDefs {
         plants.put(PlantType.PuffShroom,new PlantVisualDef(
                 "768/INITIAL/PLANT/PUFFSHROOM/PUFFSHROOM.PAM","idle_stage1","special_stage1","plantfood_stage1"
         ));
-        plants.put(PlantType.Citron,new PlantVisualDef(
-                "768/FULL/PLANT/CITRON/CITRON.PAM","idle","attack","plantfood"
-        ));
+    }
+
+    private static void registerBowlingShooterPlants(Map<PlantType, PlantVisualDef> plants) {
         plants.put(PlantType.BowlingBulb,new PlantVisualDef(
                 "768/FULL/PLANT/BOWLINGBULB/BOWLINGBULB.PAM","idle","special3",
                 "plantfood3"
@@ -85,8 +110,9 @@ public final class PlantVisualDefs {
         plants.put(PlantType.Giant_Bowling_Wall_nut, new PlantVisualDef(
                 "768/INITIAL/PLANT/WALLNUT/WALLNUT.PAM", "idle", "idle", "plantfood"
         ));
-//*************************
-        //lobber
+    }
+
+    private static void registerLobberPlants(Map<PlantType, PlantVisualDef> plants) {
         plants.put(PlantType.Kernel_pult, new PlantVisualDef(
                 "768/INITIAL/PLANT/KERNALPULT/KERNALPULT.PAM", "idle", "attack","plantfood"
         ));
@@ -102,8 +128,9 @@ public final class PlantVisualDefs {
         plants.put(PlantType.Winter_Melon, new PlantVisualDef(
                 "768/FULL/PLANT/WINTERMELON/WINTERMELON.PAM", "idle", "attack","plantfood"
         ));
-//******************************
-        //defender
+    }
+
+    private static void registerDefenderPlants(Map<PlantType, PlantVisualDef> plants) {
         plants.put(PlantType.Wall_nut, new PlantVisualDef(
                 "768/INITIAL/PLANT/WALLNUT/WALLNUT.PAM","idle","idle","plantfood"
         ));
@@ -125,12 +152,12 @@ public final class PlantVisualDefs {
         plants.put(PlantType.Sun_Bean, new PlantVisualDef(
                 "768/FULL/PLANT/SUNBEAN/SUNBEAN.PAM","idle","idle","plantfood"
         ));
-        //endurian add damage and attack damage latter if we need
         plants.put(PlantType.Endurian, new PlantVisualDef(
                 "768/FULL/PLANT/ENDURIAN/ENDURIAN.PAM","idle","attack_loop","plantfood_on"
         ));
-        //*******************
-        //homing
+    }
+
+    private static void registerHomingPlants(Map<PlantType, PlantVisualDef> plants) {
         plants.put(PlantType.Caulipower, new PlantVisualDef(
                 "768/INITIAL/PLANT/CAULIPOWER/CAULIPOWER.PAM","idle3_1","attack","plantfood"
         ));
@@ -143,30 +170,30 @@ public final class PlantVisualDefs {
         plants.put(PlantType.Cat_tail, new PlantVisualDef(
                 "768/FULL/PLANT/LIGHTNINGREED/LIGHTNINGREED.PAM","idle","attack","plantfood"
         ));
-        //******************
-        //melee
+    }
+
+    private static void registerMeleePlants(Map<PlantType, PlantVisualDef> plants) {
         plants.put(PlantType.Bonk_Choy, new PlantVisualDef(
                 "768/INITIAL/PLANT/BONKCHOY/BONKCHOY.PAM","idle","attack","plantfood"
         ));
         plants.put(PlantType.Phat_Beet, new PlantVisualDef(
                 "768/FULL/PLANT/PHATBEETS/PHATBEETS.PAM","idle","attack","plantfood"
         ));
-        //wasabi add attack stage
         plants.put(PlantType.Wasabi_Whip, new PlantVisualDef(
                 "768/INITIAL/PLANT/WASABIWHIP/WASABIWHIP.PAM",
                 "idle",
                 "attack",
                 "plantfood"
         ));
-        //chomper add special
         plants.put(PlantType.Chomper, new PlantVisualDef(
                 "768/INITIAL/PLANT/CHOMPER/CHOMPER.PAM",
                 "idle",
                 "bite",
                 "plantfood"
         ));
-        //*****************************
-        //modifier
+    }
+
+    private static void registerModifierPlants(Map<PlantType, PlantVisualDef> plants) {
         plants.put(PlantType.Torchwood, new PlantVisualDef(
                 "768/INITIAL/PLANT/TORCHWOOD/TORCHWOOD.PAM","idle","idle","plantfood"
         ));
@@ -179,8 +206,9 @@ public final class PlantVisualDefs {
         plants.put(PlantType.Lily_Pad, new PlantVisualDef(
                 "768/FULL/PLANT/LILYPAD/LILYPAD.PAM","idle","idle","plantfood"
         ));
-        //***************************
-        //explosive
+    }
+
+    private static void registerExplosivePlants(Map<PlantType, PlantVisualDef> plants) {
         plants.put(PlantType.Cherry_Bomb, new PlantVisualDef(
                 "768/FULL/PLANT/CHERRYBOMB/CHERRYBOMB.PAM","idle","attack","plantfood"
         ));
@@ -216,8 +244,9 @@ public final class PlantVisualDefs {
                 "768/FULL/PLANT/DOOMSHROOM/DOOMSHROOM.PAM","stage2_idle",
                 "stage2_explode",null
         ));
-//********************************************************
-        //mint
+    }
+
+    private static void registerMintPlants(Map<PlantType, PlantVisualDef> plants) {
         plants.put(PlantType.Appease_mint , new PlantVisualDef(
                 "768/INITIAL/EMPOWERMINTS/PLANT/APPEASEMINT/APPEASEMINT.PAM","loop",
                 null,null
@@ -254,6 +283,5 @@ public final class PlantVisualDefs {
                 "768/INITIAL/EMPOWERMINTS/PLANT/REINFORCEMINT/REINFORCEMINT.PAM","loop",
                 null,null
         ));
-        return Collections.unmodifiableMap(plants);
     }
 }

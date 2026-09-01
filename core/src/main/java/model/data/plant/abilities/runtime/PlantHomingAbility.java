@@ -54,52 +54,64 @@ public class PlantHomingAbility implements PlantAbilityConfig {
             return;
         }
 
-        Zombie target = null;
+        Zombie target = selectTarget(plant, state, aliveZombies);
+        if (target != null) {
+            fireAtTarget(plant, state, target);
+        }
+    }
+
+    private Zombie selectTarget(Plant plant, GameState state, List<Zombie> aliveZombies) {
         if (plant.upgradeState.targetPriorityBonus > 0) {
-            target = Collections.max(
+            return Collections.max(
                     aliveZombies,
                     Comparator.comparingInt(this::priority));
-
-        } else if (this.strategy == TargetStrategy.CLOSEST) {
-            target = aliveZombies.stream()
+        }
+        if (this.strategy == TargetStrategy.CLOSEST) {
+            return aliveZombies.stream()
                     .min((z1, z2) -> Float.compare(plant.getX() - z1.position.x, plant.getX() - z2.position.x))
                     .orElse(null);
-        } else if (this.strategy == TargetStrategy.RANDOM) {
-            if (plant.type == PlantType.Caulipower) {
-                List<Zombie> hypnotizable = aliveZombies.stream()
-                        .filter(z -> !z.isHypnotized && z.canBeHypnotized())
-                        .toList();
-                if (hypnotizable.isEmpty()) {
-                    return;
-                }
-                target = hypnotizable.get(new Random().nextInt(hypnotizable.size()));
-            } else {
-                List<Zombie> instakillable = aliveZombies.stream()
-                        .filter(Zombie::canBeInstakilled)
-                        .toList();
-                if (plant.type == PlantType.Electric_Blueberry && !instakillable.isEmpty()) {
-                    target = instakillable.get(new Random().nextInt(instakillable.size()));
-                    target.kill(state);
-                } else {
-                    target = aliveZombies.get(new Random().nextInt(aliveZombies.size()));
-                }
+        }
+        if (this.strategy == TargetStrategy.RANDOM) {
+            return selectRandomTarget(plant, state, aliveZombies);
+        }
+        return null;
+    }
+
+    private Zombie selectRandomTarget(Plant plant, GameState state, List<Zombie> aliveZombies) {
+        if (plant.type == PlantType.Caulipower) {
+            List<Zombie> hypnotizable = aliveZombies.stream()
+                    .filter(z -> !z.isHypnotized && z.canBeHypnotized())
+                    .toList();
+            if (hypnotizable.isEmpty()) {
+                return null;
             }
+            return hypnotizable.get(new Random().nextInt(hypnotizable.size()));
         }
-        if (target != null) {
-            Position ps = new Position(plant.getX(), plant.getY());
-            Projectile pj = new HomingProjectile(
-                    damage,
-                    ps,
-                    plant.row,
-                    plant.col,
-                    10,
-                    projectileType,
-                    ProjectileTarget.ZOMBIE,
-                    target, plant.type);
-            state.projectiles.add(pj);
-            currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
-            plant.startAttackAnim();
+        List<Zombie> instakillable = aliveZombies.stream()
+                .filter(Zombie::canBeInstakilled)
+                .toList();
+        if (plant.type == PlantType.Electric_Blueberry && !instakillable.isEmpty()) {
+            Zombie target = instakillable.get(new Random().nextInt(instakillable.size()));
+            target.kill(state);
+            return target;
         }
+        return aliveZombies.get(new Random().nextInt(aliveZombies.size()));
+    }
+
+    private void fireAtTarget(Plant plant, GameState state, Zombie target) {
+        Position ps = new Position(plant.getX(), plant.getY());
+        Projectile pj = new HomingProjectile(
+                damage,
+                ps,
+                plant.row,
+                plant.col,
+                10,
+                projectileType,
+                ProjectileTarget.ZOMBIE,
+                target, plant.type);
+        state.projectiles.add(pj);
+        currentCooldown = (int) (cooldownSeconds * GameLoop.TICKS_PER_SECOND);
+        plant.startAttackAnim();
     }
 
     private int priority(Zombie zombie) {

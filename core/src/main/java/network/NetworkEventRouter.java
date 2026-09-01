@@ -46,91 +46,111 @@ public final class NetworkEventRouter {
 
     private void handle(NetworkSession.NetworkEvent event) {
         switch (event.type) {
-            case INVITE_INCOMING -> {
-                navigator.showToast(event.a + " invited you to I, Zombie");
-                controller.openMenu(MenuType.I_ZOMBIE_INVITE);
-            }
-            case INVITE_RESULT -> {
-                String status = event.a;
-                if ("REJECTED".equals(status)) {
-                    navigator.showToast("Invite rejected");
-                    if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {
-                        controller.openMenu(MenuType.I_ZOMBIE_MODE);
-                    }
-                } else if ("TIMEOUT".equals(status) || "CANCELLED".equals(status)) {
-                    navigator.showToast("Invite " + status.toLowerCase());
-                    if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {
-                        controller.openMenu(MenuType.I_ZOMBIE_MODE);
-                    }
-                } else if ("SENT".equals(status)) {
-                    navigator.showToast("Invite delivered to " + (event.b == null ? "player" : event.b));
-                }
-            }
-            case QUEUE_STATUS -> {
-                if ("WAITING".equals(event.a)) {
-                    navigator.showToast("In matchmaking queue...");
-                } else if ("LEFT".equals(event.a)) {
-                    navigator.showToast("Left matchmaking queue");
-                }
-            }
-            case MATCH_START -> {
-                navigator.showToast("Match starting vs " + event.matchStart.opponent);
-                controller.getGameMenuController().beginOnlineMatch(event.matchStart);
-            }
+            case INVITE_INCOMING -> handleInviteIncoming(event);
+            case INVITE_RESULT -> handleInviteResult(event);
+            case QUEUE_STATUS -> handleQueueStatus(event);
+            case MATCH_START -> handleMatchStart(event);
             case MATCH_STATE -> applyMatchState(event.matchState);
-            case MATCH_END -> {
-                session.clearActiveMatch();
-                if (quickMessageHud != null) {
-                    quickMessageHud.clear();
-                }
-                if (controller.getCurrentScreen() == ScreenType.GAME) {
-                    MatchResultUi ui = onlineMatchResult(event.a, event.b, model.getPlayContext());
-                    controller.getSessionLifecycleController().showMatchResult(ui);
-                    navigator.showToast(ui.title);
-                } else {
-                    navigator.showToast(formatMatchEnd(event.a, event.b, model.getPlayContext()));
-                }
-            }
-            case MATCH_RESTART_OFFER -> {
-                navigator.showToast((event.a == null ? "Opponent" : event.a) + " wants to restart");
-                controller.openMenu(MenuType.MATCH_RESTART);
-            }
-            case MATCH_RESTART -> {
-                navigator.showToast("Match restarted");
-                if (controller.getCurrentScreen() == ScreenType.GAME) {
-                    controller.getSessionLifecycleController().restartLevel();
-                } else {
-                    controller.clearCurrentMenu();
-                }
-            }
-            case MATCH_RESTART_DECLINED -> {
-                navigator.showToast("Opponent declined restart");
-                if (controller.getCurrentMenu() == MenuType.MATCH_RESTART
-                        || controller.getCurrentMenu() == MenuType.MATCH_RESTART_WAIT) {
-                    controller.clearCurrentMenu();
-                    controller.refreshView();
-                }
-            }
+            case MATCH_END -> handleMatchEnd(event);
+            case MATCH_RESTART_OFFER -> handleMatchRestartOffer(event);
+            case MATCH_RESTART -> handleMatchRestart();
+            case MATCH_RESTART_DECLINED -> handleMatchRestartDeclined();
             case QUICK_MSG -> handleQuickMessage(event);
-            case LOOKUP_RESULT -> {
-                if (!event.flag1) {
-                    navigator.showToast("Username not found");
-                } else if (!event.flag2) {
-                    navigator.showToast("User is offline");
-                } else {
-                    navigator.showToast(event.a + " is online");
-                }
-            }
-            case ERROR -> {
-                navigator.showToast(mapError(event.a));
-                if ("USER_OFFLINE".equals(event.a) || "INVALID_USERNAME".equals(event.a)
-                        || "USER_BUSY".equals(event.a) || "UNAUTHORIZED".equals(event.a)) {
-                    if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {
-                        controller.openMenu(MenuType.I_ZOMBIE_MODE);
-                    }
-                }
-            }
+            case LOOKUP_RESULT -> handleLookupResult(event);
+            case ERROR -> handleNetworkError(event);
             default -> {
+            }
+        }
+    }
+
+    private void handleInviteIncoming(NetworkSession.NetworkEvent event) {
+        navigator.showToast(event.a + " invited you to I, Zombie");
+        controller.openMenu(MenuType.I_ZOMBIE_INVITE);
+    }
+
+    private void handleInviteResult(NetworkSession.NetworkEvent event) {
+        String status = event.a;
+        if ("REJECTED".equals(status)) {
+            navigator.showToast("Invite rejected");
+            if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {
+                controller.openMenu(MenuType.I_ZOMBIE_MODE);
+            }
+        } else if ("TIMEOUT".equals(status) || "CANCELLED".equals(status)) {
+            navigator.showToast("Invite " + status.toLowerCase());
+            if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {
+                controller.openMenu(MenuType.I_ZOMBIE_MODE);
+            }
+        } else if ("SENT".equals(status)) {
+            navigator.showToast("Invite delivered to " + (event.b == null ? "player" : event.b));
+        }
+    }
+
+    private void handleQueueStatus(NetworkSession.NetworkEvent event) {
+        if ("WAITING".equals(event.a)) {
+            navigator.showToast("In matchmaking queue...");
+        } else if ("LEFT".equals(event.a)) {
+            navigator.showToast("Left matchmaking queue");
+        }
+    }
+
+    private void handleMatchStart(NetworkSession.NetworkEvent event) {
+        navigator.showToast("Match starting vs " + event.matchStart.opponent);
+        controller.getGameMenuController().beginOnlineMatch(event.matchStart);
+    }
+
+    private void handleMatchEnd(NetworkSession.NetworkEvent event) {
+        session.clearActiveMatch();
+        if (quickMessageHud != null) {
+            quickMessageHud.clear();
+        }
+        if (controller.getCurrentScreen() == ScreenType.GAME) {
+            MatchResultUi ui = onlineMatchResult(event.a, event.b, model.getPlayContext());
+            controller.getSessionLifecycleController().showMatchResult(ui);
+            navigator.showToast(ui.title);
+        } else {
+            navigator.showToast(formatMatchEnd(event.a, event.b, model.getPlayContext()));
+        }
+    }
+
+    private void handleMatchRestartOffer(NetworkSession.NetworkEvent event) {
+        navigator.showToast((event.a == null ? "Opponent" : event.a) + " wants to restart");
+        controller.openMenu(MenuType.MATCH_RESTART);
+    }
+
+    private void handleMatchRestart() {
+        navigator.showToast("Match restarted");
+        if (controller.getCurrentScreen() == ScreenType.GAME) {
+            controller.getSessionLifecycleController().restartLevel();
+        } else {
+            controller.clearCurrentMenu();
+        }
+    }
+
+    private void handleMatchRestartDeclined() {
+        navigator.showToast("Opponent declined restart");
+        if (controller.getCurrentMenu() == MenuType.MATCH_RESTART
+                || controller.getCurrentMenu() == MenuType.MATCH_RESTART_WAIT) {
+            controller.clearCurrentMenu();
+            controller.refreshView();
+        }
+    }
+
+    private void handleLookupResult(NetworkSession.NetworkEvent event) {
+        if (!event.flag1) {
+            navigator.showToast("Username not found");
+        } else if (!event.flag2) {
+            navigator.showToast("User is offline");
+        } else {
+            navigator.showToast(event.a + " is online");
+        }
+    }
+
+    private void handleNetworkError(NetworkSession.NetworkEvent event) {
+        navigator.showToast(mapError(event.a));
+        if ("USER_OFFLINE".equals(event.a) || "INVALID_USERNAME".equals(event.a)
+                || "USER_BUSY".equals(event.a) || "UNAUTHORIZED".equals(event.a)) {
+            if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {
+                controller.openMenu(MenuType.I_ZOMBIE_MODE);
             }
         }
     }
@@ -174,6 +194,13 @@ public final class NetworkEventRouter {
         if (!gs.dualSunMode) {
             return;
         }
+        applyMatchSun(state, gs);
+        applyMatchBrains(state, gs);
+        applyMatchPlants(state, gs);
+        applyMatchZombies(state, gs);
+    }
+
+    private void applyMatchSun(MatchStatePayload state, GameState gs) {
         gs.plantSun = state.plantSun;
         gs.zombieSun = state.zombieSun;
         if (gs.networkSunAuthority) {
@@ -187,47 +214,57 @@ public final class NetworkEventRouter {
         } else {
             gs.sunAmount = gs.zombieSun;
         }
+    }
 
-        if (state.brainsCollected != null) {
-            for (int i = 0; i < Math.min(state.brainsCollected.length, gs.brains.size()); i++) {
-                if (state.brainsCollected[i]) {
-                    Brain brain = gs.getBrainAtRow(i);
-                    if (brain != null && !brain.isCollected()) {
-                        brain.collect();
-                    }
+    private void applyMatchBrains(MatchStatePayload state, GameState gs) {
+        if (state.brainsCollected == null) {
+            return;
+        }
+        for (int i = 0; i < Math.min(state.brainsCollected.length, gs.brains.size()); i++) {
+            if (state.brainsCollected[i]) {
+                Brain brain = gs.getBrainAtRow(i);
+                if (brain != null && !brain.isCollected()) {
+                    brain.collect();
                 }
             }
         }
+    }
 
-        if (state.plants != null) {
-            for (MatchStatePayload.PlacedEntity e : state.plants) {
-                if (gs.getPlantAt(e.row, e.col) == null) {
-                    PlantType type = PlantType.fromName(e.type);
-                    if (type != null) {
-                        Plant plant = new Plant(type, e.row, e.col, 1, model.getEventBus());
-                        gs.addPlant(plant);
-                    }
+    private void applyMatchPlants(MatchStatePayload state, GameState gs) {
+        if (state.plants == null) {
+            return;
+        }
+        for (MatchStatePayload.PlacedEntity e : state.plants) {
+            if (gs.getPlantAt(e.row, e.col) == null) {
+                PlantType type = PlantType.fromName(e.type);
+                if (type != null) {
+                    Plant plant = new Plant(type, e.row, e.col, 1, model.getEventBus());
+                    gs.addPlant(plant);
                 }
             }
         }
-        if (state.zombies != null) {
-            for (MatchStatePayload.PlacedEntity e : state.zombies) {
-                boolean exists = gs.zombies.stream()
-                        .anyMatch(z -> z.isAlive && z.row == e.row
-                                && Math.round(z.position.x / GameState.CELL_WIDTH) == e.col);
-                if (!exists) {
-                    ZombieType type = ZombieType.fromName(e.type);
-                    if (type != null) {
-                        Zombie zombie = new Zombie(
-                                type,
-                                e.row,
-                                e.col,
-                                new Position(
-                                        e.col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f,
-                                        e.row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),
-                                model.getEventBus());
-                        gs.addZombie(zombie);
-                    }
+    }
+
+    private void applyMatchZombies(MatchStatePayload state, GameState gs) {
+        if (state.zombies == null) {
+            return;
+        }
+        for (MatchStatePayload.PlacedEntity e : state.zombies) {
+            boolean exists = gs.zombies.stream()
+                    .anyMatch(z -> z.isAlive && z.row == e.row
+                            && Math.round(z.position.x / GameState.CELL_WIDTH) == e.col);
+            if (!exists) {
+                ZombieType type = ZombieType.fromName(e.type);
+                if (type != null) {
+                    Zombie zombie = new Zombie(
+                            type,
+                            e.row,
+                            e.col,
+                            new Position(
+                                    e.col * GameState.CELL_WIDTH + GameState.CELL_WIDTH / 2f,
+                                    e.row * GameState.CELL_HEIGHT + GameState.CELL_HEIGHT / 2f),
+                            model.getEventBus());
+                    gs.addZombie(zombie);
                 }
             }
         }

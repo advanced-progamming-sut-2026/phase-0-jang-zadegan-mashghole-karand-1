@@ -306,6 +306,10 @@ public class InputHandler {
     }
 
     private boolean dispatchGameCheatsAndStatus(String input) {
+        return dispatchGamePlantCheats(input) || dispatchGameStatusCommands(input);
+    }
+
+    private boolean dispatchGamePlantCheats(String input) {
         GameMechanismController game = controllerManager.getGameMechanismController();
         if ((matcher = Commands.PLANT_PLANT.getMatcher(input)).matches()) {
             handle(game.plantPlant(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y")),
@@ -338,6 +342,11 @@ public class InputHandler {
                     ZombieType.fromName(matcher.group("zombietype"))));
             return true;
         }
+        return false;
+    }
+
+    private boolean dispatchGameStatusCommands(String input) {
+        GameMechanismController game = controllerManager.getGameMechanismController();
         if (Commands.SHOW_MAP.getMatcher(input).matches()) {
             handle(game.showMap());
             return true;

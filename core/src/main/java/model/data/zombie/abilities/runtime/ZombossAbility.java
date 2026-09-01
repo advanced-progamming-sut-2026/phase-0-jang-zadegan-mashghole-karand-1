@@ -191,22 +191,38 @@ public class ZombossAbility implements ZombieAbilityConfig {
 
     private void tickBusy(Zombie zombie, GameState state, EventBus bus) {
         switch (busy) {
-            case DASH_FORWARD -> {
-                zombie.forceWalkAnim = true;
-                zombie.position.x -= GameState.CELL_WIDTH * 1.2f;
-                crushUnderBoss(zombie, state, bus);
-                busyTicks--;
-                if (busyTicks <= 0 || zombie.position.x <= GameState.CELL_WIDTH * 1.5f) {
-                    busy = Busy.DASH_BACK;
-                    busyTicks = DASH_TICKS;
-                }
+            case DASH_FORWARD, DASH_BACK -> tickBusyDash(zombie, state, bus);
+            case TURBINE_ON, TURBINE_LOOP, TURBINE_OFF -> tickBusyTurbine(zombie, state, bus);
+            case MISSILE_AIM, MISSILE_FIRE -> tickBusyMissile(zombie, state, bus);
+            case PORTAL_START, PORTAL_LOOP, PORTAL_END -> tickBusyPortal(zombie, state, bus);
+            case FIRE_BOMB, FIRE_BOMB_FALL, FIRE_BOMB_END -> tickBusyFireBomb(zombie, state, bus);
+            case FIRE_BREATH, FIRE_BREATH_END -> tickBusyFireBreath(zombie, state, bus);
+            case ICE_MISSILE -> tickBusyIceMissile(zombie, state, bus);
+            case ICE_WIND -> tickBusyIceWind(zombie);
+            default -> busy = Busy.NONE;
+        }
+    }
+
+    private void tickBusyDash(Zombie zombie, GameState state, EventBus bus) {
+        if (busy == Busy.DASH_FORWARD) {
+            zombie.forceWalkAnim = true;
+            zombie.position.x -= GameState.CELL_WIDTH * 1.2f;
+            crushUnderBoss(zombie, state, bus);
+            busyTicks--;
+            if (busyTicks <= 0 || zombie.position.x <= GameState.CELL_WIDTH * 1.5f) {
+                busy = Busy.DASH_BACK;
+                busyTicks = DASH_TICKS;
             }
-            case DASH_BACK -> {
-                zombie.forceWalkAnim = true;
-                zombie.position.x = homeX;
-                busy = Busy.NONE;
-                zombie.forceWalkAnim = false;
-            }
+            return;
+        }
+        zombie.forceWalkAnim = true;
+        zombie.position.x = homeX;
+        busy = Busy.NONE;
+        zombie.forceWalkAnim = false;
+    }
+
+    private void tickBusyTurbine(Zombie zombie, GameState state, EventBus bus) {
+        switch (busy) {
             case TURBINE_ON -> {
                 busyTicks--;
                 if (busyTicks <= 0) {
@@ -231,28 +247,37 @@ public class ZombossAbility implements ZombieAbilityConfig {
                     busy = Busy.NONE;
                 }
             }
-            case MISSILE_AIM -> {
-                busyTicks--;
-                if (busyTicks <= 0) {
-                    busy = Busy.MISSILE_FIRE;
-                    busyTicks = MISSILE_FIRE_TICKS;
-                    zombie.playAnim("rocket_launch", false);
-                }
+            default -> {
             }
-            case MISSILE_FIRE -> {
-                if (busyTicks == MISSILE_FALL_TICKS) {
-                    addVfx(state, EGYPT_MISSILE_PAM, "missile", pendingRow, pendingCol, MISSILE_FALL_TICKS, false);
-                }
-                busyTicks--;
-                if (busyTicks <= 0) {
-                    destroyTile(state, bus, pendingRow, pendingCol);
-                    placeGraves(state, bus, 2);
-                    addVfx(state, EGYPT_MISSILE_PAM, "missile_explosion", pendingRow, pendingCol,
-                            MISSILE_EXPLOSION_TICKS, false);
-                    zombie.clearAnim();
-                    busy = Busy.NONE;
-                }
+        }
+    }
+
+    private void tickBusyMissile(Zombie zombie, GameState state, EventBus bus) {
+        if (busy == Busy.MISSILE_AIM) {
+            busyTicks--;
+            if (busyTicks <= 0) {
+                busy = Busy.MISSILE_FIRE;
+                busyTicks = MISSILE_FIRE_TICKS;
+                zombie.playAnim("rocket_launch", false);
             }
+            return;
+        }
+        if (busyTicks == MISSILE_FALL_TICKS) {
+            addVfx(state, EGYPT_MISSILE_PAM, "missile", pendingRow, pendingCol, MISSILE_FALL_TICKS, false);
+        }
+        busyTicks--;
+        if (busyTicks <= 0) {
+            destroyTile(state, bus, pendingRow, pendingCol);
+            placeGraves(state, bus, 2);
+            addVfx(state, EGYPT_MISSILE_PAM, "missile_explosion", pendingRow, pendingCol,
+                    MISSILE_EXPLOSION_TICKS, false);
+            zombie.clearAnim();
+            busy = Busy.NONE;
+        }
+    }
+
+    private void tickBusyPortal(Zombie zombie, GameState state, EventBus bus) {
+        switch (busy) {
             case PORTAL_START -> {
                 busyTicks--;
                 if (busyTicks <= 0) {
@@ -277,6 +302,13 @@ public class ZombossAbility implements ZombieAbilityConfig {
                     busy = Busy.NONE;
                 }
             }
+            default -> {
+            }
+        }
+    }
+
+    private void tickBusyFireBomb(Zombie zombie, GameState state, EventBus bus) {
+        switch (busy) {
             case FIRE_BOMB -> {
                 busyTicks--;
                 if (busyTicks <= 0) {
@@ -305,44 +337,49 @@ public class ZombossAbility implements ZombieAbilityConfig {
                     busy = Busy.NONE;
                 }
             }
-            case FIRE_BREATH -> {
-                busyTicks--;
-                if (busyTicks <= 0) {
-                    burnRows(zombie, state, bus);
-                    busy = Busy.FIRE_BREATH_END;
-                    busyTicks = FIRE_BREATH_END_TICKS;
-                    zombie.playAnim("fire_attack_end", false);
-                }
+            default -> {
             }
-            case FIRE_BREATH_END -> {
-                busyTicks--;
-                if (busyTicks <= 0) {
-                    zombie.clearAnim();
-                    busy = Busy.NONE;
-                }
+        }
+    }
+
+    private void tickBusyFireBreath(Zombie zombie, GameState state, EventBus bus) {
+        if (busy == Busy.FIRE_BREATH) {
+            busyTicks--;
+            if (busyTicks <= 0) {
+                burnRows(zombie, state, bus);
+                busy = Busy.FIRE_BREATH_END;
+                busyTicks = FIRE_BREATH_END_TICKS;
+                zombie.playAnim("fire_attack_end", false);
             }
-            case ICE_MISSILE -> {
-                if (busyTicks == MISSILE_FALL_TICKS) {
-                    addVfx(state, ICEAGE_MISSILE_PAM, "missile", pendingRow, pendingCol, MISSILE_FALL_TICKS, false);
-                }
-                busyTicks--;
-                if (busyTicks <= 0) {
-                    destroyTile(state, bus, pendingRow, pendingCol);
-                    addVfx(state, ICEAGE_MISSILE_PAM, "missile_explosion", pendingRow, pendingCol,
-                            MISSILE_EXPLOSION_TICKS, false);
-                    zombie.clearAnim();
-                    busy = Busy.NONE;
-                }
-            }
-            case ICE_WIND -> {
-                busyTicks--;
-                if (busyTicks <= 0) {
-                    pendingShots.clear();
-                    zombie.clearAnim();
-                    busy = Busy.NONE;
-                }
-            }
-            default -> busy = Busy.NONE;
+            return;
+        }
+        busyTicks--;
+        if (busyTicks <= 0) {
+            zombie.clearAnim();
+            busy = Busy.NONE;
+        }
+    }
+
+    private void tickBusyIceMissile(Zombie zombie, GameState state, EventBus bus) {
+        if (busyTicks == MISSILE_FALL_TICKS) {
+            addVfx(state, ICEAGE_MISSILE_PAM, "missile", pendingRow, pendingCol, MISSILE_FALL_TICKS, false);
+        }
+        busyTicks--;
+        if (busyTicks <= 0) {
+            destroyTile(state, bus, pendingRow, pendingCol);
+            addVfx(state, ICEAGE_MISSILE_PAM, "missile_explosion", pendingRow, pendingCol,
+                    MISSILE_EXPLOSION_TICKS, false);
+            zombie.clearAnim();
+            busy = Busy.NONE;
+        }
+    }
+
+    private void tickBusyIceWind(Zombie zombie) {
+        busyTicks--;
+        if (busyTicks <= 0) {
+            pendingShots.clear();
+            zombie.clearAnim();
+            busy = Busy.NONE;
         }
     }
 

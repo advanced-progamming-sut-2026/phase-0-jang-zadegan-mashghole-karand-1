@@ -203,24 +203,29 @@ public class CombatSystem {
         if (p instanceof LobbedProjectile lob) {
             applyLobButter(lob, z);
         }
-        if (z.isIced())
+        if (z.isIced()) {
             z.damageIce(p.damage);
-
-        else if (p.type != ProjectileType.POISON) {
+        } else if (p.type != ProjectileType.POISON) {
             new DamageEffect(p.damage).apply(z, state, eventBus, p.sourcePlant);
         }
         if (p instanceof LobbedProjectile lob) {
             applyLobSplash(state, eventBus, freezeProjectilesEnabled, lob, z);
         }
+        removeOrContinueProjectile(projIter, p);
+        handleZombieDeathAfterHit(state, zombieIter, p, z);
+    }
+
+    private void removeOrContinueProjectile(Iterator<Projectile> projIter, Projectile p) {
         if (p instanceof PiercingProjectile piercingProjectile) {
             if (piercingProjectile.pierceCount > 0) {
                 piercingProjectile.pierceCount--;
             }
-
             if (piercingProjectile.pierceCount == 0) {
                 projIter.remove();
             }
-        } else if (p instanceof BouncingProjectile bouncing) {
+            return;
+        }
+        if (p instanceof BouncingProjectile bouncing) {
             if (bouncing.canBounce()) {
                 bouncing.incrementBounceCount();
                 boolean up = Math.random() < 0.5;
@@ -234,10 +239,12 @@ public class CombatSystem {
             } else {
                 projIter.remove();
             }
-        } else {
-            projIter.remove();
+            return;
         }
+        projIter.remove();
+    }
 
+    private void handleZombieDeathAfterHit(GameState state, Iterator<Zombie> zombieIter, Projectile p, Zombie z) {
         if (z != null && !z.isAlive) {
             z.lastHitBy = p.sourcePlant;
             z.kill(state);
@@ -316,52 +323,59 @@ public class CombatSystem {
         Iterator<Zombie> zombieIter = state.zombies.iterator();
         while (zombieIter.hasNext()) {
             Zombie z = zombieIter.next();
-            if (!z.isAlive) {
+            if (!z.isAlive || z.type.isZomboss() || z.stunned) {
                 continue;
             }
-            if (z.type.isZomboss()) {
-                continue;
-            }
-            if (z.stunned)
-                continue;
             if (z.isHypnotized) {
-                Zombie targetZombie = state.zombies.stream()
-                        .filter(zombie -> zombie.isAlive && zombie.row == z.row && zombie.position.x >= z.position.x
-                                && !zombie.isHypnotized
-                                && Math.abs(zombie.position.x - z.position.x) < ReadOnlyGameState.ZOMBIE_ATTACK_RANGE)
-                        .min(Comparator.comparingDouble(zombie -> zombie.position.x - z.position.x)).orElse(null);
-                if (targetZombie == null)
-                    continue;
-                targetZombie.takeDamage((int) (z.getDPS() / 10));
-                z.isEating = true;
-                if (!targetZombie.isAlive) {
-                    targetZombie.kill(state);
-                }
+                attackHypnotizedTarget(state, z);
                 continue;
             }
-            Plant targetPlant = findPlantAt(state, z.row, z.position.x);
-            if (targetPlant != null) {
-                if (z.type == ZombieType.WIZARD_ZOMBIE) {
-                    targetPlant.applyStun(new CatStun(z)); // wizard don't eat plants
-                    continue;
-                }
-                if (!targetPlant.canBeEaten() || !targetPlant.canBeDamaged()) {
-                    continue;
-                }
-                targetPlant.hp -= (int) z.getDPS() / 10;
-                for (PlantAbilityConfig a : targetPlant.abilities) {
-                    if (a instanceof PlantDefenderAbility def) {
-                        def.onDamaged(targetPlant, z, state, eventBus);
-                    }
-                }
-                z.isEating = true;
-                if (targetPlant.hp <= 0) {
-                    targetPlant.kill(state, eventBus, z);
-                    z.isEating = false;
-                }
+            if (attackPlantTarget(state, eventBus, z)) {
                 break;
             }
         }
+    }
+
+    private void attackHypnotizedTarget(GameState state, Zombie z) {
+        Zombie targetZombie = state.zombies.stream()
+                .filter(zombie -> zombie.isAlive && zombie.row == z.row && zombie.position.x >= z.position.x
+                        && !zombie.isHypnotized
+                        && Math.abs(zombie.position.x - z.position.x) < ReadOnlyGameState.ZOMBIE_ATTACK_RANGE)
+                .min(Comparator.comparingDouble(zombie -> zombie.position.x - z.position.x)).orElse(null);
+        if (targetZombie == null) {
+            return;
+        }
+        targetZombie.takeDamage((int) (z.getDPS() / 10));
+        z.isEating = true;
+        if (!targetZombie.isAlive) {
+            targetZombie.kill(state);
+        }
+    }
+
+    private boolean attackPlantTarget(GameState state, EventBus eventBus, Zombie z) {
+        Plant targetPlant = findPlantAt(state, z.row, z.position.x);
+        if (targetPlant == null) {
+            return false;
+        }
+        if (z.type == ZombieType.WIZARD_ZOMBIE) {
+            targetPlant.applyStun(new CatStun(z));
+            return false;
+        }
+        if (!targetPlant.canBeEaten() || !targetPlant.canBeDamaged()) {
+            return false;
+        }
+        targetPlant.hp -= (int) z.getDPS() / 10;
+        for (PlantAbilityConfig a : targetPlant.abilities) {
+            if (a instanceof PlantDefenderAbility def) {
+                def.onDamaged(targetPlant, z, state, eventBus);
+            }
+        }
+        z.isEating = true;
+        if (targetPlant.hp <= 0) {
+            targetPlant.kill(state, eventBus, z);
+            z.isEating = false;
+        }
+        return true;
     }
 
     private Plant findPlantAt(GameState state, int row, float x) {

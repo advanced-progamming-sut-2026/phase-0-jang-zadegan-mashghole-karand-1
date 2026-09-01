@@ -40,35 +40,54 @@ public final class LawnGridDebugOverlay implements Disposable {
             return;
         }
 
-        if (!loggedLayout) {
-            loggedLayout = true;
-            Gdx.app.log("LawnGridDebug", String.format(
-                    "origin=(%.1f,%.1f) scale=(%.3f,%.3f) cell=(%.1f x %.1f) atlasInsets LRTB=(%.0f,%.0f,%.0f,%.0f)",
-                    layout.originX, layout.originY, layout.scaleX, layout.scaleY,
-                    layout.cellWidth(), layout.cellHeight(),
-                    layout.atlasInsetLeft, layout.atlasInsetRight,
-                    layout.atlasInsetTop, layout.atlasInsetBottom));
-            if (background != null && background.ready()) {
-                Gdx.app.log("LawnGridDebug", String.format(
-                        "bg leftW=%.1f centerW=%.1f rightW=%.1f stripH=%.1f",
-                        background.leftW(), background.centerW(), background.rightW(), background.stripH()));
-            }
-        }
+        maybeLogLayout(layout, background);
+        drawShapes(camera, layout, background);
+        drawLabels(camera, batch, layout);
+    }
 
+    private void maybeLogLayout(LawnLayout layout, LawnBackgroundRenderer background) {
+        if (loggedLayout) {
+            return;
+        }
+        loggedLayout = true;
+        Gdx.app.log("LawnGridDebug", String.format(
+                "origin=(%.1f,%.1f) scale=(%.3f,%.3f) cell=(%.1f x %.1f) atlasInsets LRTB=(%.0f,%.0f,%.0f,%.0f)",
+                layout.originX, layout.originY, layout.scaleX, layout.scaleY,
+                layout.cellWidth(), layout.cellHeight(),
+                layout.atlasInsetLeft, layout.atlasInsetRight,
+                layout.atlasInsetTop, layout.atlasInsetBottom));
+        if (background != null && background.ready()) {
+            Gdx.app.log("LawnGridDebug", String.format(
+                    "bg leftW=%.1f centerW=%.1f rightW=%.1f stripH=%.1f",
+                    background.leftW(), background.centerW(), background.rightW(), background.stripH()));
+        }
+    }
+
+    private void drawShapes(OrthographicCamera camera, LawnLayout layout,
+            LawnBackgroundRenderer background) {
         shapes.setProjectionMatrix(camera.combined);
         shapes.begin(ShapeRenderer.ShapeType.Line);
+        drawBackgroundStrips(background);
+        drawGridCells(layout);
+        drawCenterDots(layout);
+        shapes.end();
+    }
 
-        if (background != null && background.ready()) {
-            shapes.setColor(STRIP);
-            float x = background.drawX();
-            float y = background.drawY();
-            shapes.rect(x, y, background.leftW(), background.stripH());
-            x += background.leftW();
-            shapes.rect(x, y, background.centerW(), background.stripH());
-            x += background.centerW();
-            shapes.rect(x, y, background.rightW(), background.stripH());
+    private void drawBackgroundStrips(LawnBackgroundRenderer background) {
+        if (background == null || !background.ready()) {
+            return;
         }
+        shapes.setColor(STRIP);
+        float x = background.drawX();
+        float y = background.drawY();
+        shapes.rect(x, y, background.leftW(), background.stripH());
+        x += background.leftW();
+        shapes.rect(x, y, background.centerW(), background.stripH());
+        x += background.centerW();
+        shapes.rect(x, y, background.rightW(), background.stripH());
+    }
 
+    private void drawGridCells(LawnLayout layout) {
         float cw = layout.cellWidth();
         float ch = layout.cellHeight();
         shapes.setColor(GRID);
@@ -79,7 +98,9 @@ public final class LawnGridDebugOverlay implements Disposable {
                 shapes.rect(left, bottom, cw, ch);
             }
         }
+    }
 
+    private void drawCenterDots(LawnLayout layout) {
         shapes.setColor(CENTER_DOT);
         for (int row = 0; row < ReadOnlyGameState.GRID_ROWS; row++) {
             for (int col = 0; col < ReadOnlyGameState.GRID_COLS; col++) {
@@ -89,8 +110,9 @@ public final class LawnGridDebugOverlay implements Disposable {
                 shapes.line(cx, cy - 4f, cx, cy + 4f);
             }
         }
-        shapes.end();
+    }
 
+    private void drawLabels(OrthographicCamera camera, SpriteBatch batch, LawnLayout layout) {
         ensureFont();
         if (font == null || batch == null) {
             return;

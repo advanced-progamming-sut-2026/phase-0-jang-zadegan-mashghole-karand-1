@@ -9,7 +9,6 @@ import shared.dto.LoginRequest;
 import shared.dto.LoginResponse;
 import shared.dto.RegisterRequest;
 import shared.dto.ResetPasswordRequest;
-import shared.protocol.Protocol;
 
 public final class AuthRoutes {
     private final AuthService auth;
@@ -20,7 +19,12 @@ public final class AuthRoutes {
 
     public void register(Javalin app) {
         app.get("/health", ctx -> ctx.json(java.util.Map.of("ok", true, "service", "pvz-server")));
+        registerAuthRoutes(app);
+        registerProfileRoutes(app);
+        registerCatalogRoutes(app);
+    }
 
+    private void registerAuthRoutes(Javalin app) {
         app.post("/api/auth/register", ctx -> {
             RegisterRequest req = ctx.bodyAsClass(RegisterRequest.class);
             Object result = auth.register(req);
@@ -64,7 +68,9 @@ public final class AuthRoutes {
             auth.logout(token);
             ctx.json(java.util.Map.of("ok", true));
         });
+    }
 
+    private void registerProfileRoutes(Javalin app) {
         app.put("/api/profile", ctx -> {
             String token = bearer(ctx);
             var username = auth.usernameForToken(token);
@@ -76,7 +82,9 @@ public final class AuthRoutes {
             auth.saveProfile(username.get(), body);
             ctx.json(java.util.Map.of("ok", true));
         });
+    }
 
+    private void registerCatalogRoutes(Javalin app) {
         app.get("/api/messages/catalog", ctx -> {
             ctx.json(java.util.Map.of("ok", true, "messages", shared.message.QuickMessageId.catalog()));
         });

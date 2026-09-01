@@ -14,7 +14,7 @@
     </properties>
 
     <build>
-        <sourceDirectory>../src</sourceDirectory>
+        <sourceDirectory>src/nonexistent</sourceDirectory>
         <plugins>
 
             <!-- Checkstyle -->
@@ -27,6 +27,11 @@
                     <configLocation>
                         config/checkstyle/checkstyle.xml
                     </configLocation>
+                    <sourceDirectories>
+                        <sourceDirectory>../core/src/main/java</sourceDirectory>
+                        <sourceDirectory>../shared/src/main/java</sourceDirectory>
+                        <sourceDirectory>../server/src/main/java</sourceDirectory>
+                    </sourceDirectories>
                     <failOnViolation>true</failOnViolation>
                 </configuration>
 
@@ -52,6 +57,11 @@
                             config/pmd/pmd.xml
                         </ruleset>
                     </rulesets>
+                    <sourceDirectories>
+                        <sourceDirectory>../core/src/main/java</sourceDirectory>
+                        <sourceDirectory>../shared/src/main/java</sourceDirectory>
+                        <sourceDirectory>../server/src/main/java</sourceDirectory>
+                    </sourceDirectories>
                     <failOnViolation>true</failOnViolation>
                 </configuration>
 

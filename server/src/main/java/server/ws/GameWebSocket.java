@@ -47,14 +47,7 @@ public final class GameWebSocket {
     private void handle(WsContext ctx, String raw) {
         Protocol.ParsedMessage msg = Protocol.parse(raw);
         if (msg.type == WsMessageType.AUTH) {
-            String token = msg.getString("token");
-            var username = auth.usernameForToken(token);
-            if (username.isEmpty()) {
-                ctx.send(Protocol.envelope(WsMessageType.AUTH_FAIL, Map.of("error", "UNAUTHORIZED")));
-                return;
-            }
-            presence.connect(username.get(), ctx);
-            ctx.send(Protocol.envelope(WsMessageType.AUTH_OK, Map.of("username", username.get())));
+            handleAuth(ctx, msg);
             return;
         }
 
@@ -63,7 +56,21 @@ public final class GameWebSocket {
             ctx.send(Protocol.envelope(WsMessageType.ERROR, Map.of("error", "UNAUTHORIZED")));
             return;
         }
+        handleAuthenticated(ctx, user, msg);
+    }
 
+    private void handleAuth(WsContext ctx, Protocol.ParsedMessage msg) {
+        String token = msg.getString("token");
+        var username = auth.usernameForToken(token);
+        if (username.isEmpty()) {
+            ctx.send(Protocol.envelope(WsMessageType.AUTH_FAIL, Map.of("error", "UNAUTHORIZED")));
+            return;
+        }
+        presence.connect(username.get(), ctx);
+        ctx.send(Protocol.envelope(WsMessageType.AUTH_OK, Map.of("username", username.get())));
+    }
+
+    private void handleAuthenticated(WsContext ctx, String user, Protocol.ParsedMessage msg) {
         switch (msg.type) {
             case PING -> ctx.send(Protocol.envelope(WsMessageType.PONG, Map.of()));
             case QUEUE_JOIN -> matchmaking.joinQueue(user);
@@ -71,15 +78,7 @@ public final class GameWebSocket {
             case INVITE -> matchmaking.invite(user, msg.getString("username"));
             case INVITE_ACCEPT -> matchmaking.acceptInvite(user);
             case INVITE_REJECT -> matchmaking.rejectInvite(user);
-            case LOOKUP_USER -> {
-                String target = msg.getString("username");
-                boolean exists = presence.userExists(target);
-                boolean online = exists && presence.isOnline(target);
-                ctx.send(Protocol.envelope(WsMessageType.LOOKUP_RESULT, Map.of(
-                        "username", target == null ? "" : target,
-                        "exists", exists,
-                        "online", online)));
-            }
+            case LOOKUP_USER -> handleLookupUser(ctx, msg);
             case PLACE_PLANT -> {
                 PlaceIntent intent = msg.as(PlaceIntent.class);
                 matchmaking.roomForUser(user).ifPresent(r -> r.placePlant(user, intent));
@@ -106,5 +105,15 @@ public final class GameWebSocket {
                     .ifPresent(r -> r.cancelRestart(user));
             default -> ctx.send(Protocol.envelope(WsMessageType.ERROR, Map.of("error", "UNKNOWN_TYPE")));
         }
+    }
+
+    private void handleLookupUser(WsContext ctx, Protocol.ParsedMessage msg) {
+        String target = msg.getString("username");
+        boolean exists = presence.userExists(target);
+        boolean online = exists && presence.isOnline(target);
+        ctx.send(Protocol.envelope(WsMessageType.LOOKUP_RESULT, Map.of(
+                "username", target == null ? "" : target,
+                "exists", exists,
+                "online", online)));
     }
 }

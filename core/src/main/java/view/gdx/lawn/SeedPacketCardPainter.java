@@ -55,34 +55,55 @@ public final class SeedPacketCardPainter {
         }
         ensureFonts();
 
-        TextureRegion empty = assets.region(SeedPacketDefs.EMPTY);
+        if (card.isEmpty()) {
+            drawEmptyPacket(batch, assets, x, y, packetW, packetH);
+            return;
+        }
+
+        TextureRegion boostFrame = resolveBoostFrame(assets);
+        if (card.boosted && boostFrame != null) {
+            drawBoostedPacket(batch, assets, card, x, y, packetW, packetH, boostFrame);
+            return;
+        }
+
+        drawNormalPacket(batch, assets, card, chapter, x, y, packetW, packetH);
+    }
+
+    private static TextureRegion resolveBoostFrame(AssetContext assets) {
         TextureRegion boostFrame = assets.region(BOOST_FRAME);
         if (boostFrame == null) {
             boostFrame = assets.region(BOOST_FRAME_FALLBACK);
         }
-        if (card.isEmpty()) {
-            if (empty != null) {
-                batch.setColor(Color.WHITE);
-                batch.draw(empty, x, y, packetW, packetH);
-            }
-            batch.setColor(Color.WHITE);
-            return;
-        }
+        return boostFrame;
+    }
 
-        if (card.boosted && boostFrame != null) {
+    private void drawEmptyPacket(SpriteBatch batch, AssetContext assets,
+            float x, float y, float packetW, float packetH) {
+        TextureRegion empty = assets.region(SeedPacketDefs.EMPTY);
+        if (empty != null) {
             batch.setColor(Color.WHITE);
-            batch.draw(boostFrame, x, y, packetW, packetH);
-            String packetId = SeedPacketDefs.packetId(card.plantName);
-            TextureRegion plant = assets.region(packetId);
-            if (plant != null) {
-                Color plantTint = card.locked ? new Color(0.65f, 0.65f, 0.65f, 1f) : Color.WHITE;
-                drawPlantIcon(batch, plant, x, y, packetW, packetH, plantTint);
-            }
-            drawDecorations(batch, assets, card, x, y, packetW, packetH);
-            batch.setColor(Color.WHITE);
-            return;
+            batch.draw(empty, x, y, packetW, packetH);
         }
+        batch.setColor(Color.WHITE);
+    }
 
+    private void drawBoostedPacket(SpriteBatch batch, AssetContext assets, SeedPacketCardView card,
+            float x, float y, float packetW, float packetH, TextureRegion boostFrame) {
+        batch.setColor(Color.WHITE);
+        batch.draw(boostFrame, x, y, packetW, packetH);
+        String packetId = SeedPacketDefs.packetId(card.plantName);
+        TextureRegion plant = assets.region(packetId);
+        if (plant != null) {
+            Color plantTint = card.locked ? new Color(0.65f, 0.65f, 0.65f, 1f) : Color.WHITE;
+            drawPlantIcon(batch, plant, x, y, packetW, packetH, plantTint);
+        }
+        drawDecorations(batch, assets, card, x, y, packetW, packetH);
+        batch.setColor(Color.WHITE);
+    }
+
+    private void drawNormalPacket(SpriteBatch batch, AssetContext assets, SeedPacketCardView card,
+            ChapterType chapter, float x, float y, float packetW, float packetH) {
+        TextureRegion empty = assets.region(SeedPacketDefs.EMPTY);
         TextureRegion back = assets.region(SeedPacketDefs.worldBack(chapter));
         TextureRegion frame = back != null ? back : empty;
 
@@ -152,11 +173,35 @@ public final class SeedPacketCardPainter {
         }
         ensureFonts();
 
-        if (!card.ready && card.cooldownFraction > 0f) {
-            TextureRegion cooldown = assets.region(SeedPacketDefs.COOLDOWN);
-            drawCooldownWipe(batch, cooldown, x, y, packetW, packetH, card.cooldownFraction);
+        drawCooldownDecoration(batch, assets, card, x, y, packetW, packetH);
+        drawSelectionDecoration(batch, assets, card, x, y, packetW, packetH);
+        drawLockDecoration(batch, assets, card, x, y, packetW, packetH);
+        drawLevel(batch, card.level, x, y, packetW, packetH);
+
+        if (card.stackCount > 1) {
+            drawStackCount(batch, card.stackCount, x, y, packetW, packetH);
         }
 
+        if (card.showCost) {
+            TextureRegion priceTab = assets.region(SeedPacketDefs.PRICE_TAB);
+            boolean usable = card.ready && card.affordable;
+            drawCost(batch, priceTab, card.cost, x, y, packetW, usable);
+        }
+
+        drawReadyBarDecoration(batch, assets, card, x, y, packetW, packetH);
+    }
+
+    private void drawCooldownDecoration(SpriteBatch batch, AssetContext assets, SeedPacketCardView card,
+            float x, float y, float packetW, float packetH) {
+        if (card.ready || card.cooldownFraction <= 0f) {
+            return;
+        }
+        TextureRegion cooldown = assets.region(SeedPacketDefs.COOLDOWN);
+        drawCooldownWipe(batch, cooldown, x, y, packetW, packetH, card.cooldownFraction);
+    }
+
+    private void drawSelectionDecoration(SpriteBatch batch, AssetContext assets, SeedPacketCardView card,
+            float x, float y, float packetW, float packetH) {
         if (card.selected) {
             TextureRegion selectFx = assets.region(SeedPacketDefs.SELECT);
             if (selectFx != null) {
@@ -171,38 +216,33 @@ public final class SeedPacketCardPainter {
                 batch.setColor(Color.WHITE);
             }
         }
+    }
 
-        if (card.locked) {
-            TextureRegion lock = assets.region(LOCK_ICON);
-            if (lock != null) {
-                float lockW = packetW * 0.45f;
-                float lockH = packetH * 0.45f;
-                batch.setColor(Color.WHITE);
-                batch.draw(lock, x + (packetW - lockW) * 0.5f, y + (packetH - lockH) * 0.35f, lockW, lockH);
-            }
+    private void drawLockDecoration(SpriteBatch batch, AssetContext assets, SeedPacketCardView card,
+            float x, float y, float packetW, float packetH) {
+        if (!card.locked) {
+            return;
         }
-
-        drawLevel(batch, card.level, x, y, packetW, packetH);
-
-        if (card.stackCount > 1) {
-            drawStackCount(batch, card.stackCount, x, y, packetW, packetH);
+        TextureRegion lock = assets.region(LOCK_ICON);
+        if (lock != null) {
+            float lockW = packetW * 0.45f;
+            float lockH = packetH * 0.45f;
+            batch.setColor(Color.WHITE);
+            batch.draw(lock, x + (packetW - lockW) * 0.5f, y + (packetH - lockH) * 0.35f, lockW, lockH);
         }
+    }
 
-        if (card.showCost) {
-            TextureRegion priceTab = assets.region(SeedPacketDefs.PRICE_TAB);
-            boolean usable = card.ready && card.affordable;
-            drawCost(batch, priceTab, card.cost, x, y, packetW, usable);
+    private void drawReadyBarDecoration(SpriteBatch batch, AssetContext assets, SeedPacketCardView card,
+            float x, float y, float packetW, float packetH) {
+        if (!card.showReadyBar || card.boosted) {
+            return;
         }
-
-        if (card.showReadyBar && !card.boosted) {
-            TextureRegion readyBar = assets.region(SeedPacketDefs.READY);
-            if (readyBar != null) {
-                float barH = packetH * 0.14f;
-                batch.setColor(Color.WHITE);
-                batch.draw(readyBar, x, y + packetH - barH, packetW, barH);
-            }
+        TextureRegion readyBar = assets.region(SeedPacketDefs.READY);
+        if (readyBar != null) {
+            float barH = packetH * 0.14f;
+            batch.setColor(Color.WHITE);
+            batch.draw(readyBar, x, y + packetH - barH, packetW, barH);
         }
-
     }
 
     public static float aspectOf(TextureRegion region, float fallback) {
@@ -322,51 +362,56 @@ public final class SeedPacketCardPainter {
             return;
         }
         Skin skin = UiSkin.get();
-        if (skin != null) {
-            if (costFont == null && skin.has("medium", Label.LabelStyle.class)) {
-                Label.LabelStyle style = skin.get("medium", Label.LabelStyle.class);
-                if (style != null && style.font != null) {
-                    costFont = style.font;
-                    prepareFont(costFont);
-                }
-            }
-            if (levelFont == null && skin.has("default", Label.LabelStyle.class)) {
-                Label.LabelStyle style = skin.get("default", Label.LabelStyle.class);
-                if (style != null && style.font != null) {
-                    levelFont = style.font;
-                    prepareFont(levelFont);
-                }
-            }
-            if (costFont == null && skin.has("default", Label.LabelStyle.class)) {
-                Label.LabelStyle style = skin.get("default", Label.LabelStyle.class);
-                if (style != null && style.font != null) {
-                    costFont = style.font;
-                    prepareFont(costFont);
-                }
-            }
-            if (costFont == null && skin.has("default-font", BitmapFont.class)) {
-                costFont = skin.getFont("default-font");
-                prepareFont(costFont);
-            }
-            if (levelFont == null) {
-                levelFont = costFont;
-            }
-            if (costFont != null) {
-                return;
-            }
-            try {
-                costFont = skin.get(BitmapFont.class);
-                prepareFont(costFont);
-                if (levelFont == null) {
-                    levelFont = costFont;
-                }
-                return;
-            } catch (RuntimeException ignored) {
-            }
+        if (skin != null && loadFontsFromSkin(skin)) {
+            return;
         }
         costFont = new BitmapFont();
         prepareFont(costFont);
         levelFont = costFont;
+    }
+
+    private boolean loadFontsFromSkin(Skin skin) {
+        if (costFont == null && skin.has("medium", Label.LabelStyle.class)) {
+            Label.LabelStyle style = skin.get("medium", Label.LabelStyle.class);
+            if (style != null && style.font != null) {
+                costFont = style.font;
+                prepareFont(costFont);
+            }
+        }
+        if (levelFont == null && skin.has("default", Label.LabelStyle.class)) {
+            Label.LabelStyle style = skin.get("default", Label.LabelStyle.class);
+            if (style != null && style.font != null) {
+                levelFont = style.font;
+                prepareFont(levelFont);
+            }
+        }
+        if (costFont == null && skin.has("default", Label.LabelStyle.class)) {
+            Label.LabelStyle style = skin.get("default", Label.LabelStyle.class);
+            if (style != null && style.font != null) {
+                costFont = style.font;
+                prepareFont(costFont);
+            }
+        }
+        if (costFont == null && skin.has("default-font", BitmapFont.class)) {
+            costFont = skin.getFont("default-font");
+            prepareFont(costFont);
+        }
+        if (levelFont == null) {
+            levelFont = costFont;
+        }
+        if (costFont != null) {
+            return true;
+        }
+        try {
+            costFont = skin.get(BitmapFont.class);
+            prepareFont(costFont);
+            if (levelFont == null) {
+                levelFont = costFont;
+            }
+            return true;
+        } catch (RuntimeException ignored) {
+            return false;
+        }
     }
 
     private static void prepareFont(BitmapFont font) {

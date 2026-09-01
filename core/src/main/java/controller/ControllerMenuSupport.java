@@ -246,15 +246,6 @@ final class ControllerMenuSupport {
         return new CommandResult("Returned to chapter selection.", true);
     }
 
-    private CommandResult exitShopMenu(ControllerManager manager) {
-        ShopController shopController = manager.getShopController();
-        if (shopController != null) {
-            shopController.setShopDisplayMode(ShopController.ShopDisplayMode.MENU);
-        }
-        manager.setScreen(ScreenType.GREEN_HOUSE);
-        return new CommandResult("Returned to greenhouse.", true);
-    }
-
     private CommandResult exitToLevelSelector(ControllerManager manager, String message) {
         manager.getGameNavigation().phase = Phase.CHAPTER;
         manager.setScreen(ScreenType.LEVEL_SELECTOR);

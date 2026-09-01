@@ -9,19 +9,27 @@ public class SettingsViewState {
     public final int maxDifficulty;
 
     public final int gameSpeed;
-    public final int MIN_GAME_SPEED;
-    public final int MAX_GAME_SPEED;
+    public final int minGameSpeed;
+    public final int maxGameSpeed;
 
     public final boolean debugMode;
     public final boolean showGroundWebbing;
 
-    public SettingsViewState(int difficultyLevel, int minDifficulty, int maxDifficulty, int gameSpeed, int minGameSpeed, int maxGameSpeed, boolean debugMode, boolean showGroundWebbing) {
+    public SettingsViewState(
+            int difficultyLevel,
+            int minDifficulty,
+            int maxDifficulty,
+            int gameSpeed,
+            int minGameSpeed,
+            int maxGameSpeed,
+            boolean debugMode,
+            boolean showGroundWebbing) {
         this.difficultyLevel = difficultyLevel;
         this.minDifficulty = minDifficulty;
         this.maxDifficulty = maxDifficulty;
         this.gameSpeed = gameSpeed;
-        MIN_GAME_SPEED = minGameSpeed;
-        MAX_GAME_SPEED = maxGameSpeed;
+        this.minGameSpeed = minGameSpeed;
+        this.maxGameSpeed = maxGameSpeed;
         this.debugMode = debugMode;
         this.showGroundWebbing = showGroundWebbing;
     }
@@ -35,8 +43,8 @@ public class SettingsViewState {
                 GameSetting.MIN_DIFFICULTY,
                 GameSetting.MAX_DIFFICULTY,
                 user.preferredSetting.getGameSpeed(),
-                empty().MIN_GAME_SPEED,
-                empty().MAX_GAME_SPEED,
+                empty().minGameSpeed,
+                empty().maxGameSpeed,
                 user.preferredSetting.isDebugMode(),
                 user.preferredSetting.isShowGroundWebbing());
     }
@@ -48,7 +56,8 @@ public class SettingsViewState {
                 GameSetting.MAX_DIFFICULTY,
                 GameSetting.DEFAULT_GAME_SPEED,
                 GameSetting.MIN_GAME_SPEED,
-                GameSetting.MAX_GAME_SPEED,false,
-                false );
+                GameSetting.MAX_GAME_SPEED,
+                false,
+                false);
     }
 }

@@ -56,7 +56,32 @@ public class PauseOverlayScreen implements UiScreen{
         topper.addActor(zombossTopper);
         topper.setTouchable(Touchable.disabled);
 
+        stage.addActor(buildRoot());
+    }
+
+    private Table buildRoot() {
         Label title = UiWidgets.title("GAME PAUSED");
+        Table buttons = buildPauseButtons();
+        Table panel = buildPausePanel(title, buttons);
+        Table brownOuter = buildBrownOuter(panel);
+        Table panelLayer = new Table();
+        panelLayer.add(brownOuter).padTop(70f);
+        Table topperLayer = new Table();
+        topperLayer.top();
+        topperLayer.add(topper);
+        Stack stack = new Stack();
+        stack.add(panelLayer);
+        stack.add(topperLayer);
+        Table root = new Table();
+        root.setFillParent(true);
+        root.setBackground(new TextureRegionDrawable(new TextureRegion(dimTexture)));
+        root.setTouchable(Touchable.enabled);
+        root.center();
+        root.add(stack);
+        return root;
+    }
+
+    private Table buildPauseButtons() {
         TextButton exit = UiWidgets.secondary("Exit level");
         TextButton restart = UiWidgets.secondary("Restart level");
         TextButton resume = UiWidgets.primary("Resume");
@@ -76,7 +101,7 @@ public class PauseOverlayScreen implements UiScreen{
                     controller.getSessionLifecycleController().restartLevel());
         });
 
-        UiWidgets.onChange(resume, () -> UiWidgets.apply(controller, 
+        UiWidgets.onChange(resume, () -> UiWidgets.apply(controller,
             controller.exitMenu()
         ));
 
@@ -84,36 +109,25 @@ public class PauseOverlayScreen implements UiScreen{
         buttons.add(exit).width(160f).height(44f).padRight(8f);
         buttons.add(restart).width(140f).height(44f).padRight(8f);
         buttons.add(resume).width(140f).height(44f);
+        return buttons;
+    }
 
+    private Table buildPausePanel(Label title, Table buttons) {
         Table panel = new Table();
         panel.setBackground(new TextureRegionDrawable(new TextureRegion(panelTexture)));
         panel.pad(24f,28f,24f,28f);
         panel.add(title).padBottom(16f).row();
         panel.add(buttons);
+        return panel;
+    }
 
+    private Table buildBrownOuter(Table panel) {
         Table brownOuter = new Table();
         brownOuter.setBackground(new TextureRegionDrawable(new TextureRegion(brownTexture)));
         brownOuter.setTouchable(Touchable.enabled);
         brownOuter.pad(10f);
         brownOuter.add(panel);
-        Table panelLayer = new Table();
-        panelLayer.add(brownOuter).padTop(70f);
-
-        Table topperLayer = new Table();
-        topperLayer.top();
-        topperLayer.add(topper);
-
-        Stack stack = new Stack();
-        stack.add(panelLayer);   // behind
-        stack.add(topperLayer);  // on top of the wood
-
-        Table root = new Table();
-        root.setFillParent(true);
-        root.setBackground(new TextureRegionDrawable(new TextureRegion(dimTexture)));
-        root.setTouchable(Touchable.enabled);
-        root.center();
-        root.add(stack);
-        stage.addActor(root);
+        return brownOuter;
     }
 
         @Override
