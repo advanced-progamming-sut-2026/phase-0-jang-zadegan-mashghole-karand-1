@@ -1,8 +1,16 @@
 package controller;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 import controller.CommandResult.CommandResult;
 import model.service.LeaderboardViewState;
 import model.storage.StorageManager;
+import model.storage.user.User;
+import network.NetworkSession;
+import shared.dto.RankedLeaderboardEntry;
+import shared.dto.RankedLeaderboardResponse;
 import view.ScreenType;
 
 public class LeaderboardMenuController {
@@ -34,7 +42,49 @@ public class LeaderboardMenuController {
     }
 
     public LeaderboardViewState getViewState() {
+        if (column == LeaderboardViewState.SortColumn.SCORE) {
+            LeaderboardViewState remote = fetchRemoteScoreBoard();
+            if (remote != null) {
+                return remote;
+            }
+        }
         return LeaderboardViewState.fromUsers(storage.getUsers(), column, direction);
+    }
+
+    private LeaderboardViewState fetchRemoteScoreBoard() {
+        NetworkSession net = controllerManager.getNetworkSession();
+        if (net == null || !net.isLoggedIn()) {
+            return null;
+        }
+        try {
+            RankedLeaderboardResponse res = net.authApi().rankedLeaderboard(net.token());
+            if (res == null || !res.ok || res.entries == null) {
+                return null;
+            }
+            List<RankedLeaderboardEntry> entries = new ArrayList<>(res.entries);
+            if (direction == LeaderboardViewState.SortDirection.LTH) {
+                entries.sort(Comparator.comparingInt((RankedLeaderboardEntry e) -> e.score)
+                        .thenComparing(e -> e.username, String.CASE_INSENSITIVE_ORDER));
+            }
+            List<LeaderboardViewState.Entry> mapped = new ArrayList<>();
+            int rank = 1;
+            for (RankedLeaderboardEntry e : entries) {
+                User local = storage.getUserByUsername(e.username);
+                int chapter = local != null ? local.gameProgress.getLastChapter() : 0;
+                int level = local != null ? local.gameProgress.getLastLevel() : 0;
+                int minigames = local != null ? local.gameProgress.getUnlockedMinigames().size() : 0;
+                mapped.add(new LeaderboardViewState.Entry(
+                        rank++,
+                        e.username,
+                        chapter,
+                        level,
+                        e.score,
+                        minigames));
+            }
+            return new LeaderboardViewState(mapped, column, direction);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public LeaderboardViewState.SortColumn getColumn() {

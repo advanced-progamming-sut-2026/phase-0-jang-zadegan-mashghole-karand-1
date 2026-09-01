@@ -22,11 +22,13 @@ public class SessionConfig {
     public final Set<PlantType> boostedPlants;
     public final IZombiePlayMode iZombiePlayMode;
     public final MatchRole localMatchRole;
+    public final shared.dto.RankedChallengeDto rankedChallenge;
 
     public enum SessionType {
         NORMAL,
         SPECIAL,
-        MINIGAME
+        MINIGAME,
+        RANKED
     }
 
     private SessionConfig(Builder builder) {
@@ -40,6 +42,7 @@ public class SessionConfig {
         this.boostedPlants = builder.boostedPlants;
         this.iZombiePlayMode = builder.iZombiePlayMode;
         this.localMatchRole = builder.localMatchRole;
+        this.rankedChallenge = builder.rankedChallenge;
     }
 
     public static Builder builder() {
@@ -56,6 +59,10 @@ public class SessionConfig {
 
     public boolean isNormal() {
         return sessionType == SessionType.NORMAL;
+    }
+
+    public boolean isRanked() {
+        return sessionType == SessionType.RANKED;
     }
 
     public boolean isIZombiePvP() {
@@ -75,6 +82,7 @@ public class SessionConfig {
         private Set<PlantType> boostedPlants;
         private IZombiePlayMode iZombiePlayMode = IZombiePlayMode.OFFLINE;
         private MatchRole localMatchRole = MatchRole.ZOMBIES;
+        private shared.dto.RankedChallengeDto rankedChallenge;
 
         public Builder specialLevel(SpecialLevelType type) {
             this.isSpecialLevel = true;
@@ -86,6 +94,12 @@ public class SessionConfig {
         public Builder miniGame(MiniGameType type) {
             this.miniGameType = type;
             this.sessionType = SessionType.MINIGAME;
+            return this;
+        }
+
+        public Builder ranked(shared.dto.RankedChallengeDto challenge) {
+            this.rankedChallenge = challenge;
+            this.sessionType = SessionType.RANKED;
             return this;
         }
 

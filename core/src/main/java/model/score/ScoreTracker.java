@@ -14,7 +14,7 @@ public class ScoreTracker {
         stats.difficultyLevel = difficultyLevel;
         lastScore = null;
         lastScoreIsRecord = false;
-        if (context == null || !ScoreBalance.isCampaignScoring(context.getConfig())) {
+        if (context == null || !ScoreBalance.isRankedScoring(context.getConfig())) {
             return;
         }
     }
@@ -26,7 +26,7 @@ public class ScoreTracker {
     }
 
     public boolean isTracking(SessionContext context) {
-        return context != null && ScoreBalance.isCampaignScoring(context.getConfig());
+        return context != null && ScoreBalance.isRankedScoring(context.getConfig());
     }
 
     public void onZombieKilled(SessionContext context) {

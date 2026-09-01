@@ -54,6 +54,9 @@ public interface StorageManager {
 
     java.util.Map<String, Integer> getLevelHighScores();
 
+    /** Sets absolute all-time ranked PB from server response. */
+    void recordRankedScore(int highestScore);
+
     boolean changeUsername(String newUsername);
 
     void changeNickname(String nickname);

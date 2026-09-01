@@ -115,14 +115,8 @@ final class ConsoleLevelScreens {
         sb.append("  " + BOLD + "Levels:" + RESET + "\n");
         for (int i = 1; i <= ChapterCatalog.LEVELS_PER_CHAPTER; i++) {
             boolean unlocked = gameNavigation.isLevelUnlocked(gameNavigation.selectedChapter, i);
-            int highScore = gameNavigation.getLevelHighScore(gameNavigation.selectedChapter, i);
             sb.append("    ").append(CYAN).append(i).append(RESET);
             sb.append(" - ").append(unlocked ? GREEN + "unlocked" + RESET : RED + "locked" + RESET);
-            if (highScore > 0) {
-                sb.append(" - high score: ").append(GREEN).append(highScore).append(RESET);
-            } else {
-                sb.append(" - high score: ").append(GRAY).append("-").append(RESET);
-            }
             sb.append("\n");
         }
         return sb.toString();

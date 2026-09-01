@@ -86,13 +86,20 @@ public class SessionLifecycleController {
 
         leaveOnlineMatchIfNeeded();
         gameLoop.stopAutoTick();
+        SessionContext rankedCheck = model.getPlayContext();
+        boolean ranked = rankedCheck != null && rankedCheck.getConfig() != null
+                && rankedCheck.getConfig().isRanked();
         restoreNavigationFromSession();
         model.endSession();
         matchResultUi = null;
         endHandled = false;
         controllerManager.clearCurrentMenu();
-        controllerManager.setScreen(ScreenType.LEVEL_SELECTOR);
-        return new CommandResult("Returned to level selection.", true);
+        if (ranked) {
+            controllerManager.setScreen(ScreenType.MAIN);
+        } else {
+            controllerManager.setScreen(ScreenType.LEVEL_SELECTOR);
+        }
+        return new CommandResult(ranked ? "Returned to main menu." : "Returned to level selection.", true);
     }
 
     public CommandResult restartLevel() {
@@ -160,6 +167,8 @@ public class SessionLifecycleController {
         Runnable ui = () -> {
             if (won) {
                 applyProgressOnWin();
+            } else {
+                submitRankedComplete(false, 0);
             }
             matchResultUi = buildLocalResult(won, reason);
             controllerManager.openMenu(MenuType.MATCH_RESULT);
@@ -195,6 +204,9 @@ public class SessionLifecycleController {
         }
 
         String title = won ? "Level Complete!" : "Game Over";
+        if (config != null && config.isRanked()) {
+            title = won ? "Ranked Challenge Complete!" : "Ranked Challenge Failed";
+        }
         String detail;
         if (won) {
             String scoreNote = "";
@@ -205,10 +217,16 @@ public class SessionLifecycleController {
                 }
             }
             detail = "Nice work." + scoreNote;
-            controllerManager.startZombossEndDialogue(true);
+            if (config == null || !config.isRanked()) {
+                controllerManager.startZombossEndDialogue(true);
+            }
         } else {
-            detail = reason != null ? reason.message : "Better luck next time.";
-            controllerManager.startZombossEndDialogue(false);
+            if (config != null && config.isRanked()) {
+                detail = "Today's attempt is used. Come back tomorrow.";
+            } else {
+                detail = reason != null ? reason.message : "Better luck next time.";
+                controllerManager.startZombossEndDialogue(false);
+            }
         }
         return new MatchResultUi(title, detail, won, true, false, false);
     }
@@ -228,6 +246,17 @@ public class SessionLifecycleController {
             return;
         }
 
+        if (config.isRanked()) {
+            var score = model.getScoreTracker().finalizeScore(context, model.getState());
+            int total = score != null ? score.total : 0;
+            boolean newRecord = submitRankedComplete(true, total);
+            if (score != null) {
+                model.getScoreTracker().setLastScoreIsRecord(newRecord);
+                model.getState().setSessionScore(score.total, newRecord);
+            }
+            return;
+        }
+
         if (config.isMinigame() && config.miniGameType != null) {
             storage.markMinigameCompleted(config.miniGameType);
             storage.saveProgress();
@@ -241,13 +270,6 @@ public class SessionLifecycleController {
 
         storage.markLevelCompleted(level.chapterType, level.levelNumber);
 
-        var score = model.getScoreTracker().finalizeScore(context, model.getState());
-        if (score != null) {
-            boolean newRecord = storage.recordLevelHighScore(level.chapterType, level.levelNumber, score.total);
-            model.getScoreTracker().setLastScoreIsRecord(newRecord);
-            model.getState().setSessionScore(score.total, newRecord);
-        }
-
         ChapterType nextChapter = ProgressRewards.nextChapter(level.chapterType, level.levelNumber);
         if (nextChapter != null) {
             storage.unlockChapter(nextChapter);
@@ -258,6 +280,32 @@ public class SessionLifecycleController {
         }
 
         storage.saveProgress();
+    }
+
+    private boolean submitRankedComplete(boolean won, int score) {
+        SessionContext context = model.getPlayContext();
+        SessionConfig config = context != null ? context.getConfig() : null;
+        if (config == null || !config.isRanked() || config.rankedChallenge == null) {
+            return false;
+        }
+        NetworkSession net = controllerManager.getNetworkSession();
+        if (net == null || !net.isLoggedIn()) {
+            return false;
+        }
+        try {
+            shared.dto.RankedCompleteResponse res = net.authApi().rankedComplete(
+                    net.token(),
+                    new shared.dto.RankedCompleteRequest(config.rankedChallenge.date, won, score));
+            if (res == null || !res.ok) {
+                return false;
+            }
+            StorageManager storage = controllerManager.getStorage();
+            storage.recordRankedScore(res.highestScore);
+            storage.saveProgress();
+            return res.newRecord;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void restoreNavigationFromSession() {
@@ -278,6 +326,13 @@ public class SessionLifecycleController {
             nav.pendingMiniGame = config.miniGameType;
             nav.pendingLevel = config.levelConfig;
             nav.phase = Phase.MINIGAME;
+            return;
+        }
+
+        if (config.isRanked()) {
+            nav.pendingRankedChallenge = config.rankedChallenge;
+            nav.pendingLevel = config.levelConfig;
+            nav.phase = Phase.NONE;
             return;
         }
 

@@ -113,6 +113,35 @@ public final class AuthApiClient {
         postJson("/api/profile", profileJson == null ? "{}" : profileJson, token);
     }
 
+    public shared.dto.RankedTodayResponse rankedToday(String token) throws IOException, InterruptedException {
+        HttpResponse<String> res = getAuth(Protocol.RANKED_TODAY_PATH, token);
+        return Protocol.GSON.fromJson(res.body(), shared.dto.RankedTodayResponse.class);
+    }
+
+    public shared.dto.RankedCompleteResponse rankedComplete(String token, shared.dto.RankedCompleteRequest request)
+            throws IOException, InterruptedException {
+        String body = Protocol.GSON.toJson(request);
+        HttpResponse<String> res = postJson(Protocol.RANKED_COMPLETE_PATH, body, token);
+        return Protocol.GSON.fromJson(res.body(), shared.dto.RankedCompleteResponse.class);
+    }
+
+    public shared.dto.RankedLeaderboardResponse rankedLeaderboard(String token)
+            throws IOException, InterruptedException {
+        HttpResponse<String> res = getAuth(Protocol.RANKED_LEADERBOARD_PATH, token);
+        return Protocol.GSON.fromJson(res.body(), shared.dto.RankedLeaderboardResponse.class);
+    }
+
+    private HttpResponse<String> getAuth(String path, String token) throws IOException, InterruptedException {
+        HttpRequest.Builder b = HttpRequest.newBuilder()
+                .uri(URI.create(config.baseUrl() + path))
+                .timeout(Duration.ofSeconds(8))
+                .GET();
+        if (token != null && !token.isBlank()) {
+            b.header("Authorization", "Bearer " + token);
+        }
+        return send(b.build());
+    }
+
     private HttpResponse<String> postJson(String path, String body, String token)
             throws IOException, InterruptedException {
         HttpRequest.Builder b = HttpRequest.newBuilder()

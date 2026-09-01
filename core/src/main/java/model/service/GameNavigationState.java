@@ -17,7 +17,7 @@ import model.storage.CompletedLevelKey;
 public class GameNavigationState {
 
     public enum Phase {
-        NONE, CHAPTER, LEVEL, PLANT, MINIGAME
+        NONE, CHAPTER, LEVEL, PLANT, MINIGAME, RANKED_PLANT
     }
 
     public Phase phase = Phase.NONE;
@@ -26,6 +26,7 @@ public class GameNavigationState {
     public LevelConfig pendingLevel;
     public SpecialLevelType pendingSpecialLevel;
     public MiniGameType pendingMiniGame;
+    public shared.dto.RankedChallengeDto pendingRankedChallenge;
     public shared.izombie.IZombiePlayMode pendingIZombieMode;
     public shared.izombie.MatchRole pendingMatchRole;
     public final List<PlantType> selectedPlants = new ArrayList<>();
@@ -39,10 +40,7 @@ public class GameNavigationState {
 
 
     public int getLevelHighScore(ChapterType chapter, int levelNumber) {
-        if (chapter == null) {
-            return 0;
-        }
-        return levelHighScores.getOrDefault(CompletedLevelKey.campaign(chapter, levelNumber), 0);
+        return 0;
     }
 
     public boolean isLevelUnlocked(ChapterType chapter, int levelNumber) {
@@ -67,6 +65,7 @@ public class GameNavigationState {
         pendingLevel = null;
         pendingSpecialLevel = null;
         pendingMiniGame = null;
+        pendingRankedChallenge = null;
         pendingIZombieMode = null;
         pendingMatchRole = null;
         selectedPlants.clear();

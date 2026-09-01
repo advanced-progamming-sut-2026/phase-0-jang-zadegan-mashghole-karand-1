@@ -74,6 +74,9 @@ final class ControllerMenuSupport {
     }
 
     private CommandResult enterFromLevelSelector(ControllerManager manager, String name) {
+        if (name.equals("ranked") || name.equals("ranked-challenge") || name.equals("ranked challenge")) {
+            return manager.getRankedChallengeController().enter();
+        }
         if (name.equals("travel-log") || name.equals("travel log")) {
             return manager.openTravelLogMenu();
         }
@@ -197,6 +200,11 @@ final class ControllerMenuSupport {
             return new CommandResult("Returned to game menu.", true);
         }
         var gameNavigation = manager.getGameNavigation();
+        if (gameNavigation.phase == Phase.RANKED_PLANT) {
+            gameNavigation.reset();
+            manager.setScreen(ScreenType.MAIN);
+            return new CommandResult("Returned to main menu.", true);
+        }
         if (gameNavigation.phase == Phase.PLANT) {
             return exitPlantPhase(manager, gameNavigation);
         }

@@ -20,7 +20,7 @@ public final class ScoreBalance {
             SessionStats stats,
             SessionConfig config,
             GameState state) {
-        if (stats == null || config == null || config.isMinigame() || state == null) {
+        if (stats == null || config == null || !config.isRanked() || state == null) {
             return zero();
         }
         LevelConfig level = config.levelConfig;
@@ -56,9 +56,14 @@ public final class ScoreBalance {
                 seconds);
     }
 
-    public static boolean isCampaignScoring(SessionConfig config) {
-        return config != null && !config.isMinigame() && config.levelConfig != null
+    public static boolean isRankedScoring(SessionConfig config) {
+        return config != null && config.isRanked() && config.levelConfig != null
                 && config.levelConfig.chapterType != null;
+    }
+
+    @Deprecated
+    public static boolean isCampaignScoring(SessionConfig config) {
+        return isRankedScoring(config);
     }
 
     private static int countUnusedMowers(GameState state) {

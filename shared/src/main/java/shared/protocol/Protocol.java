@@ -13,6 +13,10 @@ public final class Protocol {
     public static final int QUICK_MSG_RATE_LIMIT_MS = 1_500;
     public static final int MATCH_RESTART_TIMEOUT_MS = 30_000;
 
+    public static final String RANKED_TODAY_PATH = "/api/ranked/today";
+    public static final String RANKED_COMPLETE_PATH = "/api/ranked/complete";
+    public static final String RANKED_LEADERBOARD_PATH = "/api/ranked/leaderboard";
+
     private Protocol() {
     }
 

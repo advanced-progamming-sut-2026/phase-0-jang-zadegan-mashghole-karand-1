@@ -8,6 +8,7 @@ import server.auth.AuthService;
 import server.db.Database;
 import server.db.UserRepository;
 import server.http.AuthRoutes;
+import server.http.RankedRoutes;
 import server.match.MatchmakingService;
 import server.match.PresenceHub;
 import server.ws.GameWebSocket;
@@ -31,6 +32,7 @@ public final class ServerMain {
         });
 
         new AuthRoutes(auth).register(app);
+        new RankedRoutes(auth, users).register(app);
         new GameWebSocket(auth, presence, matchmaking).register(app);
 
         Executors.newSingleThreadScheduledExecutor(r -> {

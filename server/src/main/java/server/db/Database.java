@@ -51,6 +51,11 @@ public final class Database {
                         FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
                     )
                     """);
+            try {
+                s.execute("ALTER TABLE users ADD COLUMN ranked_last_played_date TEXT");
+            } catch (SQLException ignored) {
+                // column already exists
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to init server DB", e);
         }

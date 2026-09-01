@@ -264,41 +264,34 @@ public class SqlStorageManager implements StorageManager {
 
     @Override
     public boolean recordLevelHighScore(ChapterType chapter, int levelNumber, int score) {
-        if (!isLoggedIn() || chapter == null || score <= 0) {
-            return false;
+        return false;
+    }
+
+    @Override
+    public void recordRankedScore(int highestScore) {
+        if (!isLoggedIn() || highestScore < 0) {
+            return;
         }
         synchronized (lock) {
-            boolean isLevelRecord = currentUser.gameProgress.recordLevelHighScore(chapter, levelNumber, score);
-            boolean globalRecord = false;
-            if (score > currentUser.highestScore) {
-                currentUser.highestScore = score;
-                globalRecord = true;
+            if (highestScore > currentUser.highestScore) {
+                currentUser.highestScore = highestScore;
+            } else {
+                currentUser.highestScore = Math.max(currentUser.highestScore, highestScore);
             }
-            if (isLevelRecord) {
-                progressStore.persistLevelHighScore(currentUser.username,
-                        CompletedLevelKey.campaign(chapter, levelNumber), score);
-            }
-            if (isLevelRecord || globalRecord) {
-                userSaver.saveUserProfile(currentUser);
-            }
-            return isLevelRecord;
+            // Server is absolute source — sync to reported value
+            currentUser.highestScore = highestScore;
+            userSaver.saveUserProfile(currentUser);
         }
     }
 
     @Override
     public int getLevelHighScore(ChapterType chapter, int levelNumber) {
-        if (!isLoggedIn() || chapter == null) {
-            return 0;
-        }
-        return currentUser.gameProgress.getLevelHighScore(chapter, levelNumber);
+        return 0;
     }
 
     @Override
     public Map<String, Integer> getLevelHighScores() {
-        if (!isLoggedIn()) {
-            return Map.of();
-        }
-        return currentUser.gameProgress.getLevelHighScores();
+        return Map.of();
     }
 
     @Override

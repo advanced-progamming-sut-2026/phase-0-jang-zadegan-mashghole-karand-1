@@ -117,11 +117,11 @@ public class ModelManager {
 
         int difficulty = GameSetting.DEFAULT_DIFFICULTY;
         User user = storage.getCurrentUser();
-        if (user != null && user.preferredSetting != null) {
+        if (!config.isRanked() && user != null && user.preferredSetting != null) {
             difficulty = user.preferredSetting.getDifficultyLevel();
         }
         eventHub.bindSession(sessionContext, difficulty);
-        waveManager.initialize(config.levelConfig, config.miniGameType, difficulty);
+        waveManager.initialize(config.levelConfig, config.miniGameType, difficulty, config.rankedChallenge);
 
         ruleEngine.onSessionStart(sessionContext, state, eventBus);
 

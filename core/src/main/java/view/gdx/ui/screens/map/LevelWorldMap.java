@@ -107,22 +107,11 @@ final class LevelWorldMap extends WorldMapPane {
         island.addListener(click);
         badge.addListener(click);
 
-        int highScore = navigation == null ? 0 : navigation.getLevelHighScore(chapter, slot.levelNumber);
-        Label score = null;
-        if (highScore > 0) {
-            score = UiWidgets.body("high " + highScore);
-            score.setAlignment(Align.center);
-            float scoreWidth = Math.max(120f, viewHeight() * 0.22f);
-            score.setWidth(scoreWidth);
-            score.setPosition(x - scoreWidth * 0.5f, island.getY() - viewHeight() * 0.03f);
-            content.addActor(score);
-        }
-
         slot.root = island;
         slot.lock = createLockIconForIsland(island);
         slot.badge = badge;
         slot.number = number;
-        slot.score = score;
+        slot.score = null;
         slot.baseY = island.getY();
         slot.badgeBaseY = badge.getY();
         slot.numberBaseY = number.getY();

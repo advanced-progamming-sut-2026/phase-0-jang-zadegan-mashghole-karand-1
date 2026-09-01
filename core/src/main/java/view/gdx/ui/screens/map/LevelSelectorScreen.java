@@ -46,7 +46,7 @@ public final class LevelSelectorScreen implements UiScreen {
         }
         root.clearChildren();
         GameNavigationState nav = context.gameNavigation;
-        if (nav != null && nav.phase != Phase.PLANT) {
+        if (nav != null && nav.phase != Phase.PLANT && nav.phase != Phase.RANKED_PLANT) {
             plantSelectionFocus = null;
         }
         if (nav == null || nav.phase == Phase.CHAPTER || nav.phase == Phase.NONE) {
@@ -55,7 +55,7 @@ public final class LevelSelectorScreen implements UiScreen {
             buildLevelPhase(nav);
         } else if (nav.phase == Phase.MINIGAME) {
             buildMinigamePhase(nav);
-        } else if (nav.phase == Phase.PLANT) {
+        } else if (nav.phase == Phase.PLANT || nav.phase == Phase.RANKED_PLANT) {
             buildPlantPhase(nav);
         }
     }
@@ -79,17 +79,20 @@ public final class LevelSelectorScreen implements UiScreen {
         TextButton collection = UiWidgets.plain("Collection");
         TextButton greenhouse = UiWidgets.plain("Greenhouse");
         TextButton leaderboard = UiWidgets.plain("Leaderboard");
+        TextButton ranked = UiWidgets.plain("Ranked Challenge");
 
         UiWidgets.onChange(travelLog, () -> UiWidgets.apply(controller, controller.enterMenu("travel-log")));
         UiWidgets.onChange(collection, () -> UiWidgets.apply(controller, controller.enterMenu("collection")));
         UiWidgets.onChange(greenhouse, () -> UiWidgets.apply(controller, controller.enterMenu("greenhouse")));
         UiWidgets.onChange(leaderboard, () -> UiWidgets.apply(controller, controller.enterMenu("leaderboard")));
+        UiWidgets.onChange(ranked, () -> UiWidgets.apply(controller, controller.enterMenu("ranked")));
 
         Table chrome = new Table();
         chrome.add(travelLog).size(72f).padRight(8f);
         chrome.add(collection).width(180f).height(40f).padRight(8f);
         chrome.add(greenhouse).width(180f).height(40f).padRight(8f);
         chrome.add(leaderboard).width(180f).height(40f).padRight(8f);
+        chrome.add(ranked).width(200f).height(40f).padRight(8f);
 
         root.add(UiWidgets.title("Select a World")).padBottom(8f).row();
         root.add(map).grow().padBottom(10f).row();

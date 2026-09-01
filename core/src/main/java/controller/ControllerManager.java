@@ -45,6 +45,7 @@ public class ControllerManager {
     private ShopController shopController;
     private final QuestMenuController questMenuController;
     private final LeaderboardMenuController leaderboardMenuController;
+    private final RankedChallengeController rankedChallengeController;
 
     ScreenType currentScreen = ScreenType.REGISTER;
     MenuType currentMenu = MenuType.NONE;
@@ -84,6 +85,7 @@ public class ControllerManager {
         this.pickPlantsController = new PickPlantsController(this, model, storage, gameNavigation);
         this.collectionController = new CollectionController(this, storage);
         this.leaderboardMenuController = new LeaderboardMenuController(this, storage);
+        this.rankedChallengeController = new RankedChallengeController(this, storage, gameNavigation);
         this.sessionLifecycleController = new SessionLifecycleController(this, eventBus, gameLoop, model);
         this.sessionLifecycleController.register();
         this.gameLoop.setOnTickHandler(() -> {
@@ -372,7 +374,7 @@ public class ControllerManager {
         } else if (number == 5) {
             addDialogueLine("Penny", "Zomboss is near. Prepare for the boss fight.");
             addDialogueLine("Crazy Dave", "This is gonna be wild!");
-        } else if (number == 2 || number == 3) {
+        } else if (number == 2 || number == 3 || number == 4) {
             addDialogueLine("Penny", "New threats ahead in " + chapterLabel(chapter) + ".");
             addDialogueLine("Crazy Dave", "Let's keep those zombies off the lawn!");
         }
@@ -448,6 +450,10 @@ public class ControllerManager {
 
     public LeaderboardMenuController getLeaderboardMenuController() {
         return leaderboardMenuController;
+    }
+
+    public RankedChallengeController getRankedChallengeController() {
+        return rankedChallengeController;
     }
 
     public ShopController getShopController() {

@@ -145,7 +145,9 @@ public class PickPlantsController {
                 .imitatorTarget(gameNavigation.imitatorTarget)
                 .boostedPlant(gameNavigation.boostedPlants);
 
-        if (gameNavigation.pendingMiniGame != null) {
+        if (gameNavigation.pendingRankedChallenge != null) {
+            sessionBuilder.ranked(gameNavigation.pendingRankedChallenge);
+        } else if (gameNavigation.pendingMiniGame != null) {
             sessionBuilder.miniGame(gameNavigation.pendingMiniGame);
         } else if (gameNavigation.pendingSpecialLevel != null) {
             sessionBuilder.specialLevel(gameNavigation.pendingSpecialLevel);
@@ -162,7 +164,9 @@ public class PickPlantsController {
         SessionConfig.Builder builder = SessionConfig.builder()
                 .levelConfig(gameNavigation.pendingLevel)
                 .selectedPlants(List.copyOf(gameNavigation.selectedPlants));
-        if (gameNavigation.pendingMiniGame != null) {
+        if (gameNavigation.pendingRankedChallenge != null) {
+            builder.ranked(gameNavigation.pendingRankedChallenge);
+        } else if (gameNavigation.pendingMiniGame != null) {
             builder.miniGame(gameNavigation.pendingMiniGame);
         } else if (gameNavigation.pendingSpecialLevel != null) {
             builder.specialLevel(gameNavigation.pendingSpecialLevel);
@@ -183,7 +187,7 @@ public class PickPlantsController {
 
     private boolean isPlantSelectionActive() {
         return controllerManager.getCurrentScreen() == ScreenType.LEVEL_SELECTOR
-                && gameNavigation.phase == Phase.PLANT;
+                && (gameNavigation.phase == Phase.PLANT || gameNavigation.phase == Phase.RANKED_PLANT);
     }
 
     private CommandResult success(String message) {

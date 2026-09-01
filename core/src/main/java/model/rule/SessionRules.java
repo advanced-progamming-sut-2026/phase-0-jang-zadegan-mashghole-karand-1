@@ -18,7 +18,7 @@ public final class SessionRules {
             return rules;
         }
 
-        if (!config.isMinigame()) {
+        if (!config.isMinigame() && !config.isRanked()) {
             rules.addAll(ChapterRules.forChapter(config.levelConfig.chapterType));
         }
         if (config.isSpecial()) {

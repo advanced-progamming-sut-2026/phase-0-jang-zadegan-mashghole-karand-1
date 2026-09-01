@@ -209,30 +209,25 @@ public class InMemoryStorageManager implements StorageManager {
 
     @Override
     public boolean recordLevelHighScore(ChapterType chapter, int levelNumber, int score) {
-        if (!isLoggedIn() || chapter == null || score <= 0) {
-            return false;
+        return false;
+    }
+
+    @Override
+    public void recordRankedScore(int highestScore) {
+        if (!isLoggedIn() || highestScore < 0) {
+            return;
         }
-        boolean isLevelRecord = currentUser.gameProgress.recordLevelHighScore(chapter, levelNumber, score);
-        if (score > currentUser.highestScore) {
-            currentUser.highestScore = score;
-        }
-        return isLevelRecord;
+        currentUser.highestScore = highestScore;
     }
 
     @Override
     public int getLevelHighScore(ChapterType chapter, int levelNumber) {
-        if (!isLoggedIn() || chapter == null) {
-            return 0;
-        }
-        return currentUser.gameProgress.getLevelHighScore(chapter, levelNumber);
+        return 0;
     }
 
     @Override
     public Map<String, Integer> getLevelHighScores() {
-        if (!isLoggedIn()) {
-            return Map.of();
-        }
-        return currentUser.gameProgress.getLevelHighScores();
+        return Map.of();
     }
 
     @Override

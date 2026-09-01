@@ -77,7 +77,7 @@ final class PlantSelectionPanel {
         layout.add(buildGridSeparator()).growX().height(2f).padBottom(8f).row();
 
         ScrollPane grid = buildPlantGrid(controller, assets, nav, user, chapter, focused, focusSetter);
-        grid.setForceScroll(true, false);
+        grid.setForceScroll(false, true);
         layout.add(grid).grow().width(920f).height(360f).padBottom(8f).row();
 
         layout.add(buildFooter(controller, assets, nav, maxSlots)).growX().row();

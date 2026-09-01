@@ -24,6 +24,9 @@ import model.event.events.WaveCompleteEvent;
 import model.event.events.WaveStartedEvent;
 import model.event.events.ZombieSpawnedEvent;
 import model.gameSetting.GameSetting;
+import shared.dto.RankedChallengeDto;
+import shared.dto.RankedSpawnDto;
+import shared.dto.RankedWaveDto;
 
 public class WaveManager {
     private static final int SPAWN_INTERVAL_TICKS = 30;
@@ -45,16 +48,22 @@ public class WaveManager {
 
     private Queue<ZombieSpawn> pendingSpawns = new LinkedList<>();
     private int ticksUntilNextSpawn = 0;
+    private List<List<ZombieSpawn>> scriptedWaves;
 
     public void initialize(LevelConfig config) {
-        initialize(config, null, GameSetting.DEFAULT_DIFFICULTY);
+        initialize(config, null, GameSetting.DEFAULT_DIFFICULTY, null);
     }
 
     public void initialize(LevelConfig config, MiniGameType miniGameType) {
-        initialize(config, miniGameType, GameSetting.DEFAULT_DIFFICULTY);
+        initialize(config, miniGameType, GameSetting.DEFAULT_DIFFICULTY, null);
     }
 
     public void initialize(LevelConfig config, MiniGameType miniGameType, int difficultyLevel) {
+        initialize(config, miniGameType, difficultyLevel, null);
+    }
+
+    public void initialize(LevelConfig config, MiniGameType miniGameType, int difficultyLevel,
+            RankedChallengeDto rankedScript) {
         this.levelConfig = config;
         this.miniGameType = miniGameType;
         this.difficultyLevel = difficultyLevel;
@@ -65,7 +74,40 @@ public class WaveManager {
         this.waveActive = false;
         this.finalWaveComplete = false;
         this.previousWaveBudget = 0;
+        this.scriptedWaves = parseScript(rankedScript);
+        if (scriptedWaves != null && !scriptedWaves.isEmpty()) {
+            this.totalWaves = scriptedWaves.size();
+        }
         clearWaveTracking();
+    }
+
+    private static List<List<ZombieSpawn>> parseScript(RankedChallengeDto rankedScript) {
+        if (rankedScript == null || rankedScript.waves == null || rankedScript.waves.isEmpty()) {
+            return null;
+        }
+        List<List<ZombieSpawn>> waves = new ArrayList<>();
+        for (RankedWaveDto wave : rankedScript.waves) {
+            List<ZombieSpawn> spawns = new ArrayList<>();
+            if (wave != null && wave.spawns != null) {
+                for (RankedSpawnDto spawn : wave.spawns) {
+                    if (spawn == null || spawn.zombieType == null) {
+                        continue;
+                    }
+                    ZombieType type = ZombieType.fromName(spawn.zombieType);
+                    if (type == null) {
+                        type = ZombieType.BASIC;
+                    }
+                    int count = Math.max(1, spawn.count);
+                    int row = Math.max(0, Math.min(GameState.GRID_ROWS - 1, spawn.row));
+                    spawns.add(new ZombieSpawn(type, count, row));
+                }
+            }
+            if (spawns.isEmpty()) {
+                spawns.add(new ZombieSpawn(ZombieType.BASIC, 1, 0));
+            }
+            waves.add(spawns);
+        }
+        return waves;
     }
 
     public void update(GameState state, EventBus eventBus) {
@@ -116,9 +158,21 @@ public class WaveManager {
 
         clearWaveTracking();
 
-        int budget = calculateWaveBudget(state.getCurrentWave());
-
-        ZombieWave wave = buildWaveFromBudget(budget);
+        ZombieWave wave;
+        if (scriptedWaves != null) {
+            int index = state.getCurrentWave() - 1;
+            List<ZombieSpawn> scripted = index >= 0 && index < scriptedWaves.size()
+                    ? scriptedWaves.get(index)
+                    : List.of(new ZombieSpawn(ZombieType.BASIC, 1, 0));
+            List<ZombieSpawn> copies = new ArrayList<>();
+            for (ZombieSpawn s : scripted) {
+                copies.add(new ZombieSpawn(s.type, s.count, s.row));
+            }
+            wave = new ZombieWave(copies);
+        } else {
+            int budget = calculateWaveBudget(state.getCurrentWave());
+            wave = buildWaveFromBudget(budget);
+        }
         totalZombiesInWave = wave.getTotalZombies();
 
         pendingSpawns.clear();
@@ -144,7 +198,9 @@ public class WaveManager {
         if (spawn == null)
             return;
 
-        int row = (int) (Math.random() * GameState.GRID_ROWS);
+        int row = spawn.row != null
+                ? spawn.row
+                : (int) (Math.random() * GameState.GRID_ROWS);
         Zombie zombie = new Zombie(spawn.type, row, GameState.GRID_COLS - 1,
                 new Position(GameState.SCREEN_WIDTH, GameState.CELL_HEIGHT * row + (GameState.CELL_HEIGHT / 2)),
                 eventBus,state.getGlowingChance());

@@ -88,7 +88,7 @@ public final class UserRepository {
         String sql = """
                 SELECT username, password_hash, email, nickname, gender, safety_question,
                        safety_answer_hash, coins, gems, highest_score, games_played,
-                       izombie_wins, profile_json
+                       izombie_wins, profile_json, ranked_last_played_date
                 FROM users WHERE username = ?
                 """;
         try (Connection c = database.open(); PreparedStatement ps = c.prepareStatement(sql)) {
@@ -148,6 +148,86 @@ public final class UserRepository {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Optional<String> getRankedLastPlayedDate(String username) {
+        try (Connection c = database.open();
+                PreparedStatement ps = c.prepareStatement(
+                        "SELECT ranked_last_played_date FROM users WHERE username = ?")) {
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return Optional.empty();
+                }
+                String date = rs.getString(1);
+                if (date == null || date.isBlank()) {
+                    return Optional.empty();
+                }
+                return Optional.of(date);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Marks ranked day as played. On win, bumps highest_score when score is higher.
+     * @return newRecord whether highest_score increased
+     */
+    public boolean markRankedPlayed(String username, String utcDate, boolean won, int score) {
+        Optional<StoredUser> found = findByUsername(username);
+        if (found.isEmpty()) {
+            throw new IllegalArgumentException("USER_NOT_FOUND");
+        }
+        StoredUser user = found.get();
+        boolean newRecord = false;
+        int highest = user.highestScore;
+        if (won && score > highest) {
+            highest = score;
+            newRecord = true;
+        }
+        try (Connection c = database.open();
+                PreparedStatement ps = c.prepareStatement("""
+                        UPDATE users SET ranked_last_played_date = ?, highest_score = ?
+                        WHERE username = ?
+                        """)) {
+            ps.setString(1, utcDate);
+            ps.setInt(2, highest);
+            ps.setString(3, username);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return newRecord;
+    }
+
+    public int getHighestScore(String username) {
+        return findByUsername(username).map(u -> u.highestScore).orElse(0);
+    }
+
+    public java.util.List<shared.dto.RankedLeaderboardEntry> listByHighestScore(int limit) {
+        int capped = Math.max(1, Math.min(limit, 100));
+        String sql = """
+                SELECT username, highest_score FROM users
+                ORDER BY highest_score DESC, username COLLATE NOCASE ASC
+                LIMIT ?
+                """;
+        java.util.List<shared.dto.RankedLeaderboardEntry> entries = new java.util.ArrayList<>();
+        try (Connection c = database.open(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, capped);
+            try (ResultSet rs = ps.executeQuery()) {
+                int rank = 1;
+                while (rs.next()) {
+                    entries.add(new shared.dto.RankedLeaderboardEntry(
+                            rank++,
+                            rs.getString("username"),
+                            rs.getInt("highest_score")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return entries;
     }
 
     public String createSession(String username) {
@@ -225,6 +305,11 @@ public final class UserRepository {
         u.gamesPlayed = rs.getInt("games_played");
         u.izombieWins = rs.getInt("izombie_wins");
         u.profileJson = rs.getString("profile_json");
+        try {
+            u.rankedLastPlayedDate = rs.getString("ranked_last_played_date");
+        } catch (SQLException ignored) {
+            u.rankedLastPlayedDate = null;
+        }
         return u;
     }
 
@@ -242,5 +327,6 @@ public final class UserRepository {
         public int gamesPlayed;
         public int izombieWins;
         public String profileJson;
+        public String rankedLastPlayedDate;
     }
 }
