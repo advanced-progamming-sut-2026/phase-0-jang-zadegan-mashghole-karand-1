@@ -38,6 +38,7 @@ public class GameState implements ReadOnlyGameState {
     private GameBoard board = new GameBoard(GameState.GRID_ROWS, GameState.GRID_COLS, this);
 
     public int sunAmount = INITIAL_SUN_AMOUNT;
+    public int MAX_PLANT_FOOD_AMOUNT = 5;
     public int plantFoodAmount = 0;
 
     public int currentWave = 0;
@@ -150,6 +151,14 @@ public class GameState implements ReadOnlyGameState {
     @Override
     public int getPlantFoodAmount() {
         return plantFoodAmount;
+    }
+
+    public boolean addPlantFood(){
+        if(plantFoodAmount >= MAX_PLANT_FOOD_AMOUNT) {
+            return false;
+        }
+        plantFoodAmount++;
+        return true;
     }
 
     @Override

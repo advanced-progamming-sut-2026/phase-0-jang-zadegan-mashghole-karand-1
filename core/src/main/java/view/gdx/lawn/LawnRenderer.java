@@ -195,11 +195,16 @@ public final class LawnRenderer {
                     player.draw(batch, prop, propAnim.stateTime, x + c.offsetX, y + c.offsetY, true);
                 }
             }
+            if (zombie.isGlowing) {
+                float pulse = 0.7f + 0.3f * (float) Math.sin(anim.stateTime * 8f);
+                batch.setColor(0.45f, 1f, 0.35f, pulse); // lime, not Color.GREEN
+            }
             if (visibility.isEmpty()) {
                 player.draw(batch, clip, anim.stateTime, x, y, loop);
             } else {
                 player.draw(batch, clip, anim.stateTime, x, y, loop, visibility);
             }
+            batch.setColor(Color.WHITE);
         } finally {
             endEntityScale(batch);
         }

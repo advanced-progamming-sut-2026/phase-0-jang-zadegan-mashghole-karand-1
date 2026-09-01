@@ -84,8 +84,8 @@ public class Zombie {
         if (type.armorConfig != null) {
             this.armor = new ZombieArmor(type.armorConfig);
         }
-
-        isGlowing = randomizer.nextFloat() < glowChance  ;
+        boolean eligible = !type.isZomboss() && type != ZombieType.IMP;
+        isGlowing = eligible && randomizer.nextFloat() < glowChance;
 
         canBeFrozen = !(type.isZomboss()
                 || type == ZombieType.DODO_RIDER_ZOMBIE
@@ -151,11 +151,10 @@ public class Zombie {
         for (ZombieAbilityConfig ability : abilities) {
             ability.onDeath(this, state, eventBus);
         }
+        eventBus.publish(new ZombieDiedEvent(this, lastHitBy));
         if (isGlowing) {
-            state.plantFoodAmount++;
+            state.addPlantFood();
             eventBus.publish(new GlowingZombieDiedEvent(this));
-        } else {
-            eventBus.publish(new ZombieDiedEvent(this, lastHitBy));
         }
 
         boolean drop = !type.isZomboss() && randomizer.nextInt(10) == 0;

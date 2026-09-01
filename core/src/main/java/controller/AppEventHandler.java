@@ -97,8 +97,9 @@ public class AppEventHandler {
     private void onGlowingZombieDied(GlowingZombieDiedEvent event) {
         if (event == null)
             return;
-        controller.sendMessage("The glowing zombie dropped a plant food; you have " + storage.getCurrentUser().plantFood
-                + " plant foods now.");
+
+        int amount = controller.getModel().getState().getPlantFoodAmount();
+        controller.sendMessage("The glowing zombie dropped a plant food; you have " + amount + " plant foods now.");
     }
 
     private void onSunDropped(SunDroppedEvent event) {

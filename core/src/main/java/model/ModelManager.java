@@ -373,7 +373,7 @@ public class ModelManager {
     }
 
     public void addPlantFood() {
-        state.plantFoodAmount++;
+        state.addPlantFood();
     }
 
     public void removeCooldowns() {
