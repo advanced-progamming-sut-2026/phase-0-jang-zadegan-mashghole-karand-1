@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.data.content.chapter.ChapterType;
+import model.data.pool.ZombiePool;
 import model.data.wave.LevelConfig;
 import model.data.zombie.ZombieType;
 import shared.dto.RankedChallengeDto;
@@ -27,8 +28,7 @@ public final class RankedChallengeSupport {
             }
         }
         if (zombies.isEmpty()) {
-            zombies.add(ZombieType.BASIC);
-            zombies.add(ZombieType.CONE_HEAD);
+            zombies.addAll(ZombiePool.rosterFor(chapter, Math.max(1, challenge.levelNumber)));
         }
         return LevelConfig.builder(chapter, Math.max(1, challenge.levelNumber))
                 .waves(Math.max(1, challenge.totalWaves))

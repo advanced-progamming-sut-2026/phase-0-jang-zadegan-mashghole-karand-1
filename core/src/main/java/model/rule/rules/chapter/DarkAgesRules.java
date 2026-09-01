@@ -21,6 +21,14 @@ public class DarkAgesRules implements LevelRule {
     private static final Random RANDOM = new Random();
     private static final int MIN_COL = 3;
     private static final int NECROMANCY_SPAWN_DELAY_TICKS = 20;
+    private static final ZombieType[] NECROMANCY_POOL = {
+            ZombieType.BASIC,
+            ZombieType.CONE_HEAD,
+            ZombieType.KNIGHT,
+            ZombieType.IMP_DRAGON,
+            ZombieType.JESTER_ZOMBIE,
+            ZombieType.BUCKET_HEAD
+    };
 
     private int pendingNecromancyTicks = -1;
 
@@ -127,7 +135,7 @@ public class DarkAgesRules implements LevelRule {
                 Tile tile = state.getBoard().getTile(row, col);
                 if (tile.getType() == TileType.NECROMANCY && tile.hasGrave()) {
                     bus.publish(new NecromancySpawnEvent(row, col));
-                    ZombieType type = RANDOM.nextInt(2) == 0 ? ZombieType.BASIC : ZombieType.CONE_HEAD;
+                    ZombieType type = necromancyZombie();
                     Zombie zombie = new Zombie(type, row, col, new Position((col + 0.5f) * GameState.CELL_WIDTH,
                             (row + 0.5f) * GameState.CELL_HEIGHT), bus, state.getGlowingChance());
                     state.addZombie(zombie);
@@ -145,5 +153,9 @@ public class DarkAgesRules implements LevelRule {
             return GraveContent.PLANT_FOOD;
         }
         return GraveContent.NONE;
+    }
+
+    private ZombieType necromancyZombie() {
+        return NECROMANCY_POOL[RANDOM.nextInt(NECROMANCY_POOL.length)];
     }
 }

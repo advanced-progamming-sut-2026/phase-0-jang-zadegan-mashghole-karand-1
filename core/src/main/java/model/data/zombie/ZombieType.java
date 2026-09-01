@@ -110,4 +110,12 @@ public enum ZombieType {
                 return this == ZOMBOT_SPHINX || this == ZOMBOT_DRAGON || this == ZOMBOT_SHARK
                                 || this == ZOMBOT_MAMMOTH;
         }
+
+        public boolean isWaveSpawnable() {
+                return !isZomboss() && this != SUN_ZOMBIE && baseStats.wavePointCost > 0;
+        }
+
+        public int spawnWeight() {
+                return baseStats.weight > 0 ? baseStats.weight : 1000;
+        }
 }
