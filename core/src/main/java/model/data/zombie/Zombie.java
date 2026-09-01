@@ -15,6 +15,7 @@ import model.event.events.ZombieDroppedLootEvent;
 
 public class Zombie {
     private static final int ICE_HP = 600;
+    private static int SPEED_MULTIPLIER = 4;
 
     public final int instanceId;
     public final ZombieType type;
@@ -71,7 +72,7 @@ public class Zombie {
         this.hp = type.baseStats.hp;
         this.totalHp = type.baseStats.hp;
         this.eventBus = bus;
-        this.speed = type.baseStats.speed;
+        this.speed = SPEED_MULTIPLIER*type.baseStats.speed;
 
         for (ZombieAbilityConfig config : type.abilities) {
             ZombieAbilityConfig ability = config.createInstance(this);
