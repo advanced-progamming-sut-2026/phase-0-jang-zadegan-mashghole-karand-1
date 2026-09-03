@@ -26,8 +26,11 @@ public final class ChapterTerrainRenderer {
     private static final String WATER_SQUARE_IMAGE = "IMAGE_BACKGROUNDS_WATER_SQUARE_WATER_SQUARE_174X205";
     private static final String WATER_TIDE_LINE_PAM = "768/FULL/BACKGROUNDS/WATER_TIDE_LINE/WATER_TIDE_LINE.PAM";
     private static final String BEACH_POST_PAM = "768/FULL/EFFECTS/SURF_BOARD/SURF_BOARD.PAM";
-    private static final String NECRO_BOTTOM_PAM = "768/FULL/BACKGROUNDS/BACKGROUND_DARK_BRAZIER_BOTTOM/BACKGROUND_DARK_BRAZIER_BOTTOM.PAM";
-    private static final String NECRO_TOP_PAM = "768/FULL/BACKGROUNDS/BACKGROUND_DARK_BRAZIER_TOP/BACKGROUND_DARK_BRAZIER_TOP.PAM";
+    private static final String NECRO_BASE_PATH = "768/FULL/BACKGROUNDS/";
+    private static final String NECRO_BOTTOM_PAM = NECRO_BASE_PATH
+            + "BACKGROUND_DARK_BRAZIER_BOTTOM/BACKGROUND_DARK_BRAZIER_BOTTOM.PAM";
+    private static final String NECRO_TOP_PAM = NECRO_BASE_PATH
+            + "BACKGROUND_DARK_BRAZIER_TOP/BACKGROUND_DARK_BRAZIER_TOP.PAM";
 
     private final LawnLayout layout;
     private final AnimStateStore animStates;
