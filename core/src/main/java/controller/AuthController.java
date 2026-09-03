@@ -27,6 +27,7 @@ public class AuthController {
     private PendingRegistration pendingRegistration;
     private String passwordResetUsername;
     private String passwordResetEmail;
+    private String passwordResetQuestion;
     private boolean awaitingSecurityAnswer;
     private boolean awaitingNewPassword;
 
@@ -53,7 +54,7 @@ public class AuthController {
             return null;
         }
         if (networkAuth != null) {
-            return null;
+            return passwordResetQuestion;
         }
         User user = storage.getUserByUsername(passwordResetUsername);
         if (user == null || user.safetyQuestion == null) {
@@ -223,6 +224,7 @@ public class AuthController {
         awaitingNewPassword = false;
         passwordResetUsername = null;
         passwordResetEmail = null;
+        passwordResetQuestion = null;
 
         if (networkAuth != null) {
             String question = networkAuth.forgot(username, email);
@@ -233,7 +235,8 @@ public class AuthController {
             passwordResetEmail = email;
             awaitingSecurityAnswer = true;
             SafetyQuestionType type = SafetyQuestionType.fromStored(question);
-            return success("Answer your security question: " + type.question);
+            passwordResetQuestion = type.question;
+            return success("Answer your security question");
         }
 
         User user = storage.getUserByUsername(username);
@@ -331,6 +334,7 @@ public class AuthController {
     public void clearPasswordResetState() {
         passwordResetUsername = null;
         passwordResetEmail = null;
+        passwordResetQuestion = null;
         pendingSecurityAnswer = null;
         awaitingSecurityAnswer = false;
         awaitingNewPassword = false;
