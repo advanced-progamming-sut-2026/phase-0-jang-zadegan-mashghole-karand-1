@@ -293,7 +293,7 @@ public class GameState implements ReadOnlyGameState {
     public void removeDeadPlants() {
         for (int i = plants.size() - 1; i >= 0; i--) {
             Plant plant = plants.get(i);
-            if (!plant.isAlive) {
+            if (plant.shouldRemove()) {
                 plants.remove(i);
                 detachPlantFromTile(plant);
             }

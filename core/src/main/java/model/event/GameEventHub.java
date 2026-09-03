@@ -73,7 +73,10 @@ public class GameEventHub {
         if (e == null || e.plant == null) {
             return;
         }
-        gameState.removePlant(e.plant);
+
+        if (e.plant.shouldRemove()) {
+            gameState.removePlant(e.plant);
+        }
         ruleEngine.onPlantDied(e.plant, gameState, eventBus);
         scoreTracker.onPlantLost(context);
         notifyQuests(e);

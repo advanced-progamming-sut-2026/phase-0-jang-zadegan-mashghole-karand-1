@@ -91,9 +91,6 @@ public class Plant {
 
     public void kill(GameState state, EventBus bus, Zombie killer) {
         if (deathHandled) {
-            if (state != null) {
-                state.removePlant(this);
-            }
             return;
         }
         deathHandled = true;
@@ -106,9 +103,10 @@ public class Plant {
         if (publishBus != null) {
             publishBus.publish(new PlantDiedEvent(this));
         }
-        if (state != null) {
-            state.removePlant(this);
-        }
+    }
+
+    public boolean shouldRemove() {
+        return !isAlive && attackAnimTicks <= 0;
     }
 
     public boolean activatePlantFood(
@@ -268,7 +266,11 @@ public class Plant {
     }
 
     public void startAttackAnim() {
-        attackAnimTicks = GameLoop.TICKS_PER_SECOND / 2;
+        startAttackAnim(GameLoop.TICKS_PER_SECOND / 2);
+    }
+
+    public void startAttackAnim(int ticks) {
+        attackAnimTicks = Math.max(0, ticks);
     }
 
     public void tickAttackAnim() {

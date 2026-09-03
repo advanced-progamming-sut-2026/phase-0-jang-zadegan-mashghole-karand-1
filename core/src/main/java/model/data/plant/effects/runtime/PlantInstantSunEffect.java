@@ -1,6 +1,7 @@
 package model.data.plant.effects.runtime;
 
 import model.core.EventBus;
+import model.core.GameLoop;
 import model.core.GameState;
 import model.core.Position;
 import model.data.plant.Plant;
@@ -22,6 +23,7 @@ public class PlantInstantSunEffect implements PlantEffectConfig {
     public void onActivate(Plant plant, GameState state, EventBus event) {
         Sun sun = new Sun(plant.row, new Position(plant.getX(), plant.getY()), amount, plant);
         state.sunDrops.add(sun);
+        plant.startAttackAnim(2 * GameLoop.TICKS_PER_SECOND);
         event.publish(new SunProducedEvent(plant, sun));
     }
 }

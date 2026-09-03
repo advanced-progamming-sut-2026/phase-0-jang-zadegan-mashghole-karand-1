@@ -68,7 +68,7 @@ public class PlantSunProduceAbility implements PlantAbilityConfig {
         Sun sun = new Sun(plant.row, new Position(plant.getX(), plant.getY()), baseAmount, plant);
         state.sunDrops.add(sun);
         waitingForCollection = true;
-        plant.startAttackAnim();
+        plant.startAttackAnim(2 * GameLoop.TICKS_PER_SECOND);
         if (plant.type == PlantType.GoldBloom){
             plant.isAlive = false;
         }
