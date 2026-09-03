@@ -51,6 +51,7 @@ public class PlantMintAbility implements PlantAbilityConfig {
             }
         }
 
+        plant.startAttackAnim();
         plant.kill(state, event);
     }
 
