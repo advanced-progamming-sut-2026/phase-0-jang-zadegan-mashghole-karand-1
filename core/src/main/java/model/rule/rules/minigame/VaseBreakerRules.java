@@ -9,6 +9,7 @@ import model.board.Tile;
 import model.core.EventBus;
 import model.core.GameState;
 import model.core.SessionEnd;
+import model.data.plant.PlantCategory;
 import model.data.plant.PlantType;
 import model.data.vase.Vase;
 import model.data.vase.VaseType;
@@ -32,7 +33,6 @@ public class VaseBreakerRules implements LevelRule {
             ZombieType.NEWSPAPER_ZOMBIE);
 
     private static final List<PlantType> FALLBACK_PLANT_POOL = List.of(
-            PlantType.Sunflower,
             PlantType.PeaShooter,
             PlantType.Wall_nut,
             PlantType.SnowPea);

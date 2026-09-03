@@ -26,11 +26,14 @@ public class IZombieRules implements LevelRule {
     private static final int STARTING_SUN = 150;
 
     private static final List<PlantType> FALLBACK_PLANTS = List.of(
-            PlantType.Sunflower,
             PlantType.PeaShooter,
-            PlantType.Wall_nut,
+            PlantType.Repeater,
             PlantType.SnowPea,
-            PlantType.Repeater);
+            PlantType.Threepeater,
+            PlantType.Cabbage_pult,
+            PlantType.Kernel_pult,
+            PlantType.Melon_pult,
+            PlantType.Wall_nut);
 
     private boolean sessionReady;
 

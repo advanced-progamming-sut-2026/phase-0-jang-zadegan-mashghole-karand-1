@@ -32,11 +32,14 @@ public final class IZombieRoom {
             "NEWSPAPER_ZOMBIE", 100);
 
     private static final Map<String, Integer> PLANT_COSTS = Map.of(
-            "Sunflower", 50,
             "PeaShooter", 100,
-            "Wall_nut", 50,
+            "Repeater", 200,
             "SnowPea", 175,
-            "Repeater", 200);
+            "Threepeater", 325,
+            "Cabbage_pult", 100,
+            "Kernel_pult", 100,
+            "Melon_pult", 300,
+            "Wall_nut", 50);
 
     private final String roomId;
     private final String userA;
