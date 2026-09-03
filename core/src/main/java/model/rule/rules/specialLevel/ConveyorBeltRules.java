@@ -18,6 +18,11 @@ public class ConveyorBeltRules implements LevelRule {
     }
 
     @Override
+    public boolean shouldDropSkySun() {
+        return false;
+    }
+
+    @Override
     public void onSessionStart(SessionContext context, GameState state, EventBus bus) {
         List<PlantType> pool = context.getConfig().selectedPlants;
         context.initializeConveyor(pool);
