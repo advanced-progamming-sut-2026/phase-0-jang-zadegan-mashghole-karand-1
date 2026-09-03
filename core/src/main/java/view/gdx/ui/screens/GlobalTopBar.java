@@ -1,11 +1,13 @@
 package view.gdx.ui.screens;
 
 import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
@@ -28,6 +30,7 @@ public final class GlobalTopBar {
     private ControllerManager controller;
     private AssetContext assets;
     private boolean styled = false;
+    private boolean debugMode;
 
     public GlobalTopBar() {
         Table bar = new Table();
@@ -41,6 +44,9 @@ public final class GlobalTopBar {
 
         stage.addActor(bar);
 
+        coinBadge.addListener(plusClick(true));
+        gemBadge.addListener(plusClick(false));
+
         UiWidgets.onChange(back, () -> {
             if (controller != null) {
                 UiWidgets.apply(controller, controller.exitMenu());
@@ -51,6 +57,7 @@ public final class GlobalTopBar {
     public void bind(UiViewContext ctx) {
         controller = ctx.controller;
         assets = ctx.assets;
+        debugMode = ctx.settings != null && ctx.settings.debugMode;
         boolean inGame = ctx.screen == ScreenType.GAME;
         boolean auth = ctx.screen == ScreenType.LOGIN || ctx.screen == ScreenType.REGISTER;
         boolean showBack = !auth && ctx.screen != ScreenType.MAIN && !inGame;
@@ -96,6 +103,22 @@ public final class GlobalTopBar {
 
     public Stage stage() {
         return stage;
+    }
+
+    private ClickListener plusClick(boolean coins) {
+        return new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (!debugMode || controller == null || x < event.getListenerActor().getWidth() - 32f) {
+                    return;
+                }
+                if (coins) {
+                    UiWidgets.apply(controller, controller.getGameMenuController().cheatAddCoin(100));
+                } else {
+                    UiWidgets.apply(controller, controller.getGameMenuController().cheatAddGem(10));
+                }
+            }
+        };
     }
 
     private static Group badge(Label text) {

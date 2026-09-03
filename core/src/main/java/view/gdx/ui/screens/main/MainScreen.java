@@ -1,6 +1,7 @@
 package view.gdx.ui.screens.main;
 
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -86,6 +87,7 @@ public final class MainScreen implements UiScreen {
 
         Table root = new Table();
         root.setFillParent(true);
+        root.setTouchable(Touchable.childrenOnly);
         root.pad(16f);
         root.add(topLeft).left().top();
         root.add().expandX();
