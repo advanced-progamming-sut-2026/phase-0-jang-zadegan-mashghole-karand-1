@@ -102,7 +102,7 @@ public class BigWaveBeachRules implements LevelRule {
         GameBoard board = state.getBoard();
         for (int i = 0; i < ReadOnlyGameState.GRID_ROWS * ReadOnlyGameState.GRID_COLS; i++) {
             Tile tile = board.getTile(i / ReadOnlyGameState.GRID_COLS, i % ReadOnlyGameState.GRID_COLS);
-            if (tile.isWater() && tile.hasBeachPost() && RANDOM.nextBoolean()) {
+            if (tile.isWater() && tile.hasBeachPost()) {
                 pendingBeachTiles.add(tile);
             }
         }

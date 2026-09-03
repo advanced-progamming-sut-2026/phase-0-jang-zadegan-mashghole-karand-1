@@ -170,6 +170,12 @@ public final class UiNavigator implements Disposable {
         }
     }
 
+    public void ensureGameLoopRunning() {
+        if (lastContext != null) {
+            syncGameLoop(lastContext);
+        }
+    }
+
     private void syncGameLoop(UiViewContext context) {
         boolean dialogueActive = context.controller != null && context.controller.isDialogueActive();
         boolean onlineMatch = context.controller != null

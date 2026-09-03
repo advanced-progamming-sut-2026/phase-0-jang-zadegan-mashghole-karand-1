@@ -637,12 +637,12 @@ public class ZombossAbility implements ZombieAbilityConfig {
     }
 
     private void destroyTile(GameState state, EventBus bus, int row, int col) {
-        while (true) {
-            Plant plant = state.getPlantAt(row, col);
-            if (plant == null) {
-                break;
+        Plant plant;
+        while ((plant = state.getPlantAt(row, col)) != null) {
+            if (plant.isAlive) {
+                plant.kill(state, bus);
             }
-            plant.kill(state, bus);
+            state.removePlant(plant);
         }
     }
 

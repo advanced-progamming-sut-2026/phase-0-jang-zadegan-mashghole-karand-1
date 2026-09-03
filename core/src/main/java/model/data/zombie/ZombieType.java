@@ -71,13 +71,13 @@ public enum ZombieType {
                         List.of(new ZombieImmunityAbility(ProjectileType.FIRE))),
         SUN_ZOMBIE("Sun Zombie", new ZombieBaseStats(190, 50, 0f, 0, 0), null,
                         List.of(new ZombieSunProduceAbility())),
-        ZOMBOT_SPHINX("Zombot Sphinx", new ZombieBaseStats(1000, 0, 0f, 0, 0), null,
+        ZOMBOT_SPHINX("Zombot Sphinx", new ZombieBaseStats(2500, 0, 0f, 0, 0), null,
                         List.of(new ZombossAbility())),
-        ZOMBOT_DRAGON("Zombot Dragon", new ZombieBaseStats(1000, 0, 0f, 0, 0), null,
+        ZOMBOT_DRAGON("Zombot Dragon", new ZombieBaseStats(2500, 0, 0f, 0, 0), null,
                         List.of(new ZombossAbility())),
-        ZOMBOT_SHARK("Zombot Shark", new ZombieBaseStats(1000, 0, 0f, 0, 0), null,
+        ZOMBOT_SHARK("Zombot Shark", new ZombieBaseStats(2500, 0, 0f, 0, 0), null,
                         List.of(new ZombossAbility())),
-        ZOMBOT_MAMMOTH("Zombot Mammoth", new ZombieBaseStats(1000, 0, 0f, 0, 0), null,
+        ZOMBOT_MAMMOTH("Zombot Mammoth", new ZombieBaseStats(2500, 0, 0f, 0, 0), null,
                         List.of(new ZombossAbility()));
 
         public final String name;

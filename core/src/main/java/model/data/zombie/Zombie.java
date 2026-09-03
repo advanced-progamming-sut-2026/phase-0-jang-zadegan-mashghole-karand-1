@@ -205,6 +205,8 @@ public class Zombie {
             if (hpBefore > cut && hp <= cut) {
                 stunned = true;
                 stunTicks = 50;
+                clearAnim();
+                forceWalkAnim = false;
                 return;
             }
         }
