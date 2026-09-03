@@ -9,7 +9,7 @@ import model.rule.LevelRule;
 import model.rule.SessionContext;
 
 public class LoveYourPlantsRules implements LevelRule {
-    private static final int MAX_PLANT_DEATHS = 5;
+    public static final int MAX_PLANT_DEATHS = 5;
     private int plantDeaths = 0;
 
     @Override
@@ -24,5 +24,13 @@ public class LoveYourPlantsRules implements LevelRule {
         if (plantDeaths >= MAX_PLANT_DEATHS) {
             SessionEnd.lose(state, bus, GameOverReason.PLANT_DEATH_LIMIT);
         }
+    }
+
+    public int getPlantDeaths() {
+        return plantDeaths;
+    }
+
+    public int getMaxPlantDeaths() {
+        return MAX_PLANT_DEATHS;
     }
 }

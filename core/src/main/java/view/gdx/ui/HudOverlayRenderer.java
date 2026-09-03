@@ -106,6 +106,17 @@ public final class HudOverlayRenderer {
         if (hud.mode == HudViewState.Mode.ZOMBOSS) {
             drawBossHp(batch, assets, hud.timedWarProgress, hud.timedWarGoal, worldWidth, worldHeight);
         }
+        if (hud.mode == HudViewState.Mode.TIMED_WAR) {
+            drawTimedWarHud(batch, hud, worldWidth, worldHeight);
+        }
+        if (hud.mode == HudViewState.Mode.LOVE_YOUR_PLANTS) {
+            drawStatusChip(batch, worldWidth, worldHeight,
+                    "Lost " + hud.timedWarProgress + "/" + hud.timedWarGoal);
+        }
+        if (hud.mode == HudViewState.Mode.SAVE_OUR_SEEDS) {
+            drawStatusChip(batch, worldWidth, worldHeight,
+                    "Protect " + hud.protectedAlive + "/" + hud.protectedTotal);
+        }
         if (hud.mode == HudViewState.Mode.BRAINS) {
             drawBrainsHud(batch, worldWidth, worldHeight, hud.protectedAlive, hud.protectedTotal,
                     hud.timedWarSecondsLeft);
@@ -454,21 +465,51 @@ public final class HudOverlayRenderer {
         font.draw(batch, glyphLayout, textX, textY);
     }
 
-    private void drawBrainsHud(SpriteBatch batch, float worldWidth, float worldHeight,
-            int collected, int total, int secondsLeft) {
+    private void drawTimedWarHud(SpriteBatch batch, HudViewState hud, float worldWidth, float worldHeight) {
+        String goal = hud.timedWarGoalLabel == null || hud.timedWarGoalLabel.isBlank()
+                ? "Goal"
+                : hud.timedWarGoalLabel;
+        String line1 = goal + " " + hud.timedWarProgress + "/" + hud.timedWarGoal;
+        String line2 = hud.timedWarSecondsLeft + "s";
         font.setColor(Color.WHITE);
-        String brainsText = "Brains " + collected + "/" + total;
-        glyphLayout.setText(font, brainsText);
+        glyphLayout.setText(font, line1);
+        float x1 = worldWidth * 0.5f - glyphLayout.width * 0.5f;
+        float y1 = worldHeight - HUD_TOP_INSET - 8f;
+        font.draw(batch, glyphLayout, x1, y1);
+        glyphLayout.setText(font, line2);
+        float x2 = worldWidth * 0.5f - glyphLayout.width * 0.5f;
+        font.draw(batch, glyphLayout, x2, y1 - glyphLayout.height - 4f);
+    }
+
+    private void drawStatusChip(SpriteBatch batch, float worldWidth, float worldHeight, String text) {
+        font.setColor(Color.WHITE);
+        glyphLayout.setText(font, text);
         float x = worldWidth * 0.5f - glyphLayout.width * 0.5f;
         float y = worldHeight - HUD_TOP_INSET - 8f;
         font.draw(batch, glyphLayout, x, y);
+    }
+
+    private void drawBrainsHud(SpriteBatch batch, float worldWidth, float worldHeight,
+            int collected, int total, int secondsLeft) {
+        font.setColor(Color.WHITE);
         if (secondsLeft > 0) {
-            String timerText = secondsLeft + "s";
+            int minutes = secondsLeft / 60;
+            int secs = secondsLeft % 60;
+            String timerText = minutes > 0
+                    ? String.format("Survive %d:%02d", minutes, secs)
+                    : "Survive " + secs + "s";
             glyphLayout.setText(font, timerText);
             float timerX = worldWidth * 0.5f - glyphLayout.width * 0.5f;
-            float timerY = y - glyphLayout.height - 4f;
+            float timerY = worldHeight - HUD_TOP_INSET - 8f;
             font.draw(batch, glyphLayout, timerX, timerY);
         }
+        String brainsText = "Brains " + collected + "/" + total;
+        glyphLayout.setText(font, brainsText);
+        float x = worldWidth * 0.5f - glyphLayout.width * 0.5f;
+        float y = secondsLeft > 0
+                ? worldHeight - HUD_TOP_INSET - 8f - glyphLayout.height - 6f
+                : worldHeight - HUD_TOP_INSET - 8f;
+        font.draw(batch, glyphLayout, x, y);
     }
 
     private void drawVaseCount(SpriteBatch batch, AssetContext assets, int vaseCount,

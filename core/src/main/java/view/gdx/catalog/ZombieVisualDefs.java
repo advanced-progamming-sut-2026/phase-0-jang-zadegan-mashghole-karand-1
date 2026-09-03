@@ -157,8 +157,8 @@ public final class ZombieVisualDefs {
         zombies.put(ZombieType.KING, ZombieVisualDef.plain(KING, "idle", "walk", "eat", "die")
                 .withArm(ArmVisualRecipe.king()));
         zombies.put(ZombieType.IMP_DRAGON, ZombieVisualDef.plain(IMP_DRAGON, "idle", "walk", "eat", "die"));
-        zombies.put(ZombieType.SUN_ZOMBIE, ZombieVisualDef.plain(DEFAULT_ZOMBIES, "idle", "walk", "eat", "die")
-                .withArm(ArmVisualRecipe.darkBasic())); // temporary
+        zombies.put(ZombieType.SUN_ZOMBIE, ZombieVisualDef.plain(RA, "idle", "walk", "eat", "die")
+                .withArm(ArmVisualRecipe.ra()));
     }
 
     private static void registerZombossZombies(Map<ZombieType, ZombieVisualDef> zombies) {

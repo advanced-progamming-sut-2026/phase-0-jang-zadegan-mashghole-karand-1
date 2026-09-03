@@ -312,6 +312,9 @@ public class Zombie {
     }
 
     public boolean canMove() {
+        if (type != null && type == ZombieType.SUN_ZOMBIE) {
+            return false;
+        }
         if (type.isZomboss()) {
             return false;
         }

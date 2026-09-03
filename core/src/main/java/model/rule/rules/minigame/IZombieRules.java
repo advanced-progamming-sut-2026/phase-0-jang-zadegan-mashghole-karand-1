@@ -21,7 +21,7 @@ import model.rule.SessionContext;
 
 public class IZombieRules implements LevelRule {
     private static final Random RANDOM = new Random();
-    private static final int PLANT_COLS = 6;
+    private static final int PLANT_COLS = 4;
     private static final int MIN_ZOMBIE_SPAWN_COL = 6;
     private static final int STARTING_SUN = 150;
 

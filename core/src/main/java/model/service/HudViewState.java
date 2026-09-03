@@ -15,6 +15,8 @@ import model.rule.LevelRule;
 import model.rule.SessionConfig;
 import model.rule.SessionContext;
 import model.rule.rules.specialLevel.DeadlineRules;
+import model.rule.rules.specialLevel.LoveYourPlantsRules;
+import model.rule.rules.specialLevel.PlantWhatYouGetRules;
 import model.rule.rules.specialLevel.SaveOurSeedsRules;
 import model.rule.rules.specialLevel.TimedWarRules;
 import model.storage.user.User;
@@ -34,7 +36,9 @@ public class HudViewState {
         TIMED_WAR,
         DEADLINE,
         SAVE_OUR_SEEDS,
-        ZOMBOSS
+        ZOMBOSS,
+        LOVE_YOUR_PLANTS,
+        PLANT_WHAT_YOU_GET
     }
 
     public static final class TraySlot {
@@ -221,6 +225,12 @@ public class HudViewState {
         if (special == SpecialLevelType.SAVE_OUR_SEEDS) {
             return saveOurSeedsHud(context, user);
         }
+        if (special == SpecialLevelType.LOVE_YOUR_PLANTS) {
+            return loveYourPlantsHud(context, user);
+        }
+        if (special == SpecialLevelType.PLANT_WHAT_YOU_GET) {
+            return plantWhatYouGetHud(context, user);
+        }
 
         return normalHud(context, specialLabel(special), user, special);
     }
@@ -255,6 +265,16 @@ public class HudViewState {
         return Math.max(0, Protocol.IZOMBIE_SURVIVAL_SECONDS - elapsedSeconds);
     }
 
+    private static int iZombieSurvivalSecondsLeft(SessionConfig config, ReadOnlyGameState state) {
+        if (config == null || config.iZombiePlayMode == null) {
+            return 0;
+        }
+        return switch (config.iZombiePlayMode) {
+            case ONLINE_RANDOM, ONLINE_INVITE, COUCH -> iZombieSecondsRemaining(state);
+            default -> 0;
+        };
+    }
+
     private static HudViewState iZombiePvPHud(SessionConfig config, ReadOnlyGameState state) {
         boolean couch = config.iZombiePlayMode == shared.izombie.IZombiePlayMode.COUCH;
         boolean plantsSide = couch || config.localMatchRole == shared.izombie.MatchRole.PLANTS;
@@ -265,7 +285,7 @@ public class HudViewState {
 
         String label = buildIZombiePvPLabel(state);
         int collected = state != null ? state.getCollectedBrainCount() : 0;
-        int secondsLeft = iZombieSecondsRemaining(state);
+        int secondsLeft = iZombieSurvivalSecondsLeft(config, state);
         return new HudViewState(
                 Mode.BRAINS, label, true, false, false,
                 null, 0, 0,
@@ -460,12 +480,33 @@ public class HudViewState {
                 normalHelp(true));
     }
 
-    private static HudViewState normalHud(SessionContext context, String label, User user, SpecialLevelType special) {
-        List<String> help = normalHelp(true);
-        if (special == SpecialLevelType.PLANT_WHAT_YOU_GET) {
-            help = new ArrayList<>(help);
+    private static HudViewState loveYourPlantsHud(SessionContext context, User user) {
+        LoveYourPlantsRules rules = findRule(context, LoveYourPlantsRules.class);
+        int lost = rules != null ? rules.getPlantDeaths() : 0;
+        int max = rules != null ? rules.getMaxPlantDeaths() : LoveYourPlantsRules.MAX_PLANT_DEATHS;
+        return withPlantTray(context, user,
+                Mode.LOVE_YOUR_PLANTS, "Love Your Plants", true, true, true,
+                "Lost", lost, max, 0,
+                -1, lost, max, -1,
+                normalHelp(true));
+    }
+
+    private static HudViewState plantWhatYouGetHud(SessionContext context, User user) {
+        PlantWhatYouGetRules rules = findRule(context, PlantWhatYouGetRules.class);
+        boolean started = rules != null && rules.hasWavesStarted();
+        List<String> help = new ArrayList<>(normalHelp(true));
+        if (!started) {
             help.add(0, "start zombie waves");
         }
+        return withPlantTray(context, user,
+                Mode.PLANT_WHAT_YOU_GET, "Plant What You Get", true, started, true,
+                "", 0, 0, 0,
+                -1, 0, 0, -1,
+                help);
+    }
+
+    private static HudViewState normalHud(SessionContext context, String label, User user, SpecialLevelType special) {
+        List<String> help = normalHelp(true);
         return withPlantTray(context, user,
                 Mode.NORMAL, label, true, true, true,
                 "", 0, 0, 0,

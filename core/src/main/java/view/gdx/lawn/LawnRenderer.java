@@ -13,6 +13,7 @@ import model.board.TileType;
 import model.core.Position;
 import model.core.ReadOnlyGameState;
 import model.data.content.chapter.ChapterType;
+import model.data.content.specialLevel.SpecialLevelType;
 import model.data.Barrel.Barrel;
 import model.data.plant.Plant;
 import model.data.plant.PlantTag;
@@ -21,6 +22,10 @@ import model.data.plant.abilities.runtime.BowlingMotionView;
 import model.data.projectile.Projectile;
 import model.data.vfx.LawnEffect;
 import model.data.zombie.Zombie;
+import model.data.zombie.ZombieType;
+import model.rule.SessionContext;
+import model.rule.rules.specialLevel.DeadlineRules;
+import model.rule.rules.specialLevel.SaveOurSeedsRules;
 import pvz.libpvz.pam.ClipRef;
 import pvz.libpvz.pam.PamClipTiming;
 import pvz.libpvz.pam.PamPlayer;
@@ -36,6 +41,8 @@ public final class LawnRenderer {
     private static final float PAM_CANVAS = 390f;
     private static final float ENTITY_HEIGHT_IN_CELLS = 2f;
     private static final String FIRE_TILE_PAM = "768/FULL/BACKGROUNDS/FIRETILE/FIRETILE.PAM";
+    private static final String PROTECT_TILE =
+            "IMAGE_BACKGROUNDS_PROTECT_TILE_PROTECT_TILE_112X125";
     private static final String ICE_BLOCK_ZOMBIE_PAM =
             "768/FULL/EFFECTS/FROSTBITE_ICE_BLOCK_ZOMBIE/FROSTBITE_ICE_BLOCK_ZOMBIE.PAM";
     private static final String ICE_BLOCK_ZOMBIE_BEHIND_PAM =
@@ -83,12 +90,19 @@ public final class LawnRenderer {
 
     public void render(SpriteBatch batch, AssetContext assets, ReadOnlyGameState state, float deltaSeconds,
             ChapterType chapter) {
+        render(batch, assets, state, deltaSeconds, chapter, null);
+    }
+
+    public void render(SpriteBatch batch, AssetContext assets, ReadOnlyGameState state, float deltaSeconds,
+            ChapterType chapter, SessionContext session) {
         if (state == null || assets.pamPlayer() == null) {
             return;
         }
         animStates.advanceAll(deltaSeconds);
         PamPlayer player = assets.pamPlayer();
 
+        drawProtectTiles(batch, assets, session);
+        drawDeadlineLine(batch, assets, session);
         drawFireTiles(batch, assets, player, state);
         chapterTerrainRenderer.render(batch, assets, state, chapter);
         mowerRenderer.render(batch, assets, state, chapter);
@@ -380,6 +394,8 @@ public final class LawnRenderer {
             clip = visual.walkClip;
         } else if (zombie.type != null && zombie.type.isZomboss()) {
             clip = visual.idleClip;
+        } else if (zombie.type == ZombieType.SUN_ZOMBIE) {
+            clip = visual.idleClip;
         } else if (zombie.isEating) {
             clip = visual.eatClip;
         } else {
@@ -470,6 +486,71 @@ public final class LawnRenderer {
         } finally {
             endEntityScale(batch);
         }
+    }
+
+    private void drawDeadlineLine(SpriteBatch batch, AssetContext assets, SessionContext session) {
+        int col = deadlineColumn(session);
+        if (col < 0) {
+            return;
+        }
+        TextureRegion fill = assets.region("IMAGE_UI_HUD_INGAME_PROGRESS_METER_FILL");
+        if (fill == null) {
+            return;
+        }
+        float lineX = layout.cellLeft(col);
+        float bottom = layout.cellBottom(ReadOnlyGameState.GRID_ROWS - 1);
+        float top = layout.cellBottom(0) + layout.cellHeight();
+        batch.setColor(0.95f, 0.12f, 0.12f, 0.85f);
+        batch.draw(fill, lineX - 2.5f, bottom, 5f, top - bottom);
+        batch.setColor(Color.WHITE);
+    }
+
+    private static int deadlineColumn(SessionContext session) {
+        if (session == null || session.getConfig() == null) {
+            return -1;
+        }
+        SpecialLevelType special = session.getConfig().specialLevelType;
+        if (special == null && session.getConfig().levelConfig != null) {
+            special = session.getConfig().levelConfig.specialLevelType;
+        }
+        if (special != SpecialLevelType.DEAD_LINE) {
+            return -1;
+        }
+        if (session.getRuleEngine() != null) {
+            for (var rule : session.getRuleEngine().getActiveRules()) {
+                if (rule instanceof DeadlineRules deadline) {
+                    return deadline.getDeadlineColumn();
+                }
+            }
+        }
+        return DeadlineRules.DEFAULT_DEADLINE_COLUMN;
+    }
+
+    private void drawProtectTiles(SpriteBatch batch, AssetContext assets, SessionContext session) {
+        if (!isSaveOurSeeds(session)) {
+            return;
+        }
+        TextureRegion tile = assets.region(PROTECT_TILE);
+        if (tile == null) {
+            return;
+        }
+        int col = SaveOurSeedsRules.PROTECTED_COL;
+        float w = layout.cellWidth();
+        float h = layout.cellHeight();
+        for (int row : SaveOurSeedsRules.PROTECTED_ROWS) {
+            batch.draw(tile, layout.cellLeft(col), layout.cellBottom(row), w, h);
+        }
+    }
+
+    private static boolean isSaveOurSeeds(SessionContext session) {
+        if (session == null || session.getConfig() == null) {
+            return false;
+        }
+        SpecialLevelType special = session.getConfig().specialLevelType;
+        if (special == null && session.getConfig().levelConfig != null) {
+            special = session.getConfig().levelConfig.specialLevelType;
+        }
+        return special == SpecialLevelType.SAVE_OUR_SEEDS;
     }
 
     private void drawFireTiles(SpriteBatch batch, AssetContext assets, PamPlayer player,

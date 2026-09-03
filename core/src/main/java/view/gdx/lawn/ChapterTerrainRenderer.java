@@ -21,22 +21,13 @@ public final class ChapterTerrainRenderer {
     private static final float OVERLAY_HEIGHT_IN_CELLS = 1.4f;
     private static final float PAM_CANVAS = 390f;
 
-    private static final String ICE_UP_PAM =
-            "768/FULL/EFFECTS/TILESLIDER_ICEAGE_UP/TILESLIDER_ICEAGE_UP.PAM";
-    private static final String ICE_DOWN_PAM =
-            "768/FULL/EFFECTS/TILESLIDER_ICEAGE_DOWN/TILESLIDER_ICEAGE_DOWN.PAM";
-    private static final String WATER_SQUARE_PAM =
-            "768/FULL/BACKGROUNDS/WATER_SQUARE/WATER_SQUARE.PAM";
-    private static final String WATER_TIDE_LINE_PAM =
-            "768/FULL/BACKGROUNDS/WATER_TIDE_LINE/WATER_TIDE_LINE.PAM";
-    private static final String WATER_FOAM_PAM =
-            "768/FULL/EFFECTS/WATER_FOAM/WATER_FOAM.PAM";
-    private static final String BEACH_POST_PAM =
-            "768/FULL/EFFECTS/SURF_BOARD/SURF_BOARD.PAM";
-    private static final String NECRO_BOTTOM_PAM =
-            "768/FULL/BACKGROUNDS/BACKGROUND_DARK_BRAZIER_BOTTOM/BACKGROUND_DARK_BRAZIER_BOTTOM.PAM";
-    private static final String NECRO_TOP_PAM =
-            "768/FULL/BACKGROUNDS/BACKGROUND_DARK_BRAZIER_TOP/BACKGROUND_DARK_BRAZIER_TOP.PAM";
+    private static final String ICE_UP_PAM = "768/FULL/EFFECTS/TILESLIDER_ICEAGE_UP/TILESLIDER_ICEAGE_UP.PAM";
+    private static final String ICE_DOWN_PAM = "768/FULL/EFFECTS/TILESLIDER_ICEAGE_DOWN/TILESLIDER_ICEAGE_DOWN.PAM";
+    private static final String WATER_SQUARE_IMAGE = "IMAGE_BACKGROUNDS_WATER_SQUARE_WATER_SQUARE_174X205";
+    private static final String WATER_TIDE_LINE_PAM = "768/FULL/BACKGROUNDS/WATER_TIDE_LINE/WATER_TIDE_LINE.PAM";
+    private static final String BEACH_POST_PAM = "768/FULL/EFFECTS/SURF_BOARD/SURF_BOARD.PAM";
+    private static final String NECRO_BOTTOM_PAM = "768/FULL/BACKGROUNDS/BACKGROUND_DARK_BRAZIER_BOTTOM/BACKGROUND_DARK_BRAZIER_BOTTOM.PAM";
+    private static final String NECRO_TOP_PAM = "768/FULL/BACKGROUNDS/BACKGROUND_DARK_BRAZIER_TOP/BACKGROUND_DARK_BRAZIER_TOP.PAM";
 
     private final LawnLayout layout;
     private final AnimStateStore animStates;
@@ -55,7 +46,7 @@ public final class ChapterTerrainRenderer {
         PamPlayer player = assets.pamPlayer();
         drawIceTiles(batch, assets, player, state);
         if (chapter == ChapterType.BIG_WAVE_BEACH || hasBeachPosts(state) || hasWater(state)) {
-            drawWaterAndTide(batch, assets, player, state);
+            drawWaterAndTide(batch, assets, state);
         }
         drawBeachPosts(batch, assets, player, state);
         drawNecromancyTiles(batch, assets, player, state);
@@ -81,16 +72,13 @@ public final class ChapterTerrainRenderer {
         }
     }
 
-    private void drawWaterAndTide(SpriteBatch batch, AssetContext assets, PamPlayer player,
-            ReadOnlyGameState state) {
-        ClipRef waterClip = assets.clip(WATER_SQUARE_PAM, "Water");
-        ClipRef foamClip = assets.clip(WATER_FOAM_PAM, "water_foam_left");
-        ClipRef tideClip = assets.clip(WATER_TIDE_LINE_PAM, "idle");
+    private void drawWaterAndTide(SpriteBatch batch, AssetContext assets, ReadOnlyGameState state) {
+        TextureRegion waterTile = assets.region(WATER_SQUARE_IMAGE);
         TextureRegion fill = assets.region("IMAGE_UI_HUD_INGAME_PROGRESS_METER_FILL");
 
         int floodMinCol = ReadOnlyGameState.GRID_COLS - MAX_TIDE_LEVEL;
         boolean anyBeach = drawDryBeachCells(batch, state, fill, floodMinCol);
-        boolean anyWater = drawWaterRows(batch, player, state, waterClip, foamClip, tideClip, fill);
+        boolean anyWater = drawWaterRows(batch, state, waterTile, fill);
 
         if (anyWater || anyBeach || hasBeachPosts(state)) {
             drawMaxTideLine(batch, assets, fill);
@@ -119,58 +107,35 @@ public final class ChapterTerrainRenderer {
         return anyBeach;
     }
 
-    private boolean drawWaterRows(SpriteBatch batch, PamPlayer player, ReadOnlyGameState state,
-            ClipRef waterClip, ClipRef foamClip, ClipRef tideClip, TextureRegion fill) {
+    private boolean drawWaterRows(SpriteBatch batch, ReadOnlyGameState state,
+            TextureRegion waterTile, TextureRegion fill) {
         boolean anyWater = false;
+        float w = layout.cellWidth();
+        float h = layout.cellHeight();
+        float pad = Math.max(1.5f, Math.min(w, h) * 0.05f);
+        float drawW = w + pad * 2f;
+        float drawH = h + pad * 2f;
         for (int r = 0; r < ReadOnlyGameState.GRID_ROWS; r++) {
-            int rowLeftmost = -1;
             for (int c = 0; c < ReadOnlyGameState.GRID_COLS; c++) {
                 Tile tile = state.getBoard().getTile(r, c);
                 if (tile == null || !tile.isWater()) {
                     continue;
                 }
                 anyWater = true;
-                if (rowLeftmost < 0) {
-                    rowLeftmost = c;
+                float x = layout.cellLeft(c) - pad;
+                float y = layout.cellBottom(r) - pad;
+                if (waterTile != null) {
+                    batch.setColor(Color.WHITE);
+                    batch.draw(waterTile, x, y, drawW, drawH);
+                } else if (fill != null) {
+                    batch.setColor(0.15f, 0.45f, 0.85f, 0.55f);
+                    batch.draw(fill, x, y, drawW, drawH);
+                    batch.setColor(Color.WHITE);
                 }
-                drawWaterCell(batch, player, state, waterClip, fill, r, c);
             }
-            drawWaterRowEdge(batch, player, r, rowLeftmost, foamClip, tideClip);
         }
         return anyWater;
     }
-
-    private void drawWaterCell(SpriteBatch batch, PamPlayer player, ReadOnlyGameState state,
-            ClipRef waterClip, TextureRegion fill, int row, int col) {
-        if (waterClip != null) {
-            EntityAnimState anim = animStates.getOrCreate(animKey(11, row, col), "Water");
-            drawCentered(batch, player, waterClip, anim.stateTime, row, col, TILE_HEIGHT_IN_CELLS, true);
-        } else if (fill != null) {
-            batch.setColor(0.15f, 0.45f, 0.85f, 0.55f);
-            batch.draw(fill, layout.cellLeft(col), layout.cellBottom(row),
-                    layout.cellWidth(), layout.cellHeight());
-            batch.setColor(Color.WHITE);
-        }
-    }
-
-    private void drawWaterRowEdge(SpriteBatch batch, PamPlayer player, int row, int rowLeftmost,
-            ClipRef foamClip, ClipRef tideClip) {
-        if (rowLeftmost < 0) {
-            return;
-        }
-        if (foamClip != null) {
-            EntityAnimState foamAnim = animStates.getOrCreate(animKey(12, row, rowLeftmost),
-                    "water_foam_left");
-            drawCentered(batch, player, foamClip, foamAnim.stateTime, row, rowLeftmost,
-                    TILE_HEIGHT_IN_CELLS, true);
-        }
-        if (tideClip != null) {
-            EntityAnimState tideAnim = animStates.getOrCreate(animKey(13, row, rowLeftmost), "idle");
-            drawCentered(batch, player, tideClip, tideAnim.stateTime, row, rowLeftmost,
-                    TILE_HEIGHT_IN_CELLS, true);
-        }
-    }
-
 
     private void drawMaxTideLine(SpriteBatch batch, AssetContext assets, TextureRegion fill) {
         int maxCol = ReadOnlyGameState.GRID_COLS - MAX_TIDE_LEVEL;

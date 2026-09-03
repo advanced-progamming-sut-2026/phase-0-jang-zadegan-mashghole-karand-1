@@ -34,6 +34,7 @@ public final class GameScreenShell implements UiScreen {
 
     private final Stage stage = new Stage(new ScreenViewport());
     private final ImageButton pause;
+    private final TextButton startWavesButton;
     private final Table debugBar;
     private Table cheatRow;
     private TextField cheatField;
@@ -54,6 +55,12 @@ public final class GameScreenShell implements UiScreen {
         UiWidgets.onChange(pause, () -> {
             if (controller != null) {
                 UiWidgets.apply(controller, controller.enterMenu("pause"));
+            }
+        });
+        startWavesButton = UiWidgets.primary("Start Waves");
+        UiWidgets.onChange(startWavesButton, () -> {
+            if (controller != null) {
+                UiWidgets.apply(controller, controller.getGameMechanismController().startZombieWaves());
             }
         });
 
@@ -142,6 +149,7 @@ public final class GameScreenShell implements UiScreen {
         root.setTouchable(Touchable.childrenOnly);
         root.top().right().padTop(GlobalTopBar.reservedScreenHeight()).padRight(10f);
         root.add(pause).width(120f).height(44f).row();
+        root.add(startWavesButton).width(150f).height(44f).padTop(8f).row();
         root.add(debugBar).right().padTop(8f);
         return root;
     }
@@ -157,7 +165,12 @@ public final class GameScreenShell implements UiScreen {
         boolean menuClear = context.menu == null || context.menu == MenuType.NONE;
         boolean hudVisible = menuClear && !dialogueActive;
         boolean debug = context.settings != null && context.settings.debugMode;
+        boolean showStartWaves = hudVisible
+                && context.hud != null
+                && context.hud.mode == model.service.HudViewState.Mode.PLANT_WHAT_YOU_GET
+                && !context.hud.showWave;
         pause.setVisible(hudVisible);
+        startWavesButton.setVisible(showStartWaves);
         debugBar.setVisible(hudVisible && debug);
         if (!debug) {
             cheatRow.setVisible(false);

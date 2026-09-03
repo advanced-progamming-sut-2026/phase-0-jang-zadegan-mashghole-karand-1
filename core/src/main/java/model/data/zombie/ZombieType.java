@@ -69,7 +69,7 @@ public enum ZombieType {
         KING("King", new ZombieBaseStats(1000, 100, 0f, 750, 2000), null, List.of(new ZombieKingAbility())),
         IMP_DRAGON("Imp Dragon", new ZombieBaseStats(190, 100, 0.185f, 150, 3500), null,
                         List.of(new ZombieImmunityAbility(ProjectileType.FIRE))),
-        SUN_ZOMBIE("Sun Zombie", new ZombieBaseStats(190, 50, 0.12f, 0, 0), null,
+        SUN_ZOMBIE("Sun Zombie", new ZombieBaseStats(190, 50, 0f, 0, 0), null,
                         List.of(new ZombieSunProduceAbility())),
         ZOMBOT_SPHINX("Zombot Sphinx", new ZombieBaseStats(1000, 0, 0f, 0, 0), null,
                         List.of(new ZombossAbility())),
