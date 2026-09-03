@@ -71,12 +71,12 @@ public final class NetworkEventRouter {
     private void handleInviteResult(NetworkSession.NetworkEvent event) {
         String status = event.a;
         if ("REJECTED".equals(status)) {
-            navigator.showToast("Invite rejected");
+            navigator.showToast("Invite rejected", true);
             if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {
                 controller.openMenu(MenuType.I_ZOMBIE_MODE);
             }
         } else if ("TIMEOUT".equals(status) || "CANCELLED".equals(status)) {
-            navigator.showToast("Invite " + status.toLowerCase());
+            navigator.showToast("Invite " + status.toLowerCase(), true);
             if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {
                 controller.openMenu(MenuType.I_ZOMBIE_MODE);
             }
@@ -127,7 +127,7 @@ public final class NetworkEventRouter {
     }
 
     private void handleMatchRestartDeclined() {
-        navigator.showToast("Opponent declined restart");
+        navigator.showToast("Opponent declined restart", true);
         if (controller.getCurrentMenu() == MenuType.MATCH_RESTART
                 || controller.getCurrentMenu() == MenuType.MATCH_RESTART_WAIT) {
             controller.clearCurrentMenu();
@@ -137,16 +137,16 @@ public final class NetworkEventRouter {
 
     private void handleLookupResult(NetworkSession.NetworkEvent event) {
         if (!event.flag1) {
-            navigator.showToast("Username not found");
+            navigator.showToast("Username not found", true);
         } else if (!event.flag2) {
-            navigator.showToast("User is offline");
+            navigator.showToast("User is offline", true);
         } else {
             navigator.showToast(event.a + " is online");
         }
     }
 
     private void handleNetworkError(NetworkSession.NetworkEvent event) {
-        navigator.showToast(mapError(event.a));
+        navigator.showToast(mapError(event.a), true);
         if ("USER_OFFLINE".equals(event.a) || "INVALID_USERNAME".equals(event.a)
                 || "USER_BUSY".equals(event.a) || "UNAUTHORIZED".equals(event.a)) {
             if (controller.getCurrentMenu() == MenuType.I_ZOMBIE_QUEUE) {

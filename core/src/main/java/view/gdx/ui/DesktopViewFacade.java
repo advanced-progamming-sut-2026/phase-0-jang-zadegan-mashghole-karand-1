@@ -19,7 +19,7 @@ public final class DesktopViewFacade implements ViewFacade {
 
     @Override
     public void showMessage(String message) {
-        navigator.showToast(message);
+        navigator.showToast(message, false);
     }
 
     @Override
@@ -29,7 +29,7 @@ public final class DesktopViewFacade implements ViewFacade {
 
     @Override
     public void showError(String error) {
-        navigator.showToast(error);
+        navigator.showToast(error, true);
     }
 
     @Override
@@ -39,14 +39,14 @@ public final class DesktopViewFacade implements ViewFacade {
 
     @Override
     public void render(ReadOnlyGameState state, ScreenType currentScreen, MenuType currentMenu,
-                       AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
-                       NewsViewState newsViewState, SettingsViewState settingsViewState,
-                       LeaderboardViewState leaderboardViewState, CollectionViewState collectionViewState,
-                       QuestViewState questViewState, HudViewState hudViewState, ControllerManager controllerManager,
-                       boolean hasUnreadNews) {
+            AuthState authState, GameNavigationState gameNavigation, ProfileViewState profileViewState,
+            NewsViewState newsViewState, SettingsViewState settingsViewState,
+            LeaderboardViewState leaderboardViewState, CollectionViewState collectionViewState,
+            QuestViewState questViewState, HudViewState hudViewState, ControllerManager controllerManager,
+            boolean hasUnreadNews) {
         UiViewContext context = new UiViewContext(state, currentScreen, currentMenu, authState, gameNavigation,
                 profileViewState, newsViewState, settingsViewState, leaderboardViewState, collectionViewState,
-                questViewState, hudViewState, controllerManager, assets,hasUnreadNews);
+                questViewState, hudViewState, controllerManager, assets, hasUnreadNews);
         navigator.show(context);
     }
 
