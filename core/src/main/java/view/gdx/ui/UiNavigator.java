@@ -222,6 +222,7 @@ public final class UiNavigator implements Disposable {
     }
 
     public void draw() {
+        announcementOverlay.draw();
         if (shouldDrawScreenLayer()) {
             activeScreen.stage().getViewport().apply();
             activeScreen.stage().draw();
@@ -231,7 +232,6 @@ public final class UiNavigator implements Disposable {
             activeOverlay.stage().draw();
         }
         topBar.draw();
-        announcementOverlay.draw();
         toastStage.getViewport().apply();
         toastStage.draw();
     }
