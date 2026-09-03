@@ -12,7 +12,7 @@ import model.data.plant.PlantType;
 public class ConveyorState {
     public static final int MAX_BELT_SIZE = 8;
 
-    private static final int OFFER_INTERVAL_TICKS = 12 * GameLoop.TICKS_PER_SECOND;
+    private static final int OFFER_INTERVAL_TICKS = 8 * GameLoop.TICKS_PER_SECOND;
 
     private final List<PlantType> availablePlants;
     private final List<PlantType> belt = new ArrayList<>();

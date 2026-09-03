@@ -55,8 +55,12 @@ public class GameLoop {
     }
 
     public void startAutoTick() {
-        if (running) {
+        if (running && autoTickThread != null && autoTickThread.isAlive()) {
             return;
+        }
+        if (running) {
+            running = false;
+            autoTickThread = null;
         }
 
         if (onTickHandler == null) {
@@ -102,7 +106,7 @@ public class GameLoop {
     }
 
     public boolean isAutoTickRunning() {
-        return running;
+        return running && autoTickThread != null && autoTickThread.isAlive();
     }
 
     public boolean isAutoTickEnabled() {
@@ -114,33 +118,42 @@ public class GameLoop {
             while (running) {
                 long startTime = System.currentTimeMillis();
 
-                performTick();
+                if (!performTick()) {
+                    break;
+                }
 
                 long elapsed = System.currentTimeMillis() - startTime;
                 long sleepTime = getTickIntervalMs() - elapsed;
 
-                if (sleepTime > 0) {
-                    try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
+                try {
+                    Thread.sleep(Math.max(1, sleepTime));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
                 }
             }
         } finally {
+            running = false;
+            autoTickEnabled = false;
             if (autoTickThread == Thread.currentThread()) {
                 autoTickThread = null;
             }
         }
     }
 
-    private void performTick() {
-        if (onTickHandler != null) {
-            onTickHandler.run();
+    private boolean performTick() {
+        try {
+            if (onTickHandler != null) {
+                onTickHandler.run();
+            }
+            ticksPerformed++;
+            totalTicks++;
+            return true;
+        } catch (RuntimeException e) {
+            System.err.println("Game tick failed: " + e.getMessage());
+            e.printStackTrace(System.err);
+            return false;
         }
-        ticksPerformed++;
-        totalTicks++;
     }
 
     public int getTicksPerformed() {

@@ -113,6 +113,7 @@ public final class GraphicsApp extends ApplicationAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         if (app.isGameScreen()) {
+            ui.ensureGameLoopRunning();
             renderGameScreen(dt);
         } else {
             renderMenuScreen();
