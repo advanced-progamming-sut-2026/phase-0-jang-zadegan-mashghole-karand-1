@@ -6,9 +6,14 @@ import java.util.Map;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
@@ -41,13 +46,20 @@ import view.gdx.ui.screens.izombie.QuickMessageOverlayScreen;
 import view.gdx.ui.screens.menus.SettingsOverlayScreen;
 
 public final class UiNavigator implements Disposable {
+    private static final float TOAST_DURATION_SECONDS = 3f;
+    private static final Color TOAST_INFO = new Color(0.15f, 0.15f, 0.16f, 1f);
+    private static final Color TOAST_ERROR = new Color(0.75f, 0.12f, 0.12f, 1f);
+
     private final Map<ScreenType, UiScreen> screens = new EnumMap<>(ScreenType.class);
     private final Map<MenuType, UiScreen> overlays = new EnumMap<>(MenuType.class);
     private final Stage toastStage;
+    private final Table toastPanel;
     private final Label toastLabel;
+    private final Texture toastBgTexture;
     private final GameLoop gameLoop;
     private final GlobalTopBar topBar;
     private final GameAnnouncementOverlay announcementOverlay;
+    private float toastRemaining;
 
     private UiScreen activeScreen;
     private UiScreen activeOverlay;
@@ -63,8 +75,18 @@ public final class UiNavigator implements Disposable {
         Table toastRoot = new Table();
         toastRoot.setFillParent(true);
         toastRoot.bottom().left().pad(16f);
+        Pixmap px = new Pixmap(2, 2, Pixmap.Format.RGBA8888);
+        px.setColor(1f, 1f, 1f, 0.92f);
+        px.fill();
+        toastBgTexture = new Texture(px);
+        px.dispose();
+        toastPanel = new Table();
+        toastPanel.setBackground(new TextureRegionDrawable(new TextureRegion(toastBgTexture)));
+        toastPanel.pad(8f, 12f, 8f, 12f);
         toastLabel = new Label("", UiSkin.get(), "default");
-        toastRoot.add(toastLabel);
+        toastPanel.add(toastLabel);
+        toastPanel.setVisible(false);
+        toastRoot.add(toastPanel);
         toastStage.addActor(toastRoot);
     }
 
@@ -206,7 +228,24 @@ public final class UiNavigator implements Disposable {
     }
 
     public void showToast(String message) {
-        toastLabel.setText(message == null ? "" : message);
+        showToast(message, false);
+    }
+
+    public void showToast(String message, boolean error) {
+        if (message == null || message.isBlank()) {
+            clearToast();
+            return;
+        }
+        toastLabel.setText(message);
+        toastLabel.setColor(error ? TOAST_ERROR : TOAST_INFO);
+        toastPanel.setVisible(true);
+        toastRemaining = TOAST_DURATION_SECONDS;
+    }
+
+    private void clearToast() {
+        toastLabel.setText("");
+        toastPanel.setVisible(false);
+        toastRemaining = 0f;
     }
 
     public void act(float deltaSeconds) {
@@ -218,6 +257,12 @@ public final class UiNavigator implements Disposable {
         }
         topBar.act(deltaSeconds);
         announcementOverlay.act(deltaSeconds);
+        if (toastRemaining > 0f) {
+            toastRemaining -= deltaSeconds;
+            if (toastRemaining <= 0f) {
+                clearToast();
+            }
+        }
         toastStage.act(deltaSeconds);
     }
 
@@ -232,8 +277,10 @@ public final class UiNavigator implements Disposable {
             activeOverlay.stage().draw();
         }
         topBar.draw();
-        toastStage.getViewport().apply();
-        toastStage.draw();
+        if (toastRemaining > 0f) {
+            toastStage.getViewport().apply();
+            toastStage.draw();
+        }
     }
 
     public void resize(int width, int height) {
@@ -262,7 +309,8 @@ public final class UiNavigator implements Disposable {
     }
 
     private boolean shouldDrawScreenLayer() {
-        return activeScreen != null && lastContext != null;    }
+        return activeScreen != null && lastContext != null;
+    }
 
     private static String prettyName(ScreenType type) {
         return switch (type) {
@@ -291,6 +339,7 @@ public final class UiNavigator implements Disposable {
         }
         topBar.dispose();
         announcementOverlay.dispose();
+        toastBgTexture.dispose();
         toastStage.dispose();
     }
 }
