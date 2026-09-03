@@ -1,7 +1,6 @@
 package view.gdx.lawn;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -23,20 +22,12 @@ public final class LawnGridDebugOverlay implements Disposable {
     private static final Color LABEL = Color.WHITE;
 
     private final ShapeRenderer shapes = new ShapeRenderer();
-    private boolean visible = true;
     private BitmapFont font;
     private boolean loggedLayout;
 
     public void render(OrthographicCamera camera, SpriteBatch batch,
             LawnLayout layout, LawnBackgroundRenderer background) {
         if (!ENABLED || camera == null || layout == null) {
-            return;
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.G)) {
-            visible = !visible;
-            Gdx.app.log("LawnGridDebug", "overlay " + (visible ? "on" : "off") + " (G)");
-        }
-        if (!visible) {
             return;
         }
 
@@ -128,7 +119,7 @@ public final class LawnGridDebugOverlay implements Disposable {
                 font.draw(batch, text, cx - 10f, cy + 6f);
             }
         }
-        font.draw(batch, "GRID DEBUG (G toggles)", layout.originX + 4f,
+        font.draw(batch, "GRID DEBUG (Settings: Ground Webbing)", layout.originX + 4f,
                 layout.originY + ReadOnlyGameState.SCREEN_HEIGHT * layout.scaleY - 6f);
         batch.end();
     }

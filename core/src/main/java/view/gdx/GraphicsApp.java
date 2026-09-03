@@ -141,7 +141,15 @@ public final class GraphicsApp extends ApplicationAdapter {
                 app.controller().getStorage().getCurrentUser());
         renderGameHud(dt, session, hud, chapter, paused);
         batch.end();
+        syncGroundWebbingOverlay();
         lawnGridDebug.render(camera, batch, lawnLayout, lawnBackground);
+    }
+
+    private void syncGroundWebbingOverlay() {
+        var user = app.controller().getStorage().getCurrentUser();
+        LawnGridDebugOverlay.ENABLED = user != null
+                && user.preferredSetting != null
+                && user.preferredSetting.isShowGroundWebbing();
     }
 
     private void syncLawnLayout(ChapterType chapter) {
