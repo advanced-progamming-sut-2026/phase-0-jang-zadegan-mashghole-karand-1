@@ -18,6 +18,8 @@ import model.data.plant.Plant;
 import model.data.plant.PlantTag;
 import model.data.plant.PlantType;
 import model.data.plant.abilities.runtime.BowlingMotionView;
+import model.data.plant.stuns.PlantStun;
+import model.data.plant.stuns.StunKind;
 import model.data.projectile.Projectile;
 import model.data.vfx.LawnEffect;
 import model.data.zombie.Zombie;
@@ -50,6 +52,8 @@ public final class LawnRenderer {
             "768/INITIAL/EFFECTS/SANDSTORM_TOP/SANDSTORM_TOP.PAM";
     private static final String SANDSTORM_REAR_PAM =
             "768/INITIAL/EFFECTS/SANDSTORM_REAR/SANDSTORM_REAR.PAM";
+    private static final String OCTOPUS_ON_PLANT_PAM =
+            "768/FULL/EFFECTS/ZOMBIE_OCTOPUS_PROJECTILE/ZOMBIE_OCTOPUS_PROJECTILE.PAM";
 
     private final VisualCatalog catalog;
     private final LawnLayout layout;
@@ -161,6 +165,17 @@ public final class LawnRenderer {
         }
         drawPam(batch, player, clip, anim.stateTime, x, y, true, null, rotation);
         drawPlantFrostbiteOverlay(batch, assets, player, plant, x, y, frozen);
+        drawPlantOctopusOverlay(batch, assets, player, plant, x, y);
+    }
+
+    private void drawPlantOctopusOverlay(SpriteBatch batch, AssetContext assets, PamPlayer player,
+            Plant plant, float x, float y) {
+        PlantStun stun = plant.getActiveStun();
+        if (stun == null || stun.getKind() != StunKind.OCTOPUS) {
+            return;
+        }
+        drawOverlayPam(batch, assets, player, OCTOPUS_ON_PLANT_PAM, "animation3",
+                animKey(27, plant.instanceId), x, y, true);
     }
 
     private static String resolvePlantClip(Plant plant, PlantVisualDef visual) {

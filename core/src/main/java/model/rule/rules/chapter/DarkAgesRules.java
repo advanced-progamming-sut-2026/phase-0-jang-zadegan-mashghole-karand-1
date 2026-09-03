@@ -97,6 +97,10 @@ public class DarkAgesRules implements LevelRule {
         }
     }
 
+    public boolean hasPendingNecromancySpawn() {
+        return pendingNecromancyTicks > 0;
+    }
+
     private boolean hasPendingNecromancySpawns(GameState state) {
         for (int row = 0; row < GameState.GRID_ROWS; row++) {
             for (int col = MIN_COL; col < GameState.GRID_COLS; col++) {
