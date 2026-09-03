@@ -89,6 +89,10 @@ public class BigWaveBeachRules implements LevelRule {
         }
     }
 
+    public boolean hasPendingBeachSpawn() {
+        return pendingBeachSpawnTicks > 0;
+    }
+
     private void collectPendingBeachSpawns(SessionContext context, GameState state, EventBus bus) {
         pendingBeachTiles.clear();
         pendingSpawnContext = context;

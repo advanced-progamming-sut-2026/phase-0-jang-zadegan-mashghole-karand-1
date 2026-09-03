@@ -2,14 +2,16 @@ package controller;
 
 import model.core.EventBus;
 import model.core.ReadOnlyGameState;
-import model.data.content.chapter.ChapterType;
 import model.data.content.minigame.MiniGameType;
 import model.data.plant.PlantType;
 import model.data.sun.Sun;
 import model.data.zombie.Zombie;
 import model.event.events.*;
+import model.rule.LevelRule;
 import model.rule.SessionConfig;
 import model.rule.SessionContext;
+import model.rule.rules.chapter.BigWaveBeachRules;
+import model.rule.rules.chapter.DarkAgesRules;
 import model.storage.StorageManager;
 import shared.izombie.IZombiePlayMode;
 
@@ -18,6 +20,8 @@ public class AppEventHandler {
     private final EventBus eventBus;
     private final StorageManager storage;
     private final ControllerManager controller;
+    private boolean necromancerWarned;
+    private boolean beachSpawnWarned;
 
     public AppEventHandler(EventBus eventBus, StorageManager storage, ControllerManager controller) {
         this.eventBus = eventBus;
@@ -62,18 +66,29 @@ public class AppEventHandler {
             return;
         }
 
+        if (event.waveNumber == 1) {
+            necromancerWarned = false;
+            beachSpawnWarned = false;
+        }
+
         if (event.isFinalWave) {
             controller.sendMessage("The final wave has come.");
         } else {
             controller.sendMessage("Wave " + event.waveNumber + " started.");
         }
 
-        ChapterType chapter = resolveChapter();
-        if (chapter == ChapterType.DARK_AGES) {
+        if (shouldWarnNecromancer()) {
             controller.showAnnouncement("Beware the Necromancer!");
-        } else if (chapter == ChapterType.BIG_WAVE_BEACH) {
+            necromancerWarned = true;
+            return;
+        }
+        if (shouldWarnBeachSpawn()) {
             controller.showAnnouncement("Zombies are emerging from the beach!");
-        } else if (event.isFinalWave) {
+            beachSpawnWarned = true;
+            return;
+        }
+
+        if (event.isFinalWave) {
             controller.showAnnouncement("The final wave is approaching!");
         } else if (event.waveNumber == 1) {
             controller.showAnnouncement("A huge wave of zombies is approaching!");
@@ -82,12 +97,36 @@ public class AppEventHandler {
         }
     }
 
-    private ChapterType resolveChapter() {
-        SessionContext context = controller.getModel().getPlayContext();
-        if (context == null || context.getConfig() == null || context.getConfig().levelConfig == null) {
-            return null;
+    private boolean shouldWarnNecromancer() {
+        if (necromancerWarned) {
+            return false;
         }
-        return context.getConfig().levelConfig.chapterType;
+        SessionContext context = controller.getModel().getPlayContext();
+        if (context == null || context.getRuleEngine() == null) {
+            return false;
+        }
+        for (LevelRule rule : context.getRuleEngine().getActiveRules()) {
+            if (rule instanceof DarkAgesRules darkAges && darkAges.hasPendingNecromancySpawn()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean shouldWarnBeachSpawn() {
+        if (beachSpawnWarned) {
+            return false;
+        }
+        SessionContext context = controller.getModel().getPlayContext();
+        if (context == null || context.getRuleEngine() == null) {
+            return false;
+        }
+        for (LevelRule rule : context.getRuleEngine().getActiveRules()) {
+            if (rule instanceof BigWaveBeachRules beach && beach.hasPendingBeachSpawn()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void onZombieDied(ZombieDiedEvent event) {
